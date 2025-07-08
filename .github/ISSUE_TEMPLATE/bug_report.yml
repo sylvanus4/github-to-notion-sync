@@ -1,0 +1,38 @@
+name: 🐛 Bug Report  
+description: Report a bug in the Python application
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear description of what the bug is
+    validations:
+      required: true
+      
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Error Traceback
+      description: If applicable, paste the full error traceback
+      render: python
+      
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version
+      description: What version of Python are you using?
+      placeholder: "3.11.0"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: List relevant package versions
+      placeholder: |
+        - Django: 4.2.0
+        - requests: 2.28.2
+        - etc.

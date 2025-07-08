@@ -1,0 +1,50 @@
+query getProjectFields($org: String!, $num: Int!) {
+  organization(login: $org) {
+    projectV2(number: $num) {
+      id
+      title
+      url
+      createdAt
+      updatedAt
+      closed
+      fields(first: 50) {
+        nodes {
+          ... on ProjectV2Field {
+            id
+            name
+            dataType
+            createdAt
+            updatedAt
+          }
+          ... on ProjectV2SingleSelectField {
+            id
+            name
+            dataType
+            createdAt
+            updatedAt
+            options {
+              id
+              name
+              nameHTML
+            }
+          }
+          ... on ProjectV2IterationField {
+            id
+            name
+            dataType
+            createdAt
+            updatedAt
+            configuration {
+              iterations {
+                id
+                title
+                startDate
+                duration
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,183 @@
+query getProjectItems($org: String!, $num: Int!, $after: String) {
+  organization(login: $org) {
+    projectV2(number: $num) {
+      id
+      title
+      url
+      createdAt
+      updatedAt
+      closed
+      items(first: 100, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          id
+          type
+          createdAt
+          updatedAt
+          content {
+            ... on Issue {
+              __typename
+              id
+              number
+              title
+              body
+              url
+              state
+              createdAt
+              updatedAt
+              closedAt
+              assignees(first: 10) {
+                nodes {
+                  login
+                  email
+                  name
+                  avatarUrl
+                }
+              }
+              labels(first: 20) {
+                nodes {
+                  id
+                  name
+                  color
+                  description
+                }
+              }
+              repository {
+                id
+                name
+                nameWithOwner
+                url
+                description
+              }
+            }
+            ... on PullRequest {
+              __typename
+              id
+              number
+              title
+              body
+              url
+              state
+              createdAt
+              updatedAt
+              closedAt
+              mergedAt
+              assignees(first: 10) {
+                nodes {
+                  login
+                  email
+                  name
+                  avatarUrl
+                }
+              }
+              labels(first: 20) {
+                nodes {
+                  id
+                  name
+                  color
+                  description
+                }
+              }
+              repository {
+                id
+                name
+                nameWithOwner
+                url
+                description
+              }
+            }
+            ... on DraftIssue {
+              __typename
+              id
+              title
+              body
+              createdAt
+              updatedAt
+              assignees(first: 10) {
+                nodes {
+                  login
+                  email
+                  name
+                  avatarUrl
+                }
+              }
+            }
+          }
+          fieldValues(first: 20) {
+            nodes {
+              ... on ProjectV2ItemFieldTextValue {
+                text
+                field {
+                  ... on ProjectV2Field {
+                    id
+                    name
+                    dataType
+                  }
+                }
+              }
+              ... on ProjectV2ItemFieldNumberValue {
+                number
+                field {
+                  ... on ProjectV2Field {
+                    id
+                    name
+                    dataType
+                  }
+                }
+              }
+              ... on ProjectV2ItemFieldDateValue {
+                date
+                field {
+                  ... on ProjectV2Field {
+                    id
+                    name
+                    dataType
+                  }
+                }
+              }
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                name
+                optionId
+                field {
+                  ... on ProjectV2SingleSelectField {
+                    id
+                    name
+                    dataType
+                    options {
+                      id
+                      name
+                      nameHTML
+                    }
+                  }
+                }
+              }
+              ... on ProjectV2ItemFieldIterationValue {
+                title
+                startDate
+                duration
+                field {
+                  ... on ProjectV2IterationField {
+                    id
+                    name
+                    dataType
+                    configuration {
+                      iterations {
+                        id
+                        title
+                        startDate
+                        duration
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

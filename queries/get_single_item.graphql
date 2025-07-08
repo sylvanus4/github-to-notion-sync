@@ -1,0 +1,239 @@
+query GetSingleItem($org: String!, $num: Int!, $itemId: ID!) {
+  organization(login: $org) {
+    projectV2(number: $num) {
+      id
+      title
+      url
+      public
+      closed
+      createdAt
+      updatedAt
+      item(id: $itemId) {
+        id
+        type
+        createdAt
+        updatedAt
+        fieldValues(first: 20) {
+          nodes {
+            ... on ProjectV2ItemFieldTextValue {
+              text
+              field {
+                ... on ProjectV2FieldCommon {
+                  id
+                  name
+                  dataType
+                }
+              }
+            }
+            ... on ProjectV2ItemFieldNumberValue {
+              number
+              field {
+                ... on ProjectV2FieldCommon {
+                  id
+                  name
+                  dataType
+                }
+              }
+            }
+            ... on ProjectV2ItemFieldDateValue {
+              date
+              field {
+                ... on ProjectV2FieldCommon {
+                  id
+                  name
+                  dataType
+                }
+              }
+            }
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+              optionId
+              field {
+                ... on ProjectV2FieldCommon {
+                  id
+                  name
+                  dataType
+                }
+              }
+            }
+            ... on ProjectV2ItemFieldIterationValue {
+              title
+              startDate
+              duration
+              field {
+                ... on ProjectV2FieldCommon {
+                  id
+                  name
+                  dataType
+                }
+              }
+            }
+          }
+        }
+        content {
+          __typename
+          ... on Issue {
+            id
+            number
+            title
+            body
+            url
+            state
+            createdAt
+            updatedAt
+            closedAt
+            author {
+              login
+              avatarUrl
+              url
+            }
+            assignees(first: 10) {
+              nodes {
+                login
+                avatarUrl
+                url
+              }
+            }
+            labels(first: 20) {
+              nodes {
+                id
+                name
+                color
+                description
+              }
+            }
+            milestone {
+              id
+              title
+              number
+              description
+              state
+              createdAt
+              updatedAt
+              dueOn
+              closedAt
+            }
+            repository {
+              id
+              name
+              nameWithOwner
+              url
+              description
+              isPrivate
+              createdAt
+              updatedAt
+            }
+          }
+          ... on PullRequest {
+            id
+            number
+            title
+            body
+            url
+            state
+            isDraft
+            createdAt
+            updatedAt
+            closedAt
+            mergedAt
+            author {
+              login
+              avatarUrl
+              url
+            }
+            assignees(first: 10) {
+              nodes {
+                login
+                avatarUrl
+                url
+              }
+            }
+            labels(first: 20) {
+              nodes {
+                id
+                name
+                color
+                description
+              }
+            }
+            milestone {
+              id
+              title
+              number
+              description
+              state
+              createdAt
+              updatedAt
+              dueOn
+              closedAt
+            }
+            repository {
+              id
+              name
+              nameWithOwner
+              url
+              description
+              isPrivate
+              createdAt
+              updatedAt
+            }
+            baseRef {
+              name
+              prefix
+              repository {
+                name
+                nameWithOwner
+              }
+            }
+            headRef {
+              name
+              prefix
+              repository {
+                name
+                nameWithOwner
+              }
+            }
+            mergeable
+            merged
+            reviewDecision
+            reviewRequests(first: 10) {
+              nodes {
+                requestedReviewer {
+                  ... on User {
+                    login
+                    avatarUrl
+                    url
+                  }
+                  ... on Team {
+                    name
+                    slug
+                    url
+                  }
+                }
+              }
+            }
+          }
+          ... on DraftIssue {
+            id
+            title
+            body
+            createdAt
+            updatedAt
+            creator {
+              login
+              avatarUrl
+              url
+            }
+            assignees(first: 10) {
+              nodes {
+                login
+                avatarUrl
+                url
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

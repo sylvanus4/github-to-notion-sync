@@ -1,0 +1,391 @@
+# GitHub Projects v2와 Notion DB 양방향 동기화 파이프라인 구축
+
+**문서 버전:** 1.0  
+**기준일:** 2025-07-08  
+
+## 1. 개요 (Overview)
+
+본 문서는 GitHub Projects v2 보드에 등록된 Issue, PR 및 커스텀 필드 상태를 Notion 데이터베이스와 실시간으로 동기화하는 파이프라인 구축을 위한 기술 설계 내용을 담고 있습니다.
+
+이 파이프라인은 GitHub Webhook을 통해 변경 사항을 즉시 Notion에 반영하고, 주기적인 전체 동기화(Full Sync)를 통해 데이터 정합성을 보장하는 **"로우코드(Low-Code)"** 하이브리드 접근 방식을 채택합니다. 개발자는 FastAPI 기반의 간단한 동기화 워커(Sync Worker)만 구현하고, 나머지 인프라는 GitHub Actions와 같은 관리형 서비스를 활용하여 운영 부담을 최소화합니다.
+
+## 2. 프로젝트 목표 (Goals)
+
+- **단일 정보 출처(Single Source of Truth) 제공**: 개발자는 GitHub에서, 비개발 직군(PM, 기획, 디자인)은 Notion에서 동일한 프로젝트 현황을 조회할 수 있도록 합니다.
+- **실시간 현황 공유**: GitHub Issue/PR의 생성, 상태 변경, 담당자 할당 등의 이벤트가 수 분 내로 Notion에 반영되도록 합니다.
+- **커스텀 필드 지원**: GitHub Projects v2의 '상태(Status)' 뿐만 아니라, '스프린트', '우선순위' 등 팀별 커스텀 필드까지 Notion에 동기화합니다.
+- **운영 자동화**: GitHub Actions를 이용한 주기적인 동기화 및 모니터링을 통해 수동 개입을 최소화하고 데이터 정합성을 유지합니다.
+
+## 3. 아키텍처 (Architecture)
+
+파이프라인은 Webhook 기반 실시간 동기화와 스케줄 기반 전체 동기화 두 가지 흐름으로 구성됩니다.
+
+```
+┌──────────┐      (1) GitHub Webhooks        ┌───────────────┐      (3) Notion API      ┌────────────┐
+│          │      (issue, PR, project_item)   │               │     (create/update)      │            │
+│  GitHub  │ ─────────────────────────────────▶ │  Sync Worker  │ ────────────────────▶ │ Notion DB  │
+│ Projects │                                  │ (FastAPI on   │                        │  (Tasks)   │
+│ v2 Board │      (2) GraphQL Polling (6h)    │  AWS Lambda)  │                        │            │
+│          │ ◀───────────────────────────────── │               │                        │            │
+└──────────┘                                   └───────────────┘                        └────────────┘
+```
+
+### 데이터 흐름
+
+**실시간 동기화 (Webhook):**
+- GitHub에서 Issue, PR, Project Item 관련 이벤트(생성, 수정, 마감 등)가 발생하면 등록된 Webhook URL로 POST 요청을 보냅니다.
+- Sync Worker는 이 요청을 받아 페이로드를 검증하고, 변경된 항목만 특정하여 Notion API를 호출해 해당 페이지를 생성하거나 업데이트합니다.
+
+**주기적 전체 동기화 (Batch Sync):**
+- GitHub Actions가 정해진 스케줄(예: 6시간마다)에 따라 Sync Worker의 동기화 스크립트를 트리거합니다.
+- Sync Worker는 GitHub GraphQL API를 호출하여 Project 보드의 모든 아이템과 커스텀 필드 값을 가져옵니다.
+- 가져온 데이터를 기준으로 Notion DB의 모든 페이지를 비교하며 누락되거나 불일치하는 정보를 업데이트(Upsert)하여 데이터 정합성을 맞춥니다. 이는 Webhook이 실패했거나 놓친 이벤트를 보정하는 역할을 합니다.
+
+**Notion API 호출:**
+- Sync Worker는 notion-client 라이브러리를 사용하여 Notion DB에 페이지를 생성(create)하거나 기존 페이지를 수정(update)합니다.
+
+## 4. 준비 사항 및 환경 설정
+
+### 4.1. 필요 자격 증명 (Credentials)
+
+| 항목 | 상세 내용 | 획득 방법 |
+|------|-----------|-----------|
+| GitHub 토큰 | Fine-grained Personal Access Token (PAT) 사용을 강력히 권장합니다. (2025-07 기준)<br>- 필수 권한 (Permissions):<br>  - Repository: Issues (Read & Write), Pull requests (Read & Write)<br>  - Organization: Projects (Read & Write)<br>  - Repository: Webhooks (Read & Write) - Webhook 관리용 | GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens에서 생성. 조직(Organization) 리소스에 대한 접근 권한을 부여해야 합니다. |
+| Notion 토큰 | Internal Integration Token | Notion → Settings & members → Integrations → Develop your own integrations에서 새 통합(Integration) 생성. Read, Write, Update 권한을 부여합니다. |
+| Webhook Secret | Webhook 페이로드의 무결성을 검증하기 위한 시크릿 문자열입니다. | Webhook 설정 시 임의의 강력한 문자열을 생성하여 입력합니다. |
+
+### 4.2. Notion 데이터베이스 준비
+
+1. Notion에서 새 페이지를 생성하고 Table 데이터베이스를 선택합니다.
+2. **데이터베이스 ID (Database ID) 획득:**
+   - 생성한 데이터베이스를 전체 페이지 보기로 엽니다.
+   - 브라우저 주소창의 URL `https://www.notion.so/{workspace_name}/{32_char_id}?v=...` 에서 `?v=` 앞의 32자리 영문/숫자 조합 ID가 데이터베이스 ID입니다. 하이픈(-)은 제거해야 합니다.
+3. **통합(Integration) 공유:**
+   - 데이터베이스 우측 상단의 ••• 메뉴 클릭 → Add connections → 생성한 Notion Integration을 검색하여 선택하고 접근을 허용합니다. 이 과정을 거치지 않으면 API 호출 시 401 Unauthorized 오류가 발생합니다.
+
+### 4.3. 환경 변수 (.env)
+
+동기화 워커 및 스크립트 실행에 필요한 환경 변수입니다.
+
+```bash
+# .env
+
+# Notion API
+NOTION_TOKEN="secret_..."
+NOTION_DB_ID="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# GitHub API & Project Info
+GH_TOKEN="github_pat_..."
+GH_ORG="your-github-organization"
+GH_PROJECT_NUMBER=123 # 프로젝트 URL의 숫자 (e.g., /orgs/your-org/projects/123)
+
+# Webhook Security
+GH_WEBHOOK_SECRET="your-strong-webhook-secret"
+```
+
+## 5. 데이터 모델 (Notion DB Schema)
+
+Notion 데이터베이스는 아래와 같이 GitHub Project의 속성을 매핑하도록 설계합니다.
+
+| 속성명 (Notion) | 속성 타입 (Type) | GitHub 매핑 소스 | 설명 |
+|----------------|------------------|------------------|------|
+| Task Name | Title | Issue/PR.title | Issue 또는 PR의 제목 (필수) |
+| GitHub Node ID | Rich Text | ProjectItem.id | GitHub 아이템의 고유 node_id. Upsert 로직의 Key로 사용. (고유값) |
+| Type | Select | Issue / PullRequest | 아이템의 종류 (Issue, PR, Draft) |
+| Status | Select | ProjectItem.fieldValueByName | GitHub Project의 Status 필드. (예: Todo, In Progress, Done) |
+| Sprint | Select | ProjectItem.fieldValueByName | GitHub Project의 커스텀 필드 'Sprint'. (예: Sprint 23-A, Backlog) |
+| Assignees | Multi-person | Issue/PR.assignees | 담당자. GitHub 로그인 ID와 Notion 사용자 이메일 매핑 필요. |
+| GitHub Link | URL | Issue/PR.url | 원본 GitHub Issue/PR로 바로가기 링크. |
+| Last Updated | Last edited time | - | Notion 페이지가 마지막으로 수정된 시각. |
+
+## 6. 상세 구현 계획 (Implementation Details)
+
+### 6.1. GitHub 데이터 수집 (GraphQL)
+
+주기적인 전체 동기화를 위해 GitHub GraphQL API를 사용합니다. 이 쿼리는 프로젝트의 모든 아이템, 기본 정보, 그리고 'Sprint'와 같은 커스텀 필드 값까지 한 번에 가져옵니다.
+
+```graphql
+# File: queries/get_project_items.graphql
+query getProjectItems($org: String!, $num: Int!, $after: String) {
+  organization(login: $org) {
+    projectV2(number: $num) {
+      title
+      items(first: 100, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          id # GitHub Node ID (Unique Key for Notion)
+          type
+          content {
+            ... on Issue {
+              __typename
+              id
+              url
+              title
+              number
+              state
+              assignees(first: 10) {
+                nodes {
+                  login
+                  email
+                }
+              }
+            }
+            ... on PullRequest {
+              __typename
+              id
+              url
+              title
+              number
+              state
+              assignees(first: 10) {
+                nodes {
+                  login
+                  email
+                }
+              }
+            }
+          }
+          # 커스텀 필드를 포함한 모든 필드 값 추출
+          fieldValues(first: 20) {
+            nodes {
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                # 'Sprint', 'Priority' 같은 Select 필드
+                name # e.g., "Sprint 23-A"
+                field {
+                  ... on ProjectV2SingleSelectField {
+                    name # e.g., "Sprint"
+                  }
+                }
+              }
+              ... on ProjectV2ItemFieldTextValue {
+                # Text 필드
+                text
+                field { ... on ProjectV2Field { name } }
+              }
+              ... on ProjectV2ItemFieldDateValue {
+                # Date 필드
+                date
+                field { ... on ProjectV2Field { name } }
+              }
+              # ... 다른 타입의 필드 추가 가능
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+- **Pagination**: pageInfo의 hasNextPage가 true일 경우, endCursor 값을 다음 요청의 $after 변수로 넘겨 100개 이상의 모든 아이템을 가져옵니다.
+- **커스텀 필드**: fieldValues 노드를 순회하며 각 필드의 이름(field.name)과 값(name, text, date 등)을 동적으로 파싱하여 Notion 속성에 매핑합니다.
+
+### 6.2. Notion Upsert 로직 (Python)
+
+GitHub에서 가져온 데이터를 Notion에 생성하거나 업데이트(Upsert)하는 핵심 로직입니다.
+
+```python
+# File: services/notion_service.py
+import os
+import time
+from notion_client import Client, APIResponseError
+
+# --- 초기화 ---
+NOTION_TOKEN = os.getenv("NOTION_TOKEN")
+NOTION_DB_ID = os.getenv("NOTION_DB_ID")
+notion = Client(auth=NOTION_TOKEN)
+
+def build_properties(item_data):
+    """GitHub 아이템 데이터를 Notion 속성 형식으로 변환"""
+    # ... (GitHub 데이터 파싱 및 Notion Property 객체 생성 로직)
+    # 예시:
+    properties = {
+        "Task Name": {"title": [{"text": {"content": item_data.get("title", "N/A")}}]},
+        "GitHub Node ID": {"rich_text": [{"text": {"content": item_data["id"]}}]},
+        "Status": {"select": {"name": item_data.get("status", "Todo")}},
+        "Sprint": {"select": {"name": item_data.get("sprint", "Backlog")}},
+        # ... 기타 속성
+    }
+    return properties
+
+def upsert_to_notion(item_data):
+    """GitHub Node ID를 기준으로 Notion 페이지를 찾아 업데이트하거나 새로 생성"""
+    gh_node_id = item_data["id"]
+    
+    try:
+        # 1. GitHub Node ID로 기존 페이지 검색
+        query_result = notion.databases.query(
+            database_id=NOTION_DB_ID,
+            filter={
+                "property": "GitHub Node ID",
+                "rich_text": {"equals": gh_node_id}
+            }
+        )
+        
+        existing_pages = query_result.get("results")
+        properties = build_properties(item_data)
+
+        if existing_pages:
+            # 2. 페이지가 존재하면 업데이트
+            page_id = existing_pages[0]["id"]
+            print(f"Updating page for GitHub item: {gh_node_id}")
+            notion.pages.update(page_id=page_id, properties=properties)
+        else:
+            # 3. 페이지가 없으면 생성
+            print(f"Creating page for GitHub item: {gh_node_id}")
+            notion.pages.create(
+                parent={"database_id": NOTION_DB_ID},
+                properties=properties
+            )
+
+    except APIResponseError as e:
+        # 4. Rate Limit 처리 (중요)
+        if e.code == "rate_limited":
+            retry_after = int(e.headers.get("Retry-After", 1))
+            print(f"Rate limited. Retrying after {retry_after} seconds...")
+            time.sleep(retry_after)
+            upsert_to_notion(item_data) # 재귀 호출로 재시도
+        else:
+            print(f"Error processing item {gh_node_id}: {e}")
+            # 다른 종류의 에러는 로깅 후 다음 아이템으로 넘어감
+```
+
+- **핵심 로직**: GitHub Node ID 커스텀 속성을 고유 키로 사용하여 databases.query로 페이지 존재 여부를 확인합니다.
+- **Rate Limit**: Notion API는 초당 평균 3개의 요청 제한이 있습니다. 429 Too Many Requests 에러 발생 시, 응답 헤더의 Retry-After 값을 읽어 해당 시간만큼 대기 후 재시도하는 지수 백오프(Exponential Backoff) 로직이 반드시 포함되어야 합니다.
+
+### 6.3. 실시간 동기화 (FastAPI Webhook)
+
+GitHub Webhook 요청을 처리하는 FastAPI 엔드포인트입니다.
+
+```python
+# File: main.py
+import hmac
+import hashlib
+import os
+import json
+from fastapi import FastAPI, Request, Header, HTTPException
+
+# --- 초기화 ---
+app = FastAPI()
+GH_WEBHOOK_SECRET = os.getenv("GH_WEBHOOK_SECRET")
+
+def verify_signature(signature: str, body: bytes):
+    """GitHub Webhook 시그니처 검증"""
+    if not signature:
+        return False
+    
+    local_signature = "sha256=" + hmac.new(
+        GH_WEBHOOK_SECRET.encode('utf-8'), body, hashlib.sha256
+    ).hexdigest()
+    
+    return hmac.compare_digest(local_signature, signature)
+
+@app.post("/webhook")
+async def github_webhook_handler(
+    request: Request,
+    x_hub_signature_256: str = Header(None)
+):
+    """GitHub Webhook 이벤트를 수신하고 처리"""
+    body = await request.body()
+    
+    # 1. 시그니처 검증
+    if not verify_signature(x_hub_signature_256, body):
+        raise HTTPException(status_code=401, detail="Invalid signature")
+
+    # 2. 페이로드 파싱 및 처리 로직 호출
+    payload = json.loads(body)
+    event_type = request.headers.get("X-GitHub-Event")
+    
+    print(f"Received event: {event_type}")
+    
+    # 예: projects_v2_item 이벤트에서 정보 추출
+    if event_type == "projects_v2_item" and payload.get("action") in ["created", "edited"]:
+        item_node_id = payload["projects_v2_item"]["node_id"]
+        
+        # GraphQL로 해당 아이템의 최신 정보만 다시 조회 (권장)
+        # 또는 페이로드에서 필요한 정보를 파싱
+        # ...
+        
+        # item_data = get_single_item_from_github(item_node_id)
+        # upsert_to_notion(item_data)
+
+    return {"status": "ok"}
+```
+
+- **보안**: X-Hub-Signature-256 헤더를 이용한 시그니처 검증은 필수입니다. 이를 통해 수신한 요청이 실제로 GitHub에서 온 것임을 보장하고 Replay Attack을 방지합니다.
+
+### 6.4. 주기적 동기화 (GitHub Actions)
+
+Webhook이 놓칠 수 있는 변경 사항을 보정하기 위해, GitHub Actions를 사용하여 정기적으로 전체 동기화 스크립트를 실행합니다.
+
+```yaml
+# File: .github/workflows/notion_sync.yml
+name: Periodic Notion Sync
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 6시간마다 실행
+  workflow_dispatch: # 수동 실행 기능
+
+jobs:
+  full-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install notion-client requests python-dotenv
+
+      - name: Run Full Sync Script
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DB_ID: ${{ secrets.NOTION_DB_ID }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_ORG: ${{ vars.GH_ORG }} # 또는 secrets 사용
+          GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        run: python scripts/full_sync.py # 전체 동기화 로직을 담은 스크립트
+```
+
+- **Secrets 관리**: NOTION_TOKEN, GH_TOKEN과 같은 민감 정보는 반드시 GitHub Repository Secrets에 저장합니다. GH_ORG와 같이 덜 민감한 정보는 Repository Variables를 사용할 수 있습니다.
+
+## 7. 운영 및 모니터링 (Operations & Monitoring)
+
+- **로깅**: Sync Worker의 모든 API 요청, 성공, 실패(특히 4xx, 5xx 에러)를 구조화된 로그(JSON 형식)로 기록합니다. AWS Lambda 사용 시 CloudWatch Logs에 자동으로 수집됩니다.
+
+- **대시보드**: CloudWatch, Datadog 또는 Grafana를 사용하여 다음 지표를 시각화합니다:
+  - Notion API 429 Rate Limit 발생 빈도
+  - GitHub/Notion API 호출 에러율
+  - Webhook 처리 시간 (Latency)
+  - 주기적 동기화 실행 시간 및 처리된 아이템 수
+
+- **알림**: API 에러율이 임계치를 초과하거나 주기적 동기화 작업이 실패할 경우 Slack 또는 이메일로 즉시 알림을 설정합니다.
+
+- **백업**: Notion의 내보내기(Export) 기능을 사용하여 주 1회 데이터베이스를 Markdown/CSV 형식으로 백업하고, S3와 같은 안전한 스토리지에 버전 관리하여 저장합니다.
+
+## 8. FAQ 및 문제 해결
+
+**Q: Classic PAT를 계속 사용해도 되나요?**
+A: 2025년 7월 기준, Classic PAT는 여전히 유효하며 기존 스크립트는 문제없이 작동합니다. 하지만 GitHub는 보안 강화를 위해 권한 범위를 세밀하게 제어할 수 있고 만료 기간 설정이 유연한 Fine-grained PAT로의 전환을 강력히 권장하고 있습니다. 신규 프로젝트는 반드시 Fine-grained PAT를 사용해야 합니다.
+
+**Q: NOTION_DB_ID가 32자가 아닙니다.**
+A: 데이터베이스 URL을 복사할 때, `?v=` 와 같은 쿼리 파라미터를 제외한 순수 경로 부분만 확인해야 합니다. `https://www.notion.so/{workspace}/{id}` 에서 `{id}` 부분이 ID입니다. 이 ID에 포함된 하이픈(-)을 모두 제거하면 32자리의 ID가 됩니다.
+
+**Q: Projects v2의 'Date' 타입 커스텀 필드는 어떻게 동기화하나요?**
+A: GraphQL 쿼리에서 `... on ProjectV2ItemFieldDateValue { date field { ... on ProjectV2Field { name } } }` 와 같이 date 값을 추출할 수 있습니다. 이 값을 Notion의 Date 타입 속성에 `{ "date": { "start": "YYYY-MM-DD" } }` 형식으로 매핑하여 API를 호출하면 됩니다.
+
+**Q: 라벨(Label)이나 코멘트(Comment)도 양방향 동기화가 가능한가요?**
+A: 가능하지만 복잡도가 크게 증가합니다.
+
+- **라벨**: GraphQL Issue 객체에서 labels edge를 통해 조회하고, Notion에서는 Multi-select 속성으로 매핑할 수 있습니다. Webhook issues 이벤트의 labeled, unlabeled 액션을 활용합니다.
+- **코멘트**: Webhook에서 issue_comment, pull_request_review_comment 이벤트를 구독하여 Notion 페이지 내의 콘텐츠 블록으로 추가할 수 있습니다. 양방향 동기화는 Notion 페이지의 변경을 다시 GitHub 코멘트로 반영해야 하므로 구현이 매우 까다롭습니다. 초기 단계에서는 단방향(GitHub → Notion) 동기화를 권장합니다.
