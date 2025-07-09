@@ -10,16 +10,20 @@ import asyncio
 import argparse
 from datetime import datetime
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from src.services.sync_service import SyncService
-from src.utils.logger import setup_logging, get_logger
+from src.utils.logger import init_logging, get_logger
 from src.config import get_config
 
-# Setup logging
-setup_logging()
+# Initialize logging
+init_logging()
 logger = get_logger(__name__)
 
 
