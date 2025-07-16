@@ -58,7 +58,14 @@ class NotionRichText(BaseModel):
     """Notion rich text model."""
     type: str = "text"
     text: Dict[str, Any]
-    annotations: Optional[Dict[str, Any]] = None
+    annotations: Dict[str, Any] = Field(default_factory=lambda: {
+        "bold": False,
+        "italic": False,
+        "strikethrough": False,
+        "underline": False,
+        "code": False,
+        "color": "default"
+    })
     plain_text: Optional[str] = None
     href: Optional[str] = None
 
@@ -93,11 +100,20 @@ class NotionDate(BaseModel):
 
 class NotionTitle(BaseModel):
     """Notion title property model."""
-    id: Optional[str] = None
     type: str = "text"
     text: Dict[str, str]
-    annotations: Optional[Dict[str, Any]] = None
+    annotations: Dict[str, Any] = Field(default_factory=lambda: {
+        "bold": False,
+        "italic": False,
+        "strikethrough": False,
+        "underline": False,
+        "code": False,
+        "color": "default"
+    })
     plain_text: Optional[str] = None
+    
+    class Config:
+        exclude_none = True
     href: Optional[str] = None
 
 

@@ -251,10 +251,10 @@ class SyncService:
             logger.info("Full sync completed", extra={
                 "duration_seconds": result["duration_seconds"],
                 "total_items": result["total_items"],
-                "created": result["created"],
-                "updated": result["updated"],
-                "failed": result["failed"],
-                "success": result["success"]
+                "items_created": result["created"],
+                "items_updated": result["updated"],
+                "items_failed": result["failed"],
+                "sync_success": result["success"]
             })
         
         return result

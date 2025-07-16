@@ -5,132 +5,130 @@ github_to_notion:
   # Core Fields
   title:
     github_field: "title"
-    notion_property: "Task Name"
+    notion_property: "작업"
     type: "title"
     required: true
   
-  github_node_id:
-    github_field: "id"
-    notion_property: "GitHub Node ID"
-    type: "rich_text"
-    required: true
-    unique: true
+  # github_node_id:
+  #   github_field: "id"
+  #   notion_property: "GitHub Node ID"
+  #   type: "rich_text"
+  #   required: true
+  #   unique: true
   
   type:
     github_field: "__typename"
-    notion_property: "Type"
-    type: "select"
+    notion_property: "태그"
+    type: "multi_select"
     options:
       - "Issue"
-      - "PullRequest"
+      - "PullRequest" 
       - "DraftIssue"
   
   # Status Fields
   status:
     github_field: "Status"
-    notion_property: "Status"
+    notion_property: "진행 상태"
     type: "select"
     options:
       - "Todo"
-      - "In Progress"
+      - "In Progress" 
       - "Done"
       - "Cancelled"
   
-  # Sprint/Iteration Fields
-  sprint:
-    github_field: "Sprint"
-    notion_property: "Sprint"
-    type: "select"
-    options:
-      - "Backlog"
-      - "Current Sprint"
-      - "Next Sprint"
+  # Sprint/Iteration Fields (commented out - property doesn't exist in current database)
+  # sprint:
+  #   github_field: "Sprint"
+  #   notion_property: "Sprint"
+  #   type: "select"
+  #   options:
+  #     - "Backlog"
+  #     - "Current Sprint"
+  #     - "Next Sprint"
   
   # Assignment Fields
   assignees:
-    github_field: "assignees"
-    notion_property: "Assignees"
+    github_field: "Assignees"
+    notion_property: "담당자"
     type: "people"
-    multiple: true
   
   # Priority Fields
   priority:
     github_field: "Priority"
-    notion_property: "Priority"
+    notion_property: "우선순위"
     type: "select"
     options:
-      - "Low"
-      - "Medium"
-      - "High"
-      - "Critical"
+      - "P0"
+      - "P1"
+      - "P2"
   
   # Date Fields
   due_date:
-    github_field: "Due Date"
-    notion_property: "Due Date"
+    github_field: "End date"
+    notion_property: "마감일"
     type: "date"
   
-  # GitHub Specific Fields
-  github_link:
-    github_field: "url"
-    notion_property: "GitHub Link"
-    type: "url"
+  # GitHub Specific Fields (commented out - properties don't exist in current database)
+  # github_link:
+  #   github_field: "url"
+  #   notion_property: "GitHub Link"
+  #   type: "url"
+  # 
+  # github_number:
+  #   github_field: "number"
+  #   notion_property: "GitHub Number"
+  #   type: "number"
+  # 
+  # github_state:
+  #   github_field: "state"
+  #   notion_property: "GitHub State"
+  #   type: "select"
+  #   options:
+  #     - "OPEN"
+  #     - "CLOSED"
+  #     - "MERGED"
+  #     - "DRAFT"
+  # 
+  # # Labels
+  # labels:
+  #   github_field: "labels"
+  #   notion_property: "Labels"
+  #   type: "multi_select"
+  #   multiple: true
   
-  github_number:
-    github_field: "number"
-    notion_property: "GitHub Number"
-    type: "number"
-  
-  github_state:
-    github_field: "state"
-    notion_property: "GitHub State"
-    type: "select"
-    options:
-      - "OPEN"
-      - "CLOSED"
-      - "MERGED"
-      - "DRAFT"
-  
-  # Labels
-  labels:
-    github_field: "labels"
-    notion_property: "Labels"
-    type: "multi_select"
-    multiple: true
-  
-  # Size/Effort Fields
-  size:
-    github_field: "Size"
-    notion_property: "Size"
-    type: "select"
-    options:
-      - "XS"
-      - "S"
-      - "M"
-      - "L"
-      - "XL"
-  
-  story_points:
-    github_field: "Story Points"
-    notion_property: "Story Points"
-    type: "number"
-  
-  # Dates
-  created_at:
-    github_field: "createdAt"
-    notion_property: "Created At"
-    type: "date"
-  
-  updated_at:
-    github_field: "updatedAt"
-    notion_property: "Updated At"
-    type: "date"
-  
-  # Repository Info
-  repository:
-    github_field: "repository"
-    notion_property: "Repository"
-    type: "select"
+  # Size/Effort Fields (commented out - properties don't exist in current database)
+  # size:
+  #   github_field: "Size"
+  #   notion_property: "Size"
+  #   type: "select"
+  #   options:
+  #     - "XS"
+  #     - "S"
+  #     - "M"
+  #     - "L"
+  #     - "XL"
+  # 
+  # story_points:
+  #   github_field: "Story Points"
+  #   notion_property: "Story Points"
+  #   type: "number"
+  # 
+  # # Dates
+  # created_at:
+  #   github_field: "createdAt"
+  #   notion_property: "Created At"
+  #   type: "date"
+  # 
+  # updated_at:
+  #   github_field: "updatedAt"
+  #   notion_property: "Updated At"
+  #   type: "date"
+  # 
+  # # Repository Info
+  # repository:
+  #   github_field: "repository"
+  #   notion_property: "Repository"
+  #   type: "select"
 
 # Notion to GitHub Reverse Mappings (for future bidirectional sync)
 notion_to_github:

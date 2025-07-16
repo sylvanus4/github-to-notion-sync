@@ -17,11 +17,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from src.services.sync_service import SyncService
 from src.services.github_service import GitHubService
 from src.services.notion_service import NotionService
-from src.utils.logger import setup_logging, get_logger
+from src.utils.logger import init_logging, get_logger
 from src.config import get_config
 
 # Setup logging
-setup_logging()
+init_logging()
 logger = get_logger(__name__)
 
 

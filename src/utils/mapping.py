@@ -252,7 +252,7 @@ class FieldMapper:
         errors = []
         
         # Check for required mappings
-        required_mappings = ["title", "github_node_id"]
+        required_mappings = ["title"]  # github_node_id temporarily disabled
         for required_field in required_mappings:
             if required_field not in self.field_mappings:
                 errors.append(f"Required field mapping '{required_field}' is missing")

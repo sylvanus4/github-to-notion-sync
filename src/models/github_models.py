@@ -5,15 +5,15 @@ These models represent the structure of data returned from GitHub's GraphQL API 
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
 
 class GitHubItemType(str, Enum):
     """GitHub item types."""
-    ISSUE = "Issue"
-    PULL_REQUEST = "PullRequest"
-    DRAFT_ISSUE = "DraftIssue"
+    ISSUE = "ISSUE"
+    PULL_REQUEST = "PULL_REQUEST"
+    DRAFT_ISSUE = "DRAFT_ISSUE"
 
 
 class GitHubState(str, Enum):
@@ -70,6 +70,22 @@ class GitHubIssue(BaseModel):
     labels: List[GitHubLabel] = []
     repository: Optional[GitHubRepository] = None
     
+    @field_validator('assignees', mode='before')
+    @classmethod
+    def parse_assignees(cls, v):
+        """Parse assignees from nodes structure."""
+        if isinstance(v, dict) and 'nodes' in v:
+            return v['nodes']
+        return v if isinstance(v, list) else []
+    
+    @field_validator('labels', mode='before')
+    @classmethod
+    def parse_labels(cls, v):
+        """Parse labels from nodes structure."""
+        if isinstance(v, dict) and 'nodes' in v:
+            return v['nodes']
+        return v if isinstance(v, list) else []
+    
     class Config:
         allow_population_by_field_name = True
 
@@ -91,6 +107,22 @@ class GitHubPullRequest(BaseModel):
     repository: Optional[GitHubRepository] = None
     draft: bool = False
     
+    @field_validator('assignees', mode='before')
+    @classmethod
+    def parse_assignees(cls, v):
+        """Parse assignees from nodes structure."""
+        if isinstance(v, dict) and 'nodes' in v:
+            return v['nodes']
+        return v if isinstance(v, list) else []
+    
+    @field_validator('labels', mode='before')
+    @classmethod
+    def parse_labels(cls, v):
+        """Parse labels from nodes structure."""
+        if isinstance(v, dict) and 'nodes' in v:
+            return v['nodes']
+        return v if isinstance(v, list) else []
+    
     class Config:
         allow_population_by_field_name = True
 
@@ -104,6 +136,14 @@ class GitHubDraftIssue(BaseModel):
     updated_at: datetime = Field(alias="updatedAt")
     assignees: List[GitHubUser] = []
     
+    @field_validator('assignees', mode='before')
+    @classmethod
+    def parse_assignees(cls, v):
+        """Parse assignees from nodes structure."""
+        if isinstance(v, dict) and 'nodes' in v:
+            return v['nodes']
+        return v if isinstance(v, list) else []
+    
     class Config:
         allow_population_by_field_name = True
 
@@ -115,6 +155,15 @@ class GitHubProjectFieldType(str, Enum):
     DATE = "DATE"
     SINGLE_SELECT = "SINGLE_SELECT"
     ITERATION = "ITERATION"
+    TITLE = "TITLE"
+    ASSIGNEES = "ASSIGNEES"
+    LABELS = "LABELS"
+    LINKED_PULL_REQUESTS = "LINKED_PULL_REQUESTS"
+    MILESTONE = "MILESTONE"
+    REPOSITORY = "REPOSITORY"
+    REVIEWERS = "REVIEWERS"
+    PARENT_ISSUE = "PARENT_ISSUE"
+    SUB_ISSUES_PROGRESS = "SUB_ISSUES_PROGRESS"
 
 
 class GitHubProjectField(BaseModel):
@@ -158,6 +207,11 @@ class GitHubProjectIterationFieldValue(GitHubProjectFieldValue):
     """Iteration field value."""
     title: str
     duration: Optional[int] = None
+
+
+class GitHubProjectTitleFieldValue(GitHubProjectFieldValue):
+    """Title field value."""
+    text: str
     start_date: Optional[datetime] = Field(None, alias="startDate")
     
     class Config:
@@ -170,7 +224,8 @@ GitHubProjectFieldValueUnion = Union[
     GitHubProjectNumberFieldValue,
     GitHubProjectDateFieldValue,
     GitHubProjectSingleSelectFieldValue,
-    GitHubProjectIterationFieldValue
+    GitHubProjectIterationFieldValue,
+    GitHubProjectTitleFieldValue
 ]
 
 
@@ -180,8 +235,8 @@ class GitHubProjectItem(BaseModel):
     type: GitHubItemType
     content: Optional[Union[GitHubIssue, GitHubPullRequest, GitHubDraftIssue]] = None
     field_values: List[GitHubProjectFieldValueUnion] = Field(default_factory=list, alias="fieldValues")
-    created_at: datetime = Field(alias="createdAt")
-    updated_at: datetime = Field(alias="updatedAt")
+    created_at: Optional[datetime] = Field(None, alias="createdAt")
+    updated_at: Optional[datetime] = Field(None, alias="updatedAt")
     
     class Config:
         allow_population_by_field_name = True

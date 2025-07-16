@@ -155,7 +155,7 @@ class NotionService:
         """
         github_id_property = self.field_mapper.get_notion_property_name("id")
         if not github_id_property:
-            logger.error("GitHub Node ID property not found in field mappings")
+            logger.warning("GitHub Node ID property not found in field mappings - skipping duplicate check")
             return None
         
         filter_dict = {
@@ -192,6 +192,9 @@ class NotionService:
                 
                 if content:
                     page_data["children"] = content
+                
+                # Debug: Log the properties being sent
+                logger.info(f"Properties being sent to Notion: {properties}")
                 
                 return self.client.pages.create(**page_data)
             
@@ -330,16 +333,52 @@ class NotionService:
         """
         try:
             if property_type == "title":
-                return NotionPropertyBuilder.title(str(value)).__dict__
+                return {
+                    "title": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": str(value)
+                            },
+                            "annotations": {
+                                "bold": False,
+                                "italic": False,
+                                "strikethrough": False,
+                                "underline": False,
+                                "code": False,
+                                "color": "default"
+                            },
+                            "plain_text": str(value)
+                        }
+                    ]
+                }
             
             elif property_type == "rich_text":
-                return NotionPropertyBuilder.rich_text(str(value)).__dict__
+                return {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": str(value)
+                            },
+                            "annotations": {
+                                "bold": False,
+                                "italic": False,
+                                "strikethrough": False,
+                                "underline": False,
+                                "code": False,
+                                "color": "default"
+                            },
+                            "plain_text": str(value)
+                        }
+                    ]
+                }
             
             elif property_type == "number":
-                return NotionPropertyBuilder.number(float(value)).__dict__
+                return NotionPropertyBuilder.number(float(value)).model_dump()
             
             elif property_type == "select":
-                return NotionPropertyBuilder.select(str(value)).__dict__
+                return NotionPropertyBuilder.select(str(value)).model_dump()
             
             elif property_type == "multi_select":
                 if isinstance(value, list):
@@ -348,15 +387,23 @@ class NotionService:
                         names = [label.name for label in value]
                     else:
                         names = [str(v) for v in value]
-                    return NotionPropertyBuilder.multi_select(names).__dict__
+                    return {
+                        "multi_select": [
+                            {"name": name} for name in names
+                        ]
+                    }
                 else:
-                    return NotionPropertyBuilder.multi_select([str(value)]).__dict__
+                    return {
+                        "multi_select": [
+                            {"name": str(value)}
+                        ]
+                    }
             
             elif property_type == "date":
                 if isinstance(value, datetime):
-                    return NotionPropertyBuilder.date(value).__dict__
+                    return NotionPropertyBuilder.date(value).model_dump()
                 else:
-                    return NotionPropertyBuilder.date(str(value)).__dict__
+                    return NotionPropertyBuilder.date(str(value)).model_dump()
             
             elif property_type == "people":
                 if isinstance(value, list) and value and isinstance(value[0], GitHubUser):
@@ -368,21 +415,21 @@ class NotionService:
                             user_ids.append(notion_user)
                     
                     if user_ids:
-                        return NotionPropertyBuilder.people(user_ids).__dict__
+                        return NotionPropertyBuilder.people(user_ids).model_dump()
                 
                 return None
             
             elif property_type == "url":
-                return NotionPropertyBuilder.url(str(value)).__dict__
+                return NotionPropertyBuilder.url(str(value)).model_dump()
             
             elif property_type == "checkbox":
-                return NotionPropertyBuilder.checkbox(bool(value)).__dict__
+                return NotionPropertyBuilder.checkbox(bool(value)).model_dump()
             
             elif property_type == "email":
-                return NotionPropertyBuilder.email(str(value)).__dict__
+                return NotionPropertyBuilder.email(str(value)).model_dump()
             
             elif property_type == "phone_number":
-                return NotionPropertyBuilder.phone_number(str(value)).__dict__
+                return NotionPropertyBuilder.phone_number(str(value)).model_dump()
             
         except Exception as e:
             logger.warning(f"Failed to build property {property_type}: {e}", extra={

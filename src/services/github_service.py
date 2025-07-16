@@ -20,7 +20,8 @@ from ..models.github_models import (
     GitHubProjectField, GitHubProjectFieldValueUnion,
     GitHubProjectTextFieldValue, GitHubProjectNumberFieldValue,
     GitHubProjectDateFieldValue, GitHubProjectSingleSelectFieldValue,
-    GitHubProjectIterationFieldValue, GitHubItemType
+    GitHubProjectIterationFieldValue, GitHubProjectTitleFieldValue,
+    GitHubItemType, GitHubProjectFieldType
 )
 
 logger = get_logger(__name__)
@@ -285,18 +286,30 @@ class GitHubService:
             field_values_data = item_data.get("fieldValues", {}).get("nodes", [])
             
             for field_value_data in field_values_data:
+                # Skip empty field objects
+                if not field_value_data or not field_value_data.get("field"):
+                    continue
+                    
                 field_value = self._parse_field_value(field_value_data)
                 if field_value:
                     field_values.append(field_value)
             
             # Create project item
+            created_at = None
+            if item_data.get("createdAt"):
+                created_at = datetime.fromisoformat(item_data["createdAt"].replace("Z", "+00:00"))
+                
+            updated_at = None
+            if item_data.get("updatedAt"):
+                updated_at = datetime.fromisoformat(item_data["updatedAt"].replace("Z", "+00:00"))
+                
             item = GitHubProjectItem(
                 id=item_data["id"],
                 type=GitHubItemType(item_data["type"]),
                 content=content,
                 field_values=field_values,
-                created_at=datetime.fromisoformat(item_data["createdAt"].replace("Z", "+00:00")),
-                updated_at=datetime.fromisoformat(item_data["updatedAt"].replace("Z", "+00:00"))
+                created_at=created_at,
+                updated_at=updated_at
             )
             
             return item
@@ -319,28 +332,33 @@ class GitHubService:
             field = GitHubProjectField(**field_data)
             
             # Determine field value type and parse accordingly
-            if "text" in field_value_data:
+            if field.dataType == GitHubProjectFieldType.TITLE and "text" in field_value_data:
+                return GitHubProjectTitleFieldValue(
+                    field=field,
+                    text=field_value_data["text"]
+                )
+            elif field.dataType == GitHubProjectFieldType.TEXT and "text" in field_value_data:
                 return GitHubProjectTextFieldValue(
                     field=field,
                     text=field_value_data["text"]
                 )
-            elif "number" in field_value_data:
+            elif field.dataType == GitHubProjectFieldType.NUMBER and "number" in field_value_data:
                 return GitHubProjectNumberFieldValue(
                     field=field,
                     number=field_value_data["number"]
                 )
-            elif "date" in field_value_data:
+            elif field.dataType == GitHubProjectFieldType.DATE and "date" in field_value_data:
                 return GitHubProjectDateFieldValue(
                     field=field,
                     date=datetime.fromisoformat(field_value_data["date"].replace("Z", "+00:00"))
                 )
-            elif "name" in field_value_data:
+            elif field.dataType == GitHubProjectFieldType.SINGLE_SELECT and "name" in field_value_data:
                 return GitHubProjectSingleSelectFieldValue(
                     field=field,
                     name=field_value_data["name"],
                     option_id=field_value_data.get("optionId")
                 )
-            elif "title" in field_value_data:
+            elif field.dataType == GitHubProjectFieldType.ITERATION and "title" in field_value_data:
                 return GitHubProjectIterationFieldValue(
                     field=field,
                     title=field_value_data["title"],
