@@ -53,9 +53,22 @@ github_to_notion:
     type: "date"
     required: false
 
+  # People Fields - GitHub username에서 실제 이름으로 매핑
+  assignees:
+    github_field: "Assignees"
+    notion_property: "담당자"
+    type: "people"
+    value_mappings:
+      "duyeol-yu": "유두열"
+      "jaehoonkim": "Jae-Hoon Kim"
+      "sylvanus4": "HJ"
+      "thaki-yakhyo": "yakhyo"
+      "thakicloud-jotaeyang": "taeyang.jo@thakicloud.co.kr"
+      "yunjae-park1111": "Park YunJae"
+    default_value: null
+
 # Notion 전용 필드 (GitHub에서 매핑되지 않는 필드들)
 notion_only_fields:
-  - "담당자"    # Assignees - 아직 구현되지 않음
   - "하위 작업"
   - "상위 작업"
   - "후속 작업"
@@ -77,6 +90,8 @@ notion_to_github:
   "작업": "title"
   "태그": "type"
   "진행 상태": "Status"
+  "우선순위": "Priority"
+  "마감일": "End date"
   "담당자": "Assignees"
   "우선순위": "Priority"
   "마감일": "End date"

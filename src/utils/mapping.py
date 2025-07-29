@@ -205,6 +205,28 @@ class FieldMapper:
                 return str(value) if value is not None else ""
             elif field_type == "phone_number":
                 return str(value) if value is not None else ""
+            elif field_type == "people":
+                if isinstance(value, list):
+                    # Apply value mappings to each person in the list
+                    value_mappings = field_config.get("value_mappings", {})
+                    mapped_people = []
+                    for person in value:
+                        # Extract login from GitHubUser object or use as string
+                        person_login = person.login if hasattr(person, 'login') else str(person)
+                        if value_mappings and person_login in value_mappings:
+                            mapped_people.append(value_mappings[person_login])
+                        else:
+                            mapped_people.append(person_login)
+                    return mapped_people
+                elif value is not None:
+                    # Apply value mapping to single person
+                    value_mappings = field_config.get("value_mappings", {})
+                    person_login = value.login if hasattr(value, 'login') else str(value)
+                    if value_mappings and person_login in value_mappings:
+                        return [value_mappings[person_login]]
+                    return [person_login]
+                else:
+                    return []
             else:
                 return value
                 

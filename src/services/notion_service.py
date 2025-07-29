@@ -322,7 +322,9 @@ class NotionService:
         elif field_name == "__typename":
             return github_item.type.value
         elif field_name == "assignees":
-            return github_item.get_assignees()
+            assignees = github_item.get_assignees()
+            logger.debug(f"Getting assignees for item {github_item.id}: {assignees}")
+            return assignees
         elif field_name == "labels":
             return github_item.get_labels()
         elif field_name == "createdAt":
