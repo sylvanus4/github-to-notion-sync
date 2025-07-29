@@ -189,6 +189,20 @@ class ConfigManager:
         """
         return self.field_mappings.get(field_name)
     
+    def get_field_mapping_by_github_field(self, github_field: str) -> Optional[Dict[str, Any]]:
+        """Get field mapping configuration by GitHub field name.
+        
+        Args:
+            github_field: GitHub field name (e.g., "Status", "Priority")
+            
+        Returns:
+            Field mapping configuration or None if not found
+        """
+        for mapping_key, mapping_config in self.field_mappings.items():
+            if mapping_config.get("github_field") == github_field:
+                return mapping_config
+        return None
+    
     def get_notion_property_name(self, github_field: str) -> Optional[str]:
         """Get Notion property name for a GitHub field.
         

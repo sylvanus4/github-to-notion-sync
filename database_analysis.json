@@ -1,0 +1,89 @@
+{
+  "notion_properties": {
+    "작업": "title",
+    "태그": "multi_select",
+    "담당자": "people",
+    "진행 상태": "status",
+    "마감일": "date",
+    "우선순위": "select",
+    "하위 작업": "relation",
+    "상위 작업": "relation",
+    "후속 작업": "relation",
+    "선행 작업": "relation"
+  },
+  "github_fields": {
+    "Title": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46Tc",
+      "dataType": "TITLE"
+    },
+    "Assignees": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46Tg",
+      "dataType": "ASSIGNEES"
+    },
+    "Status": {
+      "id": "PVTSSF_lADODHOnas4A9FHMzgw46Tk",
+      "dataType": "SINGLE_SELECT"
+    },
+    "Labels": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46To",
+      "dataType": "LABELS"
+    },
+    "Linked pull requests": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46Ts",
+      "dataType": "LINKED_PULL_REQUESTS"
+    },
+    "Milestone": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46Tw",
+      "dataType": "MILESTONE"
+    },
+    "Repository": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46T0",
+      "dataType": "REPOSITORY"
+    },
+    "Reviewers": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46T8",
+      "dataType": "REVIEWERS"
+    },
+    "Parent issue": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46UA",
+      "dataType": "PARENT_ISSUE"
+    },
+    "Sub-issues progress": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46UE",
+      "dataType": "SUB_ISSUES_PROGRESS"
+    },
+    "Priority": {
+      "id": "PVTSSF_lADODHOnas4A9FHMzgw46qc",
+      "dataType": "SINGLE_SELECT"
+    },
+    "Size": {
+      "id": "PVTSSF_lADODHOnas4A9FHMzgw46qg",
+      "dataType": "SINGLE_SELECT"
+    },
+    "Estimate": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46qk",
+      "dataType": "NUMBER"
+    },
+    "스프린트": {
+      "id": "PVTIF_lADODHOnas4A9FHMzgw46qo",
+      "dataType": "ITERATION"
+    },
+    "Start date": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46qs",
+      "dataType": "DATE"
+    },
+    "End date": {
+      "id": "PVTF_lADODHOnas4A9FHMzgw46qw",
+      "dataType": "DATE"
+    }
+  },
+  "suggested_mappings": {
+    "title": "작업",
+    "status": "진행 상태",
+    "priority": "우선순위",
+    "assignees": "담당자",
+    "due_date": "마감일",
+    "labels": "태그"
+  },
+  "sample_items_count": 3
+}

@@ -50,12 +50,18 @@ class FieldMapper:
         """Get field mapping configuration.
         
         Args:
-            field_name: Field name
+            field_name: Field name (can be mapping key or GitHub field name)
             
         Returns:
             Field mapping configuration or None if not found
         """
-        return self.config.get_field_mapping(field_name)
+        # First try as mapping key
+        mapping = self.config.get_field_mapping(field_name)
+        if mapping:
+            return mapping
+        
+        # If not found, try as GitHub field name
+        return self.config.get_field_mapping_by_github_field(field_name)
     
     def validate_field_mapping(self, field_name: str, value: Any) -> bool:
         """Validate a field value against its mapping configuration.
@@ -150,11 +156,37 @@ class FieldMapper:
                         return 0.0
                 return float(value) if value is not None else 0.0
             elif field_type == "select":
-                return str(value) if value is not None else ""
+                if value is None:
+                    return ""
+                
+                # Check for value mappings (GitHub value -> Notion value)
+                value_mappings = field_config.get("value_mappings", {})
+                if value_mappings and str(value) in value_mappings:
+                    return value_mappings[str(value)]
+                
+                return str(value)
+            elif field_type == "status":
+                if value is None:
+                    return ""
+                
+                # Check for value mappings (GitHub value -> Notion value)
+                value_mappings = field_config.get("value_mappings", {})
+                if value_mappings and str(value) in value_mappings:
+                    return value_mappings[str(value)]
+                
+                return str(value)
             elif field_type == "multi_select":
                 if isinstance(value, list):
+                    # Apply value mappings to each item in the list
+                    value_mappings = field_config.get("value_mappings", {})
+                    if value_mappings:
+                        return [value_mappings.get(str(v), str(v)) for v in value]
                     return [str(v) for v in value]
                 elif value is not None:
+                    # Apply value mapping to single value
+                    value_mappings = field_config.get("value_mappings", {})
+                    if value_mappings and str(value) in value_mappings:
+                        return [value_mappings[str(value)]]
                     return [str(value)]
                 else:
                     return []

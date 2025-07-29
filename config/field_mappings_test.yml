@@ -1,0 +1,59 @@
+# GitHub Projects v2 to Notion Database Field Mappings - TEST VERSION
+# This file defines how GitHub Project fields map to Notion properties
+
+github_to_notion:
+  # Core Fields
+  title:
+    github_field: "title"
+    notion_property: "작업"
+    type: "title"
+    required: true
+  
+  # Type mapping to tags (Issue/PR/Draft)
+  type:
+    github_field: "__typename"
+    notion_property: "태그"
+    type: "multi_select"
+    value_mappings:
+      "Issue": "ISSUE"
+      "PullRequest": "PULL_REQUEST"
+      "DraftIssue": "DRAFT_ISSUE"
+  
+  # Priority Fields - GitHub 값에서 Notion 값으로 매핑
+  priority:
+    github_field: "Priority"
+    notion_property: "우선순위"
+    type: "select"
+    value_mappings:
+      "P0": "높음"
+      "P1": "중간" 
+      "P2": "낮음"
+      # 기본값이 없으면 null로 처리
+    default_value: null
+  
+  # Date Fields
+  due_date:
+    github_field: "End date"
+    notion_property: "마감일"
+    type: "date"
+    required: false
+
+# Notion 전용 필드 (GitHub에서 매핑되지 않는 필드들)
+notion_only_fields:
+  - "진행 상태"  # Status field - 임시 제외하여 테스트
+  - "담당자"    # Assignees - 아직 구현되지 않음
+  - "하위 작업"
+  - "상위 작업"
+  - "후속 작업"
+  - "선행 작업"
+
+# 필드 매핑 설정
+field_mapping_settings:
+  # GitHub에서 값이 없는 경우 기본값 사용 여부
+  use_default_values: true
+  
+  # 알 수 없는 값에 대한 처리
+  handle_unknown_values: "skip"  # skip, error, default
+  
+  # 빈 문자열을 null로 처리할지 여부
+  treat_empty_as_null: true 

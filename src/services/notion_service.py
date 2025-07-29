@@ -121,12 +121,20 @@ class NotionService:
         """
         try:
             def _query_pages():
-                return self.client.databases.query(
-                    database_id=self.settings.notion_db_id,
-                    filter=filter_dict,
-                    start_cursor=cursor,
-                    page_size=page_size
-                )
+                query_params = {
+                    "database_id": self.settings.notion_db_id,
+                    "page_size": page_size
+                }
+                
+                # Only include filter if it's not None
+                if filter_dict is not None:
+                    query_params["filter"] = filter_dict
+                
+                # Only include cursor if it's not None
+                if cursor is not None:
+                    query_params["start_cursor"] = cursor
+                
+                return self.client.databases.query(**query_params)
             
             response = self._handle_rate_limit(_query_pages)
             
@@ -270,9 +278,18 @@ class NotionService:
             if value is None:
                 continue
             
+            # Apply field mapping transformation (GitHub value -> Notion value)
+            from ..utils.mapping import FieldMapper
+            field_mapper = FieldMapper(self.config)
+            
+            # Debug logging
+            logger.debug(f"Transforming field '{github_field}' with value '{value}'")
+            transformed_value = field_mapper.transform_value(github_field, value)
+            logger.debug(f"Transformed '{value}' -> '{transformed_value}'")
+            
             # Build Notion property based on type
             notion_property_value = self._build_notion_property(
-                property_type, value, field_config
+                property_type, transformed_value, field_config
             )
             
             if notion_property_value:
@@ -375,10 +392,25 @@ class NotionService:
                 }
             
             elif property_type == "number":
-                return NotionPropertyBuilder.number(float(value)).model_dump()
+                return {
+                    "number": float(value)
+                }
             
             elif property_type == "select":
-                return NotionPropertyBuilder.select(str(value)).model_dump()
+                return {
+                    "select": {
+                        "name": str(value)
+                    }
+                }
+            
+            elif property_type == "status":
+                # Notion status fields require special handling
+                # Try to use the exact value first, then fallback to ID if needed
+                return {
+                    "status": {
+                        "name": str(value)
+                    }
+                }
             
             elif property_type == "multi_select":
                 if isinstance(value, list):
@@ -401,35 +433,57 @@ class NotionService:
             
             elif property_type == "date":
                 if isinstance(value, datetime):
-                    return NotionPropertyBuilder.date(value).model_dump()
+                    return {
+                        "date": {
+                            "start": value.isoformat()
+                        }
+                    }
                 else:
-                    return NotionPropertyBuilder.date(str(value)).model_dump()
+                    return {
+                        "date": {
+                            "start": str(value)
+                        }
+                    }
             
             elif property_type == "people":
                 if isinstance(value, list) and value and isinstance(value[0], GitHubUser):
                     # Map GitHub users to Notion users
-                    user_ids = []
+                    people_list = []
                     for user in value:
                         notion_user = self.config.map_github_user_to_notion(user.login)
                         if notion_user:
-                            user_ids.append(notion_user)
+                            # Check if it's a user ID or email
+                            if "@" in notion_user:
+                                people_list.append({"email": notion_user})
+                            else:
+                                people_list.append({"id": notion_user})
                     
-                    if user_ids:
-                        return NotionPropertyBuilder.people(user_ids).model_dump()
+                    if people_list:
+                        return {
+                            "people": people_list
+                        }
                 
                 return None
             
             elif property_type == "url":
-                return NotionPropertyBuilder.url(str(value)).model_dump()
+                return {
+                    "url": str(value)
+                }
             
             elif property_type == "checkbox":
-                return NotionPropertyBuilder.checkbox(bool(value)).model_dump()
+                return {
+                    "checkbox": bool(value)
+                }
             
             elif property_type == "email":
-                return NotionPropertyBuilder.email(str(value)).model_dump()
+                return {
+                    "email": str(value)
+                }
             
             elif property_type == "phone_number":
-                return NotionPropertyBuilder.phone_number(str(value)).model_dump()
+                return {
+                    "phone_number": str(value)
+                }
             
         except Exception as e:
             logger.warning(f"Failed to build property {property_type}: {e}", extra={
@@ -558,3 +612,373 @@ class NotionService:
         
         logger.info(f"Retrieved {len(all_pages)} pages from Notion database")
         return all_pages
+    
+    def get_status_field_options(self) -> Dict[str, str]:
+        """Get status field options mapping from the database.
+        
+        Returns:
+            Dict mapping option names to their IDs
+        """
+        try:
+            database = self.get_database()
+            if not database:
+                return {}
+            
+            status_options = {}
+            for prop_name, prop in database.properties.items():
+                if prop_name == "진행 상태" and hasattr(prop, 'status') and prop.status:
+                    if hasattr(prop.status, 'options') and prop.status.options:
+                        for option in prop.status.options:
+                            if hasattr(option, 'name') and hasattr(option, 'id'):
+                                status_options[option.name] = option.id
+                            elif isinstance(option, dict):
+                                status_options[option.get('name', '')] = option.get('id', '')
+                    break
+            
+            logger.debug(f"Found status options: {status_options}")
+            return status_options
+            
+        except Exception as e:
+            logger.error(f"Failed to get status field options: {e}")
+            return {}
+    
+    def _get_property_value_for_notion(self, property_type: str, value: Any) -> Optional[Dict[str, Any]]:
+        """Helper to get the correct Notion property value format.
+        
+        Args:
+            property_type: Type of Notion property
+            value: Value to set
+            
+        Returns:
+            Notion property dictionary or None
+        """
+        try:
+            if property_type == "title":
+                return {
+                    "title": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": str(value)
+                            },
+                            "annotations": {
+                                "bold": False,
+                                "italic": False,
+                                "strikethrough": False,
+                                "underline": False,
+                                "code": False,
+                                "color": "default"
+                            },
+                            "plain_text": str(value)
+                        }
+                    ]
+                }
+            
+            elif property_type == "rich_text":
+                return {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": str(value)
+                            },
+                            "annotations": {
+                                "bold": False,
+                                "italic": False,
+                                "strikethrough": False,
+                                "underline": False,
+                                "code": False,
+                                "color": "default"
+                            },
+                            "plain_text": str(value)
+                        }
+                    ]
+                }
+            
+            elif property_type == "number":
+                return {
+                    "number": float(value)
+                }
+            
+            elif property_type == "select":
+                return {
+                    "select": {
+                        "name": str(value)
+                    }
+                }
+            
+            elif property_type == "status":
+                # Notion status fields require special handling
+                # Try to use the exact value first, then fallback to ID if needed
+                return {
+                    "status": {
+                        "name": str(value)
+                    }
+                }
+            
+            elif property_type == "multi_select":
+                if isinstance(value, list):
+                    if value and isinstance(value[0], GitHubLabel):
+                        # Handle labels
+                        names = [label.name for label in value]
+                    else:
+                        names = [str(v) for v in value]
+                    return {
+                        "multi_select": [
+                            {"name": name} for name in names
+                        ]
+                    }
+                else:
+                    return {
+                        "multi_select": [
+                            {"name": str(value)}
+                        ]
+                    }
+            
+            elif property_type == "date":
+                if isinstance(value, datetime):
+                    return {
+                        "date": {
+                            "start": value.isoformat()
+                        }
+                    }
+                else:
+                    return {
+                        "date": {
+                            "start": str(value)
+                        }
+                    }
+            
+            elif property_type == "people":
+                if isinstance(value, list) and value and isinstance(value[0], GitHubUser):
+                    # Map GitHub users to Notion users
+                    people_list = []
+                    for user in value:
+                        notion_user = self.config.map_github_user_to_notion(user.login)
+                        if notion_user:
+                            # Check if it's a user ID or email
+                            if "@" in notion_user:
+                                people_list.append({"email": notion_user})
+                            else:
+                                people_list.append({"id": notion_user})
+                    
+                    if people_list:
+                        return {
+                            "people": people_list
+                        }
+                
+                return None
+            
+            elif property_type == "url":
+                return {
+                    "url": str(value)
+                }
+            
+            elif property_type == "checkbox":
+                return {
+                    "checkbox": bool(value)
+                }
+            
+            elif property_type == "email":
+                return {
+                    "email": str(value)
+                }
+            
+            elif property_type == "phone_number":
+                return {
+                    "phone_number": str(value)
+                }
+            
+        except Exception as e:
+            logger.warning(f"Failed to build property {property_type}: {e}", extra={
+                "property_type": property_type,
+                "value": value
+            })
+        
+        return None
+    
+    def update_page_content(self, page_id: str, github_item, comments: List = None) -> bool:
+        """Update a Notion page with GitHub content (body + comments).
+        
+        Args:
+            page_id: Notion page ID
+            github_item: GitHub issue/PR object with body content
+            comments: List of GitHub comments
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Build content blocks
+            content_blocks = []
+            
+            # Add GitHub body content if available
+            if hasattr(github_item, 'body') and github_item.body:
+                content_blocks.extend(self._markdown_to_notion_blocks(github_item.body, "📝 GitHub Description"))
+            
+            # Add comments if available
+            if comments:
+                content_blocks.append({
+                    "object": "block",
+                    "type": "heading_2",
+                    "heading_2": {
+                        "rich_text": [{"type": "text", "text": {"content": "💬 Comments"}}]
+                    }
+                })
+                
+                for comment in comments:
+                    if comment.body:
+                        author_name = comment.author.login if comment.author else "Unknown"
+                        comment_header = f"💬 {author_name} - {comment.created_at.strftime('%Y-%m-%d %H:%M')}"
+                        
+                        content_blocks.append({
+                            "object": "block",
+                            "type": "heading_3",
+                            "heading_3": {
+                                "rich_text": [{"type": "text", "text": {"content": comment_header}}]
+                            }
+                        })
+                        
+                        content_blocks.extend(self._markdown_to_notion_blocks(comment.body))
+            
+            # Update page with content
+            if content_blocks:
+                def _update_blocks():
+                    return self.client.blocks.children.append(
+                        block_id=page_id,
+                        children=content_blocks
+                    )
+                
+                response = self._handle_rate_limit(_update_blocks)
+                
+                logger.info(f"Successfully updated page content for {page_id}")
+                return True
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to update page content: {e}")
+            return False
+    
+    def _markdown_to_notion_blocks(self, markdown_text: str, title: str = None) -> List[Dict]:
+        """Convert markdown text to Notion blocks.
+        
+        Args:
+            markdown_text: Markdown content
+            title: Optional title for the section
+            
+        Returns:
+            List of Notion block objects
+        """
+        blocks = []
+        
+        # Add title if provided
+        if title:
+            blocks.append({
+                "object": "block",
+                "type": "heading_2",
+                "heading_2": {
+                    "rich_text": [{"type": "text", "text": {"content": title}}]
+                }
+            })
+        
+        if not markdown_text or not markdown_text.strip():
+            return blocks
+        
+        # Simple markdown parsing - split by paragraphs
+        paragraphs = markdown_text.split('\n\n')
+        
+        for paragraph in paragraphs:
+            paragraph = paragraph.strip()
+            if not paragraph:
+                continue
+                
+            # Handle code blocks
+            if paragraph.startswith('```'):
+                language = ""
+                code_content = paragraph
+                
+                # Extract language if specified
+                first_line = paragraph.split('\n')[0]
+                if len(first_line) > 3:
+                    language = first_line[3:].strip()
+                    code_content = '\n'.join(paragraph.split('\n')[1:])
+                
+                # Remove closing ```
+                if code_content.endswith('```'):
+                    code_content = code_content[:-3].strip()
+                
+                blocks.append({
+                    "object": "block",
+                    "type": "code",
+                    "code": {
+                        "language": language or "plain text",
+                        "rich_text": [{"type": "text", "text": {"content": code_content}}]
+                    }
+                })
+            
+            # Handle headings
+            elif paragraph.startswith('#'):
+                heading_level = len(paragraph) - len(paragraph.lstrip('#'))
+                heading_text = paragraph.lstrip('# ').strip()
+                
+                if heading_level == 1:
+                    block_type = "heading_1"
+                elif heading_level == 2:
+                    block_type = "heading_2"
+                else:
+                    block_type = "heading_3"
+                
+                blocks.append({
+                    "object": "block",
+                    "type": block_type,
+                    block_type: {
+                        "rich_text": [{"type": "text", "text": {"content": heading_text}}]
+                    }
+                })
+            
+            # Handle bullet lists
+            elif paragraph.startswith('- ') or paragraph.startswith('* '):
+                list_items = paragraph.split('\n')
+                for item in list_items:
+                    item = item.strip()
+                    if item.startswith('- ') or item.startswith('* '):
+                        item_text = item[2:].strip()
+                        blocks.append({
+                            "object": "block",
+                            "type": "bulleted_list_item",
+                            "bulleted_list_item": {
+                                "rich_text": [{"type": "text", "text": {"content": item_text}}]
+                            }
+                        })
+            
+            # Handle numbered lists
+            elif any(paragraph.startswith(f'{i}. ') for i in range(1, 10)):
+                list_items = paragraph.split('\n')
+                for item in list_items:
+                    item = item.strip()
+                    if any(item.startswith(f'{i}. ') for i in range(1, 10)):
+                        item_text = item.split('. ', 1)[1] if '. ' in item else item
+                        blocks.append({
+                            "object": "block",
+                            "type": "numbered_list_item",
+                            "numbered_list_item": {
+                                "rich_text": [{"type": "text", "text": {"content": item_text}}]
+                            }
+                        })
+            
+            # Regular paragraph
+            else:
+                # Truncate very long paragraphs for Notion API limits
+                if len(paragraph) > 2000:
+                    paragraph = paragraph[:1997] + "..."
+                    
+                blocks.append({
+                    "object": "block",
+                    "type": "paragraph",
+                    "paragraph": {
+                        "rich_text": [{"type": "text", "text": {"content": paragraph}}]
+                    }
+                })
+        
+        return blocks

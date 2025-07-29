@@ -1,4 +1,5 @@
 # GitHub Projects v2 to Notion Database Field Mappings
+# Updated based on database analysis - focusing on working fields first
 # This file defines how GitHub Project fields map to Notion properties
 
 github_to_notion:
@@ -9,138 +10,76 @@ github_to_notion:
     type: "title"
     required: true
   
-  # github_node_id:
-  #   github_field: "id"
-  #   notion_property: "GitHub Node ID"
-  #   type: "rich_text"
-  #   required: true
-  #   unique: true
-  
+  # Type mapping to tags (Issue/PR/Draft)
   type:
     github_field: "__typename"
     notion_property: "태그"
     type: "multi_select"
-    options:
-      - "Issue"
-      - "PullRequest" 
-      - "DraftIssue"
+    value_mappings:
+      "Issue": "ISSUE"
+      "PullRequest": "PULL_REQUEST"
+      "DraftIssue": "DRAFT_ISSUE"
   
-  # Status Fields
+
+  # Status Fields - GitHub 값에서 Notion 값으로 매핑 (사용자 요청에 따라)
   status:
     github_field: "Status"
     notion_property: "진행 상태"
-    type: "select"
-    options:
-      - "Todo"
-      - "In Progress" 
-      - "Done"
-      - "Cancelled"
+    type: "status"
+    value_mappings:
+      "Epic": "시작 전"        # → not-started
+      "Todo": "시작 전"        # → not-started  
+      "In Progress": "진행 중"  # → in-progress
+      "Done": "완료"           # → done
+      "25-07-Archive": "보관"  # → archived
+    default_value: "시작 전"
   
-  # Sprint/Iteration Fields (commented out - property doesn't exist in current database)
-  # sprint:
-  #   github_field: "Sprint"
-  #   notion_property: "Sprint"
-  #   type: "select"
-  #   options:
-  #     - "Backlog"
-  #     - "Current Sprint"
-  #     - "Next Sprint"
-  
-  # Assignment Fields
-  assignees:
-    github_field: "Assignees"
-    notion_property: "담당자"
-    type: "people"
-  
-  # Priority Fields
+  # Priority Fields - GitHub 값에서 Notion 값으로 매핑
   priority:
     github_field: "Priority"
     notion_property: "우선순위"
     type: "select"
-    options:
-      - "P0"
-      - "P1"
-      - "P2"
+    value_mappings:
+      "P0": "높음"
+      "P1": "중간" 
+      "P2": "낮음"
+      # 기본값이 없으면 null로 처리
+    default_value: null
   
   # Date Fields
   due_date:
     github_field: "End date"
     notion_property: "마감일"
     type: "date"
+    required: false
+
+# Notion 전용 필드 (GitHub에서 매핑되지 않는 필드들)
+notion_only_fields:
+  - "담당자"    # Assignees - 아직 구현되지 않음
+  - "하위 작업"
+  - "상위 작업"
+  - "후속 작업"
+  - "선행 작업"
+
+# 필드 매핑 설정
+field_mapping_settings:
+  # GitHub에서 값이 없는 경우 기본값 사용 여부
+  use_default_values: true
   
-  # GitHub Specific Fields (commented out - properties don't exist in current database)
-  # github_link:
-  #   github_field: "url"
-  #   notion_property: "GitHub Link"
-  #   type: "url"
-  # 
-  # github_number:
-  #   github_field: "number"
-  #   notion_property: "GitHub Number"
-  #   type: "number"
-  # 
-  # github_state:
-  #   github_field: "state"
-  #   notion_property: "GitHub State"
-  #   type: "select"
-  #   options:
-  #     - "OPEN"
-  #     - "CLOSED"
-  #     - "MERGED"
-  #     - "DRAFT"
-  # 
-  # # Labels
-  # labels:
-  #   github_field: "labels"
-  #   notion_property: "Labels"
-  #   type: "multi_select"
-  #   multiple: true
+  # 알 수 없는 값에 대한 처리
+  handle_unknown_values: "skip"  # skip, error, default
   
-  # Size/Effort Fields (commented out - properties don't exist in current database)
-  # size:
-  #   github_field: "Size"
-  #   notion_property: "Size"
-  #   type: "select"
-  #   options:
-  #     - "XS"
-  #     - "S"
-  #     - "M"
-  #     - "L"
-  #     - "XL"
-  # 
-  # story_points:
-  #   github_field: "Story Points"
-  #   notion_property: "Story Points"
-  #   type: "number"
-  # 
-  # # Dates
-  # created_at:
-  #   github_field: "createdAt"
-  #   notion_property: "Created At"
-  #   type: "date"
-  # 
-  # updated_at:
-  #   github_field: "updatedAt"
-  #   notion_property: "Updated At"
-  #   type: "date"
-  # 
-  # # Repository Info
-  # repository:
-  #   github_field: "repository"
-  #   notion_property: "Repository"
-  #   type: "select"
+  # 빈 문자열을 null로 처리할지 여부
+  treat_empty_as_null: true
 
 # Notion to GitHub Reverse Mappings (for future bidirectional sync)
 notion_to_github:
-  "Task Name": "title"
-  "GitHub Node ID": "id"
-  "Status": "Status"
-  "Sprint": "Sprint"
-  "Priority": "Priority"
-  "Assignees": "assignees"
-  "Due Date": "Due Date"
-  "Size": "Size"
-  "Story Points": "Story Points"
+  "작업": "title"
+  "태그": "type"
+  "진행 상태": "Status"
+  "담당자": "Assignees"
+  "우선순위": "Priority"
+  "마감일": "End date"
 
 # User Mappings (GitHub login to Notion user)
 user_mappings:
@@ -189,7 +128,7 @@ sync_config:
     notion_api: 3  # requests per second
     github_api: 5000  # requests per hour
   
-  batch_size: 100  # items per batch
+  batch_size: 50  # reduced for better reliability
   retry_attempts: 3
   retry_delay: 1  # seconds
   

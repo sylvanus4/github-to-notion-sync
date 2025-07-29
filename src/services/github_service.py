@@ -16,7 +16,7 @@ from ..utils.logger import get_logger
 from ..models.github_models import (
     GitHubProject, GitHubProjectItem, GitHubGraphQLResponse,
     GitHubRateLimitInfo, GitHubApiError, GitHubRateLimitError,
-    GitHubIssue, GitHubPullRequest, GitHubDraftIssue,
+    GitHubIssue, GitHubPullRequest, GitHubDraftIssue, GitHubComment,
     GitHubProjectField, GitHubProjectFieldValueUnion,
     GitHubProjectTextFieldValue, GitHubProjectNumberFieldValue,
     GitHubProjectDateFieldValue, GitHubProjectSingleSelectFieldValue,
@@ -286,8 +286,10 @@ class GitHubService:
             field_values_data = item_data.get("fieldValues", {}).get("nodes", [])
             
             for field_value_data in field_values_data:
-                # Skip empty field objects
-                if not field_value_data or not field_value_data.get("field"):
+                # Skip empty field objects or objects without proper structure
+                if not field_value_data or not isinstance(field_value_data, dict):
+                    continue
+                if not field_value_data.get("field") or not field_value_data["field"].get("name"):
                     continue
                     
                 field_value = self._parse_field_value(field_value_data)
@@ -302,14 +304,14 @@ class GitHubService:
             updated_at = None
             if item_data.get("updatedAt"):
                 updated_at = datetime.fromisoformat(item_data["updatedAt"].replace("Z", "+00:00"))
-                
+            
             item = GitHubProjectItem(
                 id=item_data["id"],
                 type=GitHubItemType(item_data["type"]),
                 content=content,
-                field_values=field_values,
-                created_at=created_at,
-                updated_at=updated_at
+                fieldValues=field_values,  # Use alias name
+                createdAt=created_at,     # Use alias name
+                updatedAt=updated_at      # Use alias name
             )
             
             return item
@@ -329,6 +331,8 @@ class GitHubService:
         """
         try:
             field_data = field_value_data.get("field", {})
+
+            
             field = GitHubProjectField(**field_data)
             
             # Determine field value type and parse accordingly
@@ -404,22 +408,205 @@ class GitHubService:
         # For now, fall back to the full list approach
         return None
     
-    def get_all_project_items(self) -> List[GitHubProjectItem]:
+    def get_all_project_items(self, sprint_filter: Optional[str] = None) -> List[GitHubProjectItem]:
         """Get all project items.
+        
+        Args:
+            sprint_filter: Optional sprint name to filter items (e.g., "25-07-Sprint4")
         
         Returns:
             List of GitHubProjectItem
         """
         items = []
         for item in self.get_project_items():
-            items.append(item)
+            # Apply sprint filter if specified
+            if sprint_filter:
+                if self._item_matches_sprint(item, sprint_filter):
+                    items.append(item)
+            else:
+                items.append(item)
         
-        logger.info(f"Retrieved {len(items)} project items", extra={
+        logger.info(f"Retrieved {len(items)} project items{f' matching sprint {sprint_filter}' if sprint_filter else ''}", extra={
             "project_org": self.settings.github_org,
             "project_number": self.settings.github_project_number
         })
         
         return items
+    
+    def _item_matches_sprint(self, item: GitHubProjectItem, sprint_filter: str) -> bool:
+        """Check if an item matches the given sprint filter.
+        
+        Args:
+            item: GitHub project item
+            sprint_filter: Sprint name to match
+            
+        Returns:
+            True if item matches the sprint filter
+        """
+        for field_value in item.field_values:
+            if field_value.field.name == "스프린트":
+                # For iteration fields, we need to check the title
+                if hasattr(field_value, 'title') and field_value.title:
+                    return field_value.title == sprint_filter
+                # Alternative check for iteration field value text
+                elif hasattr(field_value, 'text') and field_value.text:
+                    return field_value.text == sprint_filter
+                # Check for iteration object with title
+                elif hasattr(field_value, 'iteration') and field_value.iteration:
+                    iteration_title = getattr(field_value.iteration, 'title', None)
+                    if iteration_title:
+                        return iteration_title == sprint_filter
+        return False
+    
+    def get_issue_comments(self, repo_owner: str, repo_name: str, issue_number: int) -> List[GitHubComment]:
+        """Get comments for a specific issue.
+        
+        Args:
+            repo_owner: Repository owner
+            repo_name: Repository name  
+            issue_number: Issue number
+            
+        Returns:
+            List of GitHubComment objects
+        """
+        query = """
+        query($owner: String!, $name: String!, $number: Int!, $cursor: String) {
+          repository(owner: $owner, name: $name) {
+            issue(number: $number) {
+              comments(first: 100, after: $cursor) {
+                nodes {
+                  id
+                  body
+                  author {
+                    login
+                    avatarUrl
+                    url
+                  }
+                  createdAt
+                  updatedAt
+                  url
+                }
+                pageInfo {
+                  hasNextPage
+                  endCursor
+                }
+              }
+            }
+          }
+        }
+        """
+        
+        all_comments = []
+        cursor = None
+        
+        while True:
+            variables = {
+                "owner": repo_owner,
+                "name": repo_name,
+                "number": issue_number,
+                "cursor": cursor
+            }
+            
+            response = self._make_graphql_request(query, variables)
+            
+            issue_data = response.get("data", {}).get("repository", {}).get("issue", {})
+            if not issue_data:
+                break
+                
+            comments_connection = issue_data.get("comments", {})
+            comments = comments_connection.get("nodes", [])
+            
+            for comment_data in comments:
+                try:
+                    comment = GitHubComment(**comment_data)
+                    all_comments.append(comment)
+                except Exception as e:
+                    logger.warning(f"Failed to parse comment: {e}")
+                    continue
+            
+            # Check for pagination
+            page_info = comments_connection.get("pageInfo", {})
+            if not page_info.get("hasNextPage", False):
+                break
+                
+            cursor = page_info.get("endCursor")
+        
+        return all_comments
+    
+    def get_pull_request_comments(self, repo_owner: str, repo_name: str, pr_number: int) -> List[GitHubComment]:
+        """Get comments for a specific pull request.
+        
+        Args:
+            repo_owner: Repository owner
+            repo_name: Repository name  
+            pr_number: Pull request number
+            
+        Returns:
+            List of GitHubComment objects
+        """
+        query = """
+        query($owner: String!, $name: String!, $number: Int!, $cursor: String) {
+          repository(owner: $owner, name: $name) {
+            pullRequest(number: $number) {
+              comments(first: 100, after: $cursor) {
+                nodes {
+                  id
+                  body
+                  author {
+                    login
+                    avatarUrl
+                    url
+                  }
+                  createdAt
+                  updatedAt
+                  url
+                }
+                pageInfo {
+                  hasNextPage
+                  endCursor
+                }
+              }
+            }
+          }
+        }
+        """
+        
+        all_comments = []
+        cursor = None
+        
+        while True:
+            variables = {
+                "owner": repo_owner,
+                "name": repo_name,
+                "number": pr_number,
+                "cursor": cursor
+            }
+            
+            response = self._make_graphql_request(query, variables)
+            
+            pr_data = response.get("data", {}).get("repository", {}).get("pullRequest", {})
+            if not pr_data:
+                break
+                
+            comments_connection = pr_data.get("comments", {})
+            comments = comments_connection.get("nodes", [])
+            
+            for comment_data in comments:
+                try:
+                    comment = GitHubComment(**comment_data)
+                    all_comments.append(comment)
+                except Exception as e:
+                    logger.warning(f"Failed to parse comment: {e}")
+                    continue
+            
+            # Check for pagination
+            page_info = comments_connection.get("pageInfo", {})
+            if not page_info.get("hasNextPage", False):
+                break
+                
+            cursor = page_info.get("endCursor")
+        
+        return all_comments
     
     def get_project_info(self) -> Optional[Dict[str, Any]]:
         """Get basic project information.

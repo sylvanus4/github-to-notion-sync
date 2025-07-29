@@ -43,6 +43,19 @@ class GitHubLabel(BaseModel):
     description: Optional[str] = None
 
 
+class GitHubComment(BaseModel):
+    """GitHub comment model."""
+    id: str
+    body: str
+    author: Optional[GitHubUser] = None
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
+    url: str
+    
+    class Config:
+        allow_population_by_field_name = True
+
+
 class GitHubRepository(BaseModel):
     """GitHub repository model."""
     id: str

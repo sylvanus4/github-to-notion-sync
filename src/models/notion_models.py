@@ -16,6 +16,7 @@ class NotionPropertyType(str, Enum):
     NUMBER = "number"
     SELECT = "select"
     MULTI_SELECT = "multi_select"
+    STATUS = "status"
     DATE = "date"
     PEOPLE = "people"
     CHECKBOX = "checkbox"
@@ -91,6 +92,13 @@ class NotionMultiSelect(BaseModel):
     color: Optional[NotionColor] = None
 
 
+class NotionStatus(BaseModel):
+    """Notion status property model."""
+    id: Optional[str] = None
+    name: str
+    color: Optional[NotionColor] = None
+
+
 class NotionDate(BaseModel):
     """Notion date property model."""
     start: str  # ISO 8601 date string
@@ -153,6 +161,12 @@ class NotionMultiSelectPropertyValue(NotionPropertyValue):
     multi_select: List[NotionMultiSelect]
 
 
+class NotionStatusPropertyValue(NotionPropertyValue):
+    """Status property value."""
+    type: NotionPropertyType = NotionPropertyType.STATUS
+    status: Optional[NotionStatus] = None
+
+
 class NotionDatePropertyValue(NotionPropertyValue):
     """Date property value."""
     type: NotionPropertyType = NotionPropertyType.DATE
@@ -196,6 +210,7 @@ NotionPropertyValueUnion = Union[
     NotionNumberPropertyValue,
     NotionSelectPropertyValue,
     NotionMultiSelectPropertyValue,
+    NotionStatusPropertyValue,
     NotionDatePropertyValue,
     NotionPeoplePropertyValue,
     NotionCheckboxPropertyValue,
@@ -244,6 +259,8 @@ class NotionPage(BaseModel):
             return prop.select.name if prop.select else None
         elif isinstance(prop, NotionMultiSelectPropertyValue):
             return [option.name for option in prop.multi_select]
+        elif isinstance(prop, NotionStatusPropertyValue):
+            return prop.status.name if prop.status else None
         elif isinstance(prop, NotionDatePropertyValue):
             return prop.date.start if prop.date else None
         elif isinstance(prop, NotionPeoplePropertyValue):
