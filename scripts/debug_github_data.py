@@ -77,6 +77,23 @@ def main():
             print(f"  Priority: {priority_value}")
             print(f"  End date: {end_date_value}")
             
+            # Test assignees
+            print(f"\nTesting assignees:")
+            assignees = item.get_assignees()
+            print(f"  Assignees count: {len(assignees)}")
+            if assignees:
+                for j, assignee in enumerate(assignees):
+                    print(f"    {j+1}. {assignee.login} ({assignee.name})")
+            else:
+                print("    No assignees")
+            
+            # Test other content properties
+            if item.content:
+                print(f"\nContent details:")
+                print(f"  URL: {item.get_url()}")
+                print(f"  Number: {item.get_number()}")
+                print(f"  State: {item.get_state()}")
+            
             print("-" * 50)
     
     except Exception as e:

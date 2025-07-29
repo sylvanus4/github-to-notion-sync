@@ -283,8 +283,8 @@ class NotionService:
             field_mapper = FieldMapper(self.config)
             
             # Debug logging
-            logger.debug(f"Transforming field '{github_field}' with value '{value}'")
-            transformed_value = field_mapper.transform_value(github_field, value)
+            logger.debug(f"Transforming field '{field_name}' (github_field: '{github_field}') with value '{value}'")
+            transformed_value = field_mapper.transform_value(field_name, value)
             logger.debug(f"Transformed '{value}' -> '{transformed_value}'")
             
             # Build Notion property based on type
@@ -321,7 +321,7 @@ class NotionService:
             return state.value if state else None
         elif field_name == "__typename":
             return github_item.type.value
-        elif field_name == "assignees":
+        elif field_name == "assignees" or field_name == "Assignees":
             assignees = github_item.get_assignees()
             logger.debug(f"Getting assignees for item {github_item.id}: {assignees}")
             return assignees
@@ -448,22 +448,48 @@ class NotionService:
                     }
             
             elif property_type == "people":
-                if isinstance(value, list) and value and isinstance(value[0], GitHubUser):
-                    # Map GitHub users to Notion users
+                # For people type, value should already be transformed by field_mapper.transform_value
+                # which converts GitHubUser objects to mapped user IDs or emails
+                if isinstance(value, list) and value:
                     people_list = []
-                    for user in value:
-                        notion_user = self.config.map_github_user_to_notion(user.login)
-                        if notion_user:
-                            # Check if it's a user ID or email
-                            if "@" in notion_user:
-                                people_list.append({"email": notion_user})
-                            else:
-                                people_list.append({"id": notion_user})
+                    for person in value:
+                        person_str = str(person)
+                        # Check if it's a UUID (user ID), email, or name
+                        if len(person_str) == 36 and person_str.count('-') == 4:
+                            # Looks like a UUID, treat as user ID
+                            people_list.append({"id": person_str})
+                        elif "@" in person_str:
+                            # Contains @, treat as email
+                            people_list.append({"email": person_str})
+                        else:
+                            # For names, we need to find the Notion user by name
+                            # Since Notion API requires user ID or email, we'll skip this person with a warning
+                            logger.warning(f"Cannot map person '{person_str}' to Notion user - needs email address or Notion user ID")
+                            continue
                     
                     if people_list:
                         return {
                             "people": people_list
                         }
+                    else:
+                        logger.warning(f"No valid people mappings found for value: {value}")
+                        return None
+                
+                elif value is not None:
+                    # Single person
+                    person_str = str(value)
+                    if len(person_str) == 36 and person_str.count('-') == 4:
+                        # Looks like a UUID, treat as user ID
+                        return {
+                            "people": [{"id": person_str}]
+                        }
+                    elif "@" in person_str:
+                        return {
+                            "people": [{"email": person_str}]
+                        }
+                    else:
+                        logger.warning(f"Cannot map person '{person_str}' to Notion user - needs email address")
+                        return None
                 
                 return None
             
@@ -752,22 +778,48 @@ class NotionService:
                     }
             
             elif property_type == "people":
-                if isinstance(value, list) and value and isinstance(value[0], GitHubUser):
-                    # Map GitHub users to Notion users
+                # For people type, value should already be transformed by field_mapper.transform_value
+                # which converts GitHubUser objects to mapped user IDs or emails
+                if isinstance(value, list) and value:
                     people_list = []
-                    for user in value:
-                        notion_user = self.config.map_github_user_to_notion(user.login)
-                        if notion_user:
-                            # Check if it's a user ID or email
-                            if "@" in notion_user:
-                                people_list.append({"email": notion_user})
-                            else:
-                                people_list.append({"id": notion_user})
+                    for person in value:
+                        person_str = str(person)
+                        # Check if it's a UUID (user ID), email, or name
+                        if len(person_str) == 36 and person_str.count('-') == 4:
+                            # Looks like a UUID, treat as user ID
+                            people_list.append({"id": person_str})
+                        elif "@" in person_str:
+                            # Contains @, treat as email
+                            people_list.append({"email": person_str})
+                        else:
+                            # For names, we need to find the Notion user by name
+                            # Since Notion API requires user ID or email, we'll skip this person with a warning
+                            logger.warning(f"Cannot map person '{person_str}' to Notion user - needs email address or Notion user ID")
+                            continue
                     
                     if people_list:
                         return {
                             "people": people_list
                         }
+                    else:
+                        logger.warning(f"No valid people mappings found for value: {value}")
+                        return None
+                
+                elif value is not None:
+                    # Single person
+                    person_str = str(value)
+                    if len(person_str) == 36 and person_str.count('-') == 4:
+                        # Looks like a UUID, treat as user ID
+                        return {
+                            "people": [{"id": person_str}]
+                        }
+                    elif "@" in person_str:
+                        return {
+                            "people": [{"email": person_str}]
+                        }
+                    else:
+                        logger.warning(f"Cannot map person '{person_str}' to Notion user - needs email address or Notion user ID")
+                        return None
                 
                 return None
             

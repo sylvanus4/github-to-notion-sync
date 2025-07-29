@@ -179,15 +179,23 @@ class FieldMapper:
                 if isinstance(value, list):
                     # Apply value mappings to each item in the list
                     value_mappings = field_config.get("value_mappings", {})
-                    if value_mappings:
-                        return [value_mappings.get(str(v), str(v)) for v in value]
-                    return [str(v) for v in value]
+                    mapped_values = []
+                    for v in value:
+                        # Extract login from GitHubUser object or use as string
+                        v_str = v.login if hasattr(v, 'login') else str(v)
+                        if value_mappings and v_str in value_mappings:
+                            mapped_values.append(value_mappings[v_str])
+                        else:
+                            mapped_values.append(v_str)
+                    return mapped_values
                 elif value is not None:
                     # Apply value mapping to single value
                     value_mappings = field_config.get("value_mappings", {})
-                    if value_mappings and str(value) in value_mappings:
-                        return [value_mappings[str(value)]]
-                    return [str(value)]
+                    # Extract login from GitHubUser object or use as string
+                    value_str = value.login if hasattr(value, 'login') else str(value)
+                    if value_mappings and value_str in value_mappings:
+                        return [value_mappings[value_str]]
+                    return [value_str]
                 else:
                     return []
             elif field_type == "date":
