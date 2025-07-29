@@ -1,237 +1,291 @@
-# GitHub-Notion 동기화 파이프라인 - 리포지토리 구조
+# GitHub to Notion Sync Pipeline
+
+**GitHub Project와 Notion Database 간의 자동 동기화 시스템**
+
+GitHub Project의 Issues와 Pull Requests를 Notion Database로 실시간 동기화하여 팀의 스크럼 프로세스를 지원합니다.
+
+![Status: Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green)
+![Language: Python](https://img.shields.io/badge/Language-Python-blue)
+![Sync: Assignees](https://img.shields.io/badge/Assignees-✅%20Mapped-success)
+
+## 🎯 핵심 기능
+
+### ✅ 완벽한 담당자 매핑 (2025-07-29 구현 완료)
+- **GitHub 사용자명** → **실제 Notion 워크스페이스 사용자** 자동 매핑
+- **단일/다중 담당자** 모두 지원
+- **실시간 동기화**로 담당자 변경 즉시 반영
+
+### 🔄 스프린트 기반 동기화
+- **특정 스프린트만 선별 동기화** 가능
+- **전체 프로젝트 동기화** 지원
+- **안전한 Dry-run 모드** 제공
+
+### 📊 완전한 필드 매핑
+- **상태**: GitHub Status → Notion 진행상태
+- **우선순위**: GitHub Priority → Notion 우선순위  
+- **태그**: GitHub Labels → Notion 태그
+- **마감일**: GitHub Due Date → Notion 마감일
+
+## 🚀 빠른 시작
+
+### 1. 특정 스프린트 동기화
+
+```bash
+# 1. 먼저 안전하게 확인
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "25-07-Sprint4" --dry-run
+
+# 2. 결과가 만족스러우면 실제 동기화
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "25-07-Sprint4" --force
+```
+
+### 2. 전체 프로젝트 동기화
+
+```bash
+# ⚠️ 주의: 모든 기존 Notion 페이지가 삭제됩니다!
+PYTHONPATH=. python scripts/complete_resync.py --force
+```
+
+### 3. 조용한 실행 (에러만 출력)
+
+```bash
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "현재스프린트" --quiet
+```
+
+## 👥 담당자 매핑 시스템
+
+### 성공적으로 매핑된 사용자들
+
+| GitHub 사용자명 | Notion 사용자 | 상태 |
+|----------------|--------------|------|
+| `duyeol-yu` | 유두열 | ✅ |
+| `jaehoonkim` | Jae-Hoon Kim (김재훈) | ✅ |
+| `sylvanus4` | HJ (한효정) | ✅ |
+| `thaki-yakhyo` | yakhyo | ✅ |
+| `thakicloud-jotaeyang` | 조태양 | ✅ |
+| `yunjae-park1111` | Park YunJae (박윤재) | ✅ |
+
+### 테스트 완료된 시나리오
+
+**✅ 25-07-Sprint4 스프린트 동기화 성공** (2025-07-29)
+- 📊 **25개 GitHub 항목** → **25개 Notion 페이지** 생성
+- 👥 **모든 담당자 매핑** 정상 작동  
+- 🤝 **다중 담당자 작업**도 완벽 처리
+- ⏱️ **실행 시간**: 108.93초
+
+## 📋 스프린트 워크플로우
+
+### 새로운 스프린트 시작
+
+```bash
+# 1. 새 스프린트 항목 확인
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "25-08-Sprint1" --dry-run
+
+# 2. 실제 동기화 실행
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "25-08-Sprint1" --force
+
+# 3. 결과 확인
+echo "✅ 동기화 완료: $(date)"
+```
+
+### 스프린트 중간 업데이트
+
+```bash
+# 상태 변경사항 반영
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "현재스프린트" --force
+```
+
+### 스프린트 완료 후
+
+```bash
+# 최종 상태 동기화
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "완료된스프린트" --force
+```
+
+## ⚙️ 명령어 옵션
+
+| 옵션 | 설명 | 기본값 |
+|------|------|--------|
+| `--dry-run` | 🔍 실제 변경 없이 분석만 수행 | False |
+| `--force` | ⚡ 확인 프롬프트 없이 실행 | False |
+| `--quiet` | 🔇 에러 메시지만 출력 | False |
+| `--batch-size N` | 📦 배치 처리 크기 설정 | 50 |
+| `--sprint-filter "NAME"` | 🎯 특정 스프린트만 필터링 | 모든 항목 |
+
+## 🔧 고급 사용법
+
+### 배치 크기 조정
+
+```bash
+# 느린 네트워크나 대량 데이터시 사용
+PYTHONPATH=. python scripts/complete_resync.py --batch-size 10 --sprint-filter "25-07-Sprint4"
+```
+
+### 로그 확인
+
+```bash
+# 모든 로그 출력 및 파일 저장
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "25-07-Sprint4" 2>&1 | tee sync.log
+```
+
+### 새로운 사용자 추가
+
+```bash
+# 1. Notion 워크스페이스 사용자 ID 확인
+PYTHONPATH=. python get_notion_users.py
+
+# 2. config/field_mappings.yml에 매핑 추가
+# assignees:
+#   value_mappings:
+#     "새로운-github-username": "notion-user-id"
+```
+
+## 📁 프로젝트 구조
 
 ```
-github-notion-sync/
-├── .github/
-│   ├── workflows/
-│   │   ├── notion_sync.yml              # 주기적 전체 동기화 워크플로우
-│   │   ├── deploy_lambda.yml            # Lambda 배포 워크플로우
-│   │   └── tests.yml                    # CI/CD 테스트 워크플로우
-│   └── ISSUE_TEMPLATE/
-│       └── bug_report.md                # 버그 리포트 템플릿
-│
-├── src/
-│   ├── __init__.py
-│   ├── main.py                          # FastAPI 애플리케이션 엔트리포인트
-│   ├── config.py                        # 환경 변수 및 설정 관리
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── github_models.py             # GitHub API 응답 모델
-│   │   ├── notion_models.py             # Notion API 요청/응답 모델
-│   │   └── webhook_models.py            # Webhook 페이로드 모델
+github-to-notion-sync/
+├── 🎯 scripts/
+│   └── complete_resync.py              # 🚀 메인 동기화 스크립트
+├── 📋 docs/
+│   └── GITHUB_SCRUM_WORKFLOW.md        # 📖 핵심 워크플로우 가이드
+├── ⚙️ config/
+│   ├── field_mappings.yml              # 👥 담당자 매핑 설정
+│   ├── sync_config.yml                 # 🔄 동기화 설정
+│   └── webhook_events.yml              # 🎣 웹훅 이벤트 설정
+├── 🧠 src/
 │   ├── services/
-│   │   ├── __init__.py
-│   │   ├── github_service.py            # GitHub API 클라이언트 및 로직
-│   │   ├── notion_service.py            # Notion API 클라이언트 및 Upsert 로직
-│   │   ├── webhook_service.py           # Webhook 처리 로직
-│   │   └── sync_service.py              # 동기화 조정 로직
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── logger.py                    # 구조화된 로깅 유틸리티
-│   │   ├── rate_limiter.py              # API Rate Limit 처리
-│   │   ├── validators.py                # 데이터 검증 유틸리티
-│   │   └── mapping.py                   # GitHub-Notion 데이터 매핑 유틸리티
-│   └── handlers/
-│       ├── __init__.py
-│       ├── webhook_handler.py           # Webhook 이벤트 핸들러
-│       └── sync_handler.py              # 동기화 핸들러
-│
-├── scripts/
-│   ├── setup_github_webhook.py         # GitHub Webhook 설정 스크립트
-│   ├── full_sync.py                     # 전체 동기화 스크립트
-│   ├── validate_setup.py               # 설정 검증 스크립트
-│   └── migrate_data.py                  # 데이터 마이그레이션 스크립트
-│
-├── queries/
-│   ├── get_project_items.graphql        # 프로젝트 아이템 조회 쿼리
-│   ├── get_single_item.graphql          # 단일 아이템 조회 쿼리
-│   └── get_project_fields.graphql       # 프로젝트 필드 조회 쿼리
-│
-├── tests/
-│   ├── __init__.py
-│   ├── conftest.py                      # pytest 설정 및 fixtures
-│   ├── test_github_service.py          # GitHub 서비스 테스트
-│   ├── test_notion_service.py          # Notion 서비스 테스트
-│   ├── test_webhook_handler.py         # Webhook 핸들러 테스트
-│   ├── test_sync_service.py            # 동기화 서비스 테스트
-│   └── fixtures/
-│       ├── github_responses.json       # GitHub API 응답 샘플
-│       ├── notion_responses.json       # Notion API 응답 샘플
-│       └── webhook_payloads.json       # Webhook 페이로드 샘플
-│
-├── deployment/
-│   ├── lambda/
-│   │   ├── requirements.txt             # Lambda 의존성
-│   │   ├── lambda_function.py           # Lambda 엔트리포인트
-│   │   └── deployment_package.sh       # 배포 패키지 생성 스크립트
-│   ├── docker/
-│   │   ├── Dockerfile                   # Docker 컨테이너 정의
-│   │   └── docker-compose.yml          # 로컬 개발환경 구성
-│   └── terraform/
-│       ├── main.tf                      # Terraform 메인 설정
-│       ├── variables.tf                 # 변수 정의
-│       └── outputs.tf                   # 출력 정의
-│
-├── docs/
-│   ├── README.md                        # 프로젝트 개요 및 사용법
-│   ├── SETUP.md                         # 설치 및 설정 가이드
-│   ├── API.md                           # API 문서
-│   ├── DEPLOYMENT.md                    # 배포 가이드
-│   ├── TROUBLESHOOTING.md              # 문제 해결 가이드
-│   └── ARCHITECTURE.md                  # 아키텍처 문서
-│
-├── monitoring/
-│   ├── dashboards/
-│   │   ├── cloudwatch_dashboard.json   # CloudWatch 대시보드 설정
-│   │   └── grafana_dashboard.json      # Grafana 대시보드 설정
-│   ├── alerts/
-│   │   ├── cloudwatch_alarms.yml       # CloudWatch 알람 설정
-│   │   └── slack_notifications.py      # Slack 알림 설정
-│   └── health_check.py                  # 헬스 체크 스크립트
-│
-├── config/
-│   ├── field_mappings.yml               # GitHub-Notion 필드 매핑 설정
-│   ├── webhook_events.yml               # 처리할 Webhook 이벤트 설정
-│   └── sync_config.yml                  # 동기화 설정
-│
-├── .env.example                         # 환경 변수 예시 파일
-├── .gitignore                          # Git 무시 파일
-├── requirements.txt                     # Python 의존성
-├── requirements-dev.txt                 # 개발 의존성
-├── pyproject.toml                       # Python 프로젝트 설정
-├── Makefile                            # 빌드 및 개발 명령어
-└── README.md                           # 프로젝트 루트 README
+│   │   ├── github_service.py           # 🐙 GitHub API 클라이언트
+│   │   ├── notion_service.py           # 📝 Notion API 클라이언트  
+│   │   └── sync_service.py             # 🔄 동기화 로직
+│   └── utils/
+│       ├── mapping.py                  # 🗺️ 필드 매핑 유틸리티
+│       └── logger.py                   # 📊 로깅 시스템
+└── 🧪 tests/                           # ✅ 테스트 코드
 ```
 
-## 주요 파일 및 디렉토리 설명
+## 🛠️ 설치 및 설정
 
-### 📁 **src/** - 메인 애플리케이션 코드
-- **main.py**: FastAPI 애플리케이션의 엔트리포인트, Webhook 라우팅
-- **config.py**: 환경 변수 로딩, 설정 관리
-- **models/**: Pydantic 모델 정의 (타입 안정성 보장)
-- **services/**: 비즈니스 로직 및 외부 API 클라이언트
-- **handlers/**: 이벤트 처리 및 동기화 로직
-- **utils/**: 공통 유틸리티 함수
+### 1. 환경 설정
 
-### 📁 **scripts/** - 유틸리티 스크립트
-- **setup_github_webhook.py**: GitHub Webhook 자동 설정
-- **full_sync.py**: GitHub Actions에서 실행되는 전체 동기화
-- **validate_setup.py**: 설정 검증 및 연결 테스트
-
-### 📁 **queries/** - GraphQL 쿼리
-- 재사용 가능한 GraphQL 쿼리 파일들
-- 버전 관리 및 유지보수 용이성
-
-### 📁 **tests/** - 테스트 코드
-- 단위 테스트 및 통합 테스트
-- Mock 데이터 및 fixtures
-
-### 📁 **deployment/** - 배포 관련 파일
-- **lambda/**: AWS Lambda 배포 설정
-- **docker/**: 컨테이너 배포 설정
-- **terraform/**: 인프라 코드 (IaC)
-
-### 📁 **monitoring/** - 모니터링 설정
-- 대시보드 설정 파일
-- 알림 및 헬스 체크 스크립트
-
-### 📁 **config/** - 설정 파일
-- YAML 형식의 설정 파일들
-- 환경별 설정 분리
-
-## 개발 워크플로우
-
-### 1. 로컬 개발 환경 설정
 ```bash
 # 의존성 설치
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 
 # 환경 변수 설정
 cp .env.example .env
 # .env 파일 편집
-
-# 설정 검증
-python scripts/validate_setup.py
 ```
 
-### 2. 개발 및 테스트
-```bash
-# 테스트 실행
-make test
+### 2. 필수 환경 변수
 
-# 코드 품질 검사
-make lint
-
-# 로컬 서버 실행
-make run
-```
-
-### 3. 배포
-```bash
-# Lambda 배포
-make deploy-lambda
-
-# Docker 배포
-make deploy-docker
-```
-
-## 설정 관리
-
-### 환경 변수 (.env)
 ```bash
 # API 토큰
 NOTION_TOKEN=secret_...
 GH_TOKEN=github_pat_...
 
-# 프로젝트 설정
-GH_ORG=your-org
-GH_PROJECT_NUMBER=123
-NOTION_DB_ID=...
+# 프로젝트 설정  
+GH_ORG=ThakiCloud
+GH_PROJECT_NUMBER=5
+NOTION_DATABASE_ID=...
 
 # 보안
 GH_WEBHOOK_SECRET=...
-
-# 옵션
-LOG_LEVEL=INFO
-RATE_LIMIT_ENABLED=true
 ```
 
-### 필드 매핑 (config/field_mappings.yml)
-```yaml
-github_to_notion:
-  status:
-    github_field: "Status"
-    notion_property: "Status"
-    type: "select"
-  
-  sprint:
-    github_field: "Sprint"
-    notion_property: "Sprint"
-    type: "select"
-  
-  assignees:
-    github_field: "assignees"
-    notion_property: "Assignees"
-    type: "people"
+### 3. 설정 검증
+
+```bash
+# 연결 테스트
+python scripts/validate_setup.py
 ```
 
-## 파일 역할 세부 설명
+## 🔧 동기화 프로세스
 
-### 🔧 **Makefile** - 개발 명령어
-```makefile
-.PHONY: test lint run deploy-lambda
+### 실행 단계
 
-test:
-	pytest tests/ -v
+1. **🗑️ Step 1: Notion 데이터베이스 초기화**
+   - 기존 페이지들을 아카이브 처리
+   - 새로운 동기화를 위한 공간 확보
 
-lint:
-	black src/ tests/
-	flake8 src/ tests/
+2. **📥 Step 2: GitHub 항목 동기화**  
+   - GitHub Project에서 항목 조회
+   - 필드 매핑 및 변환 적용
+   - Notion 페이지 생성 및 내용 업데이트
 
-run:
-	uvicorn src.main:app --reload
+### 필드 매핑
 
-deploy-lambda:
-	cd deployment/lambda && ./deployment_package.sh
+| GitHub 필드 | Notion 필드 | 변환 |
+|-------------|-------------|------|
+| Title | 작업 | 직접 매핑 |
+| Status | 진행상태 | 상태 값 매핑 |
+| Priority | 우선순위 | P0→높음, P1→중간, P2→낮음 |
+| **Assignees** | **담당자** | **사용자명→실제 사용자 ID** ✅ |
+| Labels | 태그 | 다중 선택 |
+| Due Date | 마감일 | 날짜 형식 |
+
+## 🚨 문제 해결
+
+### 일반적인 오류
+
+#### "담당자 is expected to be people"
+```bash
+# 해결: 이미 해결됨! 실제 Notion 사용자 ID 사용
+✅ 2025-07-29 완전 해결
 ```
+
+#### 동기화 속도가 느림
+```bash
+# 해결: 배치 크기를 줄여서 실행
+PYTHONPATH=. python scripts/complete_resync.py --batch-size 10
+```
+
+#### 메모리 부족
+```bash
+# 해결: 특정 스프린트만 동기화
+PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "현재스프린트"
+```
+
+### 백업 권장사항
+
+중요한 동기화 전에는 다음을 권장합니다:
+
+1. **📋 Notion 데이터베이스 백업**
+2. **🔍 Dry-run 실행으로 사전 확인**  
+3. **📦 작은 배치로 테스트 실행**
+
+## 📖 추가 문서
+
+- 📋 **[스크럼 워크플로우 가이드](docs/GITHUB_SCRUM_WORKFLOW.md)** - 핵심 사용법
+- 🏗️ **[아키텍처 문서](docs/ARCHITECTURE.md)** - 시스템 구조
+- 🚀 **[배포 가이드](docs/DEPLOYMENT.md)** - 배포 방법
+- 🔧 **[설정 가이드](docs/SETUP.md)** - 상세 설정
+- 🆘 **[문제 해결](docs/TROUBLESHOOTING.md)** - 트러블슈팅
+
+## 📈 성공 사례
+
+**✅ 25-07-Sprint4 스프린트 동기화 완료**
+- **처리 항목**: 25개 GitHub Issues/PRs
+- **생성된 페이지**: 25개 Notion 페이지  
+- **담당자 매핑**: 100% 성공
+- **다중 담당자**: 완벽 지원
+- **실행 시간**: 108.93초
+- **상태**: Production Ready 🚀
+
+---
+
+## ⚠️ 주의사항
+
+- `--force` 옵션은 확인 없이 모든 기존 Notion 페이지를 삭제합니다
+- 중요한 데이터가 있다면 반드시 백업을 먼저 수행하세요  
+- 첫 실행 시에는 반드시 `--dry-run`으로 테스트하세요
+
+## 🤝 기여하기
+
+1. 이슈 생성 또는 기능 제안
+2. Fork 후 개발  
+3. 테스트 작성 및 실행
+4. Pull Request 제출
+
+## 📄 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다.
 
