@@ -65,6 +65,7 @@ github_to_notion:
       "thaki-yakhyo": "23ed872b-594c-811f-8e2f-0002687c8ce2"  # yakhyo
       "thakicloud-jotaeyang": "229d872b-594c-81b5-906f-00020b52c301"  # 조태양
       "yunjae-park1111": "225d872b-594c-81ba-9e42-0002b46f091a"  # 박윤재
+      "hwyncho-thakicloud": "245d872b-594c-814c-9657-000222886921"  # 조휘연
     default_value: null
 
 # Notion 전용 필드 (GitHub에서 매핑되지 않는 필드들)
