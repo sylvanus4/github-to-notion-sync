@@ -507,7 +507,7 @@ class GitHubService:
                 "cursor": cursor
             }
             
-            response = self._make_graphql_request(query, variables)
+            response = self._make_request(query, variables)
             
             issue_data = response.get("data", {}).get("repository", {}).get("issue", {})
             if not issue_data:
@@ -582,7 +582,7 @@ class GitHubService:
                 "cursor": cursor
             }
             
-            response = self._make_graphql_request(query, variables)
+            response = self._make_request(query, variables)
             
             pr_data = response.get("data", {}).get("repository", {}).get("pullRequest", {})
             if not pr_data:

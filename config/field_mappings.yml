@@ -32,6 +32,7 @@ github_to_notion:
       "In Progress": "진행 중"  # → in-progress
       "Done": "완료"           # → done
       "25-07-Archive": "보관"  # → archived
+      "25-08-Archive": "보관"  # → archived (새로 추가)
     default_value: "시작 전"
   
   # Priority Fields - GitHub 값에서 Notion 값으로 매핑
@@ -51,6 +52,13 @@ github_to_notion:
     github_field: "End date"
     notion_property: "마감일"
     type: "date"
+    required: false
+
+  # Estimate/Story Points Field
+  estimate:
+    github_field: "Estimate"
+    notion_property: "스토리포인트"
+    type: "number"
     required: false
 
   # People Fields - GitHub username에서 실제 Notion 사용자 ID로 매핑
