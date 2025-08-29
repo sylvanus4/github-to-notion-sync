@@ -74,6 +74,7 @@ github_to_notion:
       "thakicloud-jotaeyang": "229d872b-594c-81b5-906f-00020b52c301"  # 조태양
       "yunjae-park1111": "225d872b-594c-81ba-9e42-0002b46f091a"  # 박윤재
       "hwyncho-thakicloud": "245d872b-594c-814c-9657-000222886921"  # 조휘연
+      "chohongcheol-thakicloud": "259d872b-594c-812e-9ea8-00028d08dc7d"  # 조홍철
     default_value: null
 
 # Notion 전용 필드 (GitHub에서 매핑되지 않는 필드들)
