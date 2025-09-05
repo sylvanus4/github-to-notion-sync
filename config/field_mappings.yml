@@ -6,7 +6,7 @@ github_to_notion:
   # Core Fields
   title:
     github_field: "title"
-    notion_property: "작업"
+    notion_property: "피드백 제목"
     type: "title"
     required: true
   
@@ -97,7 +97,7 @@ field_mapping_settings:
 
 # Notion to GitHub Reverse Mappings (for future bidirectional sync)
 notion_to_github:
-  "작업": "title"
+  "피드백 제목": "title"
   "태그": "type"
   "진행 상태": "Status"
   "우선순위": "Priority"
