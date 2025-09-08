@@ -21,7 +21,7 @@ python3 scripts/sync_markdown_to_notion.py \
   --file README.md \
   --page-id your-notion-page-id
 
-ㄷ
+EX) 
 python3 scripts/sync_markdown_to_notion.py \
     --owner ThakiCloud \
     --repo ai-platform-webui \

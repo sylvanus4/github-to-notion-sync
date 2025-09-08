@@ -234,18 +234,26 @@ class MarkdownSyncService:
             if not self._is_list_item(line):
                 break
             
-            # Determine list type
+            # Determine list type and extract text
             if line.startswith(('- ', '* ', '+ ')):
                 list_type = "bulleted_list_item"
                 list_text = line[2:].strip()
             else:
                 list_type = "numbered_list_item"
-                # Extract text after number
+                # Extract text after number - handle various formats
                 dot_index = line.find('. ')
                 if dot_index != -1:
                     list_text = line[dot_index + 2:].strip()
                 else:
-                    list_text = line
+                    # Handle cases like "1)" or other formats
+                    match = re.match(r'^\d+[\)\.]\s*(.*)', line)
+                    if match:
+                        list_text = match.group(1).strip()
+                    else:
+                        list_text = line
+            
+            # Clean up text formatting
+            list_text = list_text.replace('**', '').strip()
             
             # Create list item block
             blocks.append({
@@ -296,6 +304,7 @@ class MarkdownSyncService:
         blocks = []
         i = start_index
         table_rows = []
+        has_separator = False
         
         # Collect table rows
         while i < len(lines):
@@ -304,18 +313,50 @@ class MarkdownSyncService:
             if not line or '|' not in line:
                 break
             
-            # Skip separator rows (containing only |, -, :, spaces)
-            if not re.match(r'^[\|\-\s:]+$', line):
-                # Parse table row
-                cells = [cell.strip() for cell in line.split('|')[1:-1]]  # Remove empty first/last
-                table_rows.append(cells)
+            # Check if this is a separator row
+            if re.match(r'^[\|\-\s:]+$', line):
+                has_separator = True
+                i += 1
+                continue
+            
+            # Parse table row - handle empty cells properly
+            cells = [cell.strip() for cell in line.split('|')]
+            # Remove empty first and last cells if they exist
+            if cells and not cells[0]:
+                cells = cells[1:]
+            if cells and not cells[-1]:
+                cells = cells[:-1]
+            table_rows.append(cells)
             
             i += 1
         
         # Create table block if we have rows
         if table_rows:
-            # Notion tables are complex, so we'll create a simple representation
-            table_text = "\n".join([" | ".join(row) for row in table_rows])
+            # Create a formatted table representation
+            table_content = []
+            
+            for row_idx, row in enumerate(table_rows):
+                # Clean up each cell and handle bold formatting
+                cleaned_cells = []
+                for cell in row:
+                    # Remove markdown bold formatting and clean up
+                    clean_cell = cell.replace('**', '').strip()
+                    # Handle empty cells
+                    if not clean_cell:
+                        clean_cell = " "
+                    cleaned_cells.append(clean_cell)
+                
+                # Create formatted row with proper spacing
+                if row_idx == 0:  # Header row
+                    formatted_row = " | ".join([f"**{cell}**" for cell in cleaned_cells])
+                else:
+                    formatted_row = " | ".join(cleaned_cells)
+                
+                table_content.append(formatted_row)
+            
+            # Create table as a single paragraph with proper formatting
+            table_text = "\n".join(table_content)
+            
             blocks.append({
                 "object": "block",
                 "type": "paragraph",
@@ -337,7 +378,15 @@ class MarkdownSyncService:
             line = lines[i].strip()
             
             # Stop at empty line or special markdown syntax
-            if not line or line.startswith('#') or line.startswith('```') or self._is_list_item(line):
+            if (not line or 
+                line.startswith('#') or 
+                line.startswith('```') or 
+                line.startswith('>') or
+                line.startswith('---') or
+                line.startswith('***') or
+                line.startswith('___') or
+                self._is_list_item(line) or
+                ('|' in line and line.count('|') >= 2)):
                 break
             
             paragraph_lines.append(line)
@@ -345,7 +394,12 @@ class MarkdownSyncService:
         
         # Create paragraph block
         if paragraph_lines:
+            # Join lines with proper spacing, preserving line breaks where needed
             paragraph_text = ' '.join(paragraph_lines)
+            
+            # Clean up markdown formatting
+            paragraph_text = paragraph_text.replace('**', '').strip()
+            
             blocks.append({
                 "object": "block",
                 "type": "paragraph",
