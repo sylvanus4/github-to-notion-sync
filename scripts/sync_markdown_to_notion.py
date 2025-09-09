@@ -494,11 +494,21 @@ class MarkdownSyncService:
                 logger.warning("No content blocks generated from markdown")
                 return False
             
-            # Add content to Notion page
-            response = self.notion_client.blocks.children.append(
-                block_id=notion_page_id,
-                children=content_blocks
-            )
+            # Add content to Notion page in chunks (max 100 blocks per request)
+            chunk_size = 100
+            for i in range(0, len(content_blocks), chunk_size):
+                chunk = content_blocks[i:i + chunk_size]
+                logger.info(f"Adding chunk {i//chunk_size + 1} with {len(chunk)} blocks")
+                
+                response = self.notion_client.blocks.children.append(
+                    block_id=notion_page_id,
+                    children=chunk
+                )
+                
+                # Small delay between chunks to avoid rate limiting
+                if i + chunk_size < len(content_blocks):
+                    import time
+                    time.sleep(0.1)
             
             logger.info(f"Successfully synced markdown to Notion page")
             self.stats["notion_page_updated"] = True
