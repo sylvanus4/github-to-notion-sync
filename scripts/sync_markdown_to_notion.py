@@ -209,11 +209,14 @@ class MarkdownSyncService:
         else:
             block_type = "heading_3"
         
+        # Parse rich text for headings (may contain links)
+        rich_text = self._parse_rich_text(heading_text)
+        
         return {
             "object": "block",
             "type": block_type,
             block_type: {
-                "rich_text": [{"type": "text", "text": {"content": heading_text}}]
+                "rich_text": rich_text
             }
         }
     
@@ -223,16 +226,31 @@ class MarkdownSyncService:
                 line.startswith('+ ') or 
                 (line and line[0].isdigit() and '. ' in line))
     
+    def _is_list_item_with_indent(self, line: str) -> bool:
+        """Check if line is a list item, considering indentation."""
+        stripped = line.strip()
+        return (stripped.startswith('- ') or stripped.startswith('* ') or 
+                stripped.startswith('+ ') or 
+                (stripped and stripped[0].isdigit() and '. ' in stripped))
+    
+    def _get_indent_level(self, line: str) -> int:
+        """Get the indentation level of a line (number of leading spaces)."""
+        return len(line) - len(line.lstrip())
+    
     def _parse_list(self, lines: List[str], start_index: int) -> tuple:
-        """Parse list items from lines."""
+        """Parse list items from lines with proper nesting support."""
         blocks = []
         i = start_index
         
         while i < len(lines):
-            line = lines[i].strip()
+            original_line = lines[i]
+            line = original_line.strip()
             
-            if not self._is_list_item(line):
+            if not line or not self._is_list_item_with_indent(original_line):
                 break
+            
+            # Get indentation level
+            indent_level = self._get_indent_level(original_line)
             
             # Determine list type and extract text
             if line.startswith(('- ', '* ', '+ ')):
@@ -252,19 +270,50 @@ class MarkdownSyncService:
                     else:
                         list_text = line
             
-            # Clean up text formatting
-            list_text = list_text.replace('**', '').strip()
+            # Parse rich text with links and formatting
+            rich_text = self._parse_rich_text(list_text)
             
             # Create list item block
-            blocks.append({
+            list_item = {
                 "object": "block",
                 "type": list_type,
                 list_type: {
-                    "rich_text": [{"type": "text", "text": {"content": list_text}}]
+                    "rich_text": rich_text
                 }
-            })
+            }
             
-            i += 1
+            # Check for nested items
+            nested_items = []
+            next_i = i + 1
+            
+            # Look ahead for nested items
+            while next_i < len(lines):
+                next_original_line = lines[next_i]
+                next_line = next_original_line.strip()
+                
+                if not next_line:
+                    next_i += 1
+                    continue
+                
+                if not self._is_list_item_with_indent(next_original_line):
+                    break
+                
+                next_indent = self._get_indent_level(next_original_line)
+                
+                # If next item has deeper indentation, it's nested
+                if next_indent > indent_level:
+                    nested_blocks, next_i = self._parse_list(lines, next_i)
+                    nested_items.extend(nested_blocks)
+                else:
+                    # Same or less indentation, stop looking for nested items
+                    break
+            
+            # Add nested items if any
+            if nested_items:
+                list_item[list_type]["children"] = nested_items
+            
+            blocks.append(list_item)
+            i = next_i if nested_items else i + 1
         
         return blocks, i
     
@@ -289,11 +338,14 @@ class MarkdownSyncService:
         
         # Create quote block
         if quote_content:
+            quote_text = ' '.join(quote_content)
+            rich_text = self._parse_rich_text(quote_text)
+            
             blocks.append({
                 "object": "block",
                 "type": "quote",
                 "quote": {
-                    "rich_text": [{"type": "text", "text": {"content": ' '.join(quote_content)}}]
+                    "rich_text": rich_text
                 }
             })
         
@@ -397,18 +449,123 @@ class MarkdownSyncService:
             # Join lines with proper spacing, preserving line breaks where needed
             paragraph_text = ' '.join(paragraph_lines)
             
-            # Clean up markdown formatting
-            paragraph_text = paragraph_text.replace('**', '').strip()
+            # Parse rich text with links and formatting
+            rich_text = self._parse_rich_text(paragraph_text)
             
             blocks.append({
                 "object": "block",
                 "type": "paragraph",
                 "paragraph": {
-                    "rich_text": [{"type": "text", "text": {"content": paragraph_text}}]
+                    "rich_text": rich_text
                 }
             })
         
         return blocks, i
+    
+    def _parse_rich_text(self, text: str) -> List[Dict]:
+        """Parse text with markdown formatting into Notion rich text format.
+        
+        Args:
+            text: Text with markdown formatting
+            
+        Returns:
+            List of rich text objects for Notion
+        """
+        rich_text = []
+        
+        # Handle markdown links: [text](url)
+        link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+        parts = []
+        last_end = 0
+        
+        for match in re.finditer(link_pattern, text):
+            # Add text before the link
+            if match.start() > last_end:
+                before_text = text[last_end:match.start()]
+                if before_text:
+                    parts.append({"type": "text", "content": before_text})
+            
+            # Add the link
+            link_text = match.group(1)
+            link_url = match.group(2)
+            parts.append({
+                "type": "link", 
+                "content": link_text,
+                "url": link_url
+            })
+            
+            last_end = match.end()
+        
+        # Add remaining text after last link
+        if last_end < len(text):
+            remaining_text = text[last_end:]
+            if remaining_text:
+                parts.append({"type": "text", "content": remaining_text})
+        
+        # If no links found, treat as plain text
+        if not parts:
+            parts = [{"type": "text", "content": text}]
+        
+        # Convert to Notion rich text format
+        for part in parts:
+            if part["type"] == "link":
+                rich_text.append({
+                    "type": "text",
+                    "text": {
+                        "content": part["content"],
+                        "link": {"url": part["url"]}
+                    }
+                })
+            else:
+                # Handle bold formatting **text**
+                content = part["content"]
+                bold_pattern = r'\*\*([^*]+)\*\*'
+                
+                if re.search(bold_pattern, content):
+                    # Split by bold formatting
+                    bold_parts = []
+                    last_pos = 0
+                    
+                    for bold_match in re.finditer(bold_pattern, content):
+                        # Add text before bold
+                        if bold_match.start() > last_pos:
+                            before_bold = content[last_pos:bold_match.start()]
+                            if before_bold:
+                                bold_parts.append({
+                                    "type": "text",
+                                    "text": {"content": before_bold}
+                                })
+                        
+                        # Add bold text
+                        bold_text = bold_match.group(1)
+                        bold_parts.append({
+                            "type": "text",
+                            "text": {
+                                "content": bold_text
+                            },
+                            "annotations": {"bold": True}
+                        })
+                        
+                        last_pos = bold_match.end()
+                    
+                    # Add remaining text
+                    if last_pos < len(content):
+                        remaining = content[last_pos:]
+                        if remaining:
+                            bold_parts.append({
+                                "type": "text",
+                                "text": {"content": remaining}
+                            })
+                    
+                    rich_text.extend(bold_parts)
+                else:
+                    # Plain text
+                    rich_text.append({
+                        "type": "text",
+                        "text": {"content": content}
+                    })
+        
+        return rich_text if rich_text else [{"type": "text", "text": {"content": text}}]
     
     def fetch_github_markdown(self, owner: str, repo: str, file_path: str, branch: str = "main") -> Optional[str]:
         """Fetch markdown content from GitHub repository.
