@@ -78,46 +78,27 @@ class CreateNewDatabaseSyncService:
             elif property_type == "multi_select":
                 # For multi_select, we need to define options
                 value_mappings = field_config.get("value_mappings", {})
-                options = [{"name": value} for value in value_mappings.values()]
+                options = [{"name": value, "color": "default"} 
+                          for value in value_mappings.values()]
                 properties[notion_property] = {
                     "multi_select": {"options": options}
                 }
             
             elif property_type == "status":
-                # For status, define status options with groups
+                # For status in database creation, Notion API doesn't allow specifying options/groups
+                # We use select instead, which provides similar functionality
                 value_mappings = field_config.get("value_mappings", {})
-                # Create status groups based on common status names
-                status_groups = {
-                    "시작 전": "To do",
-                    "진행 중": "In progress", 
-                    "완료": "Done",
-                    "보관": "Archived"
-                }
-                
-                options = []
-                for github_value, notion_value in value_mappings.items():
-                    group = status_groups.get(notion_value, "To do")
-                    options.append({
-                        "name": notion_value,
-                        "color": self._get_status_color(notion_value)
-                    })
-                
+                options = [{"name": value, "color": self._get_status_color(value)} 
+                          for value in set(value_mappings.values())]
                 properties[notion_property] = {
-                    "status": {
-                        "options": options,
-                        "groups": [
-                            {"name": "To do", "color": "gray", "option_ids": []},
-                            {"name": "In progress", "color": "blue", "option_ids": []},
-                            {"name": "Done", "color": "green", "option_ids": []},
-                            {"name": "Archived", "color": "red", "option_ids": []}
-                        ]
-                    }
+                    "select": {"options": options}
                 }
             
             elif property_type == "select":
                 # For select, define options
                 value_mappings = field_config.get("value_mappings", {})
-                options = [{"name": value} for value in value_mappings.values() if value]
+                options = [{"name": value, "color": "default"} 
+                          for value in value_mappings.values() if value]
                 properties[notion_property] = {
                     "select": {"options": options}
                 }
