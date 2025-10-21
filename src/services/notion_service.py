@@ -1036,3 +1036,130 @@ class NotionService:
                 })
         
         return blocks
+    
+    def create_database(self, parent_page_id: str, title: str, 
+                       properties_schema: Dict[str, Any]) -> Optional[str]:
+        """Create a new Notion database.
+        
+        Args:
+            parent_page_id: Parent page ID where database will be created
+            title: Database title
+            properties_schema: Database properties schema
+            
+        Returns:
+            Database ID or None if creation failed
+        """
+        try:
+            def _create_database():
+                return self.client.databases.create(
+                    parent={
+                        "type": "page_id",
+                        "page_id": parent_page_id
+                    },
+                    title=[
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": title
+                            }
+                        }
+                    ],
+                    properties=properties_schema
+                )
+            
+            response = self._handle_rate_limit(_create_database)
+            
+            database_id = response["id"]
+            logger.info(f"Created Notion database: {title}", extra={
+                "database_id": database_id,
+                "parent_page_id": parent_page_id
+            })
+            
+            return database_id
+            
+        except APIResponseError as e:
+            self._handle_api_error(e)
+        except Exception as e:
+            logger.error(f"Failed to create database: {e}")
+            return None
+    
+    def find_page_by_composite_key(self, database_id: str, filters: List[Dict[str, Any]]) -> Optional[NotionPage]:
+        """Find a page by multiple filter conditions (composite key).
+        
+        Args:
+            database_id: Database ID to search in
+            filters: List of filter conditions
+            
+        Returns:
+            NotionPage or None if not found
+        """
+        try:
+            # Construct compound AND filter
+            filter_dict = {
+                "and": filters
+            } if len(filters) > 1 else filters[0]
+            
+            def _query_pages():
+                return self.client.databases.query(
+                    database_id=database_id,
+                    filter=filter_dict,
+                    page_size=1
+                )
+            
+            response = self._handle_rate_limit(_query_pages)
+            
+            results = response.get("results", [])
+            if results:
+                return NotionPage(**results[0])
+            
+            return None
+            
+        except APIResponseError as e:
+            self._handle_api_error(e)
+        except Exception as e:
+            logger.error(f"Failed to find page by composite key: {e}")
+            return None
+    
+    def create_page_in_database(self, database_id: str, properties: Dict[str, Any]) -> Optional[NotionPage]:
+        """Create a page in a specific database.
+        
+        Args:
+            database_id: Database ID
+            properties: Page properties
+            
+        Returns:
+            NotionPage or None if creation failed
+        """
+        try:
+            def _create_page():
+                return self.client.pages.create(
+                    parent={"database_id": database_id},
+                    properties=properties
+                )
+            
+            response = self._handle_rate_limit(_create_page)
+            
+            logger.info("Created page in database", extra={
+                "page_id": response["id"],
+                "database_id": database_id
+            })
+            
+            return NotionPage(**response)
+            
+        except APIResponseError as e:
+            self._handle_api_error(e)
+        except Exception as e:
+            logger.error(f"Failed to create page in database: {e}")
+            return None
+    
+    def update_page_properties(self, page_id: str, properties: Dict[str, Any]) -> Optional[NotionPage]:
+        """Update page properties (alias for update_page for clarity).
+        
+        Args:
+            page_id: Page ID
+            properties: Updated properties
+            
+        Returns:
+            NotionPage or None if update failed
+        """
+        return self.update_page(page_id, properties)

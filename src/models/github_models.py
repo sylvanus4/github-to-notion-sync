@@ -179,12 +179,37 @@ class GitHubProjectFieldType(str, Enum):
     SUB_ISSUES_PROGRESS = "SUB_ISSUES_PROGRESS"
 
 
+class GitHubIteration(BaseModel):
+    """GitHub iteration model."""
+    id: str
+    title: str
+    start_date: datetime = Field(alias="startDate")
+    duration: int
+    
+    class Config:
+        allow_population_by_field_name = True
+
+
+class GitHubIterationConfiguration(BaseModel):
+    """GitHub iteration configuration model."""
+    iterations: List[GitHubIteration] = Field(default_factory=list)
+    
+    @field_validator('iterations', mode='before')
+    @classmethod
+    def parse_iterations(cls, v):
+        """Parse iterations list."""
+        if v is None:
+            return []
+        return v if isinstance(v, list) else []
+
+
 class GitHubProjectField(BaseModel):
     """GitHub project field model."""
     id: str
     name: str
     dataType: GitHubProjectFieldType
     options: Optional[List[Dict[str, Any]]] = None
+    configuration: Optional[GitHubIterationConfiguration] = None
 
 
 class GitHubProjectFieldValue(BaseModel):

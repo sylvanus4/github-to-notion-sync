@@ -647,3 +647,137 @@ class GitHubService:
             GitHubRateLimitInfo or None if not available
         """
         return self.rate_limit_info
+    
+    def get_organization_pr_reviews(self, start_date: datetime, end_date: datetime, 
+                                    cursor: Optional[str] = None) -> Dict[str, Any]:
+        """Get PR reviews from all organization repositories within a date range.
+        
+        Args:
+            start_date: Start date for review search
+            end_date: End date for review search
+            cursor: Pagination cursor
+            
+        Returns:
+            Dictionary containing reviews data and pagination info
+        """
+        query = """
+        query($searchQuery: String!, $cursor: String) {
+          search(query: $searchQuery, type: ISSUE, first: 100, after: $cursor) {
+            nodes {
+              ... on PullRequest {
+                number
+                title
+                author {
+                  login
+                }
+                createdAt
+                mergedAt
+                repository {
+                  name
+                  owner {
+                    login
+                  }
+                }
+                reviews(first: 100) {
+                  nodes {
+                    author {
+                      login
+                    }
+                    state
+                    submittedAt
+                  }
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+        """
+        
+        # Format dates for GitHub search query
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
+        
+        # GitHub search query for PRs in the organization within date range
+        search_query = f"org:{self.settings.github_org} type:pr created:{start_str}..{end_str}"
+        
+        variables = {
+            "searchQuery": search_query,
+            "cursor": cursor
+        }
+        
+        response = self._make_request(query, variables)
+        
+        if not response.data:
+            return {"reviews": [], "hasNextPage": False, "endCursor": None}
+        
+        search_data = response.data.get("search", {})
+        pr_nodes = search_data.get("nodes", [])
+        page_info = search_data.get("pageInfo", {})
+        
+        # Process reviews from PRs
+        all_reviews = []
+        for pr in pr_nodes:
+            if not pr:
+                continue
+                
+            pr_info = {
+                "number": pr.get("number"),
+                "title": pr.get("title"),
+                "author": pr.get("author", {}).get("login") if pr.get("author") else None,
+                "repository": f"{pr.get('repository', {}).get('owner', {}).get('login')}/{pr.get('repository', {}).get('name')}",
+                "createdAt": pr.get("createdAt"),
+                "mergedAt": pr.get("mergedAt"),
+            }
+            
+            reviews = pr.get("reviews", {}).get("nodes", [])
+            for review in reviews:
+                if review and review.get("author"):
+                    all_reviews.append({
+                        "pr": pr_info,
+                        "reviewer": review.get("author", {}).get("login"),
+                        "state": review.get("state"),
+                        "submittedAt": review.get("submittedAt")
+                    })
+        
+        return {
+            "reviews": all_reviews,
+            "hasNextPage": page_info.get("hasNextPage", False),
+            "endCursor": page_info.get("endCursor")
+        }
+    
+    def get_all_organization_pr_reviews(self, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
+        """Get all PR reviews from organization with pagination.
+        
+        Args:
+            start_date: Start date for review search
+            end_date: End date for review search
+            
+        Returns:
+            List of all reviews
+        """
+        all_reviews = []
+        cursor = None
+        
+        logger.info(f"Fetching PR reviews from {start_date.date()} to {end_date.date()}")
+        
+        while True:
+            result = self.get_organization_pr_reviews(start_date, end_date, cursor)
+            reviews = result.get("reviews", [])
+            all_reviews.extend(reviews)
+            
+            logger.debug(f"Fetched {len(reviews)} reviews (total: {len(all_reviews)})")
+            
+            if not result.get("hasNextPage"):
+                break
+            
+            cursor = result.get("endCursor")
+            
+            # Small delay to avoid rate limits
+            time.sleep(0.5)
+        
+        logger.info(f"Retrieved total {len(all_reviews)} PR reviews")
+        return all_reviews
