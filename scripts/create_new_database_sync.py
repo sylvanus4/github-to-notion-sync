@@ -260,6 +260,15 @@ class CreateNewDatabaseSyncService:
             original_db_id = self.notion_service.settings.notion_db_id
             self.notion_service.settings.notion_db_id = self.new_database_id
             
+            # Also temporarily change 'status' type to 'select' in field mappings
+            # because we created the database with select type instead of status
+            original_field_mappings = {}
+            for field_name, field_config in self.config.field_mappings.items():
+                if field_config.get("type") == "status":
+                    original_field_mappings[field_name] = field_config.copy()
+                    field_config["type"] = "select"
+                    logger.debug(f"Temporarily changed {field_name} type from 'status' to 'select'")
+            
             try:
                 # Create pages in batches
                 created_count = 0
@@ -318,8 +327,13 @@ class CreateNewDatabaseSyncService:
                 return failed_count == 0
                 
             finally:
-                # Restore original database ID
+                # Restore original database ID and field mappings
                 self.notion_service.settings.notion_db_id = original_db_id
+                
+                # Restore original field type mappings
+                for field_name, original_config in original_field_mappings.items():
+                    self.config.field_mappings[field_name] = original_config
+                    logger.debug(f"Restored {field_name} type to 'status'")
             
         except Exception as e:
             logger.error(f"Error syncing GitHub items: {e}")
