@@ -25,11 +25,46 @@ sys.path.insert(0, str(project_root))
 from src.services.github_service import GitHubService
 from src.services.notion_service import NotionService
 from src.utils.logger import init_logging, get_logger
+from src.utils.mapping import FieldMapper
 from src.config import get_config
 
 # Initialize logging
 init_logging()
 logger = get_logger(__name__)
+
+# GitHub username to Notion display name mapping
+# Based on field_mappings.yml assignees.value_mappings comments
+GITHUB_TO_NOTION_NAME = {
+    "duyeol-yu": "유두열",
+    "jaehoonkim": "김재훈",
+    "sylvanus4": "한효정",
+    "thaki-yakhyo": "yakhyo",
+    "thakicloud-jotaeyang": "조태양",
+    "yunjae-park1111": "박윤재",
+    "hwyncho-thakicloud": "조휘연",
+    "chohongcheol-thakicloud": "조홍철",
+    "jongmin-kim-thakicloud": "김종민",
+    "thakicloud-chanwoo": "신찬우",
+    "ryangkyung-thaki": "강량경",
+    "mjhan-tk": "한민정",
+}
+
+# GitHub username to Notion User ID mapping
+# Based on field_mappings.yml assignees.value_mappings
+GITHUB_TO_NOTION_USER_ID = {
+    "duyeol-yu": "229d872b-594c-8104-b58b-000212f60087",
+    "jaehoonkim": "229d872b-594c-8150-879d-00022f27519e",
+    "sylvanus4": "229d872b-594c-816d-ae7c-0002f11615c0",
+    "thaki-yakhyo": "23ed872b-594c-811f-8e2f-0002687c8ce2",
+    "thakicloud-jotaeyang": "229d872b-594c-81b5-906f-00020b52c301",
+    "yunjae-park1111": "225d872b-594c-81ba-9e42-0002b46f091a",
+    "hwyncho-thakicloud": "245d872b-594c-814c-9657-000222886921",
+    "chohongcheol-thakicloud": "259d872b-594c-812e-9ea8-00028d08dc7d",
+    "jongmin-kim-thakicloud": "26bd872b-594c-81f8-98df-000226f169c0",
+    "thakicloud-chanwoo": "26bd872b-594c-81fe-885e-00026a54788b",
+    "ryangkyung-thaki": "28bd872b-594c-81f1-8ff5-000283ca84b5",
+    "mjhan-tk": "279d872b-594c-81cf-b503-0002c9451f49",
+}
 
 
 class SprintStatsService:
@@ -45,6 +80,7 @@ class SprintStatsService:
         self.config = get_config()
         self.github_service = GitHubService()
         self.notion_service = NotionService()
+        self.field_mapper = FieldMapper(self.config)
         self.sprint_name = sprint_name
         self.notion_parent_id = notion_parent_id
         self.notion_db_id = None
@@ -60,6 +96,28 @@ class SprintStatsService:
             "total_reviews": 0,
             "user_stats": {}
         }
+    
+    def get_notion_display_name(self, github_username: str) -> str:
+        """Convert GitHub username to Notion display name.
+        
+        Args:
+            github_username: GitHub username
+            
+        Returns:
+            Notion display name (Korean name if mapped, otherwise GitHub username)
+        """
+        return GITHUB_TO_NOTION_NAME.get(github_username, github_username)
+    
+    def get_notion_user_id(self, github_username: str) -> Optional[str]:
+        """Convert GitHub username to Notion User ID.
+        
+        Args:
+            github_username: GitHub username
+            
+        Returns:
+            Notion User ID if mapped, otherwise None
+        """
+        return GITHUB_TO_NOTION_USER_ID.get(github_username)
     
     def get_sprint_date_range(self) -> Optional[tuple[datetime, datetime]]:
         """Get date range for the sprint from GitHub project.
@@ -317,7 +375,7 @@ class SprintStatsService:
                 "title": {}
             },
             "User": {
-                "rich_text": {}
+                "people": {}
             },
             "Issues": {
                 "number": {
@@ -383,21 +441,17 @@ class SprintStatsService:
         
         for username, stats in user_stats.items():
             try:
+                # Convert GitHub username to Notion display name and User ID
+                notion_display_name = self.get_notion_display_name(username)
+                notion_user_id = self.get_notion_user_id(username)
+                
                 # Build properties for this user's stats
                 properties = {
                     "Sprint": {
                         "title": [
                             {
                                 "type": "text",
-                                "text": {"content": f"{self.sprint_name} - {username}"}
-                            }
-                        ]
-                    },
-                    "User": {
-                        "rich_text": [
-                            {
-                                "type": "text",
-                                "text": {"content": username}
+                                "text": {"content": f"{self.sprint_name} - {notion_display_name}"}
                             }
                         ]
                     },
@@ -417,15 +471,43 @@ class SprintStatsService:
                     }
                 }
                 
-                # Check if page already exists (using composite key: Sprint + User)
-                filters = [
-                    {
-                        "property": "User",
-                        "rich_text": {
-                            "equals": username
-                        }
+                # Add User field - use people type if User ID is available
+                if notion_user_id:
+                    properties["User"] = {
+                        "people": [
+                            {
+                                "id": notion_user_id
+                            }
+                        ]
                     }
-                ]
+                else:
+                    # Fallback to rich_text if no User ID mapping exists
+                    logger.warning(f"No Notion User ID found for {username}, using display name only")
+                    properties["User"] = {
+                        "people": []
+                    }
+                
+                # Check if page already exists (using composite key: Sprint + User)
+                # Use people filter if User ID is available
+                if notion_user_id:
+                    filters = [
+                        {
+                            "property": "User",
+                            "people": {
+                                "contains": notion_user_id
+                            }
+                        }
+                    ]
+                else:
+                    # If no User ID, search by Sprint title (fallback)
+                    filters = [
+                        {
+                            "property": "Sprint",
+                            "title": {
+                                "equals": f"{self.sprint_name} - {notion_display_name}"
+                            }
+                        }
+                    ]
                 
                 existing_page = self.notion_service.find_page_by_composite_key(
                     self.notion_db_id, 
@@ -437,19 +519,19 @@ class SprintStatsService:
                     result = self.notion_service.update_page_properties(existing_page.id, properties)
                     if result:
                         sync_stats["updated"] += 1
-                        logger.debug(f"Updated stats for user: {username}")
+                        logger.debug(f"Updated stats for user: {notion_display_name} ({username})")
                     else:
                         sync_stats["failed"] += 1
-                        logger.warning(f"Failed to update stats for user: {username}")
+                        logger.warning(f"Failed to update stats for user: {notion_display_name} ({username})")
                 else:
                     # Create new page
                     result = self.notion_service.create_page_in_database(self.notion_db_id, properties)
                     if result:
                         sync_stats["created"] += 1
-                        logger.debug(f"Created stats for user: {username}")
+                        logger.debug(f"Created stats for user: {notion_display_name} ({username})")
                     else:
                         sync_stats["failed"] += 1
-                        logger.warning(f"Failed to create stats for user: {username}")
+                        logger.warning(f"Failed to create stats for user: {notion_display_name} ({username})")
                 
                 # Small delay to avoid rate limits
                 await asyncio.sleep(0.3)
@@ -511,7 +593,8 @@ class SprintStatsService:
             # Display per-user stats
             logger.info("\nUser Statistics:")
             for username, stats in sorted(user_stats.items()):
-                logger.info(f"  {username:20} - Issues: {stats['issues']:3}, PRs: {stats['prs']:3}, Reviews: {stats['reviews']:3}")
+                notion_display_name = self.get_notion_display_name(username)
+                logger.info(f"  {notion_display_name:20} ({username:25}) - Issues: {stats['issues']:3}, PRs: {stats['prs']:3}, Reviews: {stats['reviews']:3}")
             
             # Save to file if requested
             if output_file:
