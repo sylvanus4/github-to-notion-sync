@@ -308,8 +308,9 @@ class SprintStatsService:
             logger.error("Please provide --notion-parent-id or set NOTION_STATS_PARENT_ID environment variable")
             return None
         
-        # Define database schema
-        database_title = f"Sprint Statistics - {self.sprint_name}"
+        # Define database schema with timestamp to ensure uniqueness
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+        database_title = f"Sprint Statistics - {self.sprint_name} - {timestamp}"
         
         properties_schema = {
             "Sprint": {
