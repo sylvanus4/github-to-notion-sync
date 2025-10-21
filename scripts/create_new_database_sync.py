@@ -325,11 +325,11 @@ class CreateNewDatabaseSyncService:
             logger.error(f"Error syncing GitHub items: {e}")
             return False
     
-    async def run_sync(self, database_title: str, dry_run: bool = False, batch_size: int = 50, sprint_filter: Optional[str] = None) -> bool:
+    async def run_sync(self, database_title: Optional[str] = None, dry_run: bool = False, batch_size: int = 50, sprint_filter: Optional[str] = None) -> bool:
         """Run complete sync process with new database creation.
         
         Args:
-            database_title: Title for the new database
+            database_title: Optional title for the new database. If not provided, auto-generates based on sprint filter
             dry_run: If True, only analyze without making changes
             batch_size: Number of items to process in each batch
             sprint_filter: Optional sprint name to filter items
@@ -338,6 +338,15 @@ class CreateNewDatabaseSyncService:
             True if successful, False otherwise
         """
         self.stats["start_time"] = datetime.utcnow()
+        
+        # Auto-generate database title if not provided (similar to sprint_stats.py)
+        if not database_title:
+            timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+            if sprint_filter:
+                database_title = f"GitHub Sync - {sprint_filter} - {timestamp}"
+            else:
+                database_title = f"GitHub Sync - All Items - {timestamp}"
+            logger.info(f"Auto-generated database title: {database_title}")
         
         logger.info("Starting new database creation and sync...")
         
@@ -465,8 +474,8 @@ async def main():
     parser.add_argument(
         "--database-title",
         type=str,
-        default="GitHub Project Sync",
-        help="Title for the new database (default: 'GitHub Project Sync')"
+        default=None,
+        help="Title for the new database (default: auto-generated based on sprint filter)"
     )
     parser.add_argument(
         "--dry-run",
@@ -501,7 +510,12 @@ async def main():
     
     logger.info("Starting new database creation and sync script")
     logger.info(f"Parent page ID: {parent_page_id}")
-    logger.info(f"Database title: {args.database_title}")
+    if args.database_title:
+        logger.info(f"Database title: {args.database_title}")
+    else:
+        logger.info("Database title: auto-generated")
+    if args.sprint_filter:
+        logger.info(f"Sprint filter: {args.sprint_filter}")
     
     try:
         # Initialize sync service
