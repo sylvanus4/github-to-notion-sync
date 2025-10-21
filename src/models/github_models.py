@@ -32,7 +32,7 @@ class GitHubUser(BaseModel):
     avatar_url: Optional[str] = Field(None, alias="avatarUrl")
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubLabel(BaseModel):
@@ -53,7 +53,7 @@ class GitHubComment(BaseModel):
     url: str
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubRepository(BaseModel):
@@ -65,7 +65,7 @@ class GitHubRepository(BaseModel):
     description: Optional[str] = None
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubIssue(BaseModel):
@@ -100,7 +100,7 @@ class GitHubIssue(BaseModel):
         return v if isinstance(v, list) else []
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubPullRequest(BaseModel):
@@ -137,7 +137,7 @@ class GitHubPullRequest(BaseModel):
         return v if isinstance(v, list) else []
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubDraftIssue(BaseModel):
@@ -158,7 +158,7 @@ class GitHubDraftIssue(BaseModel):
         return v if isinstance(v, list) else []
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubProjectFieldType(str, Enum):
@@ -186,8 +186,23 @@ class GitHubIteration(BaseModel):
     start_date: datetime = Field(alias="startDate")
     duration: int
     
+    @field_validator('start_date', mode='before')
+    @classmethod
+    def parse_start_date(cls, v):
+        """Parse start date from date string or datetime.
+        
+        GitHub API returns dates in 'YYYY-MM-DD' format which needs to be
+        converted to datetime with time component.
+        """
+        if isinstance(v, str):
+            # If it's a date string without time, add time component
+            if 'T' not in v:
+                v = f"{v}T00:00:00Z"
+            return datetime.fromisoformat(v.replace('Z', '+00:00'))
+        return v
+    
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubIterationConfiguration(BaseModel):
@@ -238,7 +253,7 @@ class GitHubProjectSingleSelectFieldValue(GitHubProjectFieldValue):
     option_id: Optional[str] = Field(None, alias="optionId")
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubProjectIterationFieldValue(GitHubProjectFieldValue):
@@ -253,7 +268,7 @@ class GitHubProjectTitleFieldValue(GitHubProjectFieldValue):
     start_date: Optional[datetime] = Field(None, alias="startDate")
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 # Union type for all field values
@@ -277,7 +292,7 @@ class GitHubProjectItem(BaseModel):
     updated_at: Optional[datetime] = Field(None, alias="updatedAt")
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
     
     def get_field_value(self, field_name: str) -> Optional[Any]:
         """Get the value of a specific field by name.
@@ -359,7 +374,7 @@ class GitHubProject(BaseModel):
     items: List[GitHubProjectItem] = Field(default_factory=list)
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
     
     def get_field_by_name(self, field_name: str) -> Optional[GitHubProjectField]:
         """Get a field by name.
@@ -400,7 +415,7 @@ class GitHubRateLimitInfo(BaseModel):
     used: int
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GitHubApiError(Exception):

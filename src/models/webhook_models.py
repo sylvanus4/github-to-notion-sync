@@ -110,7 +110,7 @@ class ProjectsV2ItemWebhookPayload(BaseModel):
     sender: GitHubUser
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class IssuesWebhookPayload(BaseModel):
@@ -126,7 +126,7 @@ class IssuesWebhookPayload(BaseModel):
     sender: GitHubUser
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class PullRequestWebhookPayload(BaseModel):
@@ -143,7 +143,7 @@ class PullRequestWebhookPayload(BaseModel):
     number: Optional[int] = None
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class WebhookPayload(BaseModel):
@@ -156,7 +156,7 @@ class WebhookPayload(BaseModel):
     sender: Optional[GitHubUser] = None
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class WebhookEvent(BaseModel):
