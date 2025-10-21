@@ -25,11 +25,29 @@ sys.path.insert(0, str(project_root))
 from src.services.github_service import GitHubService
 from src.services.notion_service import NotionService
 from src.utils.logger import init_logging, get_logger
+from src.utils.mapping import FieldMapper
 from src.config import get_config
 
 # Initialize logging
 init_logging()
 logger = get_logger(__name__)
+
+# GitHub username to Notion display name mapping
+# Based on field_mappings.yml assignees.value_mappings comments
+GITHUB_TO_NOTION_NAME = {
+    "duyeol-yu": "유두열",
+    "jaehoonkim": "김재훈",
+    "sylvanus4": "한효정",
+    "thaki-yakhyo": "yakhyo",
+    "thakicloud-jotaeyang": "조태양",
+    "yunjae-park1111": "박윤재",
+    "hwyncho-thakicloud": "조휘연",
+    "chohongcheol-thakicloud": "조홍철",
+    "jongmin-kim-thakicloud": "김종민",
+    "thakicloud-chanwoo": "신찬우",
+    "ryangkyung-thaki": "강량경",
+    "mjhan-tk": "한민정",
+}
 
 
 class SprintStatsService:
@@ -45,6 +63,7 @@ class SprintStatsService:
         self.config = get_config()
         self.github_service = GitHubService()
         self.notion_service = NotionService()
+        self.field_mapper = FieldMapper(self.config)
         self.sprint_name = sprint_name
         self.notion_parent_id = notion_parent_id
         self.notion_db_id = None
@@ -60,6 +79,17 @@ class SprintStatsService:
             "total_reviews": 0,
             "user_stats": {}
         }
+    
+    def get_notion_display_name(self, github_username: str) -> str:
+        """Convert GitHub username to Notion display name.
+        
+        Args:
+            github_username: GitHub username
+            
+        Returns:
+            Notion display name (Korean name if mapped, otherwise GitHub username)
+        """
+        return GITHUB_TO_NOTION_NAME.get(github_username, github_username)
     
     def get_sprint_date_range(self) -> Optional[tuple[datetime, datetime]]:
         """Get date range for the sprint from GitHub project.
@@ -383,13 +413,16 @@ class SprintStatsService:
         
         for username, stats in user_stats.items():
             try:
+                # Convert GitHub username to Notion display name
+                notion_display_name = self.get_notion_display_name(username)
+                
                 # Build properties for this user's stats
                 properties = {
                     "Sprint": {
                         "title": [
                             {
                                 "type": "text",
-                                "text": {"content": f"{self.sprint_name} - {username}"}
+                                "text": {"content": f"{self.sprint_name} - {notion_display_name}"}
                             }
                         ]
                     },
@@ -397,7 +430,7 @@ class SprintStatsService:
                         "rich_text": [
                             {
                                 "type": "text",
-                                "text": {"content": username}
+                                "text": {"content": notion_display_name}
                             }
                         ]
                     },
@@ -422,7 +455,7 @@ class SprintStatsService:
                     {
                         "property": "User",
                         "rich_text": {
-                            "equals": username
+                            "equals": notion_display_name
                         }
                     }
                 ]
@@ -437,19 +470,19 @@ class SprintStatsService:
                     result = self.notion_service.update_page_properties(existing_page.id, properties)
                     if result:
                         sync_stats["updated"] += 1
-                        logger.debug(f"Updated stats for user: {username}")
+                        logger.debug(f"Updated stats for user: {notion_display_name} ({username})")
                     else:
                         sync_stats["failed"] += 1
-                        logger.warning(f"Failed to update stats for user: {username}")
+                        logger.warning(f"Failed to update stats for user: {notion_display_name} ({username})")
                 else:
                     # Create new page
                     result = self.notion_service.create_page_in_database(self.notion_db_id, properties)
                     if result:
                         sync_stats["created"] += 1
-                        logger.debug(f"Created stats for user: {username}")
+                        logger.debug(f"Created stats for user: {notion_display_name} ({username})")
                     else:
                         sync_stats["failed"] += 1
-                        logger.warning(f"Failed to create stats for user: {username}")
+                        logger.warning(f"Failed to create stats for user: {notion_display_name} ({username})")
                 
                 # Small delay to avoid rate limits
                 await asyncio.sleep(0.3)
@@ -511,7 +544,8 @@ class SprintStatsService:
             # Display per-user stats
             logger.info("\nUser Statistics:")
             for username, stats in sorted(user_stats.items()):
-                logger.info(f"  {username:20} - Issues: {stats['issues']:3}, PRs: {stats['prs']:3}, Reviews: {stats['reviews']:3}")
+                notion_display_name = self.get_notion_display_name(username)
+                logger.info(f"  {notion_display_name:20} ({username:25}) - Issues: {stats['issues']:3}, PRs: {stats['prs']:3}, Reviews: {stats['reviews']:3}")
             
             # Save to file if requested
             if output_file:
