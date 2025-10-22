@@ -1163,3 +1163,48 @@ class NotionService:
             NotionPage or None if update failed
         """
         return self.update_page(page_id, properties)
+    
+    def update_database_title(self, database_id: Optional[str] = None, title: str = None) -> bool:
+        """Update database title.
+        
+        Args:
+            database_id: Database ID (defaults to configured database)
+            title: New title for the database
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not title:
+            logger.warning("No title provided for database update")
+            return False
+        
+        # Use configured database ID if not provided
+        db_id = database_id or self.settings.notion_db_id
+        
+        try:
+            def _update_database():
+                return self.client.databases.update(
+                    database_id=db_id,
+                    title=[
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": title
+                            }
+                        }
+                    ]
+                )
+            
+            response = self._handle_rate_limit(_update_database)
+            
+            logger.info(f"Updated database title to: {title}", extra={
+                "database_id": db_id
+            })
+            
+            return True
+            
+        except APIResponseError as e:
+            self._handle_api_error(e)
+        except Exception as e:
+            logger.error(f"Failed to update database title: {e}")
+            return False

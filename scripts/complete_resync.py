@@ -264,22 +264,72 @@ class CompleteResyncService:
             logger.error(f"Error syncing GitHub items: {e}")
             return False
     
-    async def run_complete_resync(self, dry_run: bool = False, batch_size: int = 50, sprint_filter: Optional[str] = None) -> bool:
+    async def update_database_title(self, database_title: str, dry_run: bool = False) -> bool:
+        """Update the database title.
+        
+        Args:
+            database_title: New title for the database
+            dry_run: If True, only show what would be done
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        logger.info(f"Updating database title to: {database_title}")
+        
+        try:
+            if dry_run:
+                logger.info(f"[DRY RUN] Would update database title to: {database_title}")
+                return True
+            
+            # Update the database title
+            success = self.notion_service.update_database_title(title=database_title)
+            
+            if not success:
+                logger.error("Failed to update database title")
+                return False
+            
+            logger.info(f"Successfully updated database title to: {database_title}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating database title: {e}")
+            return False
+    
+    async def run_complete_resync(self, dry_run: bool = False, batch_size: int = 50, 
+                                 sprint_filter: Optional[str] = None, database_title: Optional[str] = None) -> bool:
         """Run complete resynchronization.
         
         Args:
             dry_run: If True, only analyze without making changes
             batch_size: Number of items to process in each batch
             sprint_filter: Optional sprint name to filter items
+            database_title: Optional new title for the database. If not provided, auto-generates based on sprint filter
             
         Returns:
             True if successful, False otherwise
         """
         self.stats["start_time"] = datetime.utcnow()
         
+        # Auto-generate database title if not provided (similar to create_new_database_sync.py)
+        if not database_title:
+            timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+            if sprint_filter:
+                database_title = f"GitHub Sync - {sprint_filter} - {timestamp}"
+            else:
+                database_title = f"GitHub Sync - All Items - {timestamp}"
+            logger.info(f"Auto-generated database title: {database_title}")
+        
         logger.info("Starting complete resynchronization...")
         
         try:
+            # Step 0: Update database title
+            logger.info("Step 0: Updating database title...")
+            title_update_success = await self.update_database_title(database_title, dry_run)
+            
+            if not title_update_success:
+                logger.error("Failed to update database title")
+                return False
+            
             # Step 1: Clear existing Notion database
             logger.info("Step 1: Clearing Notion database...")
             clear_success = await self.clear_notion_database(dry_run)
@@ -302,6 +352,8 @@ class CompleteResyncService:
             # Final summary
             logger.info("Complete resynchronization finished!")
             logger.info(f"Duration: {duration:.2f} seconds")
+            if database_title:
+                logger.info(f"Database title updated to: {database_title}")
             logger.info(f"GitHub items processed: {self.stats['total_github_items']}")
             logger.info(f"Notion pages deleted: {self.stats['notion_pages_deleted']}")
             logger.info(f"Notion pages created: {self.stats['notion_pages_created']}")
@@ -418,6 +470,12 @@ async def main():
         type=str,
         help="Filter items by sprint name (e.g., '25-07-Sprint4')"
     )
+    parser.add_argument(
+        "--database-title",
+        type=str,
+        default=None,
+        help="New title for the database (default: auto-generated based on sprint filter and timestamp)"
+    )
     
     args = parser.parse_args()
     
@@ -429,6 +487,10 @@ async def main():
     if not args.dry_run and not args.force:
         print("\n⚠️  WARNING: This will DELETE ALL existing pages in your Notion database!")
         print("This action cannot be undone.")
+        if args.database_title:
+            print(f"Database title will be updated to: {args.database_title}")
+        else:
+            print("Database title will be auto-generated (GitHub Sync - [Sprint/All Items] - [Timestamp])")
         print("\nAre you sure you want to continue? (type 'yes' to confirm)")
         
         confirmation = input().strip().lower()
@@ -437,6 +499,12 @@ async def main():
             sys.exit(0)
     
     logger.info("Starting complete resync script")
+    if args.database_title:
+        logger.info(f"Database title: {args.database_title}")
+    else:
+        logger.info("Database title: auto-generated (based on sprint filter and timestamp)")
+    if args.sprint_filter:
+        logger.info(f"Sprint filter: {args.sprint_filter}")
     
     try:
         # Initialize resync service
@@ -446,7 +514,8 @@ async def main():
         success = await resync_service.run_complete_resync(
             dry_run=args.dry_run,
             batch_size=args.batch_size,
-            sprint_filter=args.sprint_filter
+            sprint_filter=args.sprint_filter,
+            database_title=args.database_title
         )
         
         if success:
