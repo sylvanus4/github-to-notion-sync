@@ -64,6 +64,16 @@ GITHUB_TO_NOTION_USER_ID = {
     "mjhan-tk": "279d872b-594c-81cf-b503-0002c9451f49",
 }
 
+# Bot reviewers to ignore when checking review status
+# Format: repository_pattern -> list of bot reviewer usernames
+# Supports exact match or glob patterns (use * for wildcard)
+BOT_REVIEWERS_TO_IGNORE = {
+    "ThakiCloud/ai-platform-webui": ["coderabbitai"],
+    # Add more repositories as needed:
+    # "ThakiCloud/*": ["dependabot[bot]", "github-actions[bot]"],
+    # "*": ["renovate[bot]"],  # Global ignore
+}
+
 
 class SprintPRReviewService:
     """Service for collecting sprint PR review status and syncing to Notion."""
@@ -115,6 +125,47 @@ class SprintPRReviewService:
             Notion User ID if mapped, otherwise None
         """
         return GITHUB_TO_NOTION_USER_ID.get(github_username)
+    
+    def is_bot_reviewer(self, reviewer: str, repository: str) -> bool:
+        """Check if a reviewer should be ignored (is a bot) for the given repository.
+        
+        Args:
+            reviewer: Reviewer username
+            repository: Repository name (e.g., "ThakiCloud/ai-platform-webui")
+            
+        Returns:
+            True if the reviewer should be ignored
+        """
+        # Check exact match first
+        if repository in BOT_REVIEWERS_TO_IGNORE:
+            if reviewer in BOT_REVIEWERS_TO_IGNORE[repository]:
+                return True
+        
+        # Check wildcard patterns
+        import fnmatch
+        for pattern, bot_reviewers in BOT_REVIEWERS_TO_IGNORE.items():
+            if fnmatch.fnmatch(repository, pattern):
+                if reviewer in bot_reviewers:
+                    return True
+        
+        return False
+    
+    def get_valid_reviews(self, reviews: List[Dict[str, Any]], repository: str) -> List[Dict[str, Any]]:
+        """Filter out bot reviewers from the reviews list.
+        
+        Args:
+            reviews: List of review dictionaries
+            repository: Repository name
+            
+        Returns:
+            List of valid (non-bot) reviews
+        """
+        valid_reviews = []
+        for review in reviews:
+            reviewer = review.get("reviewer")
+            if reviewer and not self.is_bot_reviewer(reviewer, repository):
+                valid_reviews.append(review)
+        return valid_reviews
     
     def get_sprint_date_range(self) -> Optional[tuple[datetime, datetime]]:
         """Get date range for the sprint from GitHub project.
@@ -229,11 +280,29 @@ class SprintPRReviewService:
                         "state": review_state,
                         "submitted_at": submitted_at
                     })
-                    pr_map[pr_key]["has_reviews"] = True
             
-            # Convert to list and sort (not reviewed first)
+            # Filter bot reviewers and update has_reviews status
+            for pr_key, pr_data in pr_map.items():
+                repository = pr_data["repository"]
+                all_reviews = pr_data["reviews"]
+                
+                # Filter out bot reviewers
+                valid_reviews = self.get_valid_reviews(all_reviews, repository)
+                
+                # Update PR data
+                pr_data["all_reviews"] = all_reviews  # Keep all reviews for reference
+                pr_data["reviews"] = valid_reviews  # Only valid reviews
+                pr_data["has_reviews"] = len(valid_reviews) > 0
+                
+                logger.debug(f"PR {pr_key}: {len(all_reviews)} total reviews, {len(valid_reviews)} valid reviews")
+            
+            # Convert to list and sort by Repository -> Not Reviewed -> Date
             prs_list = list(pr_map.values())
-            prs_list.sort(key=lambda x: (x["has_reviews"], x["created_at"]))
+            prs_list.sort(key=lambda x: (
+                x["repository"],  # First by repository
+                x["has_reviews"],  # Then by review status (False = not reviewed comes first)
+                x["created_at"] if x["created_at"] else ""  # Finally by date
+            ))
             
             logger.info(f"Found {len(prs_list)} PRs in sprint period")
             

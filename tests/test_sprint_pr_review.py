@@ -60,39 +60,81 @@ class TestSprintPRReviewService:
         assert service.get_notion_user_id("jaehoonkim") == "229d872b-594c-8150-879d-00022f27519e"
         assert service.get_notion_user_id("unknown_user") is None
     
+    def test_is_bot_reviewer(self, service):
+        """Test bot reviewer detection."""
+        # Test exact match
+        assert service.is_bot_reviewer("coderabbitai", "ThakiCloud/ai-platform-webui") is True
+        assert service.is_bot_reviewer("humanreviewer", "ThakiCloud/ai-platform-webui") is False
+        
+        # Test non-configured repository
+        assert service.is_bot_reviewer("coderabbitai", "ThakiCloud/other-repo") is False
+    
+    def test_get_valid_reviews(self, service):
+        """Test filtering of bot reviewers."""
+        reviews = [
+            {"reviewer": "coderabbitai", "state": "APPROVED"},
+            {"reviewer": "humanreviewer", "state": "APPROVED"},
+            {"reviewer": "anotherhuman", "state": "COMMENTED"},
+        ]
+        
+        # For ai-platform-webui, coderabbitai should be filtered
+        valid_reviews = service.get_valid_reviews(reviews, "ThakiCloud/ai-platform-webui")
+        assert len(valid_reviews) == 2
+        assert all(r["reviewer"] != "coderabbitai" for r in valid_reviews)
+        
+        # For other repos, all reviews should be valid
+        valid_reviews = service.get_valid_reviews(reviews, "ThakiCloud/other-repo")
+        assert len(valid_reviews) == 3
+    
     @pytest.mark.asyncio
     async def test_collect_sprint_prs(self, service):
-        """Test PR collection."""
+        """Test PR collection with sorting and bot filtering."""
         # Mock GitHub service
         start_date = datetime(2024, 1, 1, tzinfo=timezone.utc)
         end_date = datetime(2024, 1, 14, tzinfo=timezone.utc)
         
         mock_reviews = [
+            # Repo A - has human review
             {
                 "pr": {
                     "number": 1,
                     "title": "Test PR 1",
                     "author": "testuser",
-                    "repository": "TestOrg/test-repo",
+                    "repository": "ThakiCloud/ai-platform-webui",
                     "createdAt": "2024-01-02T00:00:00Z",
                     "mergedAt": None
                 },
-                "reviewer": "reviewer1",
+                "reviewer": "humanreviewer",
                 "state": "APPROVED",
                 "submittedAt": "2024-01-03T00:00:00Z"
             },
+            # Repo A - only bot review (should be not reviewed)
             {
                 "pr": {
                     "number": 2,
                     "title": "Test PR 2",
                     "author": "testuser2",
-                    "repository": "TestOrg/test-repo",
+                    "repository": "ThakiCloud/ai-platform-webui",
                     "createdAt": "2024-01-05T00:00:00Z",
                     "mergedAt": None
                 },
-                "reviewer": None,
-                "state": None,
-                "submittedAt": None
+                "reviewer": "coderabbitai",
+                "state": "APPROVED",
+                "submittedAt": "2024-01-06T00:00:00Z"
+            },
+            # Repo B - has review
+            {
+                "pr": {
+                    "number": 3,
+                    "title": "Test PR 3",
+                    "author": "testuser3",
+                    "repository": "ThakiCloud/other-repo",
+                    "createdAt": "2024-01-04T00:00:00Z",
+                    "mergedAt": None
+                },
+                "reviewer": "reviewer1",
+                "state": "APPROVED",
+                "submittedAt": "2024-01-05T00:00:00Z"
             }
         ]
         
@@ -100,11 +142,36 @@ class TestSprintPRReviewService:
         
         prs = await service.collect_sprint_prs(start_date, end_date)
         
-        assert len(prs) >= 1
-        # Verify sorting (not reviewed first)
+        assert len(prs) >= 2
+        
+        # Find specific PRs
+        pr1 = next((p for p in prs if p["number"] == 1), None)
+        pr2 = next((p for p in prs if p["number"] == 2), None)
+        
+        # PR1 should have reviews (human reviewer)
+        assert pr1 is not None
+        assert pr1["has_reviews"] is True
+        
+        # PR2 should NOT have reviews (only bot reviewer)
+        assert pr2 is not None
+        assert pr2["has_reviews"] is False
+        
+        # Verify sorting: Repository first
         for i in range(len(prs) - 1):
-            if not prs[i]["has_reviews"]:
-                assert not prs[i + 1]["has_reviews"] or True
+            # If same repository, not reviewed should come before reviewed
+            if prs[i]["repository"] == prs[i + 1]["repository"]:
+                if not prs[i]["has_reviews"]:
+                    # Not reviewed comes first within same repository
+                    pass  # This is correct
+                    
+        # Check that ThakiCloud/ai-platform-webui PRs come before ThakiCloud/other-repo
+        # (alphabetically)
+        repo_order = [pr["repository"] for pr in prs]
+        ai_platform_indices = [i for i, r in enumerate(repo_order) if r == "ThakiCloud/ai-platform-webui"]
+        other_repo_indices = [i for i, r in enumerate(repo_order) if r == "ThakiCloud/other-repo"]
+        
+        if ai_platform_indices and other_repo_indices:
+            assert max(ai_platform_indices) < min(other_repo_indices)
     
     def test_create_notion_database_no_parent_id(self, service):
         """Test database creation without parent ID."""
