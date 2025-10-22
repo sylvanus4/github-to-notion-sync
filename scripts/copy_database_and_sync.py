@@ -59,11 +59,21 @@ class CopyDatabaseSyncService:
     
     def _get_template_database_properties(self) -> Optional[Dict[str, Any]]:
         """Get properties schema from template database.
+        Only copies properties that are defined in field_mappings.yml.
         
         Returns:
             Dictionary of database properties schema or None if failed
         """
         try:
+            # Get list of properties we need from field_mappings
+            required_properties = set()
+            for field_name, field_config in self.config.field_mappings.items():
+                notion_property = field_config.get("notion_property")
+                if notion_property:
+                    required_properties.add(notion_property)
+            
+            logger.info(f"Required properties from field_mappings: {required_properties}")
+            
             # Save original database ID
             original_db_id = self.notion_service.settings.notion_db_id
             
@@ -81,9 +91,15 @@ class CopyDatabaseSyncService:
                 logger.info(f"Retrieved template database: {self.template_database_id}")
                 logger.info(f"Template database properties: {len(template_db.properties)} properties")
                 
-                # Extract properties schema
+                # Extract properties schema (only required ones)
                 properties_schema = {}
+                skipped_properties = []
+                
                 for prop_name, prop in template_db.properties.items():
+                    # Skip properties not in field_mappings
+                    if prop_name not in required_properties:
+                        skipped_properties.append(prop_name)
+                        continue
                     prop_dict = prop if isinstance(prop, dict) else prop.__dict__
                     
                     # Get property type
@@ -191,6 +207,11 @@ class CopyDatabaseSyncService:
                         continue
                     
                     logger.debug(f"Copied property: {prop_name} ({prop_type})")
+                
+                # Log summary
+                logger.info(f"Copied {len(properties_schema)} properties from template")
+                if skipped_properties:
+                    logger.info(f"Skipped {len(skipped_properties)} properties not in field_mappings: {', '.join(skipped_properties)}")
                 
                 return properties_schema
                 
