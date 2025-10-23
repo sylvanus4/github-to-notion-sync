@@ -14,6 +14,21 @@ on:
         description: 'Notion parent page ID - 비워두면 config/sprint_config.yml의 값 사용'
         required: false
         type: string
+      run_complete_resync:
+        description: 'Run complete resync (데이터 전체 동기화)'
+        required: false
+        type: boolean
+        default: true
+      run_pr_review_check:
+        description: 'Run sprint PR review check (PR 리뷰 체크)'
+        required: false
+        type: boolean
+        default: true
+      run_sprint_stats:
+        description: 'Run sprint stats (스프린트 통계 생성)'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   sync:
@@ -63,6 +78,7 @@ jobs:
         echo "✅ Using Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
     
     - name: Run complete resync
+      if: github.event_name == 'schedule' || github.event.inputs.run_complete_resync == 'true'
       timeout-minutes: 30  # 최대 30분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -75,6 +91,7 @@ jobs:
         PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "${{ env.SPRINT_FILTER }}" --force
         
     - name: Run sprint PR review check
+      if: github.event_name == 'schedule' || github.event.inputs.run_pr_review_check == 'true'
       timeout-minutes: 15  # 최대 15분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -87,6 +104,7 @@ jobs:
         PYTHONPATH=. python scripts/sprint_pr_review_check.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
         
     - name: Run sprint stats
+      if: github.event_name == 'schedule' || github.event.inputs.run_sprint_stats == 'true'
       timeout-minutes: 15  # 최대 15분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
