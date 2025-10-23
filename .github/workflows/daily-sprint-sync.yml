@@ -63,31 +63,34 @@ jobs:
     
     - name: Run complete resync
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ vars.GITHUB_OWNER }}
-        GH_PROJECT_NUMBER: ${{ vars.GITHUB_PROJECT_NUMBER }}
-        NOTION_DB_ID: ${{ vars.NOTION_DATABASE_ID }}
+        GH_ORG: ${{ vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
+        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
         PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "${{ env.SPRINT_FILTER }}" --force
         
     - name: Run sprint PR review check
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ vars.GITHUB_OWNER }}
-        GH_PROJECT_NUMBER: ${{ vars.GITHUB_PROJECT_NUMBER }}
-        NOTION_DB_ID: ${{ vars.NOTION_DATABASE_ID }}
+        GH_ORG: ${{ vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
+        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
         PYTHONPATH=. python scripts/sprint_pr_review_check.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
         
     - name: Run sprint stats
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ vars.GITHUB_OWNER }}
-        GH_PROJECT_NUMBER: ${{ vars.GITHUB_PROJECT_NUMBER }}
-        NOTION_DB_ID: ${{ vars.NOTION_DATABASE_ID }}
+        GH_ORG: ${{ vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
+        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
         PYTHONPATH=. python scripts/sprint_stats.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
         
