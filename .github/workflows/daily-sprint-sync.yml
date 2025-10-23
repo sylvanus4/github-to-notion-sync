@@ -63,34 +63,31 @@ jobs:
     
     - name: Run complete resync
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GITHUB_OWNER: ${{ secrets.GITHUB_OWNER }}
-        GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
-        GITHUB_PROJECT_NUMBER: ${{ secrets.GITHUB_PROJECT_NUMBER }}
-        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        GH_ORG: ${{ vars.GITHUB_OWNER }}
+        GH_PROJECT_NUMBER: ${{ vars.GITHUB_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DATABASE_ID }}
       run: |
         PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "${{ env.SPRINT_FILTER }}" --force
         
     - name: Run sprint PR review check
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GITHUB_OWNER: ${{ secrets.GITHUB_OWNER }}
-        GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
-        GITHUB_PROJECT_NUMBER: ${{ secrets.GITHUB_PROJECT_NUMBER }}
-        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        GH_ORG: ${{ vars.GITHUB_OWNER }}
+        GH_PROJECT_NUMBER: ${{ vars.GITHUB_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DATABASE_ID }}
       run: |
         PYTHONPATH=. python scripts/sprint_pr_review_check.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
         
     - name: Run sprint stats
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GITHUB_OWNER: ${{ secrets.GITHUB_OWNER }}
-        GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
-        GITHUB_PROJECT_NUMBER: ${{ secrets.GITHUB_PROJECT_NUMBER }}
-        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        GH_ORG: ${{ vars.GITHUB_OWNER }}
+        GH_PROJECT_NUMBER: ${{ vars.GITHUB_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DATABASE_ID }}
       run: |
         PYTHONPATH=. python scripts/sprint_stats.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
         
