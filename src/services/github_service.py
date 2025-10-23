@@ -509,7 +509,7 @@ class GitHubService:
             
             response = self._make_request(query, variables)
             
-            issue_data = response.get("data", {}).get("repository", {}).get("issue", {})
+            issue_data = response.data.get("repository", {}).get("issue", {}) if response.data else {}
             if not issue_data:
                 break
                 
@@ -584,7 +584,7 @@ class GitHubService:
             
             response = self._make_request(query, variables)
             
-            pr_data = response.get("data", {}).get("repository", {}).get("pullRequest", {})
+            pr_data = response.data.get("repository", {}).get("pullRequest", {}) if response.data else {}
             if not pr_data:
                 break
                 
