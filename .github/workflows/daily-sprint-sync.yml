@@ -7,20 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       sprint_filter:
-        description: 'Sprint filter (e.g., 25-10-Sprint4)'
-        required: true
-        default: '25-10-Sprint4'
+        description: 'Sprint filter (e.g., 25-10-Sprint4) - 비워두면 config/sprint_config.yml의 값 사용'
+        required: false
         type: string
       notion_parent_id:
-        description: 'Notion parent page ID'
-        required: true
-        default: '2939eddc34e680f58c7ad076e5ba3e88'
+        description: 'Notion parent page ID - 비워두면 config/sprint_config.yml의 값 사용'
+        required: false
         type: string
-
-env:
-  # 기본값 설정 (수동 실행 시 inputs 사용, 스케줄 실행 시 env 사용)
-  DEFAULT_SPRINT_FILTER: '25-10-Sprint4'
-  DEFAULT_NOTION_PARENT_ID: '2939eddc34e680f58c7ad076e5ba3e88'
 
 jobs:
   sync:
@@ -29,6 +22,16 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    
+    - name: Load sprint config
+      id: config
+      run: |
+        # config/sprint_config.yml에서 설정 읽기
+        SPRINT=$(grep '^current_sprint:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+        NOTION_ID=$(grep '^notion_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+        echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
+        echo "default_notion_id=${NOTION_ID}" >> $GITHUB_OUTPUT
+        echo "📋 Config loaded - Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
       
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -42,8 +45,21 @@ jobs:
         
     - name: Set environment variables
       run: |
-        echo "SPRINT_FILTER=${{ github.event.inputs.sprint_filter || env.DEFAULT_SPRINT_FILTER }}" >> $GITHUB_ENV
-        echo "NOTION_PARENT_ID=${{ github.event.inputs.notion_parent_id || env.DEFAULT_NOTION_PARENT_ID }}" >> $GITHUB_ENV
+        # 수동 입력값이 있으면 우선, 없으면 config 파일 값 사용
+        SPRINT="${{ github.event.inputs.sprint_filter }}"
+        NOTION_ID="${{ github.event.inputs.notion_parent_id }}"
+        
+        if [ -z "$SPRINT" ]; then
+          SPRINT="${{ steps.config.outputs.default_sprint }}"
+        fi
+        
+        if [ -z "$NOTION_ID" ]; then
+          NOTION_ID="${{ steps.config.outputs.default_notion_id }}"
+        fi
+        
+        echo "SPRINT_FILTER=${SPRINT}" >> $GITHUB_ENV
+        echo "NOTION_PARENT_ID=${NOTION_ID}" >> $GITHUB_ENV
+        echo "✅ Using Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
     
     - name: Run complete resync
       env:
