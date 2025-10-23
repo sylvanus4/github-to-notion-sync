@@ -1,0 +1,91 @@
+name: Daily Sprint Sync
+
+on:
+  schedule:
+    # 한국 시간 오전 9시 = UTC 0시 (KST = UTC+9)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      sprint_filter:
+        description: 'Sprint filter (e.g., 25-10-Sprint4)'
+        required: true
+        default: '25-10-Sprint4'
+        type: string
+      notion_parent_id:
+        description: 'Notion parent page ID'
+        required: true
+        default: '2939eddc34e680f58c7ad076e5ba3e88'
+        type: string
+
+env:
+  # 기본값 설정 (수동 실행 시 inputs 사용, 스케줄 실행 시 env 사용)
+  DEFAULT_SPRINT_FILTER: '25-10-Sprint4'
+  DEFAULT_NOTION_PARENT_ID: '2939eddc34e680f58c7ad076e5ba3e88'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Set environment variables
+      run: |
+        echo "SPRINT_FILTER=${{ github.event.inputs.sprint_filter || env.DEFAULT_SPRINT_FILTER }}" >> $GITHUB_ENV
+        echo "NOTION_PARENT_ID=${{ github.event.inputs.notion_parent_id || env.DEFAULT_NOTION_PARENT_ID }}" >> $GITHUB_ENV
+    
+    - name: Run complete resync
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        GITHUB_OWNER: ${{ secrets.GITHUB_OWNER }}
+        GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
+        GITHUB_PROJECT_NUMBER: ${{ secrets.GITHUB_PROJECT_NUMBER }}
+        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      run: |
+        PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "${{ env.SPRINT_FILTER }}" --force
+        
+    - name: Run sprint PR review check
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        GITHUB_OWNER: ${{ secrets.GITHUB_OWNER }}
+        GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
+        GITHUB_PROJECT_NUMBER: ${{ secrets.GITHUB_PROJECT_NUMBER }}
+        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      run: |
+        PYTHONPATH=. python scripts/sprint_pr_review_check.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
+        
+    - name: Run sprint stats
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        GITHUB_OWNER: ${{ secrets.GITHUB_OWNER }}
+        GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
+        GITHUB_PROJECT_NUMBER: ${{ secrets.GITHUB_PROJECT_NUMBER }}
+        NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      run: |
+        PYTHONPATH=. python scripts/sprint_stats.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
+        
+    - name: Upload artifacts (if any)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sprint-sync-logs
+        path: |
+          *.log
+          *.json
+        retention-days: 7
+        if-no-files-found: ignore
+
