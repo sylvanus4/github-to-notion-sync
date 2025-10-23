@@ -18,6 +18,7 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 60  # 전체 job 타임아웃: 60분
     
     steps:
     - name: Checkout code
@@ -62,6 +63,7 @@ jobs:
         echo "✅ Using Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
     
     - name: Run complete resync
+      timeout-minutes: 30  # 최대 30분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
@@ -73,6 +75,7 @@ jobs:
         PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "${{ env.SPRINT_FILTER }}" --force
         
     - name: Run sprint PR review check
+      timeout-minutes: 15  # 최대 15분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
@@ -84,6 +87,7 @@ jobs:
         PYTHONPATH=. python scripts/sprint_pr_review_check.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
         
     - name: Run sprint stats
+      timeout-minutes: 15  # 최대 15분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
