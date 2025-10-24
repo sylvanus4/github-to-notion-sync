@@ -256,11 +256,18 @@ class CompleteResyncService:
             self.stats["notion_pages_created"] = created_count
             self.stats["failures"] = failed_count
             
+            # Calculate success rate
+            total_items = len(github_items)
+            success_rate = (created_count / total_items * 100) if total_items > 0 else 0
+            
             if failed_count > 0:
-                logger.warning(f"Failed to create {failed_count} pages")
+                logger.warning(f"Failed to create {failed_count} pages out of {total_items} (Success rate: {success_rate:.1f}%)")
             
             logger.info(f"Successfully created {created_count} pages in Notion database")
-            return failed_count == 0
+            
+            # Consider sync successful if success rate is above 95%
+            # This allows for occasional failures due to network issues, rate limits, etc.
+            return success_rate >= 95.0
             
         except Exception as e:
             logger.error(f"Error syncing GitHub items: {e}")
