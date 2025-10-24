@@ -240,11 +240,13 @@ class CompleteResyncService:
                     except Exception as e:
                         failed_count += 1
                         title = "Unknown"
+                        item_id = "Unknown"
                         try:
                             title = item.get_title() if hasattr(item, 'get_title') else "Unknown"
+                            item_id = item.id if hasattr(item, 'id') else "Unknown"
                         except:
                             pass
-                        logger.error(f"Error creating page for item '{title}': {e}")
+                        logger.error(f"Error creating page for item '{title}' (ID: {item_id}): {e}", exc_info=True)
                 
                 # Small delay between batches to avoid rate limits
                 if i + batch_size < len(github_items):
