@@ -265,7 +265,6 @@ class NotionService:
         
         # Map each field from configuration
         for field_name, field_config in self.config.field_mappings.items():
-            try:
             notion_property = field_config.get("notion_property")
             github_field = field_config.get("github_field")
             property_type = field_config.get("type")
@@ -295,9 +294,6 @@ class NotionService:
             
             if notion_property_value:
                 properties[notion_property] = notion_property_value
-            except Exception as e:
-                logger.warning(f"Failed to build property '{field_name}' for GitHub item {github_item.id}: {e}", exc_info=True)
-                continue
         
         return properties
     
@@ -555,12 +551,7 @@ class NotionService:
                 return self.create_page(properties)
             
         except Exception as e:
-            title = "Unknown"
-            try:
-                title = github_item.get_title() if hasattr(github_item, 'get_title') else "Unknown"
-            except:
-                pass
-            logger.error(f"Failed to upsert GitHub item '{title}' (ID: {github_item.id}): {e}", exc_info=True)
+            logger.error(f"Failed to upsert GitHub item {github_item.id}: {e}")
             return None
     
     def sync_github_items(self, github_items: List[GitHubProjectItem]) -> Dict[str, int]:
