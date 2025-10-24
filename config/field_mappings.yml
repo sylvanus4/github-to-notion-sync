@@ -10,6 +10,13 @@ github_to_notion:
     type: "title"
     required: true
   
+  # GitHub Node ID for duplicate checking
+  id:
+    github_field: "id"
+    notion_property: "GitHub ID"
+    type: "rich_text"
+    required: true
+  
   # Type mapping to tags (Issue/PR/Draft)
   type:
     github_field: "__typename"
