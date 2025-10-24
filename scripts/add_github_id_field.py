@@ -64,4 +64,3 @@ def add_github_id_field():
 if __name__ == "__main__":
     success = add_github_id_field()
     sys.exit(0 if success else 1)
-
