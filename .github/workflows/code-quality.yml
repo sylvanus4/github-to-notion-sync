@@ -68,7 +68,7 @@ jobs:
     
     - name: Run Ruff
       run: |
-        ruff check src/ tests/ scripts/ --output-format=github
+        ruff check src/ tests/ --output-format=github
     
     - name: Run mypy
       run: |

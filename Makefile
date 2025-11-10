@@ -39,14 +39,14 @@ test-cov:
 # 코드 린팅 (ruff - 빠른 린터)
 lint:
 	@echo "🔍 Ruff 린팅 실행..."
-	ruff check src/ tests/ scripts/ --fix
+	ruff check src/ tests/ --fix
 	@echo "✅ 린팅 완료!"
 
 # 코드 포맷팅
 format:
 	@echo "🎨 코드 포맷팅 실행..."
-	black src/ tests/ scripts/
-	isort src/ tests/ scripts/
+	black src/ tests/
+	isort src/ tests/
 	@echo "✅ 포맷팅 완료!"
 
 # 타입 체킹
