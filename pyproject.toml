@@ -106,6 +106,7 @@ ignore = [
     "S101",    # assert 사용 허용 (테스트용)
     "S104",    # possible binding to all interfaces 허용
     "S105",    # possible hardcoded password (테스트용)
+    "A003",    # class attribute shadowing builtin (API 스펙 따름)
     "PLR0913", # too many arguments 완화
     "PLR0912", # too many branches 완화
     "PLR0915", # too many statements 완화
