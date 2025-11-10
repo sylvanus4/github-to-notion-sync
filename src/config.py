@@ -329,15 +329,22 @@ class ConfigManager:
         return errors
 
 
-# Global configuration instance
-config = ConfigManager()
+# Global configuration instance (lazy initialization to avoid issues in test environment)
+_config: ConfigManager | None = None
 
 
 def get_config() -> ConfigManager:
-    """Get the global configuration instance."""
-    return config
+    """Get the global configuration instance (lazy initialization)."""
+    global _config
+    if _config is None:
+        _config = ConfigManager()
+    return _config
+
+
+# Backward compatibility
+config = None  # Will be initialized on first get_config() call
 
 
 def get_settings() -> Settings:
     """Get the application settings."""
-    return config.settings
+    return get_config().settings
