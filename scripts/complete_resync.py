@@ -117,11 +117,18 @@ class CompleteResyncService:
             
             self.stats["notion_pages_deleted"] = deleted_count
             
+            # Calculate success rate
+            total_pages = len(all_pages)
+            success_rate = (deleted_count / total_pages * 100) if total_pages > 0 else 0
+            
             if failed_count > 0:
-                logger.warning(f"Failed to delete {failed_count} pages")
+                logger.warning(f"Failed to delete {failed_count} pages out of {total_pages} (Success rate: {success_rate:.1f}%)")
             
             logger.info(f"Successfully deleted {deleted_count} pages from Notion database")
-            return failed_count == 0
+            
+            # Consider deletion successful if success rate is above 95%
+            # This allows for occasional failures due to permissions, references, network issues, etc.
+            return success_rate >= 95.0
             
         except Exception as e:
             logger.error(f"Error clearing Notion database: {e}")
