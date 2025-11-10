@@ -56,61 +56,61 @@ async def main():
         action="store_true",
         help="Suppress non-error output"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Configure logging based on quiet flag
     if args.quiet:
         logger.setLevel("WARNING")
-    
+
     logger.info("Starting full sync script")
-    
+
     try:
         # Initialize sync service
         sync_service = SyncService()
-        
+
         # Validate configuration if requested
         if args.validate:
             logger.info("Validating configuration...")
             validation_result = await sync_service.validate_sync_setup()
-            
+
             if not validation_result["success"]:
                 logger.error("Configuration validation failed:")
                 for error in validation_result["errors"]:
                     logger.error(f"  - {error}")
                 sys.exit(1)
-            
+
             logger.info("Configuration validation passed")
-        
+
         # Run dry run if requested
         if args.dry_run:
             logger.info("Running dry run...")
             github_items = sync_service.github_service.get_all_project_items()
-            
+
             logger.info(f"Found {len(github_items)} items in GitHub project")
-            
+
             # Check which items would be created vs updated
             created_count = 0
             updated_count = 0
-            
+
             for item in github_items:
                 existing_page = sync_service.notion_service.find_page_by_github_id(item.id)
                 if existing_page:
                     updated_count += 1
                 else:
                     created_count += 1
-            
+
             logger.info(f"Would create {created_count} new pages")
             logger.info(f"Would update {updated_count} existing pages")
-            
+
             return
-        
+
         # Run full sync
         logger.info("Starting full synchronization...")
         start_time = datetime.utcnow()
-        
+
         sync_result = await sync_service.full_sync(batch_size=args.batch_size)
-        
+
         if sync_result["success"]:
             logger.info("Full sync completed successfully")
             logger.info(f"Total items: {sync_result['total_items']}")
@@ -121,12 +121,12 @@ async def main():
         else:
             logger.error(f"Full sync failed: {sync_result.get('error', 'Unknown error')}")
             sys.exit(1)
-        
+
         # Run cleanup if requested
         if args.cleanup:
             logger.info("Running cleanup of orphaned pages...")
             cleanup_result = await sync_service.cleanup_orphaned_pages()
-            
+
             if cleanup_result["success"]:
                 logger.info("Cleanup completed successfully")
                 logger.info(f"Total Notion pages: {cleanup_result['total_notion_pages']}")
@@ -136,13 +136,13 @@ async def main():
             else:
                 logger.error(f"Cleanup failed: {cleanup_result.get('error', 'Unknown error')}")
                 sys.exit(1)
-        
+
         # Final summary
         end_time = datetime.utcnow()
         total_duration = (end_time - start_time).total_seconds()
-        
+
         logger.info(f"Script completed in {total_duration:.2f} seconds")
-        
+
     except KeyboardInterrupt:
         logger.info("Script interrupted by user")
         sys.exit(1)
@@ -156,10 +156,10 @@ def run_sync_with_config():
     try:
         config = get_config()
         logger.info("Configuration loaded successfully")
-        
+
         # Run the async main function
         asyncio.run(main())
-        
+
     except Exception as e:
         logger.error(f"Failed to initialize: {e}")
         sys.exit(1)

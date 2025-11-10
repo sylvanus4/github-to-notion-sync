@@ -9,14 +9,14 @@ github_to_notion:
     notion_property: "피드백 제목"
     type: "title"
     required: true
-  
+
   # GitHub Node ID for duplicate checking
   id:
     github_field: "id"
     notion_property: "GitHub ID"
     type: "rich_text"
     required: true
-  
+
   # Type mapping to tags (Issue/PR/Draft)
   type:
     github_field: "__typename"
@@ -26,7 +26,7 @@ github_to_notion:
       "Issue": "ISSUE"
       "PullRequest": "PULL_REQUEST"
       "DraftIssue": "DRAFT_ISSUE"
-  
+
 
   # Status Fields - GitHub 값에서 Notion 값으로 매핑 (사용자 요청에 따라)
   status:
@@ -35,13 +35,13 @@ github_to_notion:
     type: "status"
     value_mappings:
       "Epic": "시작 전"        # → not-started
-      "Todo": "시작 전"        # → not-started  
+      "Todo": "시작 전"        # → not-started
       "In Progress": "진행 중"  # → in-progress
       "Done": "완료"           # → done
       "25-07-Archive": "보관"  # → archived
       "25-08-Archive": "보관"  # → archived (새로 추가)
     default_value: "시작 전"
-  
+
   # Priority Fields - GitHub 값에서 Notion 값으로 매핑
   priority:
     github_field: "Priority"
@@ -49,11 +49,11 @@ github_to_notion:
     type: "select"
     value_mappings:
       "P0": "높음"
-      "P1": "중간" 
+      "P1": "중간"
       "P2": "낮음"
       # 기본값이 없으면 null로 처리
     default_value: null
-  
+
   # Date Fields
   due_date:
     github_field: "End date"
@@ -98,10 +98,10 @@ notion_only_fields:
 field_mapping_settings:
   # GitHub에서 값이 없는 경우 기본값 사용 여부
   use_default_values: true
-  
+
   # 알 수 없는 값에 대한 처리
   handle_unknown_values: "skip"  # skip, error, default
-  
+
   # 빈 문자열을 null로 처리할지 여부
   treat_empty_as_null: true
 
@@ -133,7 +133,7 @@ webhook_events:
       - "restored"
       - "archived"
       - "converted"
-  
+
   issues:
     actions:
       - "opened"
@@ -144,7 +144,7 @@ webhook_events:
       - "unassigned"
       - "labeled"
       - "unlabeled"
-  
+
   pull_request:
     actions:
       - "opened"
@@ -162,14 +162,14 @@ sync_config:
   rate_limits:
     notion_api: 3  # requests per second
     github_api: 5000  # requests per hour
-  
+
   batch_size: 50  # reduced for better reliability
   retry_attempts: 3
   retry_delay: 1  # seconds
-  
+
   # Full sync schedule
   full_sync_interval: "0 */6 * * *"  # every 6 hours
-  
+
   # Backup configuration
   backup_enabled: true
   backup_schedule: "0 2 * * 0"  # weekly at 2 AM

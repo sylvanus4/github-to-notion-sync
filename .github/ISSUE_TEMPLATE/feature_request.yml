@@ -11,7 +11,7 @@ body:
       placeholder: "I'm frustrated when..."
     validations:
       required: true
-      
+
   - type: textarea
     id: solution
     attributes:
@@ -19,13 +19,13 @@ body:
       description: What would you like to happen?
     validations:
       required: true
-      
+
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatives Considered
       description: Any alternative solutions you've considered?
-      
+
   - type: dropdown
     id: priority
     attributes:
@@ -33,12 +33,12 @@ body:
       description: How important is this feature?
       options:
         - Low
-        - Medium  
+        - Medium
         - High
         - Critical
     validations:
       required: true
-      
+
   - type: checkboxes
     id: implementation
     attributes:

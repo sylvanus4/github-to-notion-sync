@@ -18,12 +18,14 @@ Verifies if a statement is true by checking your project's code and documentatio
 ### How It Works
 
 1. **Where I Look (in order)**
+
    - The actual code (most trustworthy)
    - README.md and docs/ folder
    - Config files (package.json, pubspec.yaml, etc.)
    - Issues and PR discussions
 
 2. **What You'll See**
+
    - `✅ Correct` - Statement matches the code exactly
    - `❌ Incorrect` - Statement is wrong
    - `⚠️ Partially correct` - Some parts are right, some aren't
@@ -91,7 +93,7 @@ cat README.md
 ### When to Use This
 
 - Writing specs: Make sure your descriptions are accurate
-- Taking over a project: Check if you understand it correctly  
+- Taking over a project: Check if you understand it correctly
 - Client updates: Verify what's actually built
 - Blog posts: Fact-check your technical content
 - Presentations: Confirm project details before presenting

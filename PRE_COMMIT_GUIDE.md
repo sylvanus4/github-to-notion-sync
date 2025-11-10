@@ -14,6 +14,7 @@ make install-dev
 ```
 
 이 명령어는 자동으로:
+
 - ✅ 개발 의존성 설치
 - ✅ Pre-commit 훅 설치
 - ✅ Commit 메시지 검증 훅 설치
@@ -28,6 +29,7 @@ git commit -m "feat: add new feature"
 ```
 
 Pre-commit이 자동으로:
+
 1. 코드 포맷팅 (Black, isort)
 2. 린팅 (Ruff, flake8)
 3. 타입 체킹 (mypy)
@@ -49,24 +51,24 @@ pre-commit run --all-files
 
 ### 🐍 Python 검사
 
-| 도구 | 설명 | 자동 수정 |
-|------|------|-----------|
-| **Black** | 코드 포맷팅 (120자) | ✅ |
-| **isort** | Import 정렬 | ✅ |
-| **Ruff** | 빠른 린팅 (flake8 대체) | ✅ (일부) |
-| **mypy** | 타입 체킹 | ❌ |
-| **Bandit** | 보안 취약점 검사 | ❌ |
-| **Pydocstyle** | Docstring 검사 | ❌ |
+| 도구           | 설명                    | 자동 수정 |
+| -------------- | ----------------------- | --------- |
+| **Black**      | 코드 포맷팅 (120자)     | ✅        |
+| **isort**      | Import 정렬             | ✅        |
+| **Ruff**       | 빠른 린팅 (flake8 대체) | ✅ (일부) |
+| **mypy**       | 타입 체킹               | ❌        |
+| **Bandit**     | 보안 취약점 검사        | ❌        |
+| **Pydocstyle** | Docstring 검사          | ❌        |
 
 ### 📄 파일 검사
 
-| 도구 | 설명 | 자동 수정 |
-|------|------|-----------|
-| **YAML lint** | YAML 문법 검사 | ✅ |
-| **JSON lint** | JSON 문법 검사 | ✅ |
-| **Markdown lint** | 마크다운 린팅 | ✅ |
-| **Hadolint** | Dockerfile 린팅 | ❌ |
-| **ShellCheck** | Shell script 검사 | ❌ |
+| 도구              | 설명              | 자동 수정 |
+| ----------------- | ----------------- | --------- |
+| **YAML lint**     | YAML 문법 검사    | ✅        |
+| **JSON lint**     | JSON 문법 검사    | ✅        |
+| **Markdown lint** | 마크다운 린팅     | ✅        |
+| **Hadolint**      | Dockerfile 린팅   | ❌        |
+| **ShellCheck**    | Shell script 검사 | ❌        |
 
 ### 🔒 보안 & 기타
 
@@ -279,15 +281,14 @@ Pre-commit은 CI/CD에서도 자동 실행됩니다:
 
 A: 초기에는 시간이 걸리지만, 장기적으로 코드 품질과 버그 감소에 도움이 됩니다.
 
-### Q: 특정 파일을 제외하고 싶어요.
+### Q: 특정 파일을 제외하고 싶어요
 
 A: `.pre-commit-config.yaml`에서 `exclude` 패턴을 수정하세요.
 
-### Q: 새로운 훅을 추가하고 싶어요.
+### Q: 새로운 훅을 추가하고 싶어요
 
 A: `.pre-commit-config.yaml`에 새로운 repo와 hook을 추가하세요.
 
 ---
 
 Happy Coding! 🚀
-

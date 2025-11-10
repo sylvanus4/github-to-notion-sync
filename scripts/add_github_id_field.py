@@ -29,11 +29,11 @@ def add_github_id_field():
     try:
         config = get_config()
         notion_service = NotionService()
-        
+
         database_id = config.settings.notion_db_id
-        
+
         logger.info(f"Adding GitHub ID field to database {database_id}...")
-        
+
         # Update database to add GitHub ID property
         response = notion_service.client.databases.update(
             database_id=database_id,
@@ -43,10 +43,10 @@ def add_github_id_field():
                 }
             }
         )
-        
+
         logger.info("Successfully added GitHub ID field to database")
         logger.info(f"Database: {response.get('title', [{}])[0].get('plain_text', 'Unknown')}")
-        
+
         # Verify the field was added
         database = notion_service.get_database()
         if database and "GitHub ID" in database.properties:
@@ -55,7 +55,7 @@ def add_github_id_field():
         else:
             logger.error("❌ GitHub ID field not found after adding")
             return False
-        
+
     except Exception as e:
         logger.error(f"Failed to add GitHub ID field: {e}")
         return False

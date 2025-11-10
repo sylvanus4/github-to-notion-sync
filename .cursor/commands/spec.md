@@ -219,7 +219,7 @@ Shall we proceed with this design?"
 
 **2. Visual Design with Mermaid Diagrams**
 
-```
+````
 Claude: "I've automatically generated a system design using Mermaid diagrams:
 
 Automatically generated architecture diagram:
@@ -237,7 +237,7 @@ graph TB
 
     Auth --> JWT[JWT Service]
     Auth --> OAuth[OAuth Provider]
-```
+````
 
 Shall I also generate a data flow diagram?"
 
@@ -311,11 +311,13 @@ Claude: "I've generated an implementation plan with automatic application of Kir
 Automatically generated implementation strategy:
 
 1. Security-first development
+
    - Automatic incorporation of OWASP Top 10 countermeasures
    - Automatic implementation of encryption and hashing
    - Automatic generation of security tests
 
 2. Enforcement of clean architecture
+
    - Automatic implementation of layer separation
    - Automatic application of dependency inversion
    - Enforcement of testable design
@@ -407,7 +409,7 @@ Claude: "The Implementation Planning Phase is complete.
 May I generate tasks.md?"
 → "Proceed" → tasks.md generation
 
-```
+````
 
 ### Kiro-Specific Features
 
@@ -427,7 +429,7 @@ AND [related behavior]
 WHERE [function/component]
 IS [condition/state]
 THE SYSTEM SHALL [corresponding behavior]
-```
+````
 
 **Automatic Generation Features**
 
@@ -529,15 +531,15 @@ Claude: "Spec-driven development preparation is complete. You can begin implemen
 
 ### Differences from /plan
 
-| Feature | /plan | /spec |
-|---------|-------|-------|
-| Target | General implementation plan | Feature specification-driven development |
-| Output format | Single plan document | 3 independent files (requirements.md, design.md, tasks.md) |
-| Requirement definition | Basic requirement organization | Detailed acceptance criteria using EARS notation |
-| Design | Technology selection focused | Codebase analysis-based |
-| Implementation | General task decomposition | Dependency-aware sequence |
-| Quality assurance | Basic test strategy | Comprehensive quality requirements (testing, accessibility, performance) |
-| Synchronization | Static plan | Dynamic spec updates |
+| Feature                | /plan                          | /spec                                                                    |
+| ---------------------- | ------------------------------ | ------------------------------------------------------------------------ |
+| Target                 | General implementation plan    | Feature specification-driven development                                 |
+| Output format          | Single plan document           | 3 independent files (requirements.md, design.md, tasks.md)               |
+| Requirement definition | Basic requirement organization | Detailed acceptance criteria using EARS notation                         |
+| Design                 | Technology selection focused   | Codebase analysis-based                                                  |
+| Implementation         | General task decomposition     | Dependency-aware sequence                                                |
+| Quality assurance      | Basic test strategy            | Comprehensive quality requirements (testing, accessibility, performance) |
+| Synchronization        | Static plan                    | Dynamic spec updates                                                     |
 
 ### Recommended Use Cases
 

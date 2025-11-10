@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-cov lint format type-check security check pre-commit run clean deploy-lambda
+.PHONY: help install install-dev test test-cov lint format type-check security check pre-commit run clean deploy-lambda test-ci
 
 # 기본 타겟: help
 help:
@@ -16,6 +16,7 @@ help:
 	@echo "  make run            - FastAPI 서버 실행 (개발 모드)"
 	@echo "  make clean          - 캐시 및 빌드 파일 삭제"
 	@echo "  make deploy-lambda  - Lambda 배포 패키지 생성"
+	@echo "  make test-ci        - 로컬에서 CI 테스트 실행 (푸시 전 체크)"
 
 # 프로덕션 의존성 설치
 install:
@@ -88,3 +89,8 @@ clean:
 # Lambda 배포 패키지 생성
 deploy-lambda:
 	cd deployment/lambda && ./deployment_package.sh
+
+# 로컬에서 CI 테스트 실행 (푸시 전 체크)
+test-ci:
+	@echo "🔍 로컬 CI 테스트 실행..."
+	@./test-ci-local.sh

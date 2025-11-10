@@ -5,6 +5,7 @@
 Create a `.env` file in the project root with the following variables:
 
 ### GitHub Configuration
+
 ```bash
 # GitHub Personal Access Token (with repo and project permissions)
 GH_TOKEN=your_github_token_here
@@ -20,6 +21,7 @@ GH_WEBHOOK_SECRET=your_webhook_secret_here
 ```
 
 ### Notion Configuration
+
 ```bash
 # Notion Integration Token
 NOTION_TOKEN=your_notion_token_here
@@ -31,6 +33,7 @@ NOTION_DB_ID=your_notion_database_id_here
 ## Optional Environment Variables
 
 ### Logging Configuration
+
 ```bash
 # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 LOG_LEVEL=INFO
@@ -43,6 +46,7 @@ ENVIRONMENT=development
 ```
 
 ### Server Configuration
+
 ```bash
 # Webhook server port
 WEBHOOK_PORT=8000
@@ -52,6 +56,7 @@ WEBHOOK_HOST=0.0.0.0
 ```
 
 ### Performance Configuration
+
 ```bash
 # Batch size for sync operations
 BATCH_SIZE=50
@@ -66,6 +71,7 @@ RETRY_DELAY=1
 ```
 
 ### Scheduling Configuration
+
 ```bash
 # Full sync interval (cron format)
 FULL_SYNC_INTERVAL=0 */6 * * *
@@ -76,6 +82,7 @@ BACKUP_SCHEDULE=0 2 * * 0
 ```
 
 ### Directory Configuration
+
 ```bash
 # Configuration files directory
 CONFIG_DIR=config
@@ -126,6 +133,7 @@ QUERIES_DIR=queries
 ## How to Get Required Values
 
 ### GitHub Token (GH_TOKEN)
+
 1. Go to GitHub Settings > Developer settings > Personal access tokens
 2. Generate a new token with these permissions:
    - `repo` (full repository access)
@@ -134,25 +142,30 @@ QUERIES_DIR=queries
 3. Copy the token and use it as `GH_TOKEN`
 
 ### GitHub Organization (GH_ORG)
+
 - Use your GitHub organization name (e.g., `microsoft`, `google`)
 - Found in the organization URL: `https://github.com/YOUR_ORG`
 
 ### GitHub Project Number (GH_PROJECT_NUMBER)
+
 - Found in the project URL: `https://github.com/orgs/YOUR_ORG/projects/PROJECT_NUMBER`
 - Use the number after `/projects/`
 
 ### Webhook Secret (GH_WEBHOOK_SECRET)
+
 - Generate a random string (at least 20 characters)
 - Use a password generator or: `openssl rand -hex 20`
 - This will be used when setting up GitHub webhooks
 
 ### Notion Token (NOTION_TOKEN)
-1. Go to https://www.notion.so/my-integrations
+
+1. Go to <https://www.notion.so/my-integrations>
 2. Create a new integration
 3. Copy the "Internal Integration Token"
 4. Make sure to share your database with the integration
 
 ### Notion Database ID (NOTION_DB_ID)
+
 - Found in the database URL: `https://www.notion.so/workspace/DATABASE_ID?v=...`
 - Use the 32-character string (with or without hyphens)
 
@@ -181,17 +194,20 @@ python scripts/test_functionality.py
 ### Common Issues
 
 1. **Token Permission Errors**
+
    - Ensure GitHub token has `repo` and `project` permissions
    - Ensure Notion integration is shared with the database
 
 2. **Invalid Database ID**
+
    - Notion database ID must be exactly 32 characters
    - Remove hyphens if present in the URL
 
 3. **Project Not Found**
+
    - Verify `GH_ORG` and `GH_PROJECT_NUMBER` are correct
    - Ensure the project exists and is accessible
 
 4. **Webhook Signature Verification Failed**
    - Check that `GH_WEBHOOK_SECRET` matches the webhook configuration
-   - Ensure the secret is at least 20 characters long 
+   - Ensure the secret is at least 20 characters long

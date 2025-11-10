@@ -267,11 +267,13 @@ echo "- Errors: $ERRORS"
 ### Success Criteria
 
 1. **Completion Criteria**: Success when all of the following are met:
+
    - Language-specific static analysis PASSED
    - Error count is 0
    - All added/updated comments meet standards
 
 2. **Partial Success**: In the following cases:
+
    - Error count is less than 5
    - More than 90% meet standards
 

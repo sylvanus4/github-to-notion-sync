@@ -22,6 +22,7 @@ make install-dev
 ```
 
 이 명령어는 다음을 수행합니다:
+
 - 프로덕션 의존성 설치 (`requirements.txt`)
 - 개발 의존성 설치 (`requirements-dev.txt`)
 - Pre-commit 훅 자동 설치
@@ -76,20 +77,20 @@ def process_issues(
     filter_date: Optional[datetime] = None
 ) -> List[dict]:
     """Process GitHub issues and return formatted data.
-    
+
     Args:
         issues: List of GitHub issues to process
         filter_date: Optional date to filter issues
-        
+
     Returns:
         List of processed issue dictionaries
-        
+
     Raises:
         ValueError: If issues list is empty
     """
     if not issues:
         raise ValueError("Issues list cannot be empty")
-    
+
     # Your code here
     return processed_issues
 ```
@@ -136,12 +137,12 @@ from src.services.github_service import GitHubService
 
 class TestGitHubService:
     """GitHub 서비스 테스트"""
-    
+
     @pytest.fixture
     def github_service(self):
         """GitHub 서비스 픽스처"""
         return GitHubService()
-    
+
     def test_get_issues(self, github_service):
         """이슈 가져오기 테스트"""
         issues = github_service.get_issues()
@@ -169,6 +170,7 @@ git commit -m "feat: add new feature"
 ```
 
 **Type**:
+
 - `feat`: 새로운 기능
 - `fix`: 버그 수정
 - `docs`: 문서 변경
@@ -206,6 +208,7 @@ git push origin feature/your-feature-name
 Pre-commit은 커밋 전에 자동으로 다음을 실행합니다:
 
 ### 1. 기본 파일 검사
+
 - ✅ 파일 끝 개행 추가
 - ✅ 공백 제거
 - ✅ 큰 파일 방지 (5MB)
@@ -214,6 +217,7 @@ Pre-commit은 커밋 전에 자동으로 다음을 실행합니다:
 - ✅ Private key 방지
 
 ### 2. Python 코드 검사
+
 - 🎨 **Black**: 코드 포맷팅
 - 📦 **isort**: Import 정렬
 - 🔍 **Ruff**: 빠른 린팅 (flake8 대체)
@@ -222,6 +226,7 @@ Pre-commit은 커밋 전에 자동으로 다음을 실행합니다:
 - 🔒 **Bandit**: 보안 검사
 
 ### 3. 기타 파일 검사
+
 - 📄 **Markdown**: 마크다운 린팅
 - 🐳 **Dockerfile**: Dockerfile 린팅
 - 🐚 **ShellCheck**: Shell script 검사
@@ -355,4 +360,3 @@ except Exception as e:
 ---
 
 다시 한번 기여해주셔서 감사합니다! 🙏
-

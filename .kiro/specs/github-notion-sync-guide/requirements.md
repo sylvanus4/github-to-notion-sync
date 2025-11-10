@@ -2,7 +2,7 @@
 
 ## Introduction
 
-이 기능은 GitHub 프로젝트(https://github.com/orgs/ThakiCloud/projects/5)를 Notion 데이터베이스에 주기적으로 동기화하는 GitHub Actions 워크플로우를 설정하고 운영하기 위한 포괄적인 단계별 가이드 문서를 제공합니다. 이 가이드는 개발자들이 기존 동기화 시스템을 이해하고, 설정하고, 문제를 해결할 수 있도록 도와줍니다.
+이 기능은 GitHub 프로젝트(<https://github.com/orgs/ThakiCloud/projects/5)를> Notion 데이터베이스에 주기적으로 동기화하는 GitHub Actions 워크플로우를 설정하고 운영하기 위한 포괄적인 단계별 가이드 문서를 제공합니다. 이 가이드는 개발자들이 기존 동기화 시스템을 이해하고, 설정하고, 문제를 해결할 수 있도록 도와줍니다.
 
 ## Requirements
 

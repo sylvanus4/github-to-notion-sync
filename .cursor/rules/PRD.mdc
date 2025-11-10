@@ -1,7 +1,7 @@
 # GitHub Projects v2와 Notion DB 양방향 동기화 파이프라인 구축
 
-**문서 버전:** 1.0  
-**기준일:** 2025-07-08  
+**문서 버전:** 1.0
+**기준일:** 2025-07-08
 
 ## 1. 개요 (Overview)
 
@@ -214,7 +214,7 @@ def build_properties(item_data):
 def upsert_to_notion(item_data):
     """GitHub Node ID를 기준으로 Notion 페이지를 찾아 업데이트하거나 새로 생성"""
     gh_node_id = item_data["id"]
-    
+
     try:
         # 1. GitHub Node ID로 기존 페이지 검색
         query_result = notion.databases.query(
@@ -224,7 +224,7 @@ def upsert_to_notion(item_data):
                 "rich_text": {"equals": gh_node_id}
             }
         )
-        
+
         existing_pages = query_result.get("results")
         properties = build_properties(item_data)
 
@@ -276,11 +276,11 @@ def verify_signature(signature: str, body: bytes):
     """GitHub Webhook 시그니처 검증"""
     if not signature:
         return False
-    
+
     local_signature = "sha256=" + hmac.new(
         GH_WEBHOOK_SECRET.encode('utf-8'), body, hashlib.sha256
     ).hexdigest()
-    
+
     return hmac.compare_digest(local_signature, signature)
 
 @app.post("/webhook")
@@ -290,7 +290,7 @@ async def github_webhook_handler(
 ):
     """GitHub Webhook 이벤트를 수신하고 처리"""
     body = await request.body()
-    
+
     # 1. 시그니처 검증
     if not verify_signature(x_hub_signature_256, body):
         raise HTTPException(status_code=401, detail="Invalid signature")
@@ -298,17 +298,17 @@ async def github_webhook_handler(
     # 2. 페이로드 파싱 및 처리 로직 호출
     payload = json.loads(body)
     event_type = request.headers.get("X-GitHub-Event")
-    
+
     print(f"Received event: {event_type}")
-    
+
     # 예: projects_v2_item 이벤트에서 정보 추출
     if event_type == "projects_v2_item" and payload.get("action") in ["created", "edited"]:
         item_node_id = payload["projects_v2_item"]["node_id"]
-        
+
         # GraphQL로 해당 아이템의 최신 정보만 다시 조회 (권장)
         # 또는 페이로드에서 필요한 정보를 파싱
         # ...
-        
+
         # item_data = get_single_item_from_github(item_node_id)
         # upsert_to_notion(item_data)
 

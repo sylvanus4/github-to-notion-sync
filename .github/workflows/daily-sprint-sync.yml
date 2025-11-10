@@ -34,11 +34,11 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 60  # 전체 job 타임아웃: 60분
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Load sprint config
       id: config
       run: |
@@ -48,35 +48,35 @@ jobs:
         echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
         echo "default_notion_id=${NOTION_ID}" >> $GITHUB_OUTPUT
         echo "📋 Config loaded - Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
-      
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        
+
     - name: Set environment variables
       run: |
         # 수동 입력값이 있으면 우선, 없으면 config 파일 값 사용
         SPRINT="${{ github.event.inputs.sprint_filter }}"
         NOTION_ID="${{ github.event.inputs.notion_parent_id }}"
-        
+
         if [ -z "$SPRINT" ]; then
           SPRINT="${{ steps.config.outputs.default_sprint }}"
         fi
-        
+
         if [ -z "$NOTION_ID" ]; then
           NOTION_ID="${{ steps.config.outputs.default_notion_id }}"
         fi
-        
+
         echo "SPRINT_FILTER=${SPRINT}" >> $GITHUB_ENV
         echo "NOTION_PARENT_ID=${NOTION_ID}" >> $GITHUB_ENV
         echo "✅ Using Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
-    
+
     - name: Run complete resync
       if: github.event_name == 'schedule' || github.event.inputs.run_complete_resync == 'true'
       timeout-minutes: 30  # 최대 30분 허용
@@ -89,7 +89,7 @@ jobs:
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
         PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "${{ env.SPRINT_FILTER }}" --force
-        
+
     - name: Run sprint PR review check
       if: github.event_name == 'schedule' || github.event.inputs.run_pr_review_check == 'true'
       timeout-minutes: 15  # 최대 15분 허용
@@ -102,7 +102,7 @@ jobs:
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
         PYTHONPATH=. python scripts/sprint_pr_review_check.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
-        
+
     - name: Run sprint stats
       if: github.event_name == 'schedule' || github.event.inputs.run_sprint_stats == 'true'
       timeout-minutes: 15  # 최대 15분 허용
@@ -115,7 +115,7 @@ jobs:
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
         PYTHONPATH=. python scripts/sprint_stats.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
-        
+
     - name: Upload artifacts (if any)
       if: always()
       uses: actions/upload-artifact@v4
@@ -126,4 +126,3 @@ jobs:
           *.json
         retention-days: 7
         if-no-files-found: ignore
-

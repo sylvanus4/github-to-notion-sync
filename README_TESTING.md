@@ -1,9 +1,11 @@
 # Testing Guide
 
 ## Overview
+
 This guide explains how to test the GitHub to Notion sync functionality after setting up your `.env` file.
 
 ## Prerequisites
+
 1. Complete the setup in `docs/SETUP.md`
 2. Configure your `.env` file with all required variables
 3. Install dependencies: `pip install -r requirements.txt`
@@ -11,20 +13,24 @@ This guide explains how to test the GitHub to Notion sync functionality after se
 ## Test Scripts
 
 ### 1. Quick Test (`scripts/quick_test.py`)
+
 **Purpose**: Fast validation of basic setup
 **Duration**: ~5 seconds
 **What it checks**:
+
 - Environment variables are set
 - Python modules can be imported
 - Configuration loads correctly
 - Basic field mappings exist
 
 **Usage**:
+
 ```bash
 python scripts/quick_test.py
 ```
 
 **Expected Output**:
+
 ```
 🔍 Quick Validation Check
 ========================================
@@ -54,9 +60,11 @@ Run: python scripts/test_functionality.py
 ```
 
 ### 2. Full Functionality Test (`scripts/test_functionality.py`)
+
 **Purpose**: Complete integration testing
 **Duration**: ~30-60 seconds
 **What it tests**:
+
 - Environment variables
 - Configuration loading
 - GitHub API connection
@@ -66,11 +74,13 @@ Run: python scripts/test_functionality.py
 - Sample sync operation
 
 **Usage**:
+
 ```bash
 python scripts/test_functionality.py
 ```
 
 **Expected Output**:
+
 ```
 🚀 GitHub to Notion Sync - Functionality Test
 ============================================================
@@ -183,15 +193,18 @@ Passed: 7/7
 ```
 
 ### 3. Pytest Integration Tests (`tests/test_integration.py`)
+
 **Purpose**: Professional pytest-based testing
 **Duration**: ~60-90 seconds
 **What it tests**:
+
 - Comprehensive test coverage
 - Async functionality
 - Error handling
 - Edge cases
 
 **Usage**:
+
 ```bash
 # Run all integration tests
 pytest tests/test_integration.py -v
@@ -206,33 +219,42 @@ pytest tests/test_integration.py --cov=src --cov-report=html
 ## Common Issues and Solutions
 
 ### 1. Environment Variables Not Set
+
 **Error**: `Missing required environment variables: ['GH_TOKEN']`
 **Solution**: Check your `.env` file and ensure all required variables are set.
 
 ### 2. GitHub API Connection Failed
+
 **Error**: `GitHub connection failed: 401 Unauthorized`
-**Solution**: 
+**Solution**:
+
 - Check your `GH_TOKEN` is valid
 - Ensure token has correct permissions for the organization and project
 - Verify `GH_ORG` and `GH_PROJECT_NUMBER` are correct
 
 ### 3. Notion API Connection Failed
+
 **Error**: `Notion connection failed: 401 Unauthorized`
 **Solution**:
+
 - Check your `NOTION_TOKEN` is valid
 - Ensure the integration has access to the database
 - Verify `NOTION_DB_ID` is correct (should be 32 characters)
 
 ### 4. Field Mapping Errors
+
 **Error**: `Field mappings validation failed`
 **Solution**:
+
 - Check `config/field_mappings.yml` syntax
 - Ensure all required fields are mapped
 - Verify Notion database has the expected properties
 
 ### 5. Import Errors
+
 **Error**: `Import error: No module named 'src.config'`
 **Solution**:
+
 - Ensure you're running from the project root directory
 - Install dependencies: `pip install -r requirements.txt`
 - Check Python path configuration
@@ -240,17 +262,20 @@ pytest tests/test_integration.py --cov=src --cov-report=html
 ## Test Results Interpretation
 
 ### ✅ Success Indicators
+
 - All environment variables are set
 - API connections successful
 - Field mappings validated
 - Sample sync operations work
 
 ### ⚠️ Warning Indicators
+
 - Optional environment variables not set (usually OK)
 - No user mappings configured (affects assignee sync)
 - Empty project or database (affects some tests)
 
 ### ❌ Error Indicators
+
 - Missing required environment variables
 - API connection failures
 - Field mapping validation errors
@@ -259,6 +284,7 @@ pytest tests/test_integration.py --cov=src --cov-report=html
 ## Next Steps After Testing
 
 1. **All tests pass**: Your setup is ready! You can:
+
    - Run a full sync: `python scripts/full_sync.py`
    - Start the webhook server: `python -m src.main`
    - Set up GitHub webhooks using `scripts/setup_github_webhook.py`
@@ -285,9 +311,10 @@ pytest tests/ -v
 ## Performance Testing
 
 The test scripts also provide performance information:
+
 - API response times
 - Rate limit usage
 - Memory usage patterns
 - Sync operation duration
 
-Monitor these metrics to ensure optimal performance in production. 
+Monitor these metrics to ensure optimal performance in production.

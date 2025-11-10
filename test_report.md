@@ -82,7 +82,7 @@ Item 5: API-Gateway 연동
   - "우선순위" → 속성 존재하지 않음  
   - "마감일" → 속성 존재하지 않음
 - **원인**: Notion 데이터베이스 스키마와 코드 설정 간 불일치
-- **해결책**: 
+- **해결책**:
   1. Notion 데이터베이스에서 정확한 속성 ID 확인
   2. field_mappings.yml 파일의 notion_property 값 수정
   3. 또는 Notion에서 속성명을 영어로 변경

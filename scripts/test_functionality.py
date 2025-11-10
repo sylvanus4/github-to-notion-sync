@@ -65,24 +65,24 @@ def print_info(message: str):
 def test_environment_variables():
     """Test environment variables."""
     print_header("Environment Variables Check")
-    
+
     required_vars = [
         "GH_TOKEN",
-        "NOTION_TOKEN", 
+        "NOTION_TOKEN",
         "GH_ORG",
         "GH_PROJECT_NUMBER",
         "NOTION_DB_ID",
         "GH_WEBHOOK_SECRET"
     ]
-    
+
     optional_vars = [
         "LOG_LEVEL",
         "ENVIRONMENT",
         "BATCH_SIZE"
     ]
-    
+
     all_good = True
-    
+
     # Check required variables
     for var in required_vars:
         if os.getenv(var):
@@ -90,25 +90,25 @@ def test_environment_variables():
         else:
             print_error(f"{var} is missing")
             all_good = False
-    
+
     # Check optional variables
     for var in optional_vars:
         if os.getenv(var):
             print_info(f"{var} is set: {os.getenv(var)}")
         else:
             print_warning(f"{var} is not set (optional)")
-    
+
     return all_good
 
 
 def test_configuration():
     """Test configuration loading."""
     print_header("Configuration Loading")
-    
+
     try:
         config = get_config()
         print_success("Configuration loaded successfully")
-        
+
         # Check settings
         settings = config.settings
         print_info(f"GitHub Org: {settings.github_org}")
@@ -117,11 +117,11 @@ def test_configuration():
         print_info(f"Environment: {settings.environment}")
         print_info(f"Log Level: {settings.log_level}")
         print_info(f"Batch Size: {settings.batch_size}")
-        
+
         # Check field mappings
         if config.field_mappings:
             print_success(f"Field mappings loaded: {len(config.field_mappings)} fields")
-            
+
             # Check required mappings
             required_fields = ["title", "github_node_id"]
             for field in required_fields:
@@ -133,21 +133,21 @@ def test_configuration():
         else:
             print_error("No field mappings found")
             return False
-        
+
         # Check webhook events
         if config.webhook_events:
             print_success(f"Webhook events configured: {len(config.webhook_events)} types")
         else:
             print_warning("No webhook events configured")
-        
+
         # Check user mappings
         if config.user_mappings:
             print_success(f"User mappings configured: {len(config.user_mappings)} users")
         else:
             print_warning("No user mappings configured")
-        
+
         return True
-        
+
     except Exception as e:
         print_error(f"Configuration loading failed: {e}")
         return False
@@ -156,10 +156,10 @@ def test_configuration():
 def test_github_service():
     """Test GitHub service."""
     print_header("GitHub Service Test")
-    
+
     try:
         github_service = GitHubService()
-        
+
         # Test connection
         project_info = github_service.get_project_info()
         if project_info:
@@ -169,7 +169,7 @@ def test_github_service():
         else:
             print_error("Failed to get GitHub project info")
             return False
-        
+
         # Test project fields
         fields = github_service.get_project_fields()
         if fields:
@@ -178,7 +178,7 @@ def test_github_service():
                 print_info(f"  - {field.name} ({field.data_type})")
         else:
             print_warning("No project fields found")
-        
+
         # Test project items
         items = github_service.get_all_project_items()
         if items:
@@ -188,14 +188,14 @@ def test_github_service():
             print_info(f"Type: {sample_item.type.value}")
         else:
             print_warning("No project items found")
-        
+
         # Test rate limit
         rate_limit = github_service.get_rate_limit_info()
         if rate_limit:
             print_info(f"Rate limit: {rate_limit.remaining}/{rate_limit.limit} remaining")
-        
+
         return True
-        
+
     except Exception as e:
         print_error(f"GitHub service test failed: {e}")
         return False
@@ -204,10 +204,10 @@ def test_github_service():
 def test_notion_service():
     """Test Notion service."""
     print_header("Notion Service Test")
-    
+
     try:
         notion_service = NotionService()
-        
+
         # Test connection
         database = notion_service.get_database()
         if database:
@@ -217,7 +217,7 @@ def test_notion_service():
         else:
             print_error("Failed to get Notion database info")
             return False
-        
+
         # Test query
         response = notion_service.query_pages(page_size=3)
         if response:
@@ -226,7 +226,7 @@ def test_notion_service():
         else:
             print_error("Failed to query Notion database")
             return False
-        
+
         # Test field mappings
         field_mapper = notion_service.field_mapper
         errors = field_mapper.validate_mapping_configuration()
@@ -239,9 +239,9 @@ def test_notion_service():
             for error in errors:
                 print_error(f"  - {error}")
             return False
-        
+
         return True
-        
+
     except Exception as e:
         print_error(f"Notion service test failed: {e}")
         return False
@@ -250,10 +250,10 @@ def test_notion_service():
 async def test_sync_service():
     """Test sync service."""
     print_header("Sync Service Test")
-    
+
     try:
         sync_service = SyncService()
-        
+
         # Test validation
         validation_result = await sync_service.validate_sync_setup()
         if validation_result["success"]:
@@ -266,16 +266,16 @@ async def test_sync_service():
             for error in validation_result["errors"]:
                 print_error(f"  - {error}")
             return False
-        
+
         # Test status
         status = sync_service.get_sync_status()
         print_info(f"Last full sync: {status['stats']['last_full_sync'] or 'Never'}")
         print_info(f"Total synced: {status['stats']['total_synced']}")
         print_info(f"Webhook syncs: {status['stats']['webhook_syncs']}")
         print_info(f"Errors: {status['stats']['errors']}")
-        
+
         return True
-        
+
     except Exception as e:
         print_error(f"Sync service test failed: {e}")
         return False
@@ -284,24 +284,24 @@ async def test_sync_service():
 async def test_webhook_handler():
     """Test webhook handler."""
     print_header("Webhook Handler Test")
-    
+
     try:
         webhook_handler = WebhookHandler()
-        
+
         # Test signature verification
         import hmac
         import hashlib
-        
+
         body = b'{"test": "data"}'
         secret = webhook_handler.settings.webhook_secret
         signature = hmac.new(secret.encode('utf-8'), body, hashlib.sha256).hexdigest()
-        
+
         if webhook_handler.verify_signature(f"sha256={signature}", body):
             print_success("Webhook signature verification working")
         else:
             print_error("Webhook signature verification failed")
             return False
-        
+
         # Test configuration validation
         validation_result = await webhook_handler.validate_webhook_config()
         if validation_result["success"]:
@@ -313,14 +313,14 @@ async def test_webhook_handler():
             for error in validation_result["errors"]:
                 print_error(f"  - {error}")
             return False
-        
+
         # Test stats
         stats = webhook_handler.get_webhook_stats()
         print_info(f"Total received: {stats['total_received']}")
         print_info(f"Success rate: {stats['success_rate']:.1f}%")
-        
+
         return True
-        
+
     except Exception as e:
         print_error(f"Webhook handler test failed: {e}")
         return False
@@ -329,42 +329,42 @@ async def test_webhook_handler():
 async def test_sample_sync():
     """Test a sample sync operation."""
     print_header("Sample Sync Test")
-    
+
     try:
         sync_service = SyncService()
-        
+
         # Get GitHub items
         github_items = sync_service.github_service.get_all_project_items()
         if not github_items:
             print_warning("No GitHub items found to test sync")
             return True
-        
+
         # Test syncing one item
         sample_item = github_items[0]
         print_info(f"Testing sync for item: {sample_item.get_title()}")
         print_info(f"Item ID: {sample_item.id}")
-        
+
         # Build properties (test without actually syncing)
         properties = sync_service.notion_service.build_properties_from_github_item(sample_item)
         if properties:
             print_success("Properties built successfully")
             print_info(f"Built {len(properties)} properties")
-            
+
             # Show some properties
             for key, value in list(properties.items())[:3]:
                 print_info(f"  - {key}: {type(value).__name__}")
         else:
             print_warning("No properties could be built")
-        
+
         # Check if item already exists in Notion
         existing_page = sync_service.notion_service.find_page_by_github_id(sample_item.id)
         if existing_page:
             print_info("Item already exists in Notion")
         else:
             print_info("Item does not exist in Notion (would be created)")
-        
+
         return True
-        
+
     except Exception as e:
         print_error(f"Sample sync test failed: {e}")
         return False
@@ -374,72 +374,72 @@ async def main():
     """Main test function."""
     print("🚀 GitHub to Notion Sync - Functionality Test")
     print("=" * 60)
-    
+
     start_time = datetime.now()
     tests_passed = 0
     total_tests = 7
-    
+
     # Run tests
     test_results = []
-    
+
     # Test 1: Environment Variables
     result = test_environment_variables()
     test_results.append(("Environment Variables", result))
     if result:
         tests_passed += 1
-    
+
     # Test 2: Configuration
     result = test_configuration()
     test_results.append(("Configuration", result))
     if result:
         tests_passed += 1
-    
+
     # Test 3: GitHub Service
     result = test_github_service()
     test_results.append(("GitHub Service", result))
     if result:
         tests_passed += 1
-    
+
     # Test 4: Notion Service
     result = test_notion_service()
     test_results.append(("Notion Service", result))
     if result:
         tests_passed += 1
-    
+
     # Test 5: Sync Service
     result = await test_sync_service()
     test_results.append(("Sync Service", result))
     if result:
         tests_passed += 1
-    
+
     # Test 6: Webhook Handler
     result = await test_webhook_handler()
     test_results.append(("Webhook Handler", result))
     if result:
         tests_passed += 1
-    
+
     # Test 7: Sample Sync
     result = await test_sample_sync()
     test_results.append(("Sample Sync", result))
     if result:
         tests_passed += 1
-    
+
     # Print summary
     print_header("Test Summary")
-    
+
     for test_name, passed in test_results:
         if passed:
             print_success(f"{test_name}")
         else:
             print_error(f"{test_name}")
-    
+
     end_time = datetime.now()
     duration = (end_time - start_time).total_seconds()
-    
+
     print(f"\n{'='*60}")
     print(f"Tests completed in {duration:.2f} seconds")
     print(f"Passed: {tests_passed}/{total_tests}")
-    
+
     if tests_passed == total_tests:
         print_success("🎉 All tests passed! Your setup is working correctly.")
         return True
@@ -457,4 +457,4 @@ if __name__ == "__main__":
         exit(1)
     except Exception as e:
         print(f"\n❌ Test script failed: {e}")
-        exit(1) 
+        exit(1)

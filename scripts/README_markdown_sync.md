@@ -21,7 +21,7 @@ python3 scripts/sync_markdown_to_notion.py \
   --file README.md \
   --page-id your-notion-page-id
 
-EX) 
+EX)
 python3 scripts/sync_markdown_to_notion.py \
     --owner ThakiCloud \
     --repo ai-platform-webui \
@@ -91,16 +91,16 @@ export GH_WEBHOOK_SECRET="your-webhook-secret"
 
 ## 🔧 매개변수 설명
 
-| 매개변수 | 설명 | 필수 | 기본값 |
-|---------|------|------|--------|
-| `--owner`, `-o` | GitHub 저장소 소유자 | ✅ | - |
-| `--repo`, `-r` | 저장소 이름 | ✅ | - |
-| `--file`, `-f` | Markdown 파일 경로 | ✅ | - |
-| `--page-id`, `-p` | Notion 페이지 ID | ✅ | - |
-| `--branch`, `-b` | GitHub 브랜치 이름 | ❌ | `main` |
-| `--title`, `-t` | 콘텐츠 섹션 제목 | ❌ | 없음 |
-| `--no-replace` | 기존 내용에 추가 | ❌ | `false` (교체) |
-| `--dry-run` | 실제 변경 없이 확인만 | ❌ | `false` |
+| 매개변수          | 설명                  | 필수 | 기본값         |
+| ----------------- | --------------------- | ---- | -------------- |
+| `--owner`, `-o`   | GitHub 저장소 소유자  | ✅   | -              |
+| `--repo`, `-r`    | 저장소 이름           | ✅   | -              |
+| `--file`, `-f`    | Markdown 파일 경로    | ✅   | -              |
+| `--page-id`, `-p` | Notion 페이지 ID      | ✅   | -              |
+| `--branch`, `-b`  | GitHub 브랜치 이름    | ❌   | `main`         |
+| `--title`, `-t`   | 콘텐츠 섹션 제목      | ❌   | 없음           |
+| `--no-replace`    | 기존 내용에 추가      | ❌   | `false` (교체) |
+| `--dry-run`       | 실제 변경 없이 확인만 | ❌   | `false`        |
 
 ## 📝 지원하는 Markdown 기능
 
@@ -113,6 +113,7 @@ export GH_WEBHOOK_SECRET="your-webhook-secret"
 ## ⚠️ 주의사항
 
 1. **Notion 페이지 ID**: Notion 페이지의 URL에서 32자리 ID를 추출해야 합니다.
+
    - 예: `https://notion.so/your-page-id-32chars` → `your-page-id-32chars`
 
 2. **GitHub 토큰**: `repo` 권한이 있는 Personal Access Token이 필요합니다.
@@ -125,21 +126,27 @@ export GH_WEBHOOK_SECRET="your-webhook-secret"
 ## 🔍 문제 해결
 
 ### 환경 변수 오류
+
 ```
 ❌ Error: Required modules not available.
 ```
+
 → 모든 필수 환경 변수가 설정되었는지 확인하세요.
 
 ### GitHub API 오류
+
 ```
 Failed to fetch markdown from GitHub: 404 Not Found
 ```
+
 → 저장소 이름, 파일 경로, 브랜치 이름이 올바른지 확인하세요.
 
 ### Notion API 오류
+
 ```
 Failed to sync markdown to Notion page: 401 Unauthorized
 ```
+
 → Notion 토큰이 유효하고 해당 페이지에 대한 권한이 있는지 확인하세요.
 
 ## 📊 실행 결과

@@ -116,7 +116,7 @@ class CompleteResyncService:
                     logger.error(f"Error deleting page {i}: {e}")
             
             self.stats["notion_pages_deleted"] = deleted_count
-            
+
             # Calculate success rate
             total_pages = len(all_pages)
             success_rate = (deleted_count / total_pages * 100) if total_pages > 0 else 0
@@ -125,7 +125,7 @@ class CompleteResyncService:
                 logger.warning(f"Failed to delete {failed_count} pages out of {total_pages} (Success rate: {success_rate:.1f}%)")
             
             logger.info(f"Successfully deleted {deleted_count} pages from Notion database")
-            
+
             # Consider deletion successful if success rate is above 90%
             # This allows for occasional failures due to permissions, references, network issues, etc.
             return success_rate >= 90.0
@@ -244,17 +244,17 @@ class CompleteResyncService:
             if failed_items:
                 logger.info(f"Retrying {len(failed_items)} failed items after initial processing...")
                 retry_success = 0
-                
+
                 for item in failed_items:
                     success = await self._create_page_with_retry(item, retry_attempt=True, max_retries=2)
                     if success:
                         retry_success += 1
                         created_count += 1
                         failed_count -= 1
-                
+
                 if retry_success > 0:
                     logger.info(f"Successfully created {retry_success} pages on retry")
-            
+
             self.stats["notion_pages_created"] = created_count
             self.stats["failures"] = failed_count
             
@@ -379,29 +379,29 @@ class CompleteResyncService:
             logger.error(f"Complete resync failed: {e}")
             return False
     
-    async def _create_page_with_retry(self, item, item_num: int = None, total_items: int = None, 
+    async def _create_page_with_retry(self, item, item_num: int = None, total_items: int = None,
                                      retry_attempt: bool = False, max_retries: int = 3) -> bool:
         """Create a Notion page with automatic retry on failure.
-        
+
         Args:
             item: GitHub project item
             item_num: Current item number for logging
             total_items: Total number of items for logging
             retry_attempt: Whether this is a retry attempt
             max_retries: Maximum number of retry attempts
-            
+
         Returns:
             True if successful, False otherwise
         """
         title = "Unknown"
         item_id = "Unknown"
-        
+
         try:
             title = item.get_title() if hasattr(item, 'get_title') else f"Item {item_num}"
             item_id = item.id if hasattr(item, 'id') else "Unknown"
         except:
             pass
-        
+
         for attempt in range(max_retries):
             try:
                 if attempt > 0:
@@ -409,38 +409,38 @@ class CompleteResyncService:
                     wait_time = 2 ** (attempt - 1)
                     logger.info(f"Retry attempt {attempt}/{max_retries-1} for '{title}' after {wait_time}s...")
                     await asyncio.sleep(wait_time)
-                
+
                 logger.debug(f"Creating page for: {title}")
-                
+
                 # Create or update the Notion page
                 notion_page = self.notion_service.upsert_github_item(item)
-                
+
                 if notion_page:
                     # Add GitHub content (body + comments) to the page
                     await self._add_github_content_to_page(notion_page.id, item)
-                    
+
                     if attempt > 0:
                         logger.info(f"✓ Successfully created page for '{title}' on retry attempt {attempt}")
-                    
+
                     return True
                 else:
                     logger.warning(f"Failed to create page for item: {title} (attempt {attempt + 1}/{max_retries})")
-                    
+
                     # If this is not the last attempt, continue to retry
                     if attempt < max_retries - 1:
                         continue
-                    
+
             except Exception as e:
                 logger.error(f"Error creating page for item '{title}' (ID: {item_id}, attempt {attempt + 1}/{max_retries}): {e}")
-                
+
                 # If this is not the last attempt, continue to retry
                 if attempt < max_retries - 1:
                     continue
                 else:
                     logger.error(f"Failed to create page for '{title}' after {max_retries} attempts", exc_info=True)
-        
+
             return False
-    
+
     async def _add_github_content_to_page(self, page_id: str, github_item) -> bool:
         """Add GitHub content (body + comments) to a Notion page.
         

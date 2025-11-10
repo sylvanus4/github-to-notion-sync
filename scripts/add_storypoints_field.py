@@ -27,27 +27,27 @@ def add_storypoints_field():
     try:
         print("🔧 Adding 스토리포인트 field to Notion database...")
         print("=" * 60)
-        
+
         # Initialize Notion service
         notion_service = NotionService()
-        
+
         # Get current database
         database = notion_service.get_database()
         if not database:
             print("❌ Failed to get database info")
             return False
-            
+
         # Check if field already exists
         database_info = database.model_dump() if hasattr(database, 'model_dump') else database.__dict__
         properties = database_info.get('properties', {})
-        
+
         if "스토리포인트" in properties:
             print("✅ 스토리포인트 field already exists!")
             return True
-        
+
         # Add the story points field using Notion API
         database_id = notion_service.settings.notion_db_id
-        
+
         # Build the update payload
         update_payload = {
             "properties": {
@@ -58,15 +58,15 @@ def add_storypoints_field():
                 }
             }
         }
-        
+
         def _update_database():
             return notion_service.client.databases.update(
                 database_id=database_id,
                 **update_payload
             )
-        
+
         response = notion_service._handle_rate_limit(_update_database)
-        
+
         if response:
             print("✅ Successfully added 스토리포인트 field to Notion database!")
             print(f"   Field Type: Number")
@@ -75,7 +75,7 @@ def add_storypoints_field():
         else:
             print("❌ Failed to add field")
             return False
-            
+
     except Exception as e:
         logger.error(f"Error adding field: {e}")
         print(f"❌ Error: {e}")
@@ -86,19 +86,19 @@ def verify_field_addition():
     """Verify that the field was added successfully."""
     try:
         print("\n🔍 Verifying field addition...")
-        
+
         # Initialize Notion service
         notion_service = NotionService()
-        
+
         # Get updated database info
         database = notion_service.get_database()
         if not database:
             print("❌ Failed to get database info")
             return False
-            
+
         database_info = database.model_dump() if hasattr(database, 'model_dump') else database.__dict__
         properties = database_info.get('properties', {})
-        
+
         if "스토리포인트" in properties:
             field_info = properties["스토리포인트"]
             print(f"✅ 스토리포인트 field verified!")
@@ -107,7 +107,7 @@ def verify_field_addition():
         else:
             print("❌ 스토리포인트 field not found")
             return False
-            
+
     except Exception as e:
         logger.error(f"Error verifying field: {e}")
         print(f"❌ Verification error: {e}")
@@ -117,7 +117,7 @@ def verify_field_addition():
 def main():
     """Main function."""
     success = add_storypoints_field()
-    
+
     if success:
         verify_field_addition()
         print("\n🎉 Story points field setup complete!")
@@ -129,5 +129,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

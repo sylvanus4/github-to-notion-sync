@@ -362,7 +362,11 @@ def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
     logger.info(f"Starting server on {host}:{port}")
 
     uvicorn.run(
-        "src.main:app", host=host, port=port, reload=reload, log_config=None  # Use our custom logging configuration
+        "src.main:app",
+        host=host,
+        port=port,
+        reload=reload,
+        log_config=None,  # Use our custom logging configuration
     )
 
 

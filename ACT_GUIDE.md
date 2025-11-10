@@ -1,0 +1,201 @@
+# Act 로컬 테스트 가이드
+
+## 📋 개요
+
+Act를 사용하면 GitHub Actions 워크플로우를 로컬에서 테스트할 수 있습니다.
+이를 통해 **푸시하기 전에 CI 실패를 방지**할 수 있습니다.
+
+## 🚀 빠른 시작
+
+### 1. 간단한 로컬 테스트 (권장)
+
+```bash
+# 우리가 만든 테스트 스크립트 실행
+./test-ci-local.sh
+```
+
+이 스크립트는 다음을 순차적으로 실행합니다:
+- ✅ Pre-commit hooks
+- ✅ Ruff lint
+- ✅ Black format check
+- ✅ Mypy type check
+- ✅ Bandit security scan
+
+### 2. Act로 전체 워크플로우 테스트
+
+```bash
+# Code Quality 워크플로우 테스트 (가장 중요)
+act -j code-quality --container-architecture linux/amd64
+
+# 특정 워크플로우만 테스트
+act -W .github/workflows/code-quality.yml
+
+# 모든 워크플로우 나열
+act -l
+```
+
+## 📝 Makefile 커맨드
+
+```bash
+# 모든 체크 실행
+make check
+
+# 개별 체크
+make lint          # Ruff 린팅
+make format        # Black & isort 포맷팅
+make type-check    # Mypy 타입 체크
+make security      # Bandit 보안 스캔
+make pre-commit    # Pre-commit hooks 실행
+
+# 테스트 실행
+make test
+```
+
+## 🔧 Act 상세 사용법
+
+### 기본 명령어
+
+```bash
+# 특정 job만 실행
+act -j <job-name>
+
+# 특정 이벤트 트리거
+act push
+act pull_request
+
+# Dry run (실제로 실행하지 않고 계획만 확인)
+act -n
+
+# Verbose 모드
+act -v
+```
+
+### 환경 변수 설정
+
+Act는 `.env` 파일이나 secrets를 로드할 수 있습니다:
+
+```bash
+# .env 파일 사용
+act --env-file .env
+
+# 개별 secret 전달
+act --secret GITHUB_TOKEN=your_token
+```
+
+### Docker 이미지 선택
+
+Act는 Docker 컨테이너에서 워크플로우를 실행합니다:
+
+```bash
+# Medium 이미지 사용 (기본)
+act -j code-quality
+
+# Large 이미지 사용 (더 많은 도구 포함)
+act -P ubuntu-latest=catthehacker/ubuntu:full-latest
+
+# Apple Silicon 호환성
+act --container-architecture linux/amd64
+```
+
+## 💡 권장 워크플로우
+
+### 푸시 전 체크리스트
+
+1. **로컬 테스트 실행**
+   ```bash
+   ./test-ci-local.sh
+   ```
+
+2. **문제가 있다면 수정**
+   ```bash
+   make format  # 자동 포맷팅
+   make lint    # 린트 에러 확인 및 수정
+   ```
+
+3. **(선택) Act로 전체 워크플로우 테스트**
+   ```bash
+   act -j code-quality --container-architecture linux/amd64
+   ```
+
+4. **커밋 & 푸시**
+   ```bash
+   git add -A
+   git commit -m "feat: your changes"
+   git push origin main
+   ```
+
+## ⚠️ 주의사항
+
+### Act의 제한사항
+
+1. **완벽한 복제는 아닙니다**
+   - Act는 GitHub Actions의 대부분을 재현하지만, 일부 차이가 있을 수 있습니다.
+   - 최종 확인은 실제 GitHub Actions에서 이루어집니다.
+
+2. **Docker 필요**
+   - Act는 Docker를 사용하므로, Docker Desktop이 실행 중이어야 합니다.
+
+3. **느릴 수 있음**
+   - 처음 실행 시 Docker 이미지를 다운로드하므로 시간이 걸립니다.
+   - 이후 실행은 더 빠릅니다.
+
+4. **Apple Silicon (M1/M2) 이슈**
+   - `--container-architecture linux/amd64` 플래그를 사용하세요.
+
+### 빠른 테스트 전략
+
+**대부분의 경우 `./test-ci-local.sh`만으로 충분합니다!**
+
+Act는 다음 경우에만 사용하세요:
+- 워크플로우 자체를 수정한 경우
+- 복잡한 환경 변수나 secrets 테스트가 필요한 경우
+- GitHub Actions에서 실패했는데 원인을 찾기 어려운 경우
+
+## 🐛 문제 해결
+
+### Act 실행 실패
+
+```bash
+# Docker 확인
+docker ps
+
+# Act 재설치
+brew reinstall act
+
+# Docker 이미지 업데이트
+docker pull catthehacker/ubuntu:act-latest
+```
+
+### 로컬 테스트는 통과하는데 GitHub에서 실패
+
+1. **파일이 커밋되었는지 확인**
+   ```bash
+   git status
+   ```
+
+2. **GitHub Actions 로그 확인**
+   - Actions 탭에서 상세 로그 확인
+
+3. **Act로 정확히 재현**
+   ```bash
+   act -j code-quality -v
+   ```
+
+## 📚 추가 자료
+
+- [Act GitHub](https://github.com/nektos/act)
+- [Act 문서](https://nektosact.com/)
+- [GitHub Actions 문서](https://docs.github.com/en/actions)
+
+## 🎯 요약
+
+```bash
+# 푸시 전 항상 실행 (30초)
+./test-ci-local.sh
+
+# 필요한 경우만 실행 (5-10분)
+act -j code-quality --container-architecture linux/amd64
+```
+
+**이제 안심하고 푸시하세요!** 🚀
+

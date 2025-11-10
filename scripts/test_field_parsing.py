@@ -15,7 +15,7 @@ from src.models.github_models import GitHubProjectField, GitHubProjectFieldType
 
 def test_field_parsing():
     """Test field value parsing logic."""
-    
+
     # Test data from actual API response
     test_field_values = [
         {
@@ -53,29 +53,29 @@ def test_field_parsing():
             }
         }
     ]
-    
+
     for i, field_value_data in enumerate(test_field_values):
         print(f"\n--- Testing field value {i+1} ---")
         print(f"Raw data: {field_value_data}")
-        
+
         try:
             field_data = field_value_data.get("field", {})
             print(f"Field name: {field_data.get('name')}")
             print(f"Field dataType: {field_data.get('dataType')}")
-            
+
             # Try to create GitHubProjectField
             field = GitHubProjectField(**field_data)
             print(f"Created field: {field.name} ({field.dataType})")
-            
+
             # Check field type enum value
             print(f"Field type enum: {GitHubProjectFieldType.SINGLE_SELECT}")
             print(f"Matches SINGLE_SELECT: {field.dataType == GitHubProjectFieldType.SINGLE_SELECT}")
             print(f"Matches DATE: {field.dataType == GitHubProjectFieldType.DATE}")
             print(f"Matches TITLE: {field.dataType == GitHubProjectFieldType.TITLE}")
-            
+
             # Check what keys are available
             print(f"Available keys in data: {list(field_value_data.keys())}")
-            
+
             # Check specific conditions
             if field.dataType == GitHubProjectFieldType.SINGLE_SELECT and "name" in field_value_data:
                 print(f"✅ SINGLE_SELECT condition met!")
@@ -92,11 +92,11 @@ def test_field_parsing():
                 print(f"✅ TITLE condition met!")
             else:
                 print(f"❌ No condition met")
-            
+
         except Exception as e:
             print(f"❌ Error: {e}")
             import traceback
             traceback.print_exc()
 
 if __name__ == "__main__":
-    test_field_parsing() 
+    test_field_parsing()
