@@ -3,13 +3,13 @@ Configuration module for GitHub to Notion sync system.
 Handles environment variables, field mappings, and application settings.
 """
 
-import os
+import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Any, Optional
+
+import yaml
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import yaml
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     webhook_secret: str = Field(alias="GH_WEBHOOK_SECRET")
     webhook_port: int = Field(default=8000, alias="WEBHOOK_PORT")
     webhook_host: str = Field(default="0.0.0.0", alias="WEBHOOK_HOST")
+
     
     # Rate Limiting
     notion_rate_limit: int = Field(default=3, alias="NOTION_RATE_LIMIT")  # requests per second
@@ -108,10 +109,10 @@ class ConfigManager:
             settings: Optional pre-configured settings. If None, loads from environment.
         """
         self.settings = settings or Settings()
-        self._field_mappings: Optional[Dict[str, Any]] = None
-        self._webhook_events: Optional[Dict[str, Any]] = None
-        self._sync_config: Optional[Dict[str, Any]] = None
-        self._user_mappings: Optional[Dict[str, str]] = None
+        self._field_mappings: Optional[dict[str, Any]] = None
+        self._webhook_events: Optional[dict[str, Any]] = None
+        self._sync_config: Optional[dict[str, Any]] = None
+        self._user_mappings: Optional[dict[str, str]] = None
         
         # Load configuration files
         self._load_config_files()
@@ -159,26 +160,26 @@ class ConfigManager:
             self._user_mappings = {}
     
     @property
-    def field_mappings(self) -> Dict[str, Any]:
+    def field_mappings(self) -> dict[str, Any]:
         """Get GitHub to Notion field mappings."""
         return self._field_mappings or {}
     
     @property
-    def webhook_events(self) -> Dict[str, Any]:
+    def webhook_events(self) -> dict[str, Any]:
         """Get webhook event configuration."""
         return self._webhook_events or {}
     
     @property
-    def sync_config(self) -> Dict[str, Any]:
+    def sync_config(self) -> dict[str, Any]:
         """Get sync configuration."""
         return self._sync_config or {}
     
     @property
-    def user_mappings(self) -> Dict[str, str]:
+    def user_mappings(self) -> dict[str, str]:
         """Get user mappings from GitHub login to Notion user."""
         return self._user_mappings or {}
     
-    def get_field_mapping(self, field_name: str) -> Optional[Dict[str, Any]]:
+    def get_field_mapping(self, field_name: str) -> Optional[dict[str, Any]]:
         """Get specific field mapping configuration.
         
         Args:
@@ -189,7 +190,7 @@ class ConfigManager:
         """
         return self.field_mappings.get(field_name)
     
-    def get_field_mapping_by_github_field(self, github_field: str) -> Optional[Dict[str, Any]]:
+    def get_field_mapping_by_github_field(self, github_field: str) -> Optional[dict[str, Any]]:
         """Get field mapping configuration by GitHub field name.
         
         Args:
@@ -293,7 +294,7 @@ class ConfigManager:
             logger.error(f"Error loading GraphQL query '{query_name}': {e}")
         return None
     
-    def validate_configuration(self) -> List[str]:
+    def validate_configuration(self) -> list[str]:
         """Validate configuration and return list of errors.
         
         Returns:
