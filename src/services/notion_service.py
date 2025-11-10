@@ -179,9 +179,7 @@ class NotionService:
 
         return None
 
-    def create_page(
-        self, properties: dict[str, Any], content: list[dict[str, Any]] | None = None
-    ) -> NotionPage | None:
+    def create_page(self, properties: dict[str, Any], content: list[dict[str, Any]] | None = None) -> NotionPage | None:
         """Create a new page in the database.
 
         Args:

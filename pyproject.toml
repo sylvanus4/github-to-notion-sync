@@ -112,6 +112,7 @@ ignore = [
     "PLR0911", # too many return statements 완화
     "C901",    # complex structure 완화
     "TRY003",  # 긴 예외 메시지 허용
+    "TRY200",  # raise from 무시
     "TRY300",  # try-consider-else 무시
     "TRY301",  # raise-within-try 무시
     "TRY401",  # verbose-log-message 무시 (logging.exception 사용)

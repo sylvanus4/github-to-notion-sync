@@ -126,9 +126,7 @@ class GitHubService:
             if github_response.has_errors():
                 error_messages = github_response.get_error_messages()
                 msg = f"GraphQL errors: {'; '.join(error_messages)}"
-                raise GitHubApiError(
-                    msg, response.status_code, response_data
-                )
+                raise GitHubApiError(msg, response.status_code, response_data)
 
             return github_response
 
@@ -303,7 +301,6 @@ class GitHubService:
                 createdAt=created_at,  # Use alias name
                 updatedAt=updated_at,  # Use alias name
             )
-
 
         except Exception as e:
             logger.exception(f"Failed to parse project item: {e}", extra={"item_data": item_data})

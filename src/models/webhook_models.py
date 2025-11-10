@@ -236,10 +236,8 @@ class WebhookValidationError(Exception):
     """Webhook validation error."""
 
 
-
 class WebhookSignatureError(Exception):
     """Webhook signature validation error."""
-
 
 
 class WebhookParser:
@@ -320,7 +318,7 @@ def extract_project_item_from_webhook(event: WebhookEvent) -> str | None:
     if event.event_type == WebhookEventType.PROJECTS_V2_ITEM and isinstance(
         event.payload, ProjectsV2ItemWebhookPayload
     ):
-            return event.payload.projects_v2_item.node_id
+        return event.payload.projects_v2_item.node_id
 
     return None
 

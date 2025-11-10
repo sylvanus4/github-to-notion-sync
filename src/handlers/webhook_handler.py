@@ -393,9 +393,7 @@ class WebhookMiddleware:
         response = await call_next(request)
 
         # Log request completion
-        logger.debug(
-            "Webhook request completed", extra={"request_id": request_id, "status_code": response.status_code}
-        )
+        logger.debug("Webhook request completed", extra={"request_id": request_id, "status_code": response.status_code})
 
         return response
 

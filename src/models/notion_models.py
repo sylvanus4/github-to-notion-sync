@@ -415,9 +415,7 @@ class NotionPropertyBuilder:
         return NotionMultiSelectPropertyValue(multi_select=[NotionMultiSelect(name=name) for name in names])
 
     @staticmethod
-    def date(
-        start: str | datetime | date, end: str | datetime | date | None = None
-    ) -> NotionDatePropertyValue:
+    def date(start: str | datetime | date, end: str | datetime | date | None = None) -> NotionDatePropertyValue:
         """Build a date property.
 
         Args:

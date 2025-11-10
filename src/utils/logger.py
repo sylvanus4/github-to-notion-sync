@@ -278,9 +278,7 @@ class LoggerManager:
         else:
             logger.error("Sync event failed", extra=log_data)
 
-    def log_rate_limit(
-        self, logger: logging.Logger, service: str, remaining: int, reset_time: datetime | None = None
-    ):
+    def log_rate_limit(self, logger: logging.Logger, service: str, remaining: int, reset_time: datetime | None = None):
         """Log rate limit information.
 
         Args:
