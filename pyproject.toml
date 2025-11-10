@@ -151,6 +151,7 @@ ignore = [
     "PLR1722", # use sys.exit instead of exit
     "PT001",   # pytest fixture parentheses
     "PT023",   # pytest mark parentheses
+    "PT004",   # pytest fixture without return
 ]
 "scripts/**/*.py" = [
     "T201",   # print 사용
