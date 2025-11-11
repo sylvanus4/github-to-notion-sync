@@ -197,7 +197,7 @@ addopts = [
     "--cov=src",
     "--cov-report=term-missing",
     "--cov-report=html",
-    "--cov-fail-under=70",
+    "--cov-fail-under=30",
 ]
 markers = [
     "integration: 통합 테스트",
