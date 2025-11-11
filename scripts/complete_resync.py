@@ -116,7 +116,7 @@ class CompleteResyncService:
                     logger.error(f"Error deleting page {i}: {e}")
             
             self.stats["notion_pages_deleted"] = deleted_count
-
+            
             # Calculate success rate
             total_pages = len(all_pages)
             success_rate = (deleted_count / total_pages * 100) if total_pages > 0 else 0
@@ -226,13 +226,13 @@ class CompleteResyncService:
                 
                 for j, item in enumerate(batch):
                     success = await self._create_page_with_retry(item, i+j+1, len(github_items))
-                        
+
                     if success:
-                            created_count += 1
-                            if created_count % 10 == 0:  # Log progress every 10 creations
-                                logger.info(f"Created {created_count}/{len(github_items)} pages...")
-                        else:
-                            failed_count += 1
+                        created_count += 1
+                        if created_count % 10 == 0:  # Log progress every 10 creations
+                            logger.info(f"Created {created_count}/{len(github_items)} pages...")
+                    else:
+                        failed_count += 1
                         failed_items.append(item)
                 
                 # Small delay between batches to avoid rate limits
@@ -254,7 +254,7 @@ class CompleteResyncService:
 
                 if retry_success > 0:
                     logger.info(f"Successfully created {retry_success} pages on retry")
-
+            
             self.stats["notion_pages_created"] = created_count
             self.stats["failures"] = failed_count
             
@@ -440,7 +440,7 @@ class CompleteResyncService:
                     logger.error(f"Failed to create page for '{title}' after {max_retries} attempts", exc_info=True)
 
             return False
-
+    
     async def _add_github_content_to_page(self, page_id: str, github_item) -> bool:
         """Add GitHub content (body + comments) to a Notion page.
         
