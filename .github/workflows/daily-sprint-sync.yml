@@ -29,6 +29,15 @@ on:
         required: false
         type: boolean
         default: true
+      run_daily_scrum:
+        description: 'Run daily scrum sync (일일 스크럼 요약 생성)'
+        required: false
+        type: boolean
+        default: true
+      daily_scrum_parent_id:
+        description: 'Daily Scrum Notion parent page ID - 비워두면 config/sprint_config.yml의 값 사용'
+        required: false
+        type: string
 
 jobs:
   sync:
@@ -45,9 +54,11 @@ jobs:
         # config/sprint_config.yml에서 설정 읽기
         SPRINT=$(grep '^current_sprint:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
         NOTION_ID=$(grep '^notion_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+        DAILY_SCRUM_ID=$(grep '^daily_scrum_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
         echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
         echo "default_notion_id=${NOTION_ID}" >> $GITHUB_OUTPUT
-        echo "📋 Config loaded - Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
+        echo "default_daily_scrum_id=${DAILY_SCRUM_ID}" >> $GITHUB_OUTPUT
+        echo "📋 Config loaded - Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}, DailyScrum ID: ${DAILY_SCRUM_ID}"
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -64,6 +75,7 @@ jobs:
         # 수동 입력값이 있으면 우선, 없으면 config 파일 값 사용
         SPRINT="${{ github.event.inputs.sprint_filter }}"
         NOTION_ID="${{ github.event.inputs.notion_parent_id }}"
+        DAILY_SCRUM_ID="${{ github.event.inputs.daily_scrum_parent_id }}"
 
         if [ -z "$SPRINT" ]; then
           SPRINT="${{ steps.config.outputs.default_sprint }}"
@@ -73,9 +85,14 @@ jobs:
           NOTION_ID="${{ steps.config.outputs.default_notion_id }}"
         fi
 
+        if [ -z "$DAILY_SCRUM_ID" ]; then
+          DAILY_SCRUM_ID="${{ steps.config.outputs.default_daily_scrum_id }}"
+        fi
+
         echo "SPRINT_FILTER=${SPRINT}" >> $GITHUB_ENV
         echo "NOTION_PARENT_ID=${NOTION_ID}" >> $GITHUB_ENV
-        echo "✅ Using Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
+        echo "DAILY_SCRUM_PARENT_ID=${DAILY_SCRUM_ID}" >> $GITHUB_ENV
+        echo "✅ Using Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}, DailyScrum ID: ${DAILY_SCRUM_ID}"
 
     - name: Run complete resync
       if: github.event_name == 'schedule' || github.event.inputs.run_complete_resync == 'true'
@@ -115,6 +132,19 @@ jobs:
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
         PYTHONPATH=. python scripts/sprint_stats.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
+
+    - name: Run daily scrum sync
+      if: github.event_name == 'schedule' || github.event.inputs.run_daily_scrum == 'true'
+      timeout-minutes: 15  # 최대 15분 허용
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        GH_ORG: ${{ vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
+        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
+      run: |
+        PYTHONPATH=. python scripts/daily_scrum_sync.py --notion-parent-id "${{ env.DAILY_SCRUM_PARENT_ID }}" --sprint "${{ env.SPRINT_FILTER }}"
 
     - name: Upload artifacts (if any)
       if: always()

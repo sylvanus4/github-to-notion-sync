@@ -11,3 +11,6 @@
 
 current_sprint: 25-11-Sprint4
 notion_parent_id: 2939eddc34e680f58c7ad076e5ba3e88
+
+# DailyScrum 노션 페이지 ID (일일 스크럼 요약 페이지의 부모)
+daily_scrum_parent_id: 2ba9eddc34e6800cbb43c744a495df3f
