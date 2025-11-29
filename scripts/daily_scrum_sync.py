@@ -435,7 +435,7 @@ class DailyScrumSyncService:
         logger.info(f"Collected data for {len(user_data)} users")
         return dict(user_data)
 
-    async def summarize_user_work(self, username: str, data: Dict[str, List]) -> str:
+    async def summarize_user_work(self, username: str, data: Dict[str, List]) -> Dict[str, str]:
         """Generate AI summary of user's work using Claude.
 
         Args:
@@ -443,10 +443,12 @@ class DailyScrumSyncService:
             data: User's issues, PRs, and reviews data
 
         Returns:
-            AI-generated summary in Korean
+            Dictionary with 'narrative' (3-5 sentence summary) and 'tree' (hierarchical task breakdown)
         """
+        result = {"narrative": "", "tree": ""}
+
         if not self.anthropic_client:
-            return ""
+            return result
 
         display_name = self.get_notion_display_name(username)
 
@@ -480,7 +482,7 @@ class DailyScrumSyncService:
                     context_parts.append(f"- #{review['pr_number']} {review['pr_title']} ({review['state']})")
 
         if not context_parts:
-            return ""
+            return result
 
         context = "\n".join(context_parts)
 
@@ -488,30 +490,97 @@ class DailyScrumSyncService:
 
 {context}
 
-위 내용을 바탕으로 이 팀원의 작업을 3-5문장으로 간결하게 한글로 요약해주세요.
+위 내용을 바탕으로 두 가지 형식으로 요약해주세요:
+
+## 1. 서술형 요약
+이 팀원의 작업을 3-5문장으로 간결하게 한글로 요약해주세요.
 스크럼 미팅에서 발표할 수 있는 형식으로 작성해주세요.
-기술적인 세부사항보다는 무엇을 하고 있는지, 진행 상황이 어떤지에 초점을 맞춰주세요."""
+기술적인 세부사항보다는 무엇을 하고 있는지, 진행 상황이 어떤지에 초점을 맞춰주세요.
+
+## 2. 작업 트리 (계층 구조)
+작업 내용을 프로젝트/기능 단위로 그룹화하여 트리 형태로 정리해주세요.
+각 작업의 세부 사항을 들여쓰기로 표현하세요.
+
+예시 형식:
+- 프로젝트/기능명
+    - 세부 작업 1
+        - 더 세부적인 내용
+    - 세부 작업 2
+
+반드시 아래 형식으로 응답해주세요:
+---NARRATIVE---
+(서술형 요약 내용)
+---TREE---
+(작업 트리 내용)"""
 
         try:
             message = self.anthropic_client.messages.create(
                 model="claude-sonnet-4-20250514",
-                max_tokens=500,
+                max_tokens=1500,
                 messages=[
                     {"role": "user", "content": prompt}
                 ]
             )
-            return message.content[0].text
+            response_text = message.content[0].text
+
+            # Parse response
+            if "---NARRATIVE---" in response_text and "---TREE---" in response_text:
+                parts = response_text.split("---TREE---")
+                narrative_part = parts[0].replace("---NARRATIVE---", "").strip()
+                tree_part = parts[1].strip() if len(parts) > 1 else ""
+                result["narrative"] = narrative_part
+                result["tree"] = tree_part
+            else:
+                # Fallback: treat entire response as narrative
+                result["narrative"] = response_text
+
+            return result
         except Exception as e:
             logger.warning(f"Failed to generate summary for {username}: {e}")
-            return ""
+            return result
+
+    def _parse_tree_to_notion_blocks(self, tree_text: str) -> List[Dict[str, Any]]:
+        """Parse tree-formatted text into Notion bulleted list blocks.
+
+        Args:
+            tree_text: Tree-formatted text with indentation
+
+        Returns:
+            List of Notion block objects
+        """
+        blocks = []
+        lines = tree_text.strip().split('\n')
+
+        for line in lines:
+            if not line.strip():
+                continue
+
+            # Count leading spaces/tabs to determine indent level
+            stripped = line.lstrip()
+            if not stripped.startswith('-'):
+                continue
+
+            # Remove the leading dash and space
+            content = stripped[1:].strip() if stripped.startswith('-') else stripped
+
+            # Create bulleted list item
+            blocks.append({
+                "object": "block",
+                "type": "bulleted_list_item",
+                "bulleted_list_item": {
+                    "rich_text": [{"type": "text", "text": {"content": content[:100]}}]
+                }
+            })
+
+        return blocks
 
     def build_notion_page_content(self, user_data: Dict[str, Dict[str, List]],
-                                   user_summaries: Dict[str, str]) -> List[Dict[str, Any]]:
+                                   user_summaries: Dict[str, Dict[str, str]]) -> List[Dict[str, Any]]:
         """Build Notion page content blocks from user data.
 
         Args:
             user_data: Dictionary of user data
-            user_summaries: AI-generated summaries per user
+            user_summaries: AI-generated summaries per user (dict with 'narrative' and 'tree' keys)
 
         Returns:
             List of Notion block objects
@@ -580,15 +649,39 @@ class DailyScrumSyncService:
             })
 
             # AI Summary section
-            summary = user_summaries.get(username, "")
-            if summary:
+            summary_data = user_summaries.get(username, {})
+            narrative = summary_data.get("narrative", "") if isinstance(summary_data, dict) else summary_data
+            tree = summary_data.get("tree", "") if isinstance(summary_data, dict) else ""
+
+            # Narrative summary (callout)
+            if narrative:
                 blocks.append({
                     "object": "block",
                     "type": "callout",
                     "callout": {
-                        "rich_text": [{"type": "text", "text": {"content": summary}}],
+                        "rich_text": [{"type": "text", "text": {"content": narrative}}],
                         "icon": {"emoji": "🤖"},
                         "color": "blue_background"
+                    }
+                })
+
+            # Tree summary (toggle block with bulleted list)
+            if tree:
+                blocks.append({
+                    "object": "block",
+                    "type": "heading_3",
+                    "heading_3": {
+                        "rich_text": [{"type": "text", "text": {"content": "🌳 작업 트리"}}]
+                    }
+                })
+
+                # Add tree as code block for better formatting
+                blocks.append({
+                    "object": "block",
+                    "type": "code",
+                    "code": {
+                        "rich_text": [{"type": "text", "text": {"content": tree[:2000]}}],
+                        "language": "plain text"
                     }
                 })
 
@@ -807,7 +900,7 @@ class DailyScrumSyncService:
                     data = user_data[username]
                     if data["issues"] or data["prs"] or data["reviews"]:
                         summary = await self.summarize_user_work(username, data)
-                        if summary:
+                        if summary.get("narrative") or summary.get("tree"):
                             user_summaries[username] = summary
                             logger.info(f"Generated summary for {username}")
                 logger.info(f"Generated {len(user_summaries)} summaries")
@@ -850,7 +943,7 @@ class DailyScrumSyncService:
                             "issues": data["issues"],
                             "prs": data["prs"],
                             "reviews": data["reviews"],
-                            "ai_summary": user_summaries.get(username, "")
+                            "ai_summary": user_summaries.get(username, {})
                         }
                         for username, data in user_data.items()
                         if username not in BOT_USERS
@@ -866,9 +959,14 @@ class DailyScrumSyncService:
                 logger.info("\n[DRY RUN] Would create Notion page with above data")
                 if user_summaries:
                     logger.info("\nAI Summaries:")
-                    for username, summary in user_summaries.items():
+                    for username, summary_data in user_summaries.items():
                         display_name = self.get_notion_display_name(username)
-                        logger.info(f"\n{display_name} (@{username}):\n{summary}")
+                        narrative = summary_data.get("narrative", "") if isinstance(summary_data, dict) else summary_data
+                        tree = summary_data.get("tree", "") if isinstance(summary_data, dict) else ""
+                        logger.info(f"\n{display_name} (@{username}):")
+                        logger.info(f"[서술형 요약]\n{narrative}")
+                        if tree:
+                            logger.info(f"\n[작업 트리]\n{tree}")
                 return True
 
             # Step 7: Create Notion page
