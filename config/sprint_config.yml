@@ -11,3 +11,6 @@
 
 current_sprint: 25-11-Sprint4
 notion_parent_id: 2939eddc34e680f58c7ad076e5ba3e88
+
+# SprintChecker 노션 페이지 ID (스프린트 요약 페이지의 부모)
+sprint_checker_parent_id: 2ba9eddc34e680ff82dad5032418ab58
