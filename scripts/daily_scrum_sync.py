@@ -435,6 +435,18 @@ class DailyScrumSyncService:
         logger.info(f"Collected data for {len(user_data)} users")
         return dict(user_data)
 
+    def _extract_repo_name_from_url(self, url: str) -> str:
+        """Extract repository name from GitHub URL."""
+        if not url:
+            return "Unknown"
+        try:
+            parts = url.split('/')
+            if len(parts) >= 5 and 'github.com' in url:
+                return parts[4]  # repo name
+        except Exception:
+            pass
+        return "Unknown"
+
     async def summarize_user_work(self, username: str, data: Dict[str, List]) -> Dict[str, str]:
         """Generate AI summary of user's work using Claude.
 
@@ -452,23 +464,27 @@ class DailyScrumSyncService:
 
         display_name = self.get_notion_display_name(username)
 
-        # Build context from user data
+        # Build context from user data - group by repository
         context_parts = []
 
         if data["issues"]:
             context_parts.append("## 담당 이슈:")
             for issue in data["issues"]:
-                context_parts.append(f"- #{issue['number']} {issue['title']} [{issue['status']}]")
+                repo_name = self._extract_repo_name_from_url(issue.get('url', ''))
+                status = issue['status']
+                # Determine if done (completed statuses)
+                is_done = status.lower() in ['done', 'closed', 'merged', '완료', 'archived']
+                context_parts.append(f"- [리포지토리: {repo_name}] #{issue['number']} {issue['title']} [상태: {status}] [완료여부: {'완료' if is_done else '진행중'}]")
                 if issue.get('body'):
                     context_parts.append(f"  본문: {issue['body'][:300]}...")
-                if issue.get('comments'):
-                    for c in issue['comments'][:3]:
-                        context_parts.append(f"  댓글 ({c['author']}): {c['body'][:100]}...")
 
         if data["prs"]:
             context_parts.append("\n## PR:")
             for pr in data["prs"]:
-                context_parts.append(f"- #{pr['number']} {pr['title']} [{pr['status']}]")
+                repo_name = self._extract_repo_name_from_url(pr.get('url', ''))
+                status = pr['status']
+                is_done = status.lower() in ['done', 'closed', 'merged', '완료']
+                context_parts.append(f"- [리포지토리: {repo_name}] #{pr['number']} {pr['title']} [상태: {status}] [완료여부: {'완료' if is_done else '진행중'}]")
                 if pr.get('body'):
                     context_parts.append(f"  본문: {pr['body'][:300]}...")
 
@@ -479,7 +495,8 @@ class DailyScrumSyncService:
                 pr_key = f"{review.get('repository')}#{review['pr_number']}"
                 if pr_key not in seen_prs:
                     seen_prs.add(pr_key)
-                    context_parts.append(f"- #{review['pr_number']} {review['pr_title']} ({review['state']})")
+                    repo_name = review.get('repository', 'Unknown').split('/')[-1] if review.get('repository') else 'Unknown'
+                    context_parts.append(f"- [리포지토리: {repo_name}] #{review['pr_number']} {review['pr_title']} ({review['state']}) [완료여부: 완료]")
 
         if not context_parts:
             return result
@@ -498,14 +515,28 @@ class DailyScrumSyncService:
 기술적인 세부사항보다는 무엇을 하고 있는지, 진행 상황이 어떤지에 초점을 맞춰주세요.
 
 ## 2. 작업 트리 (계층 구조)
-작업 내용을 프로젝트/기능 단위로 그룹화하여 트리 형태로 정리해주세요.
-각 작업의 세부 사항을 들여쓰기로 표현하세요.
+작업 내용을 **GitHub 리포지토리별**로 그룹화하고, **어제 한 일**과 **오늘 할 일**로 나눠서 정리해주세요.
 
-예시 형식:
-- 프로젝트/기능명
-    - 세부 작업 1
-        - 더 세부적인 내용
-    - 세부 작업 2
+분류 기준:
+- 어제 한 일: 상태가 Done, Closed, Merged, 완료, Archived 등 완료된 작업
+- 오늘 할 일: 상태가 In Progress, Open, 진행중 등 아직 완료되지 않은 작업
+
+형식 (반드시 이 구조를 따르세요):
+📌 어제 한 일
+- [리포지토리명]
+    - 완료된 작업 1 (완료)
+    - 완료된 작업 2 (완료)
+
+📋 오늘 할 일  
+- [리포지토리명]
+    - 진행중인 작업 1 (진행중)
+    - 진행중인 작업 2 (PR 리뷰중)
+
+중요:
+- 리포지토리별로 묶어서 정리
+- 각 작업에 상태 표시 (완료/진행중/PR 리뷰중 등)
+- 중복 항목 제거
+- 간결하게 핵심만 작성
 
 반드시 아래 형식으로 응답해주세요:
 ---NARRATIVE---
