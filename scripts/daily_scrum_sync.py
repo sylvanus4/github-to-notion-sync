@@ -716,7 +716,7 @@ class DailyScrumSyncService:
                     }
                 })
 
-            # Issues section
+            # Issues section - grouped by repository
             if data["issues"]:
                 blocks.append({
                     "object": "block",
@@ -726,23 +726,39 @@ class DailyScrumSyncService:
                     }
                 })
 
+                # Group issues by repository
+                issues_by_repo = defaultdict(list)
                 for issue in data["issues"]:
-                    issue_text = f"#{issue['number']} {issue['title']} [{issue['status']}]"
+                    repo_name = self._extract_repo_name_from_url(issue.get('url', ''))
+                    issues_by_repo[repo_name].append(issue)
+
+                for repo_name in sorted(issues_by_repo.keys()):
+                    # Repository name as bullet
                     blocks.append({
                         "object": "block",
                         "type": "bulleted_list_item",
                         "bulleted_list_item": {
-                            "rich_text": [{
-                                "type": "text",
-                                "text": {
-                                    "content": issue_text[:100],
-                                    "link": {"url": issue['url']} if issue['url'] else None
-                                }
-                            }]
+                            "rich_text": [{"type": "text", "text": {"content": repo_name}, "annotations": {"bold": True}}]
                         }
                     })
+                    # Issues under this repo as paragraph (indented visually)
+                    for issue in issues_by_repo[repo_name]:
+                        issue_text = f"#{issue['number']} {issue['title']} [{issue['status']}]"
+                        blocks.append({
+                            "object": "block",
+                            "type": "bulleted_list_item",
+                            "bulleted_list_item": {
+                                "rich_text": [{
+                                    "type": "text",
+                                    "text": {
+                                        "content": f"  {issue_text[:95]}",
+                                        "link": {"url": issue['url']} if issue['url'] else None
+                                    }
+                                }]
+                            }
+                        })
 
-            # PRs section
+            # PRs section - grouped by repository
             if data["prs"]:
                 blocks.append({
                     "object": "block",
@@ -752,54 +768,88 @@ class DailyScrumSyncService:
                     }
                 })
 
+                # Group PRs by repository
+                prs_by_repo = defaultdict(list)
                 for pr in data["prs"]:
-                    pr_text = f"#{pr['number']} {pr['title']} [{pr['status']}]"
+                    repo_name = self._extract_repo_name_from_url(pr.get('url', ''))
+                    prs_by_repo[repo_name].append(pr)
+
+                for repo_name in sorted(prs_by_repo.keys()):
+                    # Repository name as bullet
                     blocks.append({
                         "object": "block",
                         "type": "bulleted_list_item",
                         "bulleted_list_item": {
-                            "rich_text": [{
-                                "type": "text",
-                                "text": {
-                                    "content": pr_text[:100],
-                                    "link": {"url": pr['url']} if pr['url'] else None
-                                }
-                            }]
+                            "rich_text": [{"type": "text", "text": {"content": repo_name}, "annotations": {"bold": True}}]
                         }
                     })
+                    # PRs under this repo
+                    for pr in prs_by_repo[repo_name]:
+                        pr_text = f"#{pr['number']} {pr['title']} [{pr['status']}]"
+                        blocks.append({
+                            "object": "block",
+                            "type": "bulleted_list_item",
+                            "bulleted_list_item": {
+                                "rich_text": [{
+                                    "type": "text",
+                                    "text": {
+                                        "content": f"  {pr_text[:95]}",
+                                        "link": {"url": pr['url']} if pr['url'] else None
+                                    }
+                                }]
+                            }
+                        })
 
-            # Reviews section
+            # Reviews section - grouped by repository
             if data["reviews"]:
+                # Deduplicate reviews first
+                seen_prs = set()
+                unique_reviews = []
+                for review in data["reviews"]:
+                    pr_key = f"{review.get('repository')}#{review['pr_number']}"
+                    if pr_key not in seen_prs:
+                        seen_prs.add(pr_key)
+                        unique_reviews.append(review)
+
                 blocks.append({
                     "object": "block",
                     "type": "heading_3",
                     "heading_3": {
-                        "rich_text": [{"type": "text", "text": {"content": f"👀 리뷰 ({len(data['reviews'])})"}}]
+                        "rich_text": [{"type": "text", "text": {"content": f"👀 리뷰 ({len(unique_reviews)})"}}]
                     }
                 })
 
-                # Group reviews by PR to avoid duplicates
-                seen_prs = set()
-                for review in data["reviews"]:
-                    pr_key = f"{review.get('repository')}#{review['pr_number']}"
-                    if pr_key in seen_prs:
-                        continue
-                    seen_prs.add(pr_key)
+                # Group reviews by repository
+                reviews_by_repo = defaultdict(list)
+                for review in unique_reviews:
+                    repo_name = review.get('repository', 'Unknown').split('/')[-1] if review.get('repository') else 'Unknown'
+                    reviews_by_repo[repo_name].append(review)
 
-                    review_text = f"#{review['pr_number']} {review['pr_title']} ({review['state']})"
+                for repo_name in sorted(reviews_by_repo.keys()):
+                    # Repository name as bullet
                     blocks.append({
                         "object": "block",
                         "type": "bulleted_list_item",
                         "bulleted_list_item": {
-                            "rich_text": [{
-                                "type": "text",
-                                "text": {
-                                    "content": review_text[:100],
-                                    "link": {"url": review['pr_url']} if review['pr_url'] else None
-                                }
-                            }]
+                            "rich_text": [{"type": "text", "text": {"content": repo_name}, "annotations": {"bold": True}}]
                         }
                     })
+                    # Reviews under this repo
+                    for review in reviews_by_repo[repo_name]:
+                        review_text = f"#{review['pr_number']} {review['pr_title']} ({review['state']})"
+                        blocks.append({
+                            "object": "block",
+                            "type": "bulleted_list_item",
+                            "bulleted_list_item": {
+                                "rich_text": [{
+                                    "type": "text",
+                                    "text": {
+                                        "content": f"  {review_text[:95]}",
+                                        "link": {"url": review['pr_url']} if review['pr_url'] else None
+                                    }
+                                }]
+                            }
+                        })
 
             # Add divider between users
             blocks.append({
