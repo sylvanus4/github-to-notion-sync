@@ -81,13 +81,17 @@ class SprintSummarySyncService:
     """Service for collecting sprint work data and syncing to Notion SprintChecker page."""
 
     def __init__(self, sprint_name: str, notion_parent_id: str,
-                 anthropic_api_key: Optional[str] = None):
+                 anthropic_api_key: Optional[str] = None,
+                 start_date: Optional[datetime] = None,
+                 end_date: Optional[datetime] = None):
         """Initialize sprint summary sync service.
 
         Args:
             sprint_name: Sprint name (e.g., '25-11-Sprint4')
             notion_parent_id: Notion parent page ID for SprintChecker
             anthropic_api_key: Claude API key for AI summaries
+            start_date: Manual start date (overrides GitHub Project lookup)
+            end_date: Manual end date (overrides GitHub Project lookup)
         """
         self.config = get_config()
         self.github_service = GitHubService()
@@ -95,15 +99,15 @@ class SprintSummarySyncService:
         self.sprint_name = sprint_name
         self.notion_parent_id = notion_parent_id
 
+        # Manual date range (if provided, skips GitHub lookup)
+        self.start_date = start_date
+        self.end_date = end_date
+
         # Claude API client
         self.anthropic_client = None
         if CLAUDE_AVAILABLE and anthropic_api_key:
             self.anthropic_client = anthropic.Anthropic(api_key=anthropic_api_key)
             logger.info("Claude API client initialized")
-
-        # Date range will be set from sprint info
-        self.start_date = None
-        self.end_date = None
 
         # Track statistics
         self.stats = {
@@ -827,13 +831,16 @@ class SprintSummarySyncService:
         logger.info(f"Starting Sprint Summary sync for: {self.sprint_name}")
 
         try:
-            # Step 1: Get sprint date range
-            date_range = self.get_sprint_date_range()
-            if not date_range:
-                logger.error("Could not determine sprint date range")
-                return False
+            # Step 1: Get sprint date range (skip if manually provided)
+            if self.start_date and self.end_date:
+                logger.info(f"Using manual date range: {self.start_date.date()} to {self.end_date.date()}")
+            else:
+                date_range = self.get_sprint_date_range()
+                if not date_range:
+                    logger.error("Could not determine sprint date range")
+                    return False
+                self.start_date, self.end_date = date_range
 
-            self.start_date, self.end_date = date_range
             self.stats["date_range"] = {
                 "start": self.start_date.isoformat(),
                 "end": self.end_date.isoformat()
@@ -1018,6 +1025,14 @@ Examples:
         action="store_true",
         help="Suppress non-error output"
     )
+    parser.add_argument(
+        "--start-date",
+        help="Manual start date (YYYY-MM-DD) - for sprints not in GitHub Projects"
+    )
+    parser.add_argument(
+        "--end-date",
+        help="Manual end date (YYYY-MM-DD) - for sprints not in GitHub Projects"
+    )
 
     args = parser.parse_args()
 
@@ -1026,13 +1041,23 @@ Examples:
 
     anthropic_api_key = args.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
 
+    # Parse manual dates if provided
+    start_date = None
+    end_date = None
+    if args.start_date:
+        start_date = datetime.strptime(args.start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    if args.end_date:
+        end_date = datetime.strptime(args.end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+
     logger.info("Starting Sprint Summary sync script")
 
     try:
         sync_service = SprintSummarySyncService(
             sprint_name=args.sprint,
             notion_parent_id=args.notion_parent_id,
-            anthropic_api_key=anthropic_api_key
+            anthropic_api_key=anthropic_api_key,
+            start_date=start_date,
+            end_date=end_date
         )
 
         success = await sync_service.run(
