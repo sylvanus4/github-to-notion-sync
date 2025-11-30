@@ -3,14 +3,19 @@
 #
 # 업데이트 방법:
 # 1. current_sprint: 새로운 스프린트명으로 변경 (예: 25-10-Sprint5)
-# 2. notion_parent_id: 필요시 Notion 페이지 ID 변경
+# 2. 필요시 Notion 페이지 ID 변경
 # 3. 커밋 및 푸시
 #
 # 형식: {YY}-{MM}-Sprint{N}
 # 예시: 25-10-Sprint4, 25-11-Sprint1
 
 current_sprint: 25-12-Sprint1
+
+# PR-Checker 노션 페이지 ID (PR 리뷰 체크, 스프린트 통계 등)
 notion_parent_id: 2939eddc34e680f58c7ad076e5ba3e88
 
 # SprintChecker 노션 페이지 ID (스프린트 요약 페이지의 부모)
 sprint_checker_parent_id: 2ba9eddc34e680ff82dad5032418ab58
+
+# DailyScrum 노션 페이지 ID (데일리 스크럼 페이지의 부모)
+daily_scrum_parent_id: 2ba9eddc34e6800cbb43c744a495df3f

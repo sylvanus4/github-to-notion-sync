@@ -55,9 +55,16 @@ jobs:
         # config/sprint_config.yml에서 설정 읽기
         SPRINT=$(grep '^current_sprint:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
         NOTION_ID=$(grep '^notion_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+        SPRINT_CHECKER_ID=$(grep '^sprint_checker_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+        DAILY_SCRUM_ID=$(grep '^daily_scrum_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
         echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
         echo "default_notion_id=${NOTION_ID}" >> $GITHUB_OUTPUT
-        echo "📋 Config loaded - Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
+        echo "sprint_checker_id=${SPRINT_CHECKER_ID}" >> $GITHUB_OUTPUT
+        echo "daily_scrum_id=${DAILY_SCRUM_ID}" >> $GITHUB_OUTPUT
+        echo "📋 Config loaded - Sprint: ${SPRINT}"
+        echo "   PR-Checker: ${NOTION_ID}"
+        echo "   SprintChecker: ${SPRINT_CHECKER_ID}"
+        echo "   DailyScrum: ${DAILY_SCRUM_ID}"
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -85,7 +92,12 @@ jobs:
 
         echo "SPRINT_FILTER=${SPRINT}" >> $GITHUB_ENV
         echo "NOTION_PARENT_ID=${NOTION_ID}" >> $GITHUB_ENV
-        echo "✅ Using Sprint: ${SPRINT}, Notion ID: ${NOTION_ID}"
+        echo "SPRINT_CHECKER_PARENT_ID=${{ steps.config.outputs.sprint_checker_id }}" >> $GITHUB_ENV
+        echo "DAILY_SCRUM_PARENT_ID=${{ steps.config.outputs.daily_scrum_id }}" >> $GITHUB_ENV
+        echo "✅ Using Sprint: ${SPRINT}"
+        echo "   PR-Checker (PR review, stats): ${NOTION_ID}"
+        echo "   SprintChecker (Sprint summary): ${{ steps.config.outputs.sprint_checker_id }}"
+        echo "   DailyScrum (Daily scrum): ${{ steps.config.outputs.daily_scrum_id }}"
 
     - name: Run complete resync
       if: github.event_name == 'schedule' || github.event.inputs.run_complete_resync == 'true'
@@ -138,7 +150,8 @@ jobs:
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: |
-        PYTHONPATH=. python scripts/sprint_summary_sync.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
+        # 스프린트 요약은 SprintChecker 페이지에 생성
+        PYTHONPATH=. python scripts/sprint_summary_sync.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.SPRINT_CHECKER_PARENT_ID }}"
 
     - name: Run daily scrum sync
       if: github.event_name == 'schedule' || github.event.inputs.run_daily_scrum == 'true'
@@ -152,7 +165,8 @@ jobs:
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: |
-        PYTHONPATH=. python scripts/daily_scrum_sync.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
+        # 데일리 스크럼은 DailyScrum 페이지에 생성
+        PYTHONPATH=. python scripts/daily_scrum_sync.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.DAILY_SCRUM_PARENT_ID }}"
 
     - name: Upload artifacts (if any)
       if: always()
