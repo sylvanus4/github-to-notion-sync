@@ -22,6 +22,8 @@ load_dotenv()
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+import yaml
+
 from src.services.github_service import GitHubService
 from src.services.notion_service import NotionService
 from src.utils.logger import init_logging, get_logger
@@ -32,39 +34,27 @@ from src.config import get_config
 init_logging()
 logger = get_logger(__name__)
 
-# GitHub username to Notion display name mapping
-# Based on field_mappings.yml assignees.value_mappings comments
-GITHUB_TO_NOTION_NAME = {
-    "duyeol-yu": "유두열",
-    "jaehoonkim": "김재훈",
-    "sylvanus4": "한효정",
-    "thaki-yakhyo": "yakhyo",
-    "thakicloud-jotaeyang": "조태양",
-    "yunjae-park1111": "박윤재",
-    "hwyncho-thakicloud": "조휘연",
-    "chohongcheol-thakicloud": "조홍철",
-    "jongmin-kim-thakicloud": "김종민",
-    "thakicloud-chanwoo": "신찬우",
-    "ryangkyung-thaki": "강량경",
-    "mjhan-tk": "한민정",
-}
 
-# GitHub username to Notion User ID mapping
-# Based on field_mappings.yml assignees.value_mappings
-GITHUB_TO_NOTION_USER_ID = {
-    "duyeol-yu": "229d872b-594c-8104-b58b-000212f60087",
-    "jaehoonkim": "229d872b-594c-8150-879d-00022f27519e",
-    "sylvanus4": "229d872b-594c-816d-ae7c-0002f11615c0",
-    "thaki-yakhyo": "23ed872b-594c-811f-8e2f-0002687c8ce2",
-    "thakicloud-jotaeyang": "229d872b-594c-81b5-906f-00020b52c301",
-    "yunjae-park1111": "225d872b-594c-81ba-9e42-0002b46f091a",
-    "hwyncho-thakicloud": "245d872b-594c-814c-9657-000222886921",
-    "chohongcheol-thakicloud": "259d872b-594c-812e-9ea8-00028d08dc7d",
-    "jongmin-kim-thakicloud": "26bd872b-594c-81f8-98df-000226f169c0",
-    "thakicloud-chanwoo": "26bd872b-594c-81fe-885e-00026a54788b",
-    "ryangkyung-thaki": "28bd872b-594c-81f1-8ff5-000283ca84b5",
-    "mjhan-tk": "279d872b-594c-81cf-b503-0002c9451f49",
-}
+def load_user_mappings() -> tuple[dict, dict]:
+    """Load user mappings from config/field_mappings.yml.
+
+    Returns:
+        Tuple of (display_names, user_ids) dictionaries
+    """
+    config_path = Path(__file__).parent.parent / "config" / "field_mappings.yml"
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        display_names = config.get("github_to_display_name", {})
+        user_ids = config.get("github_to_notion", {}).get("assignees", {}).get("value_mappings", {})
+        return display_names, user_ids
+    except Exception as e:
+        logger.warning(f"Failed to load user mappings from config: {e}")
+        return {}, {}
+
+
+# Load user mappings from config file
+GITHUB_TO_NOTION_NAME, GITHUB_TO_NOTION_USER_ID = load_user_mappings()
 
 
 class SprintStatsService:

@@ -87,6 +87,22 @@ github_to_notion:
       "ryangkyung-thaki": "28bd872b-594c-81f1-8ff5-000283ca84b5"  # 강량경
       "mjhan-tk": "279d872b-594c-81cf-b503-0002c9451f49"  # 한민정
 
+# GitHub username to Display Name mapping (한글 표시 이름)
+# 스크립트에서 사용자 이름을 표시할 때 사용
+github_to_display_name:
+  "duyeol-yu": "유두열"
+  "jaehoonkim": "김재훈"
+  "sylvanus4": "한효정"
+  "thaki-yakhyo": "yakhyo"
+  "thakicloud-jotaeyang": "조태양"
+  "yunjae-park1111": "박윤재"
+  "hwyncho-thakicloud": "조휘연"
+  "chohongcheol-thakicloud": "조홍철"
+  "jongmin-kim-thakicloud": "김종민"
+  "thakicloud-chanwoo": "신찬우"
+  "ryangkyung-thaki": "강량경"
+  "mjhan-tk": "한민정"
+
 # Notion 전용 필드 (GitHub에서 매핑되지 않는 필드들)
 notion_only_fields:
   - "하위 작업"
