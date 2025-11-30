@@ -155,16 +155,21 @@ class SprintStatsService:
                 logger.error(f"Sprint field '{sprint_field.name}' has no configuration")
                 return None
 
-            if not hasattr(sprint_field.configuration, 'iterations') or not sprint_field.configuration.iterations:
+            # Get all iterations (active + completed)
+            active_iterations = getattr(sprint_field.configuration, 'iterations', []) or []
+            completed_iterations = getattr(sprint_field.configuration, 'completed_iterations', []) or []
+            all_iterations = active_iterations + completed_iterations
+
+            if not all_iterations:
                 logger.error(f"Sprint field '{sprint_field.name}' has no iterations")
                 return None
 
             # Debug: Log available iterations
-            available_sprints = [it.title for it in sprint_field.configuration.iterations]
-            logger.debug(f"Available sprint iterations: {available_sprints}")
+            available_sprints = [it.title for it in all_iterations]
+            logger.debug(f"Available sprint iterations (active + completed): {available_sprints}")
 
             # Find the matching sprint iteration
-            for iteration in sprint_field.configuration.iterations:
+            for iteration in all_iterations:
                 if iteration.title == self.sprint_name:
                     start_date = iteration.start_date
                     duration_days = iteration.duration
@@ -174,7 +179,7 @@ class SprintStatsService:
                     return (start_date, end_date)
 
             logger.error(f"Sprint '{self.sprint_name}' not found in iterations")
-            logger.error(f"Available sprints: {available_sprints}")
+            logger.error(f"Available sprints (active + completed): {available_sprints}")
             return None
 
         except Exception as e:

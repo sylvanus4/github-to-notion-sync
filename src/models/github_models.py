@@ -221,14 +221,20 @@ class GitHubIterationConfiguration(BaseModel):
     """GitHub iteration configuration model."""
 
     iterations: list[GitHubIteration] = Field(default_factory=list)
+    completed_iterations: list[GitHubIteration] = Field(
+        default_factory=list, alias="completedIterations"
+    )
 
-    @field_validator("iterations", mode="before")
+    @field_validator("iterations", "completed_iterations", mode="before")
     @classmethod
     def parse_iterations(cls, v):
         """Parse iterations list."""
         if v is None:
             return []
         return v if isinstance(v, list) else []
+
+    class Config:
+        populate_by_name = True
 
 
 class GitHubProjectField(BaseModel):
