@@ -156,12 +156,17 @@ class SprintSummarySyncService:
                 logger.error(f"Sprint field '{sprint_field.name}' has no configuration")
                 return None
 
-            if not hasattr(sprint_field.configuration, 'iterations') or not sprint_field.configuration.iterations:
+            # Get all iterations (active + completed)
+            active_iterations = getattr(sprint_field.configuration, 'iterations', []) or []
+            completed_iterations = getattr(sprint_field.configuration, 'completed_iterations', []) or []
+            all_iterations = active_iterations + completed_iterations
+
+            if not all_iterations:
                 logger.error(f"Sprint field '{sprint_field.name}' has no iterations")
                 return None
 
             # Find the matching sprint iteration
-            for iteration in sprint_field.configuration.iterations:
+            for iteration in all_iterations:
                 if iteration.title == self.sprint_name:
                     start_date = iteration.start_date
                     duration_days = iteration.duration
@@ -170,8 +175,8 @@ class SprintSummarySyncService:
                     logger.info(f"Sprint date range: {start_date.date()} to {end_date.date()}")
                     return (start_date, end_date)
 
-            available_sprints = [it.title for it in sprint_field.configuration.iterations]
-            logger.error(f"Sprint '{self.sprint_name}' not found. Available: {available_sprints}")
+            available_sprints = [it.title for it in all_iterations]
+            logger.error(f"Sprint '{self.sprint_name}' not found. Available (active + completed): {available_sprints}")
             return None
 
         except Exception as e:

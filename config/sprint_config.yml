@@ -9,7 +9,7 @@
 # 형식: {YY}-{MM}-Sprint{N}
 # 예시: 25-10-Sprint4, 25-11-Sprint1
 
-current_sprint: 25-11-Sprint4
+current_sprint: 25-12-Sprint1
 notion_parent_id: 2939eddc34e680f58c7ad076e5ba3e88
 
 # SprintChecker 노션 페이지 ID (스프린트 요약 페이지의 부모)

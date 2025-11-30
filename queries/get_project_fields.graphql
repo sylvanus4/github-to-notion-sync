@@ -41,6 +41,12 @@ query getProjectFields($org: String!, $num: Int!) {
                 startDate
                 duration
               }
+              completedIterations {
+                id
+                title
+                startDate
+                duration
+              }
             }
           }
         }
