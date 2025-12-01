@@ -13,6 +13,9 @@ import argparse
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+# Korean Standard Time (UTC+9)
+KST = timezone(timedelta(hours=9))
 from typing import Optional, Dict, Any, List, Tuple
 from collections import defaultdict
 from dotenv import load_dotenv
@@ -95,8 +98,8 @@ class DailyScrumSyncService:
             self.anthropic_client = anthropic.Anthropic(api_key=anthropic_api_key)
             logger.info("Claude API client initialized")
 
-        # Calculate date range
-        self.end_date = datetime.now(timezone.utc)
+        # Calculate date range (using KST for Korean timezone)
+        self.end_date = datetime.now(KST)
         self.start_date = self.end_date - timedelta(days=days - 1)
         # Set start of day for start_date
         self.start_date = self.start_date.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -610,8 +613,8 @@ class DailyScrumSyncService:
         """
         blocks = []
 
-        # Add summary header
-        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        # Add summary header (using KST for Korean timezone)
+        today_str = datetime.now(KST).strftime("%Y-%m-%d")
         blocks.append({
             "object": "block",
             "type": "heading_1",
@@ -865,7 +868,8 @@ class DailyScrumSyncService:
         Returns:
             Page ID or None if creation failed
         """
-        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        # Use KST for Korean timezone
+        today_str = datetime.now(KST).strftime("%Y-%m-%d")
         page_title = f"Daily Scrum - {today_str}"
 
         logger.info(f"Creating Notion page: {page_title}")

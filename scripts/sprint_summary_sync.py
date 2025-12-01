@@ -13,6 +13,9 @@ import argparse
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+# Korean Standard Time (UTC+9)
+KST = timezone(timedelta(hours=9))
 from typing import Optional, Dict, Any, List, Tuple
 from collections import defaultdict
 from dotenv import load_dotenv
@@ -823,7 +826,7 @@ class SprintSummarySyncService:
     async def run(self, dry_run: bool = False, output_file: Optional[str] = None,
                   skip_details: bool = False, skip_summary: bool = False) -> bool:
         """Run sprint summary sync."""
-        self.stats["start_time"] = datetime.now(timezone.utc)
+        self.stats["start_time"] = datetime.now(KST)
 
         logger.info(f"Starting Sprint Summary sync for: {self.sprint_name}")
 
@@ -945,7 +948,7 @@ class SprintSummarySyncService:
                 logger.error("Failed to create Notion page")
                 return False
 
-            self.stats["end_time"] = datetime.now(timezone.utc)
+            self.stats["end_time"] = datetime.now(KST)
             duration = (self.stats["end_time"] - self.stats["start_time"]).total_seconds()
 
             logger.info("\n" + "=" * 60)
@@ -1038,13 +1041,13 @@ Examples:
 
     anthropic_api_key = args.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
 
-    # Parse manual dates if provided
+    # Parse manual dates if provided (using KST for Korean timezone)
     start_date = None
     end_date = None
     if args.start_date:
-        start_date = datetime.strptime(args.start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        start_date = datetime.strptime(args.start_date, "%Y-%m-%d").replace(tzinfo=KST)
     if args.end_date:
-        end_date = datetime.strptime(args.end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_date = datetime.strptime(args.end_date, "%Y-%m-%d").replace(tzinfo=KST)
 
     logger.info("Starting Sprint Summary sync script")
 
