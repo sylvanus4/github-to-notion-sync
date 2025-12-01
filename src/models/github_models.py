@@ -221,9 +221,7 @@ class GitHubIterationConfiguration(BaseModel):
     """GitHub iteration configuration model."""
 
     iterations: list[GitHubIteration] = Field(default_factory=list)
-    completed_iterations: list[GitHubIteration] = Field(
-        default_factory=list, alias="completedIterations"
-    )
+    completed_iterations: list[GitHubIteration] = Field(default_factory=list, alias="completedIterations")
 
     @field_validator("iterations", "completed_iterations", mode="before")
     @classmethod
