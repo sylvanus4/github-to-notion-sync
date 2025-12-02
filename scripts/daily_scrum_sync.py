@@ -71,6 +71,12 @@ GITHUB_TO_NOTION_NAME, GITHUB_TO_NOTION_USER_ID = load_user_mappings()
 # Bot users to ignore
 BOT_USERS = {"coderabbitai", "dependabot[bot]", "github-actions[bot]"}
 
+# Mapped users (users defined in field_mappings.yml)
+MAPPED_USERS = set(GITHUB_TO_NOTION_USER_ID.keys())
+
+# Track unmapped users to avoid duplicate warnings
+_warned_unmapped_users: set = set()
+
 
 class DailyScrumSyncService:
     """Service for collecting daily work data and syncing to Notion DailyScrum page."""
@@ -348,6 +354,12 @@ class DailyScrumSyncService:
                         username = assignee.login if hasattr(assignee, 'login') else str(assignee)
                         if username in BOT_USERS:
                             continue
+                        # Filter: only process mapped users
+                        if username not in MAPPED_USERS:
+                            if username not in _warned_unmapped_users:
+                                logger.warning(f"Skipping unmapped user: {username} (not in field_mappings.yml)")
+                                _warned_unmapped_users.add(username)
+                            continue
                         user_data[username]["issues"].append(item_info)
                         self.stats["total_issues"] += 1
 
@@ -359,6 +371,12 @@ class DailyScrumSyncService:
                         author = content.author.login
 
                     if author and author not in BOT_USERS:
+                        # Filter: only process mapped users
+                        if author not in MAPPED_USERS:
+                            if author not in _warned_unmapped_users:
+                                logger.warning(f"Skipping unmapped user: {author} (not in field_mappings.yml)")
+                                _warned_unmapped_users.add(author)
+                            continue
                         # Track this PR
                         repo_info = self._extract_repo_info(url)
                         if repo_info:
@@ -384,23 +402,34 @@ class DailyScrumSyncService:
 
                 # Add PR to author's list if not already tracked
                 if pr_author and pr_author not in BOT_USERS and repository and pr_number:
-                    pr_key = f"{repository}#{pr_number}"
-                    if pr_key not in seen_prs:
-                        seen_prs[pr_key] = pr_author
-                        pr_url = f"https://github.com/{repository}/pull/{pr_number}"
-                        user_data[pr_author]["prs"].append({
-                            "title": pr_title,
-                            "number": pr_number,
-                            "url": pr_url,
-                            "status": "Open" if not pr_info.get("mergedAt") else "Merged",
-                            "type": "PULL_REQUEST",
-                            "body": "",
-                            "comments": []
-                        })
-                        self.stats["total_prs"] += 1
+                    # Filter: only process mapped users
+                    if pr_author in MAPPED_USERS:
+                        pr_key = f"{repository}#{pr_number}"
+                        if pr_key not in seen_prs:
+                            seen_prs[pr_key] = pr_author
+                            pr_url = f"https://github.com/{repository}/pull/{pr_number}"
+                            user_data[pr_author]["prs"].append({
+                                "title": pr_title,
+                                "number": pr_number,
+                                "url": pr_url,
+                                "status": "Open" if not pr_info.get("mergedAt") else "Merged",
+                                "type": "PULL_REQUEST",
+                                "body": "",
+                                "comments": []
+                            })
+                            self.stats["total_prs"] += 1
+                    elif pr_author not in _warned_unmapped_users:
+                        logger.warning(f"Skipping unmapped user: {pr_author} (not in field_mappings.yml)")
+                        _warned_unmapped_users.add(pr_author)
 
                 # Add review to reviewer's list
                 if reviewer and reviewer not in BOT_USERS:
+                    # Filter: only process mapped users
+                    if reviewer not in MAPPED_USERS:
+                        if reviewer not in _warned_unmapped_users:
+                            logger.warning(f"Skipping unmapped user: {reviewer} (not in field_mappings.yml)")
+                            _warned_unmapped_users.add(reviewer)
+                        continue
                     review_info = {
                         "pr_title": pr_title,
                         "pr_number": pr_number,
