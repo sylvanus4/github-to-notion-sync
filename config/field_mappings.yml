@@ -75,33 +75,35 @@ github_to_notion:
     type: "people"
     value_mappings:
       "duyeol-yu": "229d872b-594c-8104-b58b-000212f60087"  # 유두열
-      "jaehoonkim": "229d872b-594c-8150-879d-00022f27519e"  # 김재훈
       "sylvanus4": "229d872b-594c-816d-ae7c-0002f11615c0"  # HJ (한효정)
       "thaki-yakhyo": "23ed872b-594c-811f-8e2f-0002687c8ce2"  # yakhyo
       "thakicloud-jotaeyang": "229d872b-594c-81b5-906f-00020b52c301"  # 조태양
       "yunjae-park1111": "225d872b-594c-81ba-9e42-0002b46f091a"  # 박윤재
-      "hwyncho-thakicloud": "245d872b-594c-814c-9657-000222886921"  # 조휘연
-      "chohongcheol-thakicloud": "259d872b-594c-812e-9ea8-00028d08dc7d"  # 조홍철
-      "jongmin-kim-thakicloud": "26bd872b-594c-81f8-98df-000226f169c0"  # 김종민
       "thakicloud-chanwoo": "26bd872b-594c-81fe-885e-00026a54788b"  # 신찬우
       "ryangkyung-thaki": "28bd872b-594c-81f1-8ff5-000283ca84b5"  # 강량경
-      "mjhan-tk": "279d872b-594c-81cf-b503-0002c9451f49"  # 한민정
-
+      "lapidix": "2bcd872b-594c-816f-92a3-00023c3c0a43"  # 이민기
+      #"mjhan-tk": "279d872b-594c-81cf-b503-0002c9451f49"  # 한민정
+      #"hwyncho-thakicloud": "245d872b-594c-814c-9657-000222886921"  # 조휘연
+      #"jaehoonkim": "229d872b-594c-8150-879d-00022f27519e"  # 김재훈
+      #chohongcheol-thakicloud": "259d872b-594c-812e-9ea8-00028d08dc7d"  # 조홍철
+      #"jongmin-kim-thakicloud": "26bd872b-594c-81f8-98df-000226f169c0"  # 김종민
+      
 # GitHub username to Display Name mapping (한글 표시 이름)
 # 스크립트에서 사용자 이름을 표시할 때 사용
 github_to_display_name:
   "duyeol-yu": "유두열"
-  "jaehoonkim": "김재훈"
   "sylvanus4": "한효정"
   "thaki-yakhyo": "yakhyo"
   "thakicloud-jotaeyang": "조태양"
   "yunjae-park1111": "박윤재"
-  "hwyncho-thakicloud": "조휘연"
-  "chohongcheol-thakicloud": "조홍철"
-  "jongmin-kim-thakicloud": "김종민"
   "thakicloud-chanwoo": "신찬우"
   "ryangkyung-thaki": "강량경"
-  "mjhan-tk": "한민정"
+  "lapidix": "이민기"
+  #"mjhan-tk": "한민정"
+  #"chohongcheol-thakicloud": "조홍철"
+  #"hwyncho-thakicloud": "조휘연"
+  #"jongmin-kim-thakicloud": "김종민"
+  #"jaehoonkim": "김재훈"
 
 # Notion 전용 필드 (GitHub에서 매핑되지 않는 필드들)
 notion_only_fields:
