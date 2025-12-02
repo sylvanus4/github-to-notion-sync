@@ -19,3 +19,7 @@ sprint_checker_parent_id: 2ba9eddc34e680ff82dad5032418ab58
 
 # DailyScrum 노션 페이지 ID (데일리 스크럼 페이지의 부모)
 daily_scrum_parent_id: 2ba9eddc34e6800cbb43c744a495df3f
+
+# QA 이슈 노션 데이터베이스 ID (QA 관련 이슈 동기화용)
+# 레이블에 'qa', '품질', 'bug' 포함된 이슈가 이 데이터베이스에 동기화됩니다.
+qa_database_id: 27a9eddc34e68117bdb7d7af6ea38706

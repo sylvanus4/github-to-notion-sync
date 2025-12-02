@@ -1,0 +1,103 @@
+name: QA Issues Sync
+
+on:
+  schedule:
+    # 한국 시간 오후 11시 = UTC 14시 (KST = UTC+9)
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+    inputs:
+      sprint_filter:
+        description: 'Sprint filter (e.g., 25-12-Sprint1) - 비워두면 config/sprint_config.yml의 값 사용'
+        required: false
+        type: string
+      notion_database_id:
+        description: 'QA Notion database ID - 비워두면 config/sprint_config.yml의 값 사용'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (변경 없이 미리보기만)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  qa-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Load sprint config
+      id: config
+      run: |
+        # config/sprint_config.yml에서 설정 읽기
+        SPRINT=$(grep '^current_sprint:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+        QA_DB_ID=$(grep '^qa_database_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+        echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
+        echo "qa_database_id=${QA_DB_ID}" >> $GITHUB_OUTPUT
+        echo "📋 Config loaded:"
+        echo "   Sprint: ${SPRINT}"
+        echo "   QA Database ID: ${QA_DB_ID}"
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Set environment variables
+      run: |
+        # 수동 입력값이 있으면 우선, 없으면 config 파일 값 사용
+        SPRINT="${{ github.event.inputs.sprint_filter }}"
+        QA_DB_ID="${{ github.event.inputs.notion_database_id }}"
+
+        if [ -z "$SPRINT" ]; then
+          SPRINT="${{ steps.config.outputs.default_sprint }}"
+        fi
+
+        if [ -z "$QA_DB_ID" ]; then
+          QA_DB_ID="${{ steps.config.outputs.qa_database_id }}"
+        fi
+
+        echo "SPRINT_FILTER=${SPRINT}" >> $GITHUB_ENV
+        echo "QA_DATABASE_ID=${QA_DB_ID}" >> $GITHUB_ENV
+        echo "✅ Using Sprint: ${SPRINT}"
+        echo "   QA Database ID: ${QA_DB_ID}"
+
+    - name: Run QA Issues Sync
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        GH_ORG: ${{ vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
+        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
+      run: |
+        DRY_RUN_FLAG=""
+        if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+          DRY_RUN_FLAG="--dry-run"
+          echo "🔍 Running in dry-run mode..."
+        fi
+
+        PYTHONPATH=. python scripts/qa_issues_sync.py \
+          --notion-database-id "${{ env.QA_DATABASE_ID }}" \
+          --sprint "${{ env.SPRINT_FILTER }}" \
+          $DRY_RUN_FLAG
+
+    - name: Upload artifacts (if any)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: qa-sync-logs
+        path: |
+          *.log
+          *.json
+        retention-days: 7
+        if-no-files-found: ignore
+
