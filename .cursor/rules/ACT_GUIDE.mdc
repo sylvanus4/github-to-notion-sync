@@ -1,4 +1,11 @@
+---
+alwaysApply: true
+---
+
 # Act 로컬 테스트 가이드
+
+**문서 버전:** 1.1  
+**최종 수정일:** 2025-12-02
 
 ## 📋 개요
 
@@ -10,7 +17,10 @@ Act를 사용하면 GitHub Actions 워크플로우를 로컬에서 테스트할 
 ### 1. 간단한 로컬 테스트 (권장)
 
 ```bash
-# 우리가 만든 테스트 스크립트 실행
+# 방법 1: Makefile 사용 (권장)
+make test-ci
+
+# 방법 2: 직접 스크립트 실행
 ./test-ci-local.sh
 ```
 
@@ -24,20 +34,26 @@ Act를 사용하면 GitHub Actions 워크플로우를 로컬에서 테스트할 
 ### 2. Act로 전체 워크플로우 테스트
 
 ```bash
-# Code Quality 워크플로우 테스트 (가장 중요)
-act -j code-quality --container-architecture linux/amd64
+# Pre-commit job 테스트
+act -j pre-commit --container-architecture linux/amd64
 
-# 특정 워크플로우만 테스트
-act -W .github/workflows/code-quality.yml
+# Lint & Type Check job 테스트
+act -j lint --container-architecture linux/amd64
 
-# 모든 워크플로우 나열
+# Test job 테스트
+act -j test --container-architecture linux/amd64
+
+# 특정 워크플로우 파일만 테스트
+act -W .github/workflows/code-quality.yml --container-architecture linux/amd64
+
+# 모든 워크플로우 job 나열
 act -l
 ```
 
 ## 📝 Makefile 커맨드
 
 ```bash
-# 모든 체크 실행
+# 모든 체크 실행 (format → lint → type-check → security → test)
 make check
 
 # 개별 체크
@@ -48,7 +64,11 @@ make security      # Bandit 보안 스캔
 make pre-commit    # Pre-commit hooks 실행
 
 # 테스트 실행
-make test
+make test          # 기본 테스트
+make test-cov      # 커버리지 포함 테스트
+
+# CI 테스트 (푸시 전 체크)
+make test-ci       # 로컬 CI 테스트 실행
 ```
 
 ## 🔧 Act 상세 사용법
@@ -58,6 +78,12 @@ make test
 ```bash
 # 특정 job만 실행
 act -j <job-name>
+
+# 사용 가능한 job 이름:
+# - pre-commit (Pre-commit Hooks)
+# - lint (Lint & Type Check)
+# - test (Test Suite)
+# - summary (Code Quality Summary)
 
 # 특정 이벤트 트리거
 act push
@@ -80,6 +106,9 @@ act --env-file .env
 
 # 개별 secret 전달
 act --secret GITHUB_TOKEN=your_token
+
+# 여러 secrets 전달
+act --secret GH_TOKEN=xxx --secret NOTION_TOKEN=xxx
 ```
 
 ### Docker 이미지 선택
@@ -88,12 +117,12 @@ Act는 Docker 컨테이너에서 워크플로우를 실행합니다:
 
 ```bash
 # Medium 이미지 사용 (기본)
-act -j code-quality
+act -j pre-commit
 
 # Large 이미지 사용 (더 많은 도구 포함)
 act -P ubuntu-latest=catthehacker/ubuntu:full-latest
 
-# Apple Silicon 호환성
+# Apple Silicon (M1/M2/M3) 호환성
 act --container-architecture linux/amd64
 ```
 
@@ -103,7 +132,7 @@ act --container-architecture linux/amd64
 
 1. **로컬 테스트 실행**
    ```bash
-   ./test-ci-local.sh
+   make test-ci
    ```
 
 2. **문제가 있다면 수정**
@@ -114,14 +143,15 @@ act --container-architecture linux/amd64
 
 3. **(선택) Act로 전체 워크플로우 테스트**
    ```bash
-   act -j code-quality --container-architecture linux/amd64
+   act -j pre-commit --container-architecture linux/amd64
+   act -j lint --container-architecture linux/amd64
    ```
 
 4. **커밋 & 푸시**
    ```bash
    git add -A
    git commit -m "feat: your changes"
-   git push origin main
+   git push origin <branch-name>
    ```
 
 ## ⚠️ 주의사항
@@ -139,12 +169,12 @@ act --container-architecture linux/amd64
    - 처음 실행 시 Docker 이미지를 다운로드하므로 시간이 걸립니다.
    - 이후 실행은 더 빠릅니다.
 
-4. **Apple Silicon (M1/M2) 이슈**
+4. **Apple Silicon (M1/M2/M3) 이슈**
    - `--container-architecture linux/amd64` 플래그를 사용하세요.
 
 ### 빠른 테스트 전략
 
-**대부분의 경우 `./test-ci-local.sh`만으로 충분합니다!**
+**대부분의 경우 `make test-ci`만으로 충분합니다!**
 
 Act는 다음 경우에만 사용하세요:
 - 워크플로우 자체를 수정한 경우
@@ -178,8 +208,16 @@ docker pull catthehacker/ubuntu:act-latest
 
 3. **Act로 정확히 재현**
    ```bash
-   act -j code-quality -v
+   act -j pre-commit -v
+   act -j lint -v
    ```
+
+### Pre-commit 설정 안됨
+
+```bash
+# pre-commit 설치 및 설정
+make install-dev
+```
 
 ## 📚 추가 자료
 
@@ -191,11 +229,11 @@ docker pull catthehacker/ubuntu:act-latest
 
 ```bash
 # 푸시 전 항상 실행 (30초)
-./test-ci-local.sh
+make test-ci
 
 # 필요한 경우만 실행 (5-10분)
-act -j code-quality --container-architecture linux/amd64
+act -j pre-commit --container-architecture linux/amd64
+act -j lint --container-architecture linux/amd64
 ```
 
 **이제 안심하고 푸시하세요!** 🚀
-
