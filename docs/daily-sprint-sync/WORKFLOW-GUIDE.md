@@ -44,7 +44,7 @@ on:
 
 ### 2.3 설정 소스
 
-자동 실행 시 `config/sprint_config.yml` 파일의 설정을 사용합니다:
+자동 실행 시 `config/sprint_config.yml` 파일의 설정을 사용합니다 (레거시 모드):
 
 ```yaml
 current_sprint: 25-12-Sprint1
@@ -68,6 +68,7 @@ daily_scrum_parent_id: <DailyScrum 페이지 ID>
 
 | 옵션 | 설명 | 기본값 |
 |------|------|--------|
+| **`team`** | 팀 ID (synos, ragos 등) - NEW! | 빈 값 (레거시 모드) |
 | `sprint_filter` | 스프린트 필터 (예: 25-12-Sprint1) | config 파일 값 |
 | `notion_parent_id` | Notion 부모 페이지 ID | config 파일 값 |
 | `run_complete_resync` | 전체 동기화 실행 | true |
@@ -76,7 +77,45 @@ daily_scrum_parent_id: <DailyScrum 페이지 ID>
 | `run_sprint_summary` | 스프린트 요약 실행 | true |
 | `run_daily_scrum` | 데일리 스크럼 실행 | true |
 
-### 3.3 선택적 실행 예시
+### 3.3 팀별 실행 (멀티 팀 모드) - NEW!
+
+#### 팀 선택 시 동작
+
+1. `team` 입력에 팀 ID를 입력하면 해당 팀의 설정을 자동 로드
+2. `config/teams/{team}/sprint_config.yml`에서 설정 읽기
+3. 팀별 GitHub 연결 정보와 Notion 페이지 ID 사용
+
+#### 레거시 모드 vs 멀티 팀 모드
+
+| 모드 | `team` 값 | 설정 소스 |
+|------|-----------|-----------|
+| **레거시** | 빈 값 | `config/sprint_config.yml` + GitHub Variables |
+| **멀티 팀** | `synos` 등 | `config/teams/synos/sprint_config.yml` |
+
+#### 팀별 실행 예시
+
+**Synos 팀만 실행:**
+```
+team: synos
+sprint_filter: (비워둠 - 팀 설정 사용)
+run_complete_resync: true
+run_pr_review_check: true
+run_sprint_stats: true
+run_sprint_summary: true
+run_daily_scrum: true
+```
+
+**RagOS 팀 특정 기능만 실행:**
+```
+team: ragos
+run_complete_resync: false
+run_pr_review_check: false
+run_sprint_stats: false
+run_sprint_summary: false
+run_daily_scrum: true  # 데일리 스크럼만 실행
+```
+
+### 3.4 선택적 실행 예시
 
 **PR 리뷰 체크만 실행:**
 - `run_complete_resync`: false
@@ -105,21 +144,28 @@ daily_scrum_parent_id: <DailyScrum 페이지 ID>
 
 저장소 코드를 체크아웃합니다.
 
-### 4.2 Step 2: Load sprint config
+### 4.2 Step 2: Load team config or legacy config - NEW!
 
 ```yaml
-- name: Load sprint config
-  id: config
+- name: Load team config or legacy config
+  id: config_loader
   run: |
-    SPRINT=$(grep '^current_sprint:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
-    # ...
+    TEAM_ID="${{ github.event.inputs.team }}"
+    if [ -n "$TEAM_ID" ]; then
+      echo "Loading config for team: $TEAM_ID"
+      # 팀별 sprint_config.yml에서 설정 로드
+      SPRINT=$(grep '^  current:' config/teams/"$TEAM_ID"/sprint_config.yml | awk '{print $2}' | tr -d '"')
+      # ...
+    else
+      echo "Loading legacy config"
+      # 레거시 config/sprint_config.yml에서 설정 로드
+      SPRINT=$(grep '^current_sprint:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+      # ...
+    fi
 ```
 
-`config/sprint_config.yml`에서 설정을 읽어옵니다:
-- `current_sprint`: 현재 스프린트
-- `notion_parent_id`: PR-Checker 페이지 ID
-- `sprint_checker_parent_id`: SprintChecker 페이지 ID
-- `daily_scrum_parent_id`: DailyScrum 페이지 ID
+**팀 지정 시:** `config/teams/{team}/sprint_config.yml`에서 설정 로드
+**팀 미지정 시:** `config/sprint_config.yml` + GitHub Variables 사용
 
 ### 4.3 Step 3: Set up Python
 
@@ -151,27 +197,31 @@ Python 3.11 환경을 설정합니다.
     # 수동 입력값이 있으면 우선, 없으면 config 파일 값 사용
     SPRINT="${{ github.event.inputs.sprint_filter }}"
     if [ -z "$SPRINT" ]; then
-      SPRINT="${{ steps.config.outputs.default_sprint }}"
+      SPRINT="${{ steps.config_loader.outputs.default_sprint }}"
     fi
     echo "SPRINT_FILTER=${SPRINT}" >> $GITHUB_ENV
+    echo "DEFAULT_TEAM=${{ steps.config_loader.outputs.default_team }}" >> $GITHUB_ENV
 ```
 
 환경 변수를 설정합니다. **수동 입력값이 config 파일 값보다 우선**합니다.
 
 ### 4.6 Step 6-10: 기능 실행
 
-각 기능은 조건부로 실행됩니다:
+각 기능은 조건부로 실행되며, `--team` 인자가 전달됩니다:
 
 ```yaml
-- name: Run complete resync
-  if: github.event_name == 'schedule' || github.event.inputs.run_complete_resync == 'true'
-  timeout-minutes: 30
+- name: Run daily scrum sync
+  if: github.event_name == 'schedule' || github.event.inputs.run_daily_scrum == 'true'
+  timeout-minutes: 15
   env:
     GH_TOKEN: ${{ secrets.GH_TOKEN }}
     NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
     # ...
   run: |
-    PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "${{ env.SPRINT_FILTER }}" --force
+    PYTHONPATH=. python scripts/daily_scrum_sync.py \
+      --sprint "${{ env.SPRINT_FILTER }}" \
+      --notion-parent-id "${{ env.DAILY_SCRUM_PARENT_ID }}" \
+      --team "${{ env.DEFAULT_TEAM }}"
 ```
 
 **실행 조건:**
@@ -219,13 +269,15 @@ Python 3.11 환경을 설정합니다.
 | `NOTION_TOKEN` | Notion Integration Token |
 | `ANTHROPIC_API_KEY` | Claude API Key |
 
-### 6.2 Variables (설정)
+### 6.2 Variables (설정) - 레거시 모드
 
 | 변수 | 설명 |
 |------|------|
 | `GH_ORG` | GitHub Organization 이름 |
 | `GH_PROJECT_NUMBER` | GitHub Project 번호 |
 | `NOTION_DB_ID` | Notion Database ID |
+
+> **Note:** 멀티 팀 모드에서는 Variables 대신 팀별 `sprint_config.yml` 설정이 사용됩니다.
 
 ### 6.3 런타임 환경 변수
 
@@ -235,6 +287,9 @@ Python 3.11 환경을 설정합니다.
 | `NOTION_PARENT_ID` | 입력 또는 config | PR-Checker 페이지 ID |
 | `SPRINT_CHECKER_PARENT_ID` | config | SprintChecker 페이지 ID |
 | `DAILY_SCRUM_PARENT_ID` | config | DailyScrum 페이지 ID |
+| `DEFAULT_TEAM` | 입력 | 팀 ID (NEW!) |
+| `GH_ORG` | config 또는 Variables | GitHub Organization |
+| `GH_PROJECT_NUMBER` | config 또는 Variables | GitHub Project 번호 |
 
 ---
 
@@ -246,7 +301,29 @@ Python 3.11 환경을 설정합니다.
 2. 실행된 워크플로우 선택
 3. 각 Step의 로그 확인
 
-### 7.2 Artifacts 다운로드
+### 7.2 팀 설정 로드 확인 - NEW!
+
+워크플로우 로그에서 다음 메시지 확인:
+
+**멀티 팀 모드:**
+```
+📋 Config loaded - Team: synos
+   Sprint: 25-12-Sprint1
+   PR-Checker: 2939eddc34e680f58c7ad076e5ba3e88
+   SprintChecker: 2ba9eddc34e680ff82dad5032418ab58
+   DailyScrum: 2ba9eddc34e6800cbb43c744a495df3f
+   GH Org: ThakiCloud
+   GH Project: 5
+```
+
+**레거시 모드:**
+```
+📋 Config loaded - Team: Legacy
+   Sprint: 25-12-Sprint1
+   ...
+```
+
+### 7.3 Artifacts 다운로드
 
 1. 워크플로우 실행 결과 페이지 하단의 **Artifacts** 섹션
 2. `sprint-sync-logs` 다운로드
@@ -262,13 +339,21 @@ Python 3.11 환경을 설정합니다.
 2. 해당 Step의 상세 로그 검토
 3. [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) 참조
 
-### 8.2 부분 실패 시
+### 8.2 팀 설정 오류 - NEW!
+
+**증상:** "Team 'xxx' not found" 에러
+
+**확인:**
+1. `config/teams/xxx/` 디렉토리 존재 확인
+2. `sprint_config.yml` 파일 존재 및 구문 확인
+
+### 8.3 부분 실패 시
 
 일부 기능만 실패한 경우:
 1. 실패한 기능만 수동으로 재실행
 2. 해당 옵션만 `true`로 설정하여 실행
 
-### 8.3 재실행
+### 8.4 재실행
 
 1. 실패한 워크플로우의 **Re-run jobs** 버튼 클릭
 2. 또는 수동으로 새로운 워크플로우 트리거
@@ -277,17 +362,25 @@ Python 3.11 환경을 설정합니다.
 
 ## 9. 모범 사례
 
-### 9.1 스프린트 전환 시
+### 9.1 스프린트 전환 시 (멀티 팀)
 
-1. `config/sprint_config.yml` 업데이트
+1. 각 팀의 `config/teams/{team}/sprint_config.yml` 업데이트
 2. 커밋 및 푸시
 3. 자동 실행 대기 또는 수동 실행
 
+```bash
+# 모든 팀의 스프린트 업데이트
+git add config/teams/
+git commit -m "chore: update sprint to 25-12-Sprint2 for all teams"
+git push
+```
+
 ### 9.2 긴급 동기화 시
 
-수동 트리거로 필요한 기능만 선택 실행:
+수동 트리거로 필요한 팀과 기능만 선택 실행:
 
 ```
+team: synos
 sprint_filter: 25-12-Sprint1
 run_complete_resync: true
 run_pr_review_check: false
@@ -301,7 +394,41 @@ run_daily_scrum: false
 로컬에서 개별 스크립트 테스트 후 워크플로우 실행 권장:
 
 ```bash
-# 로컬 테스트
+# 레거시 모드 테스트
 PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "25-12-Sprint1" --dry-run
+
+# 멀티 팀 모드 테스트
+PYTHONPATH=. python scripts/daily_scrum_sync.py --team synos --dry-run
 ```
+
+### 9.4 여러 팀 순차 실행
+
+현재 워크플로우는 한 번에 하나의 팀만 실행합니다. 여러 팀을 실행하려면:
+
+1. 각 팀별로 수동 트리거 실행
+2. 또는 Matrix 전략을 사용한 워크플로우 확장 (고급)
+
+---
+
+## 10. 팀별 워크플로우 실행 요약 - NEW!
+
+### 10.1 Synos 팀 실행
+
+```
+team: synos
+(나머지 옵션은 팀 설정에서 자동 로드)
+```
+
+### 10.2 RagOS 팀 실행
+
+```
+team: ragos
+(나머지 옵션은 팀 설정에서 자동 로드)
+```
+
+### 10.3 새 팀 추가 후 실행
+
+1. `config/teams/newteam/sprint_config.yml` 생성
+2. 커밋 및 푸시
+3. 워크플로우에서 `team: newteam` 입력하여 실행
 

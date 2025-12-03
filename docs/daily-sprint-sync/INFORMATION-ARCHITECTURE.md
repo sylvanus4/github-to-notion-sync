@@ -24,6 +24,7 @@ graph TB
     subgraph "처리 계층"
         WF[GitHub Actions<br/>Workflow]
         SC[Python Scripts]
+        TC[TeamConfig<br/>Multi-Team Support]
         AI[Claude API<br/>AI 요약]
     end
 
@@ -38,6 +39,7 @@ graph TB
     GHR --> SC
     
     WF --> SC
+    TC --> SC
     SC --> AI
     SC --> NDB
     AI --> NP
@@ -45,6 +47,7 @@ graph TB
     style GH fill:#24292e,color:#fff
     style NDB fill:#000,color:#fff
     style AI fill:#d97706,color:#fff
+    style TC fill:#10b981,color:#fff
 ```
 
 ### 1.3 주요 특징
@@ -53,12 +56,97 @@ graph TB
 - **자동 스케줄링**: 매일 KST 07:30 자동 실행
 - **AI 기반 요약**: Claude API를 활용한 지능형 요약
 - **중복 방지**: GitHub Node ID 기반 중복 체크
+- **멀티 팀 지원**: 여러 팀이 독립적인 설정으로 동기화 수행 (NEW!)
 
 ---
 
-## 2. 시스템 컨텍스트 다이어그램
+## 2. 멀티 팀 아키텍처 - NEW!
 
-### 2.1 C4 Level 1 - 시스템 컨텍스트
+### 2.1 팀 설정 구조
+
+```mermaid
+graph TB
+    subgraph "설정 계층"
+        GC[Global Config<br/>config/sprint_config.yml<br/>config/field_mappings.yml]
+        
+        subgraph "팀별 설정"
+            TC1[Synos Team<br/>config/teams/synos/]
+            TC2[RagOS Team<br/>config/teams/ragos/]
+            TC3[New Team<br/>config/teams/newteam/]
+        end
+    end
+
+    subgraph "설정 로더"
+        TL[TeamConfig Loader<br/>src/utils/team_config.py]
+        TA[Team Args Parser<br/>scripts/common/team_args.py]
+    end
+
+    subgraph "스크립트"
+        S1[complete_resync.py]
+        S2[sprint_pr_review_check.py]
+        S3[sprint_stats.py]
+        S4[sprint_summary_sync.py]
+        S5[daily_scrum_sync.py]
+    end
+
+    GC --> TL
+    TC1 --> TL
+    TC2 --> TL
+    TC3 --> TL
+    
+    TL --> TA
+    TA --> S1
+    TA --> S2
+    TA --> S3
+    TA --> S4
+    TA --> S5
+
+    style TL fill:#10b981,color:#fff
+    style TA fill:#10b981,color:#fff
+```
+
+### 2.2 설정 로드 플로우
+
+```mermaid
+sequenceDiagram
+    participant CLI as CLI / Workflow
+    participant TA as team_args.py
+    participant TL as team_config.py
+    participant SC as Script
+
+    CLI->>TA: --team synos
+    TA->>TL: load_team_config("synos")
+    TL->>TL: Load config/teams/synos/sprint_config.yml
+    TL->>TL: Load config/teams/synos/field_mappings.yml (optional)
+    TL->>TL: Merge with config/field_mappings.yml
+    TL-->>TA: TeamConfig object
+    TA->>TA: set_environment_from_team_config()
+    TA-->>SC: Configured environment
+    SC->>SC: Execute with team settings
+```
+
+### 2.3 설정 우선순위
+
+```mermaid
+flowchart TD
+    subgraph "설정 우선순위 (높음 → 낮음)"
+        A[1. CLI 옵션<br/>--sprint, --notion-parent-id] --> B
+        B[2. 팀 설정 파일<br/>config/teams/{team}/] --> C
+        C[3. 레거시 설정 파일<br/>config/sprint_config.yml] --> D
+        D[4. 환경 변수<br/>GH_ORG, GH_PROJECT_NUMBER]
+    end
+
+    style A fill:#ef4444,color:#fff
+    style B fill:#f97316,color:#fff
+    style C fill:#eab308,color:#fff
+    style D fill:#22c55e,color:#fff
+```
+
+---
+
+## 3. 시스템 컨텍스트 다이어그램
+
+### 3.1 C4 Level 1 - 시스템 컨텍스트
 
 ```mermaid
 graph TB
@@ -84,10 +172,10 @@ graph TB
 
     DEV -->|"코드 작업"| GH
     PM -->|"스프린트 리뷰"| NT
-    PM -->|"수동 트리거"| DSS
+    PM -->|"수동 트리거<br/>(팀 선택)"| DSS
 ```
 
-### 2.2 C4 Level 2 - 컨테이너 다이어그램
+### 3.2 C4 Level 2 - 컨테이너 다이어그램
 
 ```mermaid
 graph TB
@@ -103,6 +191,11 @@ graph TB
         DS[daily_scrum_sync.py]
     end
 
+    subgraph "Team Config Layer (NEW!)"
+        TA[team_args.py]
+        TC[team_config.py]
+    end
+
     subgraph "Services Layer"
         GHS[GitHubService]
         NS[NotionService]
@@ -111,6 +204,7 @@ graph TB
     subgraph "Configuration"
         SC[sprint_config.yml]
         FM[field_mappings.yml]
+        TCD[teams/*/sprint_config.yml]
     end
 
     WF --> CR
@@ -118,6 +212,17 @@ graph TB
     WF --> SS
     WF --> SUM
     WF --> DS
+
+    CR --> TA
+    PR --> TA
+    SS --> TA
+    SUM --> TA
+    DS --> TA
+
+    TA --> TC
+    TC --> TCD
+    TC --> SC
+    TC --> FM
 
     CR --> GHS
     CR --> NS
@@ -130,25 +235,28 @@ graph TB
     DS --> GHS
     DS --> NS
 
-    SC --> WF
-    FM --> GHS
-    FM --> NS
+    style TA fill:#10b981,color:#fff
+    style TC fill:#10b981,color:#fff
+    style TCD fill:#10b981,color:#fff
 ```
 
 ---
 
-## 3. 데이터 플로우
+## 4. 데이터 플로우
 
-### 3.1 전체 동기화 플로우 (Complete Resync)
+### 4.1 전체 동기화 플로우 (Complete Resync)
 
 ```mermaid
 sequenceDiagram
     participant WF as Workflow
+    participant TA as team_args.py
     participant CR as complete_resync.py
     participant GH as GitHub API
     participant NT as Notion API
 
-    WF->>CR: 실행 (--sprint-filter)
+    WF->>TA: --team synos
+    TA->>TA: Load TeamConfig
+    TA-->>CR: TeamConfig (org, project, sprint)
     
     Note over CR: Step 0: DB 타이틀 업데이트
     CR->>NT: Update Database Title
@@ -177,17 +285,20 @@ sequenceDiagram
     CR-->>WF: 완료 통계
 ```
 
-### 3.2 AI 요약 플로우 (Sprint Summary / Daily Scrum)
+### 4.2 AI 요약 플로우 (Sprint Summary / Daily Scrum)
 
 ```mermaid
 sequenceDiagram
     participant WF as Workflow
+    participant TA as team_args.py
     participant SC as summary_sync.py
     participant GH as GitHub API
     participant CL as Claude API
     participant NT as Notion API
 
-    WF->>SC: 실행 (--sprint, --notion-parent-id)
+    WF->>TA: --team synos
+    TA->>TA: Load TeamConfig
+    TA-->>SC: TeamConfig (parent_ids, sprint)
     
     Note over SC: Step 1: 데이터 수집
     SC->>GH: Query Project Items
@@ -211,7 +322,7 @@ sequenceDiagram
     end
 
     Note over SC: Step 5: Notion 페이지 생성
-    SC->>NT: Create Page (Parent)
+    SC->>NT: Create Page (Parent from TeamConfig)
     NT-->>SC: Page ID
     SC->>NT: Append Blocks
     NT-->>SC: Success
@@ -221,9 +332,9 @@ sequenceDiagram
 
 ---
 
-## 4. 컴포넌트 아키텍처
+## 5. 컴포넌트 아키텍처
 
-### 4.1 모듈 구조
+### 5.1 모듈 구조
 
 ```mermaid
 graph TB
@@ -233,6 +344,11 @@ graph TB
         SS[sprint_stats.py]
         SUM[sprint_summary_sync.py]
         DS[daily_scrum_sync.py]
+    end
+
+    subgraph "Team Config Layer (NEW!)"
+        TA[team_args.py<br/>scripts/common/]
+        TC[team_config.py<br/>src/utils/]
     end
 
     subgraph "Services Layer"
@@ -254,7 +370,18 @@ graph TB
     subgraph "Config Layer"
         CFG[Config<br/>src/config.py]
         YML[YAML Files<br/>config/*.yml]
+        TYM[Team YAML<br/>config/teams/*/]
     end
+
+    CR --> TA
+    PR --> TA
+    SS --> TA
+    SUM --> TA
+    DS --> TA
+
+    TA --> TC
+    TC --> TYM
+    TC --> YML
 
     CR --> GHS
     CR --> NS
@@ -279,15 +406,24 @@ graph TB
     GHS --> CFG
     NS --> CFG
     CFG --> YML
+
+    style TA fill:#10b981,color:#fff
+    style TC fill:#10b981,color:#fff
+    style TYM fill:#10b981,color:#fff
 ```
 
-### 4.2 서비스 간 의존성
+### 5.2 서비스 간 의존성
 
 ```mermaid
 graph LR
     subgraph "Independent"
         CFG[Config]
         LG[Logger]
+    end
+
+    subgraph "Team Config (NEW!)"
+        TC[TeamConfig]
+        TA[TeamArgs]
     end
 
     subgraph "Core Services"
@@ -308,6 +444,15 @@ graph LR
     LG --> GHS
     LG --> NS
 
+    CFG --> TC
+    TC --> TA
+
+    TA --> CRS
+    TA --> PRS
+    TA --> SSS
+    TA --> SUMS
+    TA --> DSS
+
     GHS --> CRS
     NS --> CRS
     GHS --> PRS
@@ -323,13 +468,44 @@ graph LR
     style LG fill:#E3F2FD
     style GHS fill:#4CAF50,color:#fff
     style NS fill:#4CAF50,color:#fff
+    style TC fill:#10b981,color:#fff
+    style TA fill:#10b981,color:#fff
 ```
 
 ---
 
-## 5. 데이터 모델
+## 6. 데이터 모델
 
-### 5.1 GitHub 데이터 모델
+### 6.1 TeamConfig 데이터 모델 - NEW!
+
+```mermaid
+erDiagram
+    TEAM_CONFIG {
+        string team_id PK
+        string team_name
+        string description
+        boolean enabled
+        string github_org
+        int github_project_number
+        string notion_database_id
+        string current_sprint
+        string notion_parent_id
+        string sprint_checker_parent_id
+        string daily_scrum_parent_id
+        string qa_database_id
+    }
+
+    FIELD_MAPPINGS {
+        string team_id FK
+        json user_mappings
+        json display_name_mappings
+        json field_mappings
+    }
+
+    TEAM_CONFIG ||--o| FIELD_MAPPINGS : has
+```
+
+### 6.2 GitHub 데이터 모델
 
 ```mermaid
 erDiagram
@@ -400,7 +576,7 @@ erDiagram
     }
 ```
 
-### 5.2 Notion 출력 데이터 모델
+### 6.3 Notion 출력 데이터 모델
 
 ```mermaid
 erDiagram
@@ -435,15 +611,21 @@ erDiagram
 
 ---
 
-## 6. 워크플로우 실행 플로우
+## 7. 워크플로우 실행 플로우
 
-### 6.1 전체 실행 순서
+### 7.1 전체 실행 순서
 
 ```mermaid
 flowchart TD
     START([시작]) --> CHECKOUT[코드 체크아웃]
-    CHECKOUT --> CONFIG[설정 로드<br/>sprint_config.yml]
-    CONFIG --> SETUP[Python 환경 설정]
+    CHECKOUT --> TEAMCFG{팀 지정됨?}
+    
+    TEAMCFG -->|Yes| LOADTEAM[팀 설정 로드<br/>config/teams/{team}/]
+    TEAMCFG -->|No| LOADLEGACY[레거시 설정 로드<br/>config/sprint_config.yml]
+    
+    LOADTEAM --> SETUP[Python 환경 설정]
+    LOADLEGACY --> SETUP
+    
     SETUP --> DEPS[의존성 설치]
     DEPS --> ENV[환경 변수 설정]
 
@@ -475,60 +657,33 @@ flowchart TD
     style STATS fill:#9C27B0,color:#fff
     style SUMMARY fill:#FF9800,color:#fff
     style SCRUM fill:#E91E63,color:#fff
+    style LOADTEAM fill:#10b981,color:#fff
+    style LOADLEGACY fill:#eab308,color:#fff
 ```
 
-### 6.2 설정 우선순위
+### 7.2 설정 로드 플로우 - NEW!
 
 ```mermaid
-flowchart LR
-    subgraph "입력 우선순위"
-        M[수동 입력<br/>workflow_dispatch] --> |우선| C[config 파일<br/>sprint_config.yml]
-        C --> |폴백| D[기본값]
+flowchart TD
+    subgraph "팀 설정 로드"
+        START([--team 옵션]) --> CHECK{팀 ID 존재?}
+        CHECK -->|Yes| LOAD[config/teams/{team}/sprint_config.yml 로드]
+        CHECK -->|No| LEGACY[config/sprint_config.yml 로드]
+        
+        LOAD --> MERGE{팀별 field_mappings.yml 존재?}
+        MERGE -->|Yes| LOADFM[팀별 + 공통 field_mappings.yml 병합]
+        MERGE -->|No| USEGLOBAL[공통 field_mappings.yml 사용]
+        
+        LOADFM --> CREATE[TeamConfig 객체 생성]
+        USEGLOBAL --> CREATE
+        LEGACY --> CREATE
+        
+        CREATE --> SETENV[환경 변수 설정]
+        SETENV --> DONE([설정 완료])
     end
 
-    subgraph "결과"
-        M --> R[SPRINT_FILTER]
-        M --> N[NOTION_PARENT_ID]
-        C --> R
-        C --> N
-    end
-```
-
----
-
-## 7. 상태 관리
-
-### 7.1 동기화 상태
-
-| 상태 | 의미 | 처리 |
-|------|------|------|
-| `synced` | 동기화 완료 | - |
-| `pending` | 대기 중 | 다음 실행 시 처리 |
-| `failed` | 실패 | 재시도 또는 로그 기록 |
-| `skipped` | 스킵됨 | 필터 조건 불일치 |
-
-### 7.2 GitHub Node ID 기반 중복 방지
-
-```mermaid
-sequenceDiagram
-    participant SC as Script
-    participant NS as NotionService
-    participant NT as Notion DB
-
-    SC->>NS: upsert_github_item(item)
-    NS->>NT: Query by GitHub ID
-    
-    alt 존재함
-        NT-->>NS: Existing Page
-        NS->>NT: Update Properties
-        NT-->>NS: Updated
-    else 존재하지 않음
-        NT-->>NS: Not Found
-        NS->>NT: Create Page
-        NT-->>NS: Created
-    end
-
-    NS-->>SC: Page Object
+    style LOAD fill:#10b981,color:#fff
+    style LOADFM fill:#10b981,color:#fff
 ```
 
 ---
@@ -539,11 +694,11 @@ sequenceDiagram
 
 1. **스프린트 중심 필터링**
    - 모든 데이터는 스프린트 단위로 필터링
-   - `config/sprint_config.yml`에서 현재 스프린트 관리
+   - 팀 설정 또는 레거시 설정에서 현재 스프린트 관리
 
 2. **자동화된 실행**
    - 매일 KST 07:30 자동 실행 (cron: UTC 22:30)
-   - 수동 트리거 지원 (workflow_dispatch)
+   - 수동 트리거 지원 (workflow_dispatch + 팀 선택)
    - 선택적 기능 실행 옵션
 
 3. **AI 기반 요약**
@@ -556,6 +711,11 @@ sequenceDiagram
    - 요청 간 딜레이 (0.3초 ~ 1초)
    - 지수 백오프 재시도
 
+5. **멀티 팀 지원 (NEW!)**
+   - 팀별 독립적인 설정 관리
+   - 공통 설정과 팀별 설정 병합
+   - 하위 호환성 유지 (레거시 모드)
+
 ### 8.2 설계 결정사항
 
 | 설계 영역 | 결정사항 | 이유 |
@@ -565,14 +725,32 @@ sequenceDiagram
 | **성공 기준** | 90% 이상 | 일부 실패 허용하여 전체 프로세스 안정성 확보 |
 | **AI 모델** | Claude claude-sonnet-4-20250514 | 비용 대비 품질 균형 |
 | **시간대** | KST (UTC+9) | 한국 팀 기준 |
+| **팀 설정 위치** | `config/teams/{team_id}/` | 팀별 독립 관리 용이 (NEW!) |
+| **설정 병합** | 팀 > 공통 | 팀별 오버라이드 지원 (NEW!) |
 
 ### 8.3 데이터 출력 위치
 
 | 기능 | 출력 위치 | 설정 키 |
 |------|----------|---------|
-| Complete Resync | 기존 Notion DB | `NOTION_DB_ID` |
-| PR Review Check | PR-Checker 하위 | `notion_parent_id` |
-| Sprint Stats | PR-Checker 하위 | `notion_parent_id` |
-| Sprint Summary | SprintChecker 하위 | `sprint_checker_parent_id` |
-| Daily Scrum | DailyScrum 하위 | `daily_scrum_parent_id` |
+| Complete Resync | 기존 Notion DB | `NOTION_DB_ID` 또는 `notion.database_id` |
+| PR Review Check | PR-Checker 하위 | `sprint.notion_parent_id` |
+| Sprint Stats | PR-Checker 하위 | `sprint.notion_parent_id` |
+| Sprint Summary | SprintChecker 하위 | `sprint.sprint_checker_parent_id` |
+| Daily Scrum | DailyScrum 하위 | `sprint.daily_scrum_parent_id` |
+
+### 8.4 팀 설정 파일 구조 - NEW!
+
+```
+config/
+├── sprint_config.yml          # 레거시 설정 (하위 호환)
+├── field_mappings.yml         # 공통 필드 매핑
+└── teams/
+    ├── synos/
+    │   ├── sprint_config.yml  # Synos 팀 설정
+    │   └── field_mappings.yml # Synos 팀 필드 매핑 (선택)
+    ├── ragos/
+    │   └── sprint_config.yml  # RagOS 팀 설정
+    └── _template/
+        └── sprint_config.yml  # 새 팀 추가용 템플릿
+```
 

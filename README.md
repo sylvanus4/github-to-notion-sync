@@ -37,6 +37,23 @@ GitHub Project의 Issues와 Pull Requests를 Notion Database로 실시간 동기
 
 ## 🚀 빠른 시작
 
+### 멀티 팀 지원 (NEW!)
+
+이제 여러 팀별로 설정을 분리하여 동기화할 수 있습니다:
+
+```bash
+# 팀별 설정으로 동기화
+PYTHONPATH=. python scripts/complete_resync.py --team synos --force
+
+# Daily Sprint Sync (팀 설정 자동 로드)
+PYTHONPATH=. python scripts/daily_scrum_sync.py --team synos
+
+# 사용 가능한 팀 목록
+ls config/teams/
+```
+
+팀 설정은 `config/teams/{team-id}/` 디렉토리에 저장됩니다.
+
 ### 1. 특정 스프린트 동기화
 
 ```bash
@@ -145,6 +162,86 @@ PYTHONPATH=. python scripts/complete_resync.py \
 | `--database-title "TITLE"` | 📝 데이터베이스 제목 지정     | 자동 생성 (스프린트명-타임스탬프) |
 
 ## 🔧 고급 사용법
+
+### 멀티 팀 설정 (Multi-Team Configuration)
+
+여러 팀이 각자의 GitHub Project와 Notion Database로 동기화할 수 있습니다.
+
+#### 팀 설정 구조
+
+```
+config/
+├── teams/
+│   ├── synos/              # Synos 팀
+│   │   ├── sprint_config.yml
+│   │   └── field_mappings.yml
+│   ├── ragos/              # RagOS 팀
+│   │   └── sprint_config.yml
+│   └── _template/          # 새 팀 추가용 템플릿
+│       └── sprint_config.yml
+├── field_mappings.yml      # 공통 필드 매핑
+└── sprint_config.yml       # 레거시 (하위 호환용)
+```
+
+#### 새 팀 추가하기
+
+```bash
+# 1. 템플릿 복사
+cp -r config/teams/_template config/teams/cloud-infra
+
+# 2. 설정 편집
+vim config/teams/cloud-infra/sprint_config.yml
+
+# 3. GitHub Actions에서 팀 선택
+# workflow_dispatch → team: cloud-infra
+```
+
+#### 팀 설정 파일 예시 (sprint_config.yml)
+
+```yaml
+team:
+  id: "synos"
+  name: "Synos"
+  enabled: true
+
+github:
+  org: "ThakiCloud"
+  project_number: 5
+
+sprint:
+  current: "25-12-Sprint1"
+  notion_parent_id: "xxx"
+  sprint_checker_parent_id: "xxx"
+  daily_scrum_parent_id: "xxx"
+```
+
+#### --team 옵션 사용
+
+모든 스크립트에 `--team` 옵션을 추가하여 팀별 설정을 로드할 수 있습니다:
+
+```bash
+# 팀 설정으로 동기화
+PYTHONPATH=. python scripts/complete_resync.py --team synos --force
+
+# 팀별 Daily Scrum (설정 자동 로드)
+PYTHONPATH=. python scripts/daily_scrum_sync.py --team synos
+
+# 팀별 Sprint Stats
+PYTHONPATH=. python scripts/sprint_stats.py --team synos
+
+# 팀별 Sprint Summary
+PYTHONPATH=. python scripts/sprint_summary_sync.py --team synos
+```
+
+#### GitHub Actions 워크플로우에서 팀 선택
+
+Daily Sprint Sync 워크플로우에서 팀을 선택할 수 있습니다:
+
+1. **Actions** 탭으로 이동
+2. **Daily Sprint Sync** 워크플로우 선택
+3. **Run workflow** 클릭
+4. **팀 선택** 드롭다운에서 원하는 팀 선택
+5. **Run workflow** 실행
 
 ### 데이터베이스 제목 자동 생성 규칙
 

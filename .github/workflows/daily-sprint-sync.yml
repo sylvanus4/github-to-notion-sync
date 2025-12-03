@@ -6,12 +6,21 @@ on:
     - cron: '30 22 * * *'
   workflow_dispatch:
     inputs:
+      team:
+        description: '팀 선택 (비워두면 레거시 모드 - config/sprint_config.yml 사용)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - synos
+          - ragos
+        default: ''
       sprint_filter:
-        description: 'Sprint filter (e.g., 25-10-Sprint4) - 비워두면 config/sprint_config.yml의 값 사용'
+        description: 'Sprint filter (e.g., 25-10-Sprint4) - 비워두면 팀 설정 또는 config/sprint_config.yml의 값 사용'
         required: false
         type: string
       notion_parent_id:
-        description: 'Notion parent page ID - 비워두면 config/sprint_config.yml의 값 사용'
+        description: 'Notion parent page ID - 비워두면 팀 설정 또는 config/sprint_config.yml의 값 사용'
         required: false
         type: string
       run_complete_resync:
@@ -52,16 +61,44 @@ jobs:
     - name: Load sprint config
       id: config
       run: |
-        # config/sprint_config.yml에서 설정 읽기
-        SPRINT=$(grep '^current_sprint:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
-        NOTION_ID=$(grep '^notion_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
-        SPRINT_CHECKER_ID=$(grep '^sprint_checker_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
-        DAILY_SCRUM_ID=$(grep '^daily_scrum_parent_id:' config/sprint_config.yml | awk '{print $2}' | tr -d '"')
+        TEAM="${{ github.event.inputs.team }}"
+        
+        if [ -n "$TEAM" ] && [ -f "config/teams/${TEAM}/sprint_config.yml" ]; then
+          # 팀 설정 파일에서 로드
+          echo "📋 Loading team config: ${TEAM}"
+          CONFIG_FILE="config/teams/${TEAM}/sprint_config.yml"
+          
+          # 팀 설정에서 값 추출 (sprint.current, sprint.notion_parent_id 등)
+          SPRINT=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'current:' | head -1 | awk '{print $2}' | tr -d '"')
+          NOTION_ID=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'notion_parent_id:' | head -1 | awk '{print $2}' | tr -d '"')
+          SPRINT_CHECKER_ID=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'sprint_checker_parent_id:' | head -1 | awk '{print $2}' | tr -d '"')
+          DAILY_SCRUM_ID=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'daily_scrum_parent_id:' | head -1 | awk '{print $2}' | tr -d '"')
+          
+          # GitHub 설정 추출
+          GH_ORG_CFG=$(grep -A5 '^github:' "$CONFIG_FILE" | grep 'org:' | head -1 | awk '{print $2}' | tr -d '"')
+          GH_PROJECT_CFG=$(grep -A5 '^github:' "$CONFIG_FILE" | grep 'project_number:' | head -1 | awk '{print $2}' | tr -d '"')
+          
+          echo "team=${TEAM}" >> $GITHUB_OUTPUT
+          echo "gh_org=${GH_ORG_CFG}" >> $GITHUB_OUTPUT
+          echo "gh_project=${GH_PROJECT_CFG}" >> $GITHUB_OUTPUT
+        else
+          # 레거시 모드: config/sprint_config.yml에서 설정 읽기
+          echo "📋 Loading legacy config"
+          CONFIG_FILE="config/sprint_config.yml"
+          SPRINT=$(grep '^current_sprint:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          NOTION_ID=$(grep '^notion_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          SPRINT_CHECKER_ID=$(grep '^sprint_checker_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          DAILY_SCRUM_ID=$(grep '^daily_scrum_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          echo "team=" >> $GITHUB_OUTPUT
+        fi
+        
         echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
         echo "default_notion_id=${NOTION_ID}" >> $GITHUB_OUTPUT
         echo "sprint_checker_id=${SPRINT_CHECKER_ID}" >> $GITHUB_OUTPUT
         echo "daily_scrum_id=${DAILY_SCRUM_ID}" >> $GITHUB_OUTPUT
-        echo "📋 Config loaded - Sprint: ${SPRINT}"
+        
+        echo "✅ Config loaded - Team: ${TEAM:-legacy}"
+        echo "   Sprint: ${SPRINT}"
         echo "   PR-Checker: ${NOTION_ID}"
         echo "   SprintChecker: ${SPRINT_CHECKER_ID}"
         echo "   DailyScrum: ${DAILY_SCRUM_ID}"
@@ -78,6 +115,8 @@ jobs:
 
     - name: Set environment variables
       run: |
+        TEAM="${{ steps.config.outputs.team }}"
+        
         # 수동 입력값이 있으면 우선, 없으면 config 파일 값 사용
         SPRINT="${{ github.event.inputs.sprint_filter }}"
         NOTION_ID="${{ github.event.inputs.notion_parent_id }}"
@@ -90,11 +129,22 @@ jobs:
           NOTION_ID="${{ steps.config.outputs.default_notion_id }}"
         fi
 
+        echo "TEAM=${TEAM}" >> $GITHUB_ENV
         echo "SPRINT_FILTER=${SPRINT}" >> $GITHUB_ENV
         echo "NOTION_PARENT_ID=${NOTION_ID}" >> $GITHUB_ENV
         echo "SPRINT_CHECKER_PARENT_ID=${{ steps.config.outputs.sprint_checker_id }}" >> $GITHUB_ENV
         echo "DAILY_SCRUM_PARENT_ID=${{ steps.config.outputs.daily_scrum_id }}" >> $GITHUB_ENV
-        echo "✅ Using Sprint: ${SPRINT}"
+        
+        # 팀별 GitHub 설정 (있으면 오버라이드)
+        if [ -n "${{ steps.config.outputs.gh_org }}" ]; then
+          echo "GH_ORG_OVERRIDE=${{ steps.config.outputs.gh_org }}" >> $GITHUB_ENV
+        fi
+        if [ -n "${{ steps.config.outputs.gh_project }}" ]; then
+          echo "GH_PROJECT_OVERRIDE=${{ steps.config.outputs.gh_project }}" >> $GITHUB_ENV
+        fi
+        
+        echo "✅ Using Team: ${TEAM:-legacy}"
+        echo "   Sprint: ${SPRINT}"
         echo "   PR-Checker (PR review, stats): ${NOTION_ID}"
         echo "   SprintChecker (Sprint summary): ${{ steps.config.outputs.sprint_checker_id }}"
         echo "   DailyScrum (Daily scrum): ${{ steps.config.outputs.daily_scrum_id }}"
@@ -105,12 +155,16 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
         NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
-        PYTHONPATH=. python scripts/complete_resync.py --sprint-filter "${{ env.SPRINT_FILTER }}" --force
+        TEAM_ARG=""
+        if [ -n "${{ env.TEAM }}" ]; then
+          TEAM_ARG="--team ${{ env.TEAM }}"
+        fi
+        PYTHONPATH=. python scripts/complete_resync.py $TEAM_ARG --sprint-filter "${{ env.SPRINT_FILTER }}" --force
 
     - name: Run sprint PR review check
       if: github.event_name == 'schedule' || github.event.inputs.run_pr_review_check == 'true'
@@ -118,12 +172,16 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
         NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
-        PYTHONPATH=. python scripts/sprint_pr_review_check.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
+        TEAM_ARG=""
+        if [ -n "${{ env.TEAM }}" ]; then
+          TEAM_ARG="--team ${{ env.TEAM }}"
+        fi
+        PYTHONPATH=. python scripts/sprint_pr_review_check.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
 
     - name: Run sprint stats
       if: github.event_name == 'schedule' || github.event.inputs.run_sprint_stats == 'true'
@@ -131,12 +189,16 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
         NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
       run: |
-        PYTHONPATH=. python scripts/sprint_stats.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
+        TEAM_ARG=""
+        if [ -n "${{ env.TEAM }}" ]; then
+          TEAM_ARG="--team ${{ env.TEAM }}"
+        fi
+        PYTHONPATH=. python scripts/sprint_stats.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
 
     - name: Run sprint summary sync
       if: github.event_name == 'schedule' || github.event.inputs.run_sprint_summary == 'true'
@@ -144,14 +206,18 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
         NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: |
+        TEAM_ARG=""
+        if [ -n "${{ env.TEAM }}" ]; then
+          TEAM_ARG="--team ${{ env.TEAM }}"
+        fi
         # 스프린트 요약은 SprintChecker 페이지에 생성
-        PYTHONPATH=. python scripts/sprint_summary_sync.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.SPRINT_CHECKER_PARENT_ID }}"
+        PYTHONPATH=. python scripts/sprint_summary_sync.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.SPRINT_CHECKER_PARENT_ID }}"
 
     - name: Run daily scrum sync
       if: github.event_name == 'schedule' || github.event.inputs.run_daily_scrum == 'true'
@@ -159,14 +225,18 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ vars.GH_PROJECT_NUMBER }}
+        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
         NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
         GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: |
+        TEAM_ARG=""
+        if [ -n "${{ env.TEAM }}" ]; then
+          TEAM_ARG="--team ${{ env.TEAM }}"
+        fi
         # 데일리 스크럼은 DailyScrum 페이지에 생성
-        PYTHONPATH=. python scripts/daily_scrum_sync.py --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.DAILY_SCRUM_PARENT_ID }}"
+        PYTHONPATH=. python scripts/daily_scrum_sync.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.DAILY_SCRUM_PARENT_ID }}"
 
     - name: Upload artifacts (if any)
       if: always()

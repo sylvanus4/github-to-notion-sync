@@ -47,12 +47,31 @@ except ImportError:
     logger.warning("anthropic package not installed. AI summaries will be disabled.")
 
 
-def load_user_mappings() -> tuple[dict, dict]:
-    """Load user mappings from config/field_mappings.yml.
+def load_user_mappings(team_id: str | None = None) -> tuple[dict, dict]:
+    """Load user mappings from config/field_mappings.yml or team config.
+
+    Args:
+        team_id: Optional team ID to load team-specific mappings
 
     Returns:
         Tuple of (display_names, user_ids) dictionaries
     """
+    # Try team-specific config first
+    if team_id:
+        try:
+            from src.utils.team_config import get_team_field_mappings
+            config = get_team_field_mappings(team_id)
+            display_names = config.get("display_names", config.get("github_to_display_name", {}))
+            user_ids = config.get("user_mappings", {})
+            if not user_ids:
+                user_ids = config.get("github_to_notion", {}).get("assignees", {}).get("value_mappings", {})
+            if display_names or user_ids:
+                logger.info(f"Loaded user mappings for team: {team_id}")
+                return display_names, user_ids
+        except Exception as e:
+            logger.warning(f"Failed to load team mappings for {team_id}: {e}")
+
+    # Fallback to default config
     config_path = Path(__file__).parent.parent / "config" / "field_mappings.yml"
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
@@ -1104,6 +1123,9 @@ class DailyScrumSyncService:
 
 async def main():
     """Main function for daily scrum sync script."""
+    # Import team args helper
+    from scripts.common.team_args import add_team_argument, setup_team_environment, get_sprint_config_from_args, get_team_from_args
+
     parser = argparse.ArgumentParser(
         description="Sync daily work data from GitHub to Notion DailyScrum page with AI summaries",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -1111,6 +1133,9 @@ async def main():
 Examples:
   # Sync yesterday and today's data to Notion with AI summaries
   python scripts/daily_scrum_sync.py --notion-parent-id 2ba9eddc34e6800cbb43c744a495df3f
+
+  # Use team configuration
+  python scripts/daily_scrum_sync.py --team synos
 
   # Dry run (preview only)
   python scripts/daily_scrum_sync.py --notion-parent-id abc123 --dry-run
@@ -1126,10 +1151,12 @@ Examples:
         """
     )
 
+    # Add team argument
+    add_team_argument(parser)
+
     parser.add_argument(
         "--notion-parent-id",
-        required=True,
-        help="Notion parent page ID for DailyScrum page"
+        help="Notion parent page ID for DailyScrum page. If using --team, defaults to team's daily_scrum_parent_id."
     )
     parser.add_argument(
         "--days",
@@ -1171,6 +1198,34 @@ Examples:
     )
 
     args = parser.parse_args()
+
+    # Setup team environment
+    team_id = get_team_from_args(args)
+    if team_id:
+        logger.info(f"Using team configuration: {team_id}")
+        setup_team_environment(args)
+        # Reload user mappings with team config
+        global GITHUB_TO_NOTION_NAME, GITHUB_TO_NOTION_USER_ID, MAPPED_USERS
+        GITHUB_TO_NOTION_NAME, GITHUB_TO_NOTION_USER_ID = load_user_mappings(team_id)
+        MAPPED_USERS = set(GITHUB_TO_NOTION_USER_ID.keys())
+
+        sprint_config = get_sprint_config_from_args(args)
+
+        # Get notion_parent_id from team config if not specified
+        if not args.notion_parent_id:
+            args.notion_parent_id = sprint_config.get("daily_scrum_parent_id")
+            if args.notion_parent_id:
+                logger.info(f"Using team's daily_scrum_parent_id: {args.notion_parent_id}")
+
+        # Get sprint from team config if not specified
+        if not args.sprint:
+            args.sprint = sprint_config.get("current_sprint")
+            if args.sprint:
+                logger.info(f"Using team's current sprint: {args.sprint}")
+
+    # Validate required args
+    if not args.notion_parent_id:
+        parser.error("--notion-parent-id is required (or use --team to use team's daily_scrum_parent_id)")
 
     # Configure logging
     if args.quiet:

@@ -66,6 +66,9 @@ class Settings(BaseSettings):
     config_dir: str = Field(default="config", alias="CONFIG_DIR")
     queries_dir: str = Field(default="queries", alias="QUERIES_DIR")
 
+    # Multi-Team Configuration
+    default_team: str | None = Field(default=None, alias="DEFAULT_TEAM")
+
     @field_validator("notion_db_id")
     @classmethod
     def validate_notion_db_id(cls, v):
@@ -327,6 +330,48 @@ class ConfigManager:
             errors.append(f"GraphQL queries directory not found: {queries_path}")
 
         return errors
+
+    # Multi-Team Support Methods
+    def is_multi_team_mode(self) -> bool:
+        """Check if multi-team mode is enabled.
+
+        Returns:
+            True if config/teams/ directory exists with team configs
+        """
+        from src.utils.team_config import is_multi_team_mode
+
+        return is_multi_team_mode()
+
+    def list_available_teams(self) -> list[str]:
+        """List available team IDs.
+
+        Returns:
+            List of team IDs
+        """
+        from src.utils.team_config import list_available_teams
+
+        return list_available_teams()
+
+    def get_team_config(self, team_id: str):
+        """Get team configuration.
+
+        Args:
+            team_id: Team identifier
+
+        Returns:
+            TeamConfig object
+        """
+        from src.utils.team_config import load_team_config
+
+        return load_team_config(team_id)
+
+    def get_default_team(self) -> str | None:
+        """Get default team ID from settings.
+
+        Returns:
+            Default team ID or None
+        """
+        return self.settings.default_team
 
 
 # Global configuration instance (lazy initialization to avoid issues in test environment)
