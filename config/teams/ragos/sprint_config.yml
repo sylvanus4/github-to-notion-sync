@@ -1,0 +1,37 @@
+# RagOS Team Configuration
+# TODO: 실제 값으로 업데이트 필요
+
+# 팀 기본 정보
+team:
+  id: "ragos"
+  name: "RagOS"
+  description: "RagOS 팀 GitHub-Notion 동기화"
+  enabled: true
+
+# GitHub 연결 설정
+github:
+  org: "ThakiCloud"
+  project_number: 0  # TODO: RagOS 팀 GitHub 프로젝트 번호로 변경
+
+# Notion 연결 설정
+notion:
+  # database_id는 환경변수로 설정하거나 아래에 직접 입력
+  # database_id: "TODO: RagOS Notion 데이터베이스 ID"
+
+# 스프린트 설정
+sprint:
+  # 현재 스프린트
+  current: "25-12-Sprint1"
+  
+  # PR-Checker 노션 페이지 ID
+  notion_parent_id: "TODO"
+  
+  # SprintChecker 노션 페이지 ID
+  sprint_checker_parent_id: "TODO"
+  
+  # DailyScrum 노션 페이지 ID
+  daily_scrum_parent_id: "TODO"
+  
+  # QA 이슈 데이터베이스 ID (선택)
+  # qa_database_id: "TODO"
+

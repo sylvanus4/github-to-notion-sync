@@ -517,7 +517,14 @@ class CompleteResyncService:
 
 async def main():
     """Main function for complete resync script."""
+    # Import team args helper
+    from scripts.common.team_args import add_team_argument, setup_team_environment, print_team_info
+
     parser = argparse.ArgumentParser(description="Complete GitHub to Notion resynchronization")
+
+    # Add team argument
+    add_team_argument(parser)
+
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -550,8 +557,14 @@ async def main():
         default=None,
         help="New title for the database (default: auto-generated based on sprint filter and timestamp)"
     )
-    
+
     args = parser.parse_args()
+
+    # Setup team environment (sets GH_ORG, NOTION_DB_ID, etc.)
+    if args.team:
+        logger.info(f"Using team configuration: {args.team}")
+        setup_team_environment(args)
+        print_team_info(args)
     
     # Configure logging based on quiet flag
     if args.quiet:
