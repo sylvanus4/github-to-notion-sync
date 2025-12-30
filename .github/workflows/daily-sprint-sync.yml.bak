@@ -2,10 +2,8 @@ name: Daily Sprint Sync
 
 on:
   schedule:
-    # 월~금 07:30 KST = 일~목 22:30 UTC (KST = UTC+9)
-    - cron: '30 22 * * 0-4'
-    # 금요일 14:00 KST = 금요일 05:00 UTC (스프린트 통계/요약용)
-    - cron: '0 5 * * 5'
+    # 한국 시간 오전 7시 30분 = UTC 22시 30분 (전날) (KST = UTC+9)
+    - cron: '30 22 * * *'
   workflow_dispatch:
     inputs:
       team:
@@ -36,15 +34,15 @@ on:
         type: boolean
         default: true
       run_sprint_stats:
-        description: 'Run sprint stats (스프린트 통계 생성) - 💰 Anthropic API 비용 발생'
+        description: 'Run sprint stats (스프린트 통계 생성)'
         required: false
         type: boolean
-        default: false
+        default: true
       run_sprint_summary:
-        description: 'Run sprint summary sync (스프린트 요약 동기화) - 💰 Anthropic API 비용 발생'
+        description: 'Run sprint summary sync (스프린트 요약 동기화)'
         required: false
         type: boolean
-        default: false
+        default: true
       run_daily_scrum:
         description: 'Run daily scrum sync (데일리 스크럼 동기화)'
         required: false
@@ -52,18 +50,9 @@ on:
         default: true
 
 jobs:
-  # ===========================================
-  # 매일 실행되는 Job (월~금 07:30 KST)
-  # ===========================================
-  daily-sync:
-    name: Daily Sync (월~금)
+  sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    # 스케줄 실행 시: 07:30 KST 시간대에만 실행 (22:30 UTC 전날)
-    # 수동 실행 시: 항상 실행
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.event.schedule == '30 22 * * 0-4')
+    timeout-minutes: 60  # 전체 job 타임아웃: 60분
 
     steps:
     - name: Checkout code
@@ -162,7 +151,7 @@ jobs:
 
     - name: Run complete resync
       if: github.event_name == 'schedule' || github.event.inputs.run_complete_resync == 'true'
-      timeout-minutes: 30
+      timeout-minutes: 30  # 최대 30분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
@@ -179,7 +168,7 @@ jobs:
 
     - name: Run sprint PR review check
       if: github.event_name == 'schedule' || github.event.inputs.run_pr_review_check == 'true'
-      timeout-minutes: 15
+      timeout-minutes: 15  # 최대 15분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
@@ -194,9 +183,45 @@ jobs:
         fi
         PYTHONPATH=. python scripts/sprint_pr_review_check.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
 
+    - name: Run sprint stats
+      if: github.event_name == 'schedule' || github.event.inputs.run_sprint_stats == 'true'
+      timeout-minutes: 15  # 최대 15분 허용
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
+        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
+      run: |
+        TEAM_ARG=""
+        if [ -n "${{ env.TEAM }}" ]; then
+          TEAM_ARG="--team ${{ env.TEAM }}"
+        fi
+        PYTHONPATH=. python scripts/sprint_stats.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
+
+    - name: Run sprint summary sync
+      if: github.event_name == 'schedule' || github.event.inputs.run_sprint_summary == 'true'
+      timeout-minutes: 15  # 최대 15분 허용
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
+        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
+        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
+        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        TEAM_ARG=""
+        if [ -n "${{ env.TEAM }}" ]; then
+          TEAM_ARG="--team ${{ env.TEAM }}"
+        fi
+        # 스프린트 요약은 SprintChecker 페이지에 생성
+        PYTHONPATH=. python scripts/sprint_summary_sync.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.SPRINT_CHECKER_PARENT_ID }}"
+
     - name: Run daily scrum sync
       if: github.event_name == 'schedule' || github.event.inputs.run_daily_scrum == 'true'
-      timeout-minutes: 15
+      timeout-minutes: 15  # 최대 15분 허용
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
@@ -213,180 +238,11 @@ jobs:
         # 데일리 스크럼은 DailyScrum 페이지에 생성
         PYTHONPATH=. python scripts/daily_scrum_sync.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.DAILY_SCRUM_PARENT_ID }}"
 
-    # 수동 실행 시에만 sprint_stats, sprint_summary 실행 가능
-    - name: Run sprint stats (수동 실행만)
-      if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_sprint_stats == 'true'
-      timeout-minutes: 15
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
-        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
-        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
-      run: |
-        echo "💰 Running sprint stats (Anthropic API 비용 발생)"
-        TEAM_ARG=""
-        if [ -n "${{ env.TEAM }}" ]; then
-          TEAM_ARG="--team ${{ env.TEAM }}"
-        fi
-        PYTHONPATH=. python scripts/sprint_stats.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
-
-    - name: Run sprint summary sync (수동 실행만)
-      if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_sprint_summary == 'true'
-      timeout-minutes: 15
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
-        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
-        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      run: |
-        echo "💰 Running sprint summary (Anthropic API 비용 발생)"
-        TEAM_ARG=""
-        if [ -n "${{ env.TEAM }}" ]; then
-          TEAM_ARG="--team ${{ env.TEAM }}"
-        fi
-        # 스프린트 요약은 SprintChecker 페이지에 생성
-        PYTHONPATH=. python scripts/sprint_summary_sync.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.SPRINT_CHECKER_PARENT_ID }}"
-
     - name: Upload artifacts (if any)
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: daily-sync-logs
-        path: |
-          *.log
-          *.json
-        retention-days: 7
-        if-no-files-found: ignore
-
-  # ===========================================
-  # 주간 실행되는 Job (금요일 14:00 KST)
-  # 💰 Anthropic API 비용 발생 작업
-  # ===========================================
-  weekly-stats:
-    name: Weekly Stats (금요일)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    # 스케줄 실행 시: 금요일 14:00 KST 시간대에만 실행 (05:00 UTC)
-    if: github.event_name == 'schedule' && github.event.schedule == '0 5 * * 5'
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Load sprint config
-      id: config
-      run: |
-        TEAM="${{ github.event.inputs.team }}"
-        
-        if [ -n "$TEAM" ] && [ -f "config/teams/${TEAM}/sprint_config.yml" ]; then
-          echo "📋 Loading team config: ${TEAM}"
-          CONFIG_FILE="config/teams/${TEAM}/sprint_config.yml"
-          
-          SPRINT=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'current:' | head -1 | awk '{print $2}' | tr -d '"')
-          NOTION_ID=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'notion_parent_id:' | head -1 | awk '{print $2}' | tr -d '"')
-          SPRINT_CHECKER_ID=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'sprint_checker_parent_id:' | head -1 | awk '{print $2}' | tr -d '"')
-          
-          GH_ORG_CFG=$(grep -A5 '^github:' "$CONFIG_FILE" | grep 'org:' | head -1 | awk '{print $2}' | tr -d '"')
-          GH_PROJECT_CFG=$(grep -A5 '^github:' "$CONFIG_FILE" | grep 'project_number:' | head -1 | awk '{print $2}' | tr -d '"')
-          
-          echo "team=${TEAM}" >> $GITHUB_OUTPUT
-          echo "gh_org=${GH_ORG_CFG}" >> $GITHUB_OUTPUT
-          echo "gh_project=${GH_PROJECT_CFG}" >> $GITHUB_OUTPUT
-        else
-          echo "📋 Loading legacy config"
-          CONFIG_FILE="config/sprint_config.yml"
-          SPRINT=$(grep '^current_sprint:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
-          NOTION_ID=$(grep '^notion_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
-          SPRINT_CHECKER_ID=$(grep '^sprint_checker_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
-          echo "team=" >> $GITHUB_OUTPUT
-        fi
-        
-        echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
-        echo "default_notion_id=${NOTION_ID}" >> $GITHUB_OUTPUT
-        echo "sprint_checker_id=${SPRINT_CHECKER_ID}" >> $GITHUB_OUTPUT
-        
-        echo "✅ Weekly Stats Config - Team: ${TEAM:-legacy}"
-        echo "   Sprint: ${SPRINT}"
-        echo "   PR-Checker: ${NOTION_ID}"
-        echo "   SprintChecker: ${SPRINT_CHECKER_ID}"
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Set environment variables
-      run: |
-        TEAM="${{ steps.config.outputs.team }}"
-        SPRINT="${{ steps.config.outputs.default_sprint }}"
-        NOTION_ID="${{ steps.config.outputs.default_notion_id }}"
-
-        echo "TEAM=${TEAM}" >> $GITHUB_ENV
-        echo "SPRINT_FILTER=${SPRINT}" >> $GITHUB_ENV
-        echo "NOTION_PARENT_ID=${NOTION_ID}" >> $GITHUB_ENV
-        echo "SPRINT_CHECKER_PARENT_ID=${{ steps.config.outputs.sprint_checker_id }}" >> $GITHUB_ENV
-        
-        if [ -n "${{ steps.config.outputs.gh_org }}" ]; then
-          echo "GH_ORG_OVERRIDE=${{ steps.config.outputs.gh_org }}" >> $GITHUB_ENV
-        fi
-        if [ -n "${{ steps.config.outputs.gh_project }}" ]; then
-          echo "GH_PROJECT_OVERRIDE=${{ steps.config.outputs.gh_project }}" >> $GITHUB_ENV
-        fi
-        
-        echo "🗓️ Friday Weekly Stats"
-        echo "   Team: ${TEAM:-legacy}"
-        echo "   Sprint: ${SPRINT}"
-
-    - name: Run sprint stats
-      timeout-minutes: 15
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
-        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
-        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
-      run: |
-        echo "💰 Running sprint stats (Anthropic API 비용 발생)"
-        TEAM_ARG=""
-        if [ -n "${{ env.TEAM }}" ]; then
-          TEAM_ARG="--team ${{ env.TEAM }}"
-        fi
-        PYTHONPATH=. python scripts/sprint_stats.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.NOTION_PARENT_ID }}"
-
-    - name: Run sprint summary sync
-      timeout-minutes: 15
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        GH_ORG: ${{ env.GH_ORG_OVERRIDE || vars.GH_ORG }}
-        GH_PROJECT_NUMBER: ${{ env.GH_PROJECT_OVERRIDE || vars.GH_PROJECT_NUMBER }}
-        NOTION_DB_ID: ${{ vars.NOTION_DB_ID }}
-        GH_WEBHOOK_SECRET: "dummy-secret-for-config-init"
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      run: |
-        echo "💰 Running sprint summary (Anthropic API 비용 발생)"
-        TEAM_ARG=""
-        if [ -n "${{ env.TEAM }}" ]; then
-          TEAM_ARG="--team ${{ env.TEAM }}"
-        fi
-        PYTHONPATH=. python scripts/sprint_summary_sync.py $TEAM_ARG --sprint "${{ env.SPRINT_FILTER }}" --notion-parent-id "${{ env.SPRINT_CHECKER_PARENT_ID }}"
-
-    - name: Upload artifacts (if any)
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: weekly-stats-logs
+        name: sprint-sync-logs
         path: |
           *.log
           *.json
