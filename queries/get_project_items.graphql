@@ -32,7 +32,6 @@ query getProjectItems($org: String!, $num: Int!, $after: String) {
               assignees(first: 10) {
                 nodes {
                   login
-                  email
                   name
                   avatarUrl
                 }
@@ -68,7 +67,6 @@ query getProjectItems($org: String!, $num: Int!, $after: String) {
               assignees(first: 10) {
                 nodes {
                   login
-                  email
                   name
                   avatarUrl
                 }
@@ -99,7 +97,6 @@ query getProjectItems($org: String!, $num: Int!, $after: String) {
               assignees(first: 10) {
                 nodes {
                   login
-                  email
                   name
                   avatarUrl
                 }
