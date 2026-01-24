@@ -371,9 +371,11 @@ class SyncService:
         """
         return {
             "stats": self.sync_stats.copy(),
-            "github_rate_limit": self.github_service.get_rate_limit_info().__dict__
-            if self.github_service.get_rate_limit_info()
-            else None,
+            "github_rate_limit": (
+                self.github_service.get_rate_limit_info().__dict__
+                if self.github_service.get_rate_limit_info()
+                else None
+            ),
             "last_sync_time": self.sync_stats.get("last_full_sync"),
             "config": {
                 "github_org": self.settings.github_org,

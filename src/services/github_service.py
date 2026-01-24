@@ -340,9 +340,11 @@ class GitHubService:
                     field=field,
                     title=field_value_data["title"],
                     duration=field_value_data.get("duration"),
-                    start_date=datetime.fromisoformat(field_value_data["startDate"].replace("Z", "+00:00"))
-                    if field_value_data.get("startDate")
-                    else None,
+                    start_date=(
+                        datetime.fromisoformat(field_value_data["startDate"].replace("Z", "+00:00"))
+                        if field_value_data.get("startDate")
+                        else None
+                    ),
                 )
 
         except Exception as e:

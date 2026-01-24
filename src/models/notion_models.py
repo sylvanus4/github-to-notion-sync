@@ -32,6 +32,11 @@ class NotionPropertyType(str, Enum):
     CREATED_BY = "created_by"
     LAST_EDITED_TIME = "last_edited_time"
     LAST_EDITED_BY = "last_edited_by"
+    PLACE = "place"
+    FILES = "files"
+    UNIQUE_ID = "unique_id"
+    VERIFICATION = "verification"
+    BUTTON = "button"
 
 
 class NotionColor(str, Enum):
@@ -232,6 +237,90 @@ class NotionPhoneNumberPropertyValue(NotionPropertyValue):
     phone_number: str | None = None
 
 
+class NotionPlacePropertyValue(NotionPropertyValue):
+    """Place property value (location-based property)."""
+
+    type: NotionPropertyType = NotionPropertyType.PLACE
+    place: dict[str, Any] | None = None
+
+
+class NotionFilesPropertyValue(NotionPropertyValue):
+    """Files property value."""
+
+    type: NotionPropertyType = NotionPropertyType.FILES
+    files: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class NotionUniqueIdPropertyValue(NotionPropertyValue):
+    """Unique ID property value."""
+
+    type: NotionPropertyType = NotionPropertyType.UNIQUE_ID
+    unique_id: dict[str, Any] | None = None
+
+
+class NotionFormulaPropertyValue(NotionPropertyValue):
+    """Formula property value."""
+
+    type: NotionPropertyType = NotionPropertyType.FORMULA
+    formula: dict[str, Any] | None = None
+
+
+class NotionRelationPropertyValue(NotionPropertyValue):
+    """Relation property value."""
+
+    type: NotionPropertyType = NotionPropertyType.RELATION
+    relation: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class NotionRollupPropertyValue(NotionPropertyValue):
+    """Rollup property value."""
+
+    type: NotionPropertyType = NotionPropertyType.ROLLUP
+    rollup: dict[str, Any] | None = None
+
+
+class NotionCreatedTimePropertyValue(NotionPropertyValue):
+    """Created time property value."""
+
+    type: NotionPropertyType = NotionPropertyType.CREATED_TIME
+    created_time: str | None = None
+
+
+class NotionCreatedByPropertyValue(NotionPropertyValue):
+    """Created by property value."""
+
+    type: NotionPropertyType = NotionPropertyType.CREATED_BY
+    created_by: dict[str, Any] | None = None
+
+
+class NotionLastEditedTimePropertyValue(NotionPropertyValue):
+    """Last edited time property value."""
+
+    type: NotionPropertyType = NotionPropertyType.LAST_EDITED_TIME
+    last_edited_time: str | None = None
+
+
+class NotionLastEditedByPropertyValue(NotionPropertyValue):
+    """Last edited by property value."""
+
+    type: NotionPropertyType = NotionPropertyType.LAST_EDITED_BY
+    last_edited_by: dict[str, Any] | None = None
+
+
+class NotionVerificationPropertyValue(NotionPropertyValue):
+    """Verification property value."""
+
+    type: NotionPropertyType = NotionPropertyType.VERIFICATION
+    verification: dict[str, Any] | None = None
+
+
+class NotionButtonPropertyValue(NotionPropertyValue):
+    """Button property value."""
+
+    type: NotionPropertyType = NotionPropertyType.BUTTON
+    button: dict[str, Any] | None = None
+
+
 # Union type for all property values
 NotionPropertyValueUnion = (
     NotionTitlePropertyValue
@@ -246,6 +335,18 @@ NotionPropertyValueUnion = (
     | NotionUrlPropertyValue
     | NotionEmailPropertyValue
     | NotionPhoneNumberPropertyValue
+    | NotionPlacePropertyValue
+    | NotionFilesPropertyValue
+    | NotionUniqueIdPropertyValue
+    | NotionFormulaPropertyValue
+    | NotionRelationPropertyValue
+    | NotionRollupPropertyValue
+    | NotionCreatedTimePropertyValue
+    | NotionCreatedByPropertyValue
+    | NotionLastEditedTimePropertyValue
+    | NotionLastEditedByPropertyValue
+    | NotionVerificationPropertyValue
+    | NotionButtonPropertyValue
 )
 
 
