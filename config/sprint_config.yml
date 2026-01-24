@@ -9,7 +9,7 @@
 # 형식: {YY}-{MM}-Sprint{N}
 # 예시: 25-10-Sprint4, 25-11-Sprint1
 
-current_sprint: 26-01-Sprint3
+current_sprint: 26-01-Sprint4
 
 # PR-Checker 노션 페이지 ID (PR 리뷰 체크, 스프린트 통계 등)
 notion_parent_id: 2939eddc34e680f58c7ad076e5ba3e88
