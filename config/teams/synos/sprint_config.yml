@@ -24,7 +24,7 @@ notion:
 # 스프린트 설정
 sprint:
   # 현재 스프린트 (매주 업데이트)
-  current: "26-02-Sprint2"
+  current: "26-02-Sprint3"
   
   # PR-Checker 노션 페이지 ID (PR 리뷰 체크, 스프린트 통계 등)
   notion_parent_id: "2939eddc34e680f58c7ad076e5ba3e88"
