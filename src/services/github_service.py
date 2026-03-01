@@ -406,6 +406,8 @@ class GitHubService:
 
         return items
 
+    SPRINT_FIELD_NAMES = ("스프린트", "Sprint", "Iteration")
+
     def _item_matches_sprint(self, item: GitHubProjectItem, sprint_filter: str) -> bool:
         """Check if an item matches the given sprint filter.
 
@@ -417,14 +419,11 @@ class GitHubService:
             True if item matches the sprint filter
         """
         for field_value in item.field_values:
-            if field_value.field.name == "스프린트":
-                # For iteration fields, we need to check the title
+            if field_value.field.name in self.SPRINT_FIELD_NAMES:
                 if hasattr(field_value, "title") and field_value.title:
                     return field_value.title == sprint_filter
-                # Alternative check for iteration field value text
                 if hasattr(field_value, "text") and field_value.text:
                     return field_value.text == sprint_filter
-                # Check for iteration object with title
                 if hasattr(field_value, "iteration") and field_value.iteration:
                     iteration_title = getattr(field_value.iteration, "title", None)
                     if iteration_title:
