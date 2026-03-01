@@ -12,7 +12,7 @@ team:
 # 토큰은 환경변수 GH_TOKEN 사용 (secrets에서 관리)
 github:
   org: "ThakiCloud"
-  project_number: 22
+  project_number: 5
 
 # Notion 연결 설정
 # 토큰은 환경변수 NOTION_TOKEN 사용 (secrets에서 관리)
@@ -24,7 +24,7 @@ notion:
 # 스프린트 설정
 sprint:
   # 현재 스프린트 (매주 업데이트)
-  current: "26-02-Sprint4"
+  current: "26-03-Sprint1"
   
   # PR-Checker 노션 페이지 ID (PR 리뷰 체크, 스프린트 통계 등)
   notion_parent_id: "2939eddc34e680f58c7ad076e5ba3e88"
