@@ -87,7 +87,7 @@ github_to_notion:
       "jaehoonkim": "229d872b-594c-8150-879d-00022f27519e"  # 김재훈
       "chohongcheol-thakicloud": "259d872b-594c-812e-9ea8-00028d08dc7d"  # 조홍철
       "jongmin-kim-thakicloud": "26bd872b-594c-81f8-98df-000226f169c0"  # 김종민
-      "sangmin.lee": "2ecd872b-594c-811b-a273-00026e43da9a"  # 이상민
+      "thakicloud-leesangmin": "2ecd872b-594c-811b-a273-00026e43da9a"  # 이상민
       
 # GitHub username to Display Name mapping (한글 표시 이름)
 # 스크립트에서 사용자 이름을 표시할 때 사용
@@ -104,7 +104,7 @@ github_to_display_name:
   "chohongcheol-thakicloud": "조홍철"
   "jongmin-kim-thakicloud": "김종민"
   "jaehoonkim": "김재훈"
-  "sangmin.lee": "이상민"
+  "thakicloud-leesangmin": "이상민"
 
 # Notion 전용 필드 (GitHub에서 매핑되지 않는 필드들)
 notion_only_fields:

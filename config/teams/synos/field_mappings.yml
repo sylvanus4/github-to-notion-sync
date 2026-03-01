@@ -21,7 +21,7 @@ user_mappings:
   "jaehoonkim": "229d872b-594c-8150-879d-00022f27519e"  # 김재훈
   "chohongcheol-thakicloud": "259d872b-594c-812e-9ea8-00028d08dc7d"  # 조홍철
   "jongmin-kim-thakicloud": "26bd872b-594c-81f8-98df-000226f169c0"  # 김종민
-  "sangmin.lee": "2ecd872b-594c-811b-a273-00026e43da9a"  # 이상민
+  "thakicloud-leesangmin": "2ecd872b-594c-811b-a273-00026e43da9a"  # 이상민
 
 # GitHub username → 표시 이름 매핑
 display_names:
@@ -38,7 +38,7 @@ display_names:
   "jaehoonkim": "김재훈"
   "chohongcheol-thakicloud": "조홍철"
   "jongmin-kim-thakicloud": "김종민"
-  "sangmin.lee": "이상민"
+  "thakicloud-leesangmin": "이상민"
 
 # 팀별 필드 매핑 오버라이드 (선택)
 # 공통 매핑과 다른 경우에만 정의
