@@ -1,5 +1,5 @@
 ---
-description: "Skill registry (58 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+description: "Skill registry (59 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
 alwaysApply: false
 ---
 
@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (58 project skills)
+## Skill Registry (59 project skills)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -41,6 +41,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `cursor-sync` — Sync .cursor/ assets across projects
 - `cursor-automations` — Create and manage Cursor cloud automations
 - `slack-agent` — Build and deploy Slack bots via Bolt/Express
+- `today` — Daily data sync + hot stock discovery + multi-indicator analysis + .docx report pipeline (DB/CSV gap check, Yahoo backfill, NASDAQ/KOSPI/KOSDAQ hot stocks, Turtle/Bollinger/Oscillator, alphaear-news/sentiment, .docx via anthropic-docx, optional Slack)
 
 **Review & analysis skills** (read-only):
 - `backend-expert` — FastAPI/Pydantic/async review
@@ -119,6 +120,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/onboarding-accelerator` | onboarding-accelerator | New developer kit generation |
 | `/cursor-sync` | cursor-sync | Sync .cursor/ across projects |
 | `/plans` | prompt-architect, plans | Optimize prompt + execution plan |
+| `/today` | today (weekly-stock-update, discover-hot-stocks, daily-stock-check, alphaear-news, alphaear-sentiment, alphaear-reporter, anthropic-docx) | Sequential multi-phase pipeline |
 
 ## Orchestration Rules
 

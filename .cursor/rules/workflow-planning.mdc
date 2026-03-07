@@ -38,7 +38,7 @@ A single agent task should target:
 - **15-30 minutes** to complete
 - **One clear objective** with verifiable outcome
 
-If larger → decompose into smaller sub-tasks.  
+If larger → decompose into smaller sub-tasks.
 If smaller → combine with related work.
 
 This sizing ensures each task is completable in one agent turn with a reviewable diff. When ping-pong with the agent grows beyond 2-3 correction turns, re-evaluate whether the task unit is too large or the requirements are insufficiently specified.
