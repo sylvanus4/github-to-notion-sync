@@ -58,18 +58,14 @@ function processOrder(order) {
 // Before: switch statement
 function getPrice(user) {
   switch (user.type) {
-    case "premium":
-      return basePrice * 0.8;
-    case "regular":
-      return basePrice;
+    case 'premium': return basePrice * 0.8;
+    case 'regular': return basePrice;
   }
 }
 
 // After: Strategy pattern
 class PremiumPricing {
-  calculate(basePrice) {
-    return basePrice * 0.8;
-  }
+  calculate(basePrice) { return basePrice * 0.8; }
 }
 ```
 
@@ -105,13 +101,11 @@ D - Dependency Inversion
 ### How to Refactor Safely
 
 1. **Check the current state**
-
    - Measure complexity
    - Find duplicate code
    - Map dependencies
 
 2. **Make small changes**
-
    - 15-30 minute chunks
    - Test after each change
    - Commit often

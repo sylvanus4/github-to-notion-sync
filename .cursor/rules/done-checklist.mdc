@@ -1,0 +1,51 @@
+---
+description: "Completion checklist before marking work done"
+alwaysApply: true
+---
+
+# Done Checklist
+
+Before declaring any non-trivial task complete, verify ALL of the following:
+
+## Standard Checks
+
+- [ ] Run: unit tests + lint + typecheck (project standard commands)
+- [ ] Confirm: no unused imports, no dead code paths introduced
+- [ ] Confirm: error handling and logging for new code branches
+- [ ] Update `tasks/todo.md` — move completed items with date stamp, keep audit trail
+- [ ] Update `MEMORY.md` — append [decision], [task], [issue] entries for this session
+- [ ] If user corrected you: update `tasks/lessons.md` with pattern + prevention rule
+- [ ] Provide: short summary + files changed + commands run + results
+
+## Definition of Done (DoD) Template
+
+For non-trivial tasks, define completion criteria BEFORE starting work using three categories:
+
+1. **Functional criteria** — what the code must DO (observable behavior, not implementation details)
+2. **Guard criteria ("Must NOT Have")** — boundaries the implementation must NOT cross:
+   - Do not modify existing passing tests
+   - Do not introduce stub/placeholder implementations (`return nil`, empty function bodies, `// TODO`)
+   - Do not change API contracts or shared interfaces unless explicitly approved
+3. **Verification criteria** — how completion is proven (specific test names, coverage thresholds, manual verification steps)
+
+## Anti-Stub Clause
+
+Code with empty function bodies, `return nil`, placeholder implementations, or trivially rewritten tests does NOT constitute completion. If full implementation is not feasible in one turn, explicitly report what was completed and what remains — never mark stubs as "done."
+
+## Intermediate Checkpoints
+
+For tasks estimated to take >30 min or touching >5 files:
+
+- Report progress after every 3-5 files modified or after each major phase
+- Each checkpoint: brief summary of what changed, what's next, any deviations from plan
+- Commit at each checkpoint to maintain rollback points
+
+## Completion Report
+
+When finishing a non-trivial task, provide:
+
+- What was done (list of changes)
+- DoD items met (cross-reference against the defined criteria)
+- What remains (if any — unfinished items, known limitations, follow-up tasks)
+
+Skip standard checks for trivial single-file edits (typo fix, one-line change). Never remove completed history from `tasks/todo.md`.

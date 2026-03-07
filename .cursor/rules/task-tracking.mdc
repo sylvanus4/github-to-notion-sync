@@ -1,0 +1,55 @@
+---
+title: Task Tracking
+description: Mandatory rule to update tasks/todo.md upon completing any non-trivial work. Always enforced.
+alwaysApply: true
+---
+
+## Task Tracking — Mandatory Post-Completion Update
+
+### Rule
+
+After completing **any non-trivial task** (bug fix, feature, refactor, docs update, audit, etc.), you **MUST** update `tasks/todo.md` before declaring the work done.
+
+### When to Update
+
+- A multi-step task finishes (3+ steps or involving multiple files)
+- A plan-mode plan is fully executed
+- A skill workflow completes (e.g., quality audit, dependency sweep, e2e-testing)
+- A user-requested change is applied and verified
+
+### What to Update
+
+1. **Move completed items** from "Current Tasks" to "Completed" with a date stamp:
+   ```
+   ### <Task Title> (Completed: YYYY-MM-DD)
+   - [x] Item description
+   ```
+2. **Remove or clear** "Current Tasks" entries that are done.
+3. **Add verification results** if applicable (test pass/fail, lint status, etc.).
+
+### What NOT to Do
+
+- Do not update `tasks/todo.md` for trivial single-file edits (typo fix, one-line change).
+- Do not remove the "Completed" history — it serves as an audit trail.
+- Do not modify `tasks/lessons.md` here; that file is updated only on agent corrections.
+
+### Format Reference
+
+```markdown
+## Current Tasks
+
+- [ ] Active task description
+
+---
+
+## Completed
+
+### Task Name (Completed: 2026-02-19)
+
+- [x] Completed item 1
+- [x] Completed item 2
+```
+
+### Enforcement
+
+This rule is checked as the **final step** of every task execution. Skipping it is a violation of the workflow orchestration rules.

@@ -22,10 +22,10 @@ gh pr ready
 
 ```bash
 # 1. Create branch and commit
-git checkout main && git pull
+git checkout main && git pull origin tmp
 git checkout -b feat-user-profile
 git add . && git commit -m "feat: Implement user profile feature"
-git push -u origin feat-user-profile
+git push origin HEAD:tmp
 
 # 2. Create PR
 "Please create a PR:
@@ -45,7 +45,7 @@ git push -u origin feat-user-profile
 ```bash
 # Branch naming: {type}-{subject}
 git checkout main
-git pull
+git pull origin tmp
 git checkout -b feat-user-authentication
 
 # Confirm you're on the right branch
@@ -65,11 +65,8 @@ git commit -m "feat: Implement user authentication API"
 #### 3. Push to Remote
 
 ```bash
-# First push (sets upstream)
-git push -u origin feat-user-authentication
-
-# Later pushes
-git push
+# Push to remote tmp branch
+git push origin HEAD:tmp
 ```
 
 #### 4. Create Draft PR with Automatic Analysis
@@ -126,11 +123,11 @@ cp .github/PULL_REQUEST_TEMPLATE.md pr_body.md
 ```javascript
 // Create PR while preserving HTML comments
 mcp_github_create_pull_request({
-  owner: "organization",
-  repo: "repository",
-  base: "main",
-  head: "feat-user-authentication",
-  title: "feat: Implement user authentication",
+  owner: 'organization',
+  repo: 'repository',
+  base: 'main',
+  head: 'feat-user-authentication',
+  title: 'feat: Implement user authentication',
   body: prBodyContent, // Full content including HTML comments
   draft: true,
   maintainer_can_modify: true,
@@ -224,7 +221,7 @@ Examples:
 # Commit your fixes
 git add .
 git commit -m "fix: Address review feedback"
-git push
+git push origin HEAD:tmp
 ```
 
 ### Notes

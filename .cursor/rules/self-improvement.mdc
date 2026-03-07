@@ -1,0 +1,66 @@
+---
+description: "Memory architecture and self-improvement: MEMORY.md protocol, session memory, KNOWN_ISSUES.md, feedback accumulation, rule promotion"
+alwaysApply: false
+---
+
+# Memory Architecture & Self-Improvement
+
+## MEMORY.md Protocol
+
+At the end of every non-trivial work session, append to `MEMORY.md` at the project root:
+
+- **`[decision]`** — Decisions made and their reasoning (architecture choices, library selections, trade-offs accepted)
+- **`[task]`** — Work completed (what changed, key implementation details worth remembering)
+- **`[issue]`** — Open issues, blockers, and next steps for the following session
+
+Format:
+
+```
+## YYYY-MM-DD
+
+- [decision] Chose feature-based directory structure over role-based for agent context isolation
+- [task] Implemented auth module with JWT + refresh token rotation
+- [issue] Rate limiter not yet integrated — needs Redis config decision
+```
+
+## Session Restoration
+
+At the start of any work session:
+
+1. Read `MEMORY.md` if it exists — restore context before any work begins
+2. Read `KNOWN_ISSUES.md` if it exists — avoid repeating known agent pitfalls
+3. Read `tasks/lessons.md` for relevant project lessons
+
+This replaces the "15-minute context re-explanation" with a 5-second file read.
+
+## KNOWN_ISSUES.md
+
+Per-project file documenting recurring agent mistakes and their fixes. Entry format:
+
+```
+### <Short title>
+- **Symptom**: What went wrong (observable behavior)
+- **Root cause**: Why it happened (Type 1/2/3 from failure classification)
+- **Fix pattern**: What to do differently next time
+```
+
+When the same type of agent failure occurs 3+ times, add it here. Reference this file in agent instructions to prevent recurrence.
+
+## Feedback Accumulation
+
+After ANY correction from the user, log to `docs/ai/feedback.md` in 3 lines:
+
+| Date | Situation | Why It Failed | Rule for Next Time |
+|------|-----------|---------------|-------------------|
+
+## Rule Promotion
+
+- Every 5 feedback entries or monthly: promote recurring patterns to `.cursor/rules/` as scoped rules
+- Rules must be short and actionable (command / prohibition / verification)
+- When adding a rule, also add its verification criterion (test command or check step)
+
+## Conversation Separation
+
+- Keep conversations focused: "design" conversation, "implement" conversation, "verify" conversation
+- Start a new conversation when context gets long or focus drifts
+- When splitting, ensure `MEMORY.md` captures the handoff context

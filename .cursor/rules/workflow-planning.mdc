@@ -1,0 +1,71 @@
+---
+description: "Plan Mode workflow: plan-first approach, Socratic interview, decomposition guidance, tracer bullet strategy"
+alwaysApply: false
+---
+
+# Workflow Planning
+
+> **Superpowers Integration:** For non-trivial feature work, prefer the Superpowers `brainstorming` → `writing-plans` → `executing-plans` pipeline. This rule provides lightweight project-specific defaults when Superpowers skills are not triggered.
+
+## Plan Mode Default
+
+- Enter Plan Mode (Shift+Tab) for ANY non-trivial task (3+ steps or architectural decisions)
+- If something goes sideways, STOP and re-plan immediately — don't keep pushing
+- Save plans to `.cursor/plans/` via "Save to workspace" for team record
+- When Plan Mode is active, the interactive engineering review framework in `plan-mode-review.mdc` activates automatically (BIG CHANGE / SMALL CHANGE workflow)
+
+## Socratic Interview (Pre-Implementation)
+
+Before writing any code for a non-trivial feature, conduct a brief Q&A to surface edge cases and clarify ambiguities. This 5-minute interview prevents hours of ping-pong with the agent.
+
+Use the `/interview` command or manually ask these categories of questions:
+
+1. **Inputs / Outputs**: What data comes in? What does the output look like? What validation rules apply?
+2. **Design tokens**: Which design system colors, typography, spacing tokens apply? Any custom values?
+3. **UX behavior**: Transitions, animations, loading states, empty states?
+4. **Error states**: What can go wrong? How should each failure mode be presented to the user?
+5. **Edge cases**: Boundary values, concurrent access, offline scenarios, permission variations?
+6. **Dependencies**: What existing modules/APIs does this touch? What must NOT be modified?
+7. **Security**: Authentication, authorization, data sanitization concerns?
+
+Output the results as a structured `requirements.md` or append to an existing spec before implementation begins.
+
+## Agent-Sized Work Units
+
+A single agent task should target:
+
+- **3-5 files** modified
+- **15-30 minutes** to complete
+- **One clear objective** with verifiable outcome
+
+If larger → decompose into smaller sub-tasks.  
+If smaller → combine with related work.
+
+This sizing ensures each task is completable in one agent turn with a reviewable diff. When ping-pong with the agent grows beyond 2-3 correction turns, re-evaluate whether the task unit is too large or the requirements are insufficiently specified.
+
+## Tracer Bullet Strategy
+
+When adopting new technology, libraries, or making sweeping changes:
+
+1. **Pick the smallest target** — one simple screen, one basic endpoint, one minimal component
+2. **Apply the change to ONLY that target** — resist the urge to do more
+3. **Validate and commit** with a `[tracer]` tag
+4. **Extract a blueprint** — document what worked, what conflicted, what patterns to follow
+5. **Expand systematically** — apply to remaining targets one at a time, committing after each
+
+The blueprint from step 4 is the real deliverable. It turns an unknown into a known pattern that agents can replicate reliably.
+
+## Plan Template (Quick Reference)
+
+Every plan MUST include:
+
+1. **Changed files** — list with full paths
+2. **Commands** — test, lint, format commands to run
+3. **Rollback / risk** — what could go wrong, how to undo
+4. **Done criteria** — checklist of verifiable outcomes
+
+## Task Management
+
+1. Write plan to `tasks/todo.md` with checkable items
+2. Mark items complete as you go
+3. High-level summary at each step

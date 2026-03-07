@@ -1,0 +1,68 @@
+---
+description: "Parallel agent orchestration: gradual scaling, worktree isolation, dependency mapping, sync points, monitoring rotation"
+alwaysApply: false
+---
+
+# Parallel Orchestration
+
+Running multiple agents simultaneously multiplies both productivity and risk. The key is managing agents like a team lead manages squads — with clear boundaries, sync points, and monitoring.
+
+## Gradual Scaling
+
+Do not jump to 5 parallel agents on day one:
+
+1. **Start with 2** — learn the coordination overhead
+2. **Stabilize** — both agents complete tasks without conflicts for 3+ iterations
+3. **Add one more** — adjust monitoring rhythm
+4. **Repeat** — 2 → 3 → 5, never skipping levels
+
+Each level has qualitatively different coordination challenges. The jump from 2 to 3 is harder than it looks.
+
+## Worktree Isolation
+
+Use `git worktree` to give each parallel agent a physically separate working directory:
+
+```bash
+git worktree add ../project-auth   feature/auth
+git worktree add ../project-payment feature/payment
+```
+
+Physical isolation prevents file-level conflicts entirely. Each agent operates in its own copy of the codebase on its own branch.
+
+## Dependency Mapping (Pre-Launch)
+
+Before launching parallel agents, map shared resources:
+
+1. **List shared files/modules** — models, utils, shared types, configuration
+2. **Assign ownership** — each shared resource belongs to exactly one agent
+3. **Others treat shared resources as read-only** — if agent B needs to change a shared model, it requests the change from agent A's scope or waits
+4. **Identify integration points** — where will the parallel work merge?
+
+Skipping this step is the #1 cause of merge hell.
+
+## Sync Points
+
+Define integration checkpoints before parallel work begins:
+
+- **Frequency** — at minimum after each agent completes a logical unit (not just at the end)
+- **Merge order** — define which branch merges first to reduce conflict resolution
+- **Conflict protocol** — if merge conflicts arise, which agent's changes take priority?
+
+Do not let parallel work diverge indefinitely. The longer branches diverge, the harder the merge.
+
+## Monitoring Rotation
+
+Use a structured rotation to keep all parallel streams in check:
+
+- **Pomodoro-style** — 25 min focused on agent A's output, then switch to agent B
+- **Status check** — at each rotation, verify: Is the agent on track? Any deviation from blueprint? Any blockers?
+- **Quick intervention** — if an agent is stuck or drifting, intervene immediately rather than waiting for it to finish
+
+The most dangerous moment is "everything seems fine" — that's when one agent silently drifts off course.
+
+## Anti-Patterns
+
+- **"They'll figure it out"** — agents don't ask questions; they make assumptions and proceed. Pre-define decisions they would otherwise assume.
+- **Shared mutable state** — two agents writing to the same file guarantees conflicts. Isolate or serialize.
+- **No merge plan** — starting parallel work without knowing how it converges creates integration nightmares at the end.
+- **Monitoring one, ignoring others** — attention should rotate, not fixate. Set timers if needed.

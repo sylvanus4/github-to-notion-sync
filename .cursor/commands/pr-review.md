@@ -100,19 +100,18 @@ grep -r "import.*from.*\.\./\.\." . --include="*.js"
 
 **Security Issues**
 
-````markdown
+```markdown
 **critical.must.** Password is stored in plaintext
 
 ```javascript
 // Proposed fix
-const bcrypt = require("bcrypt");
+const bcrypt = require('bcrypt');
 const hashedPassword = await bcrypt.hash(password, 12);
 ```
-````
 
 Hashing is required to prevent security risks.
 
-````
+```
 
 **Performance Improvement**
 ```markdown
@@ -121,11 +120,11 @@ Hashing is required to prevent security risks.
 ```javascript
 // Improvement: Eager Loading
 const users = await User.findAll({ include: [Post] });
-````
+```
 
 This can significantly reduce the number of queries.
 
-````
+```
 
 **Architecture Violation**
 ```markdown
@@ -133,7 +132,7 @@ This can significantly reduce the number of queries.
 
 The domain layer directly depends on the infrastructure layer.
 Please introduce an interface following the dependency inversion principle.
-````
+```
 
 ### Notes
 

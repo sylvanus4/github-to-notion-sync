@@ -1,0 +1,30 @@
+---
+description: "Backend microservice conventions: FastAPI patterns, service structure, shared libraries"
+globs:
+  - "services/**"
+alwaysApply: false
+---
+
+# Backend API Conventions
+
+## Service Landscape
+
+- 21 Python microservices (FastAPI + Pydantic) + 1 Go service (`call-manager` — chi, pgx, redis, websocket)
+- Shared Python libraries in `shared/python/`
+- Each service has its own `pyproject.toml` with dependencies
+
+## Patterns
+
+- Follow existing service patterns for new endpoints — do not introduce new frameworks
+- Consistent error models per service (Pydantic error responses)
+- Async handlers by default (Python: `async def`, Go: goroutines)
+- Each service owns its own `tests/` directory
+
+## Testing
+
+See `testing-conventions.mdc` for pytest, Vitest, and Playwright conventions.
+
+## Go Service (call-manager)
+
+- Go 1.24+, chi router, pgx for PostgreSQL, gorilla/websocket
+- Module at `services/call-manager/go.mod`

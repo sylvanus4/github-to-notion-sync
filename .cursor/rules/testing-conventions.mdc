@@ -1,0 +1,35 @@
+---
+description: "Testing conventions: pytest for backend, Vitest for frontend unit, Playwright for E2E"
+globs:
+  - "**/*test*.*"
+  - "**/*spec*.*"
+  - "**/e2e/**"
+  - "**/tests/**"
+alwaysApply: false
+---
+
+# Testing Conventions
+
+## Backend (Python)
+
+- Framework: pytest, async tests via `asyncio_mode = "auto"`
+- Location: `tests/` directory per service
+- Naming: `test_<behavior>.py`, functions `test_<scenario>`
+- Coverage target: 80% statements
+
+## Frontend Unit
+
+- Framework: Vitest (configured in `frontend/vite.config.ts`)
+- Environment: jsdom, globals enabled
+- Setup: `frontend/src/test/setup.ts`
+- Naming: `*.test.tsx`, `*.test.ts`
+- Coverage thresholds: 70% statements/lines, 60% branches/functions
+
+## E2E
+
+- Framework: Playwright
+- Config: `frontend/playwright.config.ts`
+- Location: `frontend/e2e/`
+- Browser: Chromium
+- Base URL: `http://localhost:5173`
+- Naming: `*.spec.ts`

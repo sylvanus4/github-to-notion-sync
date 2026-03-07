@@ -108,18 +108,15 @@ done
 #### How to Group Files
 
 1. **By Feature**: Keep related functions together
-
    - `src/auth/` files → Authentication
    - `components/` files → UI components
 
 2. **By Type**: Same kind of changes
-
    - Only tests → `test:`
    - Only docs → `docs:`
    - Only config → `chore:`
 
 3. **By Dependencies**: Files that need each other
-
    - Model + Migration
    - Component + Style
 
@@ -354,7 +351,7 @@ git log --oneline -n 10 --graph
 # Note: No automatic push
 echo "📝 Note: Automatic push not performed"
 echo "If needed, push with the following command:"
-echo "  git push origin $CURRENT_BRANCH"
+echo "  git push origin HEAD:tmp"
 ```
 
 #### Split Algorithm Details
@@ -541,28 +538,22 @@ Example of project-specific types:
 ```javascript
 // commitlint.config.mjs
 export default {
-  extends: ["@commitlint/config-conventional"],
+  extends: ['@commitlint/config-conventional'],
   rules: {
-    "type-enum": [
+    'type-enum': [
       2,
-      "always",
+      'always',
       [
-        "feat",
-        "fix",
-        "docs",
-        "style",
-        "refactor",
-        "test",
-        "chore",
-        "wip", // Work in progress
-        "hotfix", // Emergency fix
-        "release", // Release
-        "deps", // Dependency update
-        "config", // Configuration change
-      ],
-    ],
-  },
-};
+        'feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore',
+        'wip',      // Work in progress
+        'hotfix',   // Emergency fix
+        'release',  // Release
+        'deps',     // Dependency update
+        'config'    // Configuration change
+      ]
+    ]
+  }
+}
 ```
 
 ##### 3. Detecting Language Settings
@@ -571,10 +562,10 @@ export default {
 // When project uses Japanese messages
 export default {
   rules: {
-    "subject-case": [0], // Disable for Japanese support
-    "subject-max-length": [2, "always", 72], // Adjust character limit for Japanese
-  },
-};
+    'subject-case': [0],  // Disable for Japanese support
+    'subject-max-length': [2, 'always', 72]  // Adjust character limit for Japanese
+  }
+}
 ```
 
 #### Automatic Analysis Flow
@@ -722,7 +713,6 @@ We check for config files in this order:
    ```
 
 2. **Parse configuration content**
-
    - Extract list of available types
    - Check for scope restrictions
    - Get message length limits
@@ -742,61 +732,59 @@ We check for config files in this order:
 
 ```javascript
 export default {
-  extends: ["@commitlint/config-conventional"],
+  extends: ['@commitlint/config-conventional'],
   rules: {
-    "type-enum": [
+    'type-enum': [
       2,
-      "always",
-      ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore"],
+      'always',
+      ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'chore']
     ],
-    "scope-enum": [2, "always", ["api", "ui", "core", "auth", "db"]],
-  },
-};
+    'scope-enum': [
+      2,
+      'always',
+      ['api', 'ui', 'core', 'auth', 'db']
+    ]
+  }
+}
 ```
 
 **Japanese-compatible configuration**:
 
 ```javascript
 export default {
-  extends: ["@commitlint/config-conventional"],
+  extends: ['@commitlint/config-conventional'],
   rules: {
-    "subject-case": [0], // Disable for Japanese
-    "subject-max-length": [2, "always", 72],
-    "type-enum": [
+    'subject-case': [0],  // Disable for Japanese
+    'subject-max-length': [2, 'always', 72],
+    'type-enum': [
       2,
-      "always",
-      ["feat", "fix", "docs", "style", "refactor", "test", "chore"],
-    ],
-  },
-};
+      'always',
+      ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore']
+    ]
+  }
+}
 ```
 
 **Configuration with custom types**:
 
 ```javascript
 export default {
-  extends: ["@commitlint/config-conventional"],
+  extends: ['@commitlint/config-conventional'],
   rules: {
-    "type-enum": [
+    'type-enum': [
       2,
-      "always",
+      'always',
       [
-        "feat",
-        "fix",
-        "docs",
-        "style",
-        "refactor",
-        "test",
-        "chore",
-        "wip", // Work in Progress
-        "hotfix", // Emergency fix
-        "release", // Release preparation
-        "deps", // Dependency update
-        "config", // Configuration change
-      ],
-    ],
-  },
-};
+        'feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore',
+        'wip',      // Work in Progress
+        'hotfix',   // Emergency fix
+        'release',  // Release preparation
+        'deps',     // Dependency update
+        'config'    // Configuration change
+      ]
+    ]
+  }
+}
 ```
 
 #### Fallback Behavior
@@ -839,19 +827,16 @@ If no configuration file is found:
 When making commit messages, we follow this order:
 
 1. **CommitLint settings** (highest priority)
-
    - Settings in `commitlint.config.*` files
    - Custom types and scope restrictions
    - Message length and case restrictions
 
 2. **Existing commit history** (second priority)
-
    - Statistics of actually used types
    - Message language (Japanese/English)
    - Scope usage patterns
 
 3. **Project type** (third priority)
-
    - `package.json` → Node.js project
    - `Cargo.toml` → Rust project
    - `pom.xml` → Java project
@@ -1117,13 +1102,13 @@ Reason: Common dependency updates committed together at the end
 
 ### Comparison of Splitting Effects
 
-| Item                     | Before (Massive Commit)                   | After (Proper Splitting)                             |
-| ------------------------ | ----------------------------------------- | ---------------------------------------------------- |
-| **Reviewability**        | ❌ Very difficult                         | ✅ Each commit is small and reviewable               |
-| **Bug Tracking**         | ❌ Difficult to identify problem location | ✅ Problematic commits can be immediately identified |
-| **Reverting**            | ❌ Need to revert everything              | ✅ Can pinpoint and revert only problematic parts    |
-| **Parallel Development** | ❌ Conflict-prone                         | ✅ Feature-based merging is easy                     |
-| **Deployment**           | ❌ All features deployed at once          | ✅ Staged deployment possible                        |
+| Item | Before (Massive Commit) | After (Proper Splitting) |
+|------|---------------------|-------------------|
+| **Reviewability** | ❌ Very difficult | ✅ Each commit is small and reviewable |
+| **Bug Tracking** | ❌ Difficult to identify problem location | ✅ Problematic commits can be immediately identified |
+| **Reverting** | ❌ Need to revert everything | ✅ Can pinpoint and revert only problematic parts |
+| **Parallel Development** | ❌ Conflict-prone | ✅ Feature-based merging is easy |
+| **Deployment** | ❌ All features deployed at once | ✅ Staged deployment possible |
 
 ### Troubleshooting
 

@@ -1,0 +1,294 @@
+---
+description: "Knowledge Work Plugins index. Lists all KWP skills and commands converted from Anthropic knowledge-work-plugins."
+alwaysApply: false
+---
+
+# Knowledge Work Plugins Index
+
+Converted from [anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins).
+Skills are in `.cursor/skills/kwp-*/SKILL.md`. Commands are in `.cursor/commands/kwp-*.md`.
+
+## Bio Research
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-bio-research-instrument-data-to-allotrope`: Instrument Data To Allotrope
+- `kwp-bio-research-nextflow-development`: Nextflow Development
+- `kwp-bio-research-scientific-problem-selection`: Scientific Problem Selection
+- `kwp-bio-research-scvi-tools`: Scvi Tools
+- `kwp-bio-research-single-cell-rna-qc`: Single Cell Rna Qc
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-bio-research-start`: Start
+
+## Customer Support
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-customer-support-customer-research`: Customer Research
+- `kwp-customer-support-escalation`: Escalation
+- `kwp-customer-support-knowledge-management`: Knowledge Management
+- `kwp-customer-support-response-drafting`: Response Drafting
+- `kwp-customer-support-ticket-triage`: Ticket Triage
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-customer-support-draft-response`: Draft Response
+- `/kwp-customer-support-escalate`: Escalate
+- `/kwp-customer-support-kb-article`: Kb Article
+- `/kwp-customer-support-research`: Research
+- `/kwp-customer-support-triage`: Triage
+
+## Data
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-data-data-context-extractor`: Data Context Extractor
+- `kwp-data-data-exploration`: Data Exploration
+- `kwp-data-data-validation`: Data Validation
+- `kwp-data-data-visualization`: Data Visualization
+- `kwp-data-interactive-dashboard-builder`: Interactive Dashboard Builder
+- `kwp-data-sql-queries`: Sql Queries
+- `kwp-data-statistical-analysis`: Statistical Analysis
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-data-analyze`: Analyze
+- `/kwp-data-build-dashboard`: Build Dashboard
+- `/kwp-data-create-viz`: Create Viz
+- `/kwp-data-explore-data`: Explore Data
+- `/kwp-data-validate`: Validate
+- `/kwp-data-write-query`: Write Query
+
+## Design
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-design-accessibility-review`: Accessibility Review
+- `kwp-design-design-critique`: Design Critique
+- `kwp-design-design-handoff`: Design Handoff
+- `kwp-design-design-system-management`: Design System Management
+- `kwp-design-system`: System
+- `kwp-design-user-research`: User Research
+- `kwp-design-ux-writing`: Ux Writing
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-design-accessibility`: Accessibility
+- `/kwp-design-critique`: Critique
+- `/kwp-design-design-system`: Design System
+- `/kwp-design-handoff`: Handoff
+- `/kwp-design-research-synthesis`: Research Synthesis
+- `/kwp-design-ux-copy`: Ux Copy
+
+## Engineering
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-engineering-code-review`: Code Review
+- `kwp-engineering-documentation`: Documentation
+- `kwp-engineering-incident-response`: Incident Response
+- `kwp-engineering-system-design`: System Design
+- `kwp-engineering-tech-debt`: Tech Debt
+- `kwp-engineering-testing-strategy`: Testing Strategy
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-engineering-architecture`: Architecture
+- `/kwp-engineering-debug`: Debug
+- `/kwp-engineering-deploy-checklist`: Deploy Checklist
+- `/kwp-engineering-incident`: Incident
+- `/kwp-engineering-review`: Review
+- `/kwp-engineering-standup`: Standup
+
+## Enterprise Search
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-enterprise-search-knowledge-synthesis`: Knowledge Synthesis
+- `kwp-enterprise-search-search-strategy`: Search Strategy
+- `kwp-enterprise-search-source-management`: Source Management
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-enterprise-search-digest`: Digest
+- `/kwp-enterprise-search-search`: Search
+
+## Finance
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-finance-audit-support`: Audit Support
+- `kwp-finance-close-management`: Close Management
+- `kwp-finance-financial-statements`: Financial Statements
+- `kwp-finance-journal-entry-prep`: Journal Entry Prep
+- `kwp-finance-reconciliation`: Reconciliation
+- `kwp-finance-variance-analysis`: Variance Analysis
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-finance-income-statement`: Income Statement
+- `/kwp-finance-journal-entry`: Journal Entry
+- `/kwp-finance-reconciliation`: Reconciliation
+- `/kwp-finance-sox-testing`: Sox Testing
+- `/kwp-finance-variance-analysis`: Variance Analysis
+
+## Human Resources
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-human-resources-compensation-benchmarking`: Compensation Benchmarking
+- `kwp-human-resources-employee-handbook`: Employee Handbook
+- `kwp-human-resources-interview-prep`: Interview Prep
+- `kwp-human-resources-org-planning`: Org Planning
+- `kwp-human-resources-people-analytics`: People Analytics
+- `kwp-human-resources-recruiting-pipeline`: Recruiting Pipeline
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-human-resources-comp-analysis`: Comp Analysis
+- `/kwp-human-resources-draft-offer`: Draft Offer
+- `/kwp-human-resources-onboarding`: Onboarding
+- `/kwp-human-resources-people-report`: People Report
+- `/kwp-human-resources-performance-review`: Performance Review
+- `/kwp-human-resources-policy-lookup`: Policy Lookup
+
+## Legal
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-legal-canned-responses`: Canned Responses
+- `kwp-legal-compliance`: Compliance
+- `kwp-legal-contract-review`: Contract Review
+- `kwp-legal-legal-risk-assessment`: Legal Risk Assessment
+- `kwp-legal-meeting-briefing`: Meeting Briefing
+- `kwp-legal-nda-triage`: Nda Triage
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-legal-brief`: Brief
+- `/kwp-legal-compliance-check`: Compliance Check
+- `/kwp-legal-respond`: Respond
+- `/kwp-legal-review-contract`: Review Contract
+- `/kwp-legal-signature-request`: Signature Request
+- `/kwp-legal-triage-nda`: Triage Nda
+- `/kwp-legal-vendor-check`: Vendor Check
+
+## Marketing
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-marketing-brand-voice`: Brand Voice
+- `kwp-marketing-campaign-planning`: Campaign Planning
+- `kwp-marketing-competitive-analysis`: Competitive Analysis
+- `kwp-marketing-content-creation`: Content Creation
+- `kwp-marketing-performance-analytics`: Performance Analytics
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-marketing-brand-review`: Brand Review
+- `/kwp-marketing-campaign-plan`: Campaign Plan
+- `/kwp-marketing-competitive-brief`: Competitive Brief
+- `/kwp-marketing-draft-content`: Draft Content
+- `/kwp-marketing-email-sequence`: Email Sequence
+- `/kwp-marketing-performance-report`: Performance Report
+- `/kwp-marketing-seo-audit`: Seo Audit
+
+## Operations
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-operations-change-management`: Change Management
+- `kwp-operations-compliance-tracking`: Compliance Tracking
+- `kwp-operations-process-optimization`: Process Optimization
+- `kwp-operations-resource-planning`: Resource Planning
+- `kwp-operations-risk-assessment`: Risk Assessment
+- `kwp-operations-vendor-management`: Vendor Management
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-operations-capacity-plan`: Capacity Plan
+- `/kwp-operations-change-request`: Change Request
+- `/kwp-operations-process-doc`: Process Doc
+- `/kwp-operations-runbook`: Runbook
+- `/kwp-operations-status-report`: Status Report
+- `/kwp-operations-vendor-review`: Vendor Review
+
+## Product Management
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-product-management-competitive-analysis`: Competitive Analysis
+- `kwp-product-management-feature-spec`: Feature Spec
+- `kwp-product-management-metrics-tracking`: Metrics Tracking
+- `kwp-product-management-roadmap-management`: Roadmap Management
+- `kwp-product-management-stakeholder-comms`: Stakeholder Comms
+- `kwp-product-management-user-research-synthesis`: User Research Synthesis
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-product-management-competitive-brief`: Competitive Brief
+- `/kwp-product-management-metrics-review`: Metrics Review
+- `/kwp-product-management-roadmap-update`: Roadmap Update
+- `/kwp-product-management-sprint-planning`: Sprint Planning
+- `/kwp-product-management-stakeholder-update`: Stakeholder Update
+- `/kwp-product-management-synthesize-research`: Synthesize Research
+- `/kwp-product-management-write-spec`: Write Spec
+
+## Productivity
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-productivity-memory-management`: Memory Management
+- `kwp-productivity-task-management`: Task Management
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-productivity-start`: Start
+- `/kwp-productivity-update`: Update
+
+## Sales
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-sales-account-research`: Account Research
+- `kwp-sales-call-prep`: Call Prep
+- `kwp-sales-competitive-intelligence`: Competitive Intelligence
+- `kwp-sales-create-an-asset`: Create An Asset
+- `kwp-sales-daily-briefing`: Daily Briefing
+- `kwp-sales-draft-outreach`: Draft Outreach
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-sales-call-summary`: Call Summary
+- `/kwp-sales-forecast`: Forecast
+- `/kwp-sales-pipeline-review`: Pipeline Review
+
+## Apollo (Partner-Built)
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-apollo-enrich-lead`: Enrich Lead
+- `kwp-apollo-prospect`: Prospect
+- `kwp-apollo-sequence-load`: Sequence Load
+
+## Brand Voice (Partner-Built)
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-brand-voice-brand-voice-enforcement`: Brand Voice Enforcement
+- `kwp-brand-voice-discover-brand`: Discover Brand
+- `kwp-brand-voice-guideline-generation`: Guideline Generation
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-brand-voice-discover-brand`: Discover Brand
+- `/kwp-brand-voice-enforce-voice`: Enforce Voice
+- `/kwp-brand-voice-generate-guidelines`: Generate Guidelines
+
+## Common Room (Partner-Built)
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-common-room-account-research`: Account Research
+- `kwp-common-room-call-prep`: Call Prep
+- `kwp-common-room-compose-outreach`: Compose Outreach
+- `kwp-common-room-contact-research`: Contact Research
+- `kwp-common-room-prospect`: Prospect
+- `kwp-common-room-weekly-prep-brief`: Weekly Prep Brief
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-common-room-generate-account-plan`: Generate Account Plan
+- `/kwp-common-room-weekly-brief`: Weekly Brief
+
+## Slack (Partner-Built)
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-slack-slack-messaging`: Slack Messaging
+- `kwp-slack-slack-search`: Slack Search
+
+**Commands** (`.cursor/commands/kwp-name.md`):
+- `/kwp-slack-channel-digest`: Channel Digest
+- `/kwp-slack-draft-announcement`: Draft Announcement
+- `/kwp-slack-find-discussions`: Find Discussions
+- `/kwp-slack-standup`: Standup
+- `/kwp-slack-summarize-channel`: Summarize Channel
+
+## Cowork Plugin Management
+
+**Skills** (`.cursor/skills/kwp-name/SKILL.md`):
+- `kwp-cowork-plugin-customizer`: Plugin Customizer
+- `kwp-cowork-create-plugin`: Create Plugin
+
+---
+
+**Total: 92 skills, 79 commands across 19 domains**

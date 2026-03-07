@@ -18,14 +18,12 @@ Verifies if a statement is true by checking your project's code and documentatio
 ### How It Works
 
 1. **Where I Look (in order)**
-
    - The actual code (most trustworthy)
    - README.md and docs/ folder
    - Config files (package.json, pubspec.yaml, etc.)
    - Issues and PR discussions
 
 2. **What You'll See**
-
    - `✅ Correct` - Statement matches the code exactly
    - `❌ Incorrect` - Statement is wrong
    - `⚠️ Partially correct` - Some parts are right, some aren't

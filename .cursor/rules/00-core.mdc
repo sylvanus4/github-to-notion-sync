@@ -1,0 +1,13 @@
+---
+description: "Minimal core principles applied to every AI interaction"
+alwaysApply: true
+---
+
+# Core Principles
+
+- Prefer existing patterns — no new frameworks or styles without explicit approval
+- Minimize change surface — touch only what is necessary
+- When uncertain, state assumptions explicitly and ask before proceeding
+- No secrets, PII, or credentials in code or commits
+- For non-trivial changes, pause and consider a more elegant approach; skip for obvious fixes
+- Report format: summary + files changed + commands run + results

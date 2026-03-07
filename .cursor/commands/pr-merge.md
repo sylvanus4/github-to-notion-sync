@@ -33,7 +33,6 @@ gh pr view --json isDraft,mergeable,reviewDecision
 ### Pre-merge Verification Checklist
 
 #### 1. CI Status Check
-
 ```bash
 # Verify all CI checks pass
 gh pr checks --required
@@ -41,7 +40,6 @@ gh pr checks --required
 ```
 
 #### 2. Review Status Check
-
 ```bash
 # Check approval status
 gh pr view --json reviewDecision,reviews
@@ -49,7 +47,6 @@ gh pr view --json reviewDecision,reviews
 ```
 
 #### 3. Branch Status Check
-
 ```bash
 # Check merge conflicts
 gh pr view --json mergeable,mergeableState
@@ -57,7 +54,6 @@ gh pr view --json mergeable,mergeableState
 ```
 
 #### 4. Draft Status Check
-
 ```bash
 # Ensure PR is not in draft
 gh pr view --json isDraft
@@ -67,7 +63,6 @@ gh pr view --json isDraft
 ### Merge Strategies
 
 #### Default: Squash and Merge
-
 ```bash
 # Squash merge (recommended for feature branches)
 gh pr merge --squash --delete-branch
@@ -75,7 +70,6 @@ gh pr merge --squash --delete-branch
 ```
 
 #### Alternative: Merge Commit
-
 ```bash
 # Create merge commit (for release branches)
 gh pr merge --merge --delete-branch
@@ -83,7 +77,6 @@ gh pr merge --merge --delete-branch
 ```
 
 #### Alternative: Rebase and Merge
-
 ```bash
 # Rebase merge (for linear history)
 gh pr merge --rebase --delete-branch
@@ -93,7 +86,6 @@ gh pr merge --rebase --delete-branch
 ### Safety Mechanisms
 
 #### 1. Required Conditions
-
 - ✅ All required CI checks must pass
 - ✅ At least one approval from code owner
 - ✅ No pending change requests
@@ -102,14 +94,12 @@ gh pr merge --rebase --delete-branch
 - ✅ Branch protection rules satisfied
 
 #### 2. Optional Quality Gates
-
 - ⚠️ Code coverage threshold met
 - ⚠️ Security scan passed
 - ⚠️ Performance benchmarks acceptable
 - ⚠️ Documentation updated
 
 #### 3. Emergency Bypass (Admin Only)
-
 ```bash
 # Force merge with admin privileges (use with caution)
 /pr-merge --force --admin
@@ -124,7 +114,7 @@ gh pr merge --rebase --delete-branch
 # 1. Detect current PR
 detect_current_pr() {
   local current_branch=$(git branch --show-current)
-  gh pr list --head $current_branch --json number --jq '.[0].number'
+  gh pr list --head tmp --json number --jq '.[0].number'
 }
 
 # 2. Comprehensive verification
@@ -234,7 +224,6 @@ main() {
 ### Common Use Cases
 
 #### 1. Feature Branch Completion
-
 ```bash
 # After development completion
 /pr-merge --strategy squash
@@ -242,7 +231,6 @@ main() {
 ```
 
 #### 2. Hotfix Deployment
-
 ```bash
 # Emergency fix that needs immediate merge
 /pr-merge --strategy merge
@@ -250,7 +238,6 @@ main() {
 ```
 
 #### 3. Release Branch Integration
-
 ```bash
 # Merge release branch with full history
 /pr-merge --strategy merge --no-delete-branch
@@ -260,7 +247,6 @@ main() {
 ### Troubleshooting
 
 #### Common Issues
-
 1. **PR not approved**: Request review from code owners
 2. **CI checks failing**: Use `/pr-feedback` to analyze and fix
 3. **Merge conflicts**: Resolve conflicts and update branch
@@ -268,7 +254,6 @@ main() {
 5. **Missing branch protection**: Contact repository admin
 
 #### Error Recovery
-
 ```bash
 # If merge fails, analyze the issue
 gh pr view $PR_NUMBER --json mergeableState,statusCheckRollup

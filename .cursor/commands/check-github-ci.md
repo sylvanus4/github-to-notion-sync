@@ -25,7 +25,7 @@ gh pr checks
 "Analyze CI check results and suggest fixes if there are failures"
 
 # Recheck after correction
-git push origin feature-branch
+git push origin HEAD:tmp
 gh pr checks
 "Check CI results after correction to confirm no issues"
 ```

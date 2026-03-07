@@ -1,0 +1,51 @@
+# Markdown → Notion 동기화 매핑
+#
+# file 경로는 이 yaml 파일 기준 상대경로
+#
+# databases: DB 소속 문서 (Sync ID로 검색, 없으면 새로 생성)
+#   - database_id: Notion DB ID
+#     pages:
+#       - file, title, Sync ID, Parent
+#
+# pages: 독립 페이지 (page_id로 직접 콘텐츠 동기화)
+#   - file, page_id
+#
+# Sync ID 접두사: spec 문서는 spec-, guide 문서는 guide-
+# Parent: 상위 문서의 Sync ID (빈 값이면 최상위)
+
+databases:
+  - database_id: "2ff9eddc34e680fe9247c9ab5d77d127"
+    pages:
+      # ── Guide ──
+      - file: guide/skills-index.md
+        title: "Cursor 스킬 가이드"
+        Sync ID: guide-skills-index
+        Parent: ""
+        담당자: ""
+        APP: "AI Platform"
+        문서 상태: "작업중"
+        세부 분류: "가이드"
+      - file: guide/fsd-development.md
+        title: "FSD 개발 가이드"
+        Sync ID: guide-fsd-development
+        Parent: guide-skills-index
+        담당자: ""
+        APP: "AI Platform"
+        문서 상태: "작업중"
+        세부 분류: "가이드"
+      - file: guide/github-workflow.md
+        title: "GitHub 워크플로우 가이드"
+        Sync ID: guide-github-workflow
+        Parent: guide-skills-index
+        담당자: ""
+        APP: "AI Platform"
+        문서 상태: "작업중"
+        세부 분류: "가이드"
+      - file: guide/notion-docs-sync.md
+        title: "Notion 동기화 가이드"
+        Sync ID: guide-notion-docs-sync
+        Parent: guide-skills-index
+        담당자: "박윤재"
+        APP: "AI Platform"
+        문서 상태: "작업중"
+        세부 분류: "가이드"

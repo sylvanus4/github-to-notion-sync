@@ -1,0 +1,81 @@
+---
+description: "Agent-friendly code structure: feature-based directories, naming conventions, context isolation, tool guardrails"
+alwaysApply: false
+---
+
+# Context Architecture
+
+Code structure IS context. A well-organized codebase gives agents the right context automatically. A poorly organized one requires constant manual explanation.
+
+## Feature-Based Directory Structure
+
+Group files by feature (domain), not by technical role:
+
+```
+Features/
+  Plan/
+    PlanListView
+    PlanListViewModel
+    PlanModel
+  Settings/
+    SettingsView
+    SettingsViewModel
+    SettingsModel
+Shared/
+  Components/
+  Models/
+  Utils/
+```
+
+When an agent is told "modify Settings," the directory structure itself defines the scope. No additional instruction needed.
+
+## Naming Convention
+
+Use `{Feature}{Role}` pattern for all files:
+
+- `PlanListView`, `PlanListViewModel`, `PlanModel`
+- `SettingsView`, `SettingsViewModel`
+- `AuthService`, `AuthMiddleware`, `AuthConfig`
+
+File names should answer "what does this file do and where does it belong?" without opening it.
+
+## Agent-Friendly Code Principles
+
+Code that agents read well is code that humans read well:
+
+- **Explicit over implicit** — clear function names, typed parameters, no magic strings or numbers
+- **Small, single-purpose functions** — each function does one thing; agents reason better about focused units
+- **Consistent patterns** — same problem, same solution, everywhere. Agents learn from repetition in the codebase.
+- **Types as documentation** — strong type definitions reduce ambiguity more than comments
+
+## Tool-Level Guardrails
+
+Protect against agent mistakes at the infrastructure level:
+
+- **Idempotent scripts** — running a setup/deploy script twice should produce the same result
+- **Port collision prevention** — check if a port is in use before binding
+- **Process manager pidfiles** — prevent duplicate server launches
+- **Pre-commit hooks** — catch lint/format issues before they're committed
+
+Agents will make the same mistakes repeatedly. Guardrails at the tool level are more reliable than instructions in prompts.
+
+## AGENTS.md / CLAUDE.md Scope
+
+Keep agent instruction files focused on what code alone cannot convey:
+
+- **ADR (Architecture Decision Records)** — why, not what
+- **Coding conventions** — patterns that aren't enforceable by linters
+- **Domain glossary** — business terms and their precise meanings
+
+Let code speak for everything else. Over-documenting (150+ instructions) causes instruction-following rates to drop. If you need task-specific instructions, put them in separate files and reference them per-task.
+
+## Context Isolation for Parallel Agents
+
+When running multiple agents simultaneously:
+
+- Each agent should work in a **bounded context** — one feature, one module, one layer
+- Minimize shared state between parallel agent tasks
+- Assign shared resources (shared models, utils) to exactly one agent; others treat them as read-only
+- Use `git worktree` for physical isolation when possible
+
+Context boundaries reduce merge conflicts and prevent agents from inadvertently overwriting each other's work.

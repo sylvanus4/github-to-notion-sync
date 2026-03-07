@@ -1,0 +1,60 @@
+---
+description: "Agent work observability: intermediate checkpoints, staged commits, blueprint-based deviation detection, PR sizing"
+alwaysApply: true
+---
+
+# Observability
+
+Observability is the ability to know what an agent is doing, whether it's on track, and when to intervene. Higher observability enables higher delegation.
+
+## Blueprint Mental Model
+
+Before starting any non-trivial task, sketch a mental blueprint:
+
+- Which files will change?
+- What structure or behavior will emerge?
+- What should NOT change?
+
+This blueprint is the deviation detector. When agent work diverges from the blueprint (touching unexpected files, introducing unplanned dependencies, scope creep), that's the signal to pause and verify.
+
+A blueprint doesn't need to be perfect — it needs to be specific enough that "this is different from what I expected" is recognizable.
+
+## Intermediate Checkpoint Protocol
+
+For tasks touching >5 files or estimated to take >30 minutes:
+
+- **Commit or report progress** after every 3-5 files modified
+- Each checkpoint includes: what changed, what's next, any deviations from blueprint
+- Staged commits with descriptive messages serve as both checkpoints and rollback points
+
+Format: `"[<type>] {Feature} - {scope}"` per commit. Never batch 20 files into a single commit.
+
+## "Stop if Suspicious" Rule
+
+If agent behavior deviates from the expected blueprint:
+
+- Touching files outside the expected scope
+- Modifying shared interfaces or API contracts without explicit instruction
+- Introducing new dependencies not discussed in the plan
+- Creating significantly more or fewer files than expected
+
+**PAUSE and verify** before continuing. The cost of checking is minutes; the cost of not checking can be hours of rollback.
+
+The article's lesson: "I noticed something was off around file 4-5 but let it continue. By the time I checked, 20+ files were tangled and I had no rollback point."
+
+## PR Size Heuristic
+
+- If reviewing a PR takes >10 minutes, it's too large
+- Target: 3-5 file changes per reviewable unit
+- If a task produces more, split into sequential PRs with clear dependency order
+
+## Staged Commit Strategy
+
+Always maintain rollback points:
+
+1. Complete a logical unit of work (one component, one endpoint, one test suite)
+2. Commit with a clear message describing what this unit achieves
+3. Move to the next unit
+4. If the next unit breaks something, you can revert to the last clean commit
+
+For agent-delegated work, instruct: "commit after completing each {component/endpoint/screen}."

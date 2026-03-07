@@ -42,7 +42,7 @@ Automatically detects the corresponding PR from the current branch:
 
 ```bash
 # Search PR from branch
-gh pr list --head $(git branch --show-current) --json number,title,url
+gh pr list --head tmp --json number,title,url
 ```
 
 ### 2. Change Analysis
@@ -154,7 +154,7 @@ detect_pr() {
   if [ -n "$PR_NUMBER" ]; then
     echo $PR_NUMBER
   else
-    gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'
+    gh pr list --head tmp --json number --jq '.[0].number'
   fi
 }
 
@@ -408,25 +408,21 @@ Improved GitHub Actions workflow. Achieves {effect}.
 ## Important Notes
 
 1. **Complete Preservation of Existing Content**:
-
    - Do not change even a single character of already written content
    - Only complete empty comment sections and placeholders
    - Respect content intentionally written by users
 
 2. **Template Priority**:
-
    - Existing PR description > `.github/PULL_REQUEST_TEMPLATE.md` > Default
    - Completely follow project-specific template structure
 
 3. **Label Constraints**:
-
    - Use `.github/labels.yml` preferentially if it exists
    - Get existing labels from GitHub API if it doesn't exist
    - Creating new labels is prohibited
    - Maximum 3 labels auto-selected
 
 4. **Safe Updates**:
-
    - Recommend pre-confirmation with `--dry-run`
    - Show warning for changes containing sensitive information
    - Save original description as backup

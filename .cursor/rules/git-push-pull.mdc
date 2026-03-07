@@ -1,0 +1,38 @@
+---
+title: Git Push/Pull Convention
+description: In ai-platform-webui, all git push/pull must target the remote `tmp` branch. Always enforced.
+alwaysApply: true
+---
+
+# Git Push/Pull via `tmp` Branch
+
+In the `ai-platform-webui` repository, **never push directly to a remote branch matching the local branch name**. Always push to and pull from the remote `tmp` branch.
+
+## Required Commands
+
+```bash
+git push origin HEAD:tmp       # push current local branch -> remote tmp
+git pull origin tmp            # pull from remote tmp
+```
+
+## Forbidden Patterns
+
+```bash
+git push -u origin HEAD                        # WRONG
+git push origin $(git branch --show-current)   # WRONG
+git push -u origin issue/123-feature           # WRONG
+git pull origin dev                            # WRONG (for syncing work)
+```
+
+## PR Creation
+
+When creating PRs with `gh pr create`, set `--head tmp` since the code lives on the remote `tmp` branch:
+
+```bash
+gh pr create --head tmp --base dev ...
+```
+
+## Scope
+
+- This rule applies **only to ai-platform-webui**
+- Other repositories synced via `/cursor-sync` use standard push/pull conventions

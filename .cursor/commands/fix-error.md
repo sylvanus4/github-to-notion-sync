@@ -108,13 +108,11 @@ grep -E "ERROR|WARN" app.log | tail -20
 #### Phase 2: Root Cause Analysis
 
 1. **Identify symptoms**
-
    - Exact error message
    - When and how it happens
    - What's affected
 
 2. **Find root causes**
-
    - Use 5 Whys analysis
    - Check dependencies
    - Compare environments

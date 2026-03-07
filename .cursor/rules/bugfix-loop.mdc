@@ -1,0 +1,57 @@
+---
+description: "Bug-fixing workflow: reproduce, isolate, fix with guardrails, log failures"
+alwaysApply: true
+---
+
+# Bugfix Loop
+
+## Core Loop
+
+1. **Reproduce first** — identify the failing test or add a minimal regression test
+2. **Smallest fix** — make the smallest change that addresses the root cause
+3. **Re-run** — run the relevant test suite
+4. **If still failing** — state your hypothesis, then try the next smallest change
+5. **Stop condition** — all tests pass AND no new failures are introduced
+
+Do not apply large refactors during a bugfix. Fix the bug, then refactor separately.
+
+## 30-Minute Rule
+
+If no meaningful progress after 30 minutes of iteration, STOP. The current approach is likely wrong. Step back and:
+
+1. Re-classify the failure (Type 1/2/3 per `critical-thinking.mdc`)
+2. Try a fundamentally different approach — not a variation of the same one
+3. Consider whether the task needs further decomposition
+
+## Isolation-First Strategy
+
+When fix A breaks B and fix B breaks A (circular breakage / A-B loop):
+
+1. **Stop the loop** — do not attempt another iteration of the same pattern
+2. **Isolate** — extract each conflicting function into an independent unit test
+3. **Test in isolation** — verify each function's behavior independently, without integration context
+4. **Identify the semantic conflict** — often the same parameter or concept means different things in different contexts (e.g., `includeToday=true` meaning "fetch" in one place and "delete" in another)
+5. **Build a new independent path** — instead of patching the existing tangle, create clean implementations with unambiguous semantics
+
+## "Must NOT Have" Guardrails for Fixes
+
+Before starting a fix, explicitly declare boundaries:
+
+- **Files that must NOT be modified** (e.g., shared interfaces, API contracts)
+- **Tests that must NOT be changed** (existing passing tests prove correct behavior)
+- **Behaviors that must NOT regress** (list specific user-facing behaviors to preserve)
+
+These guardrails prevent the fix from cascading into unrelated code.
+
+## Failure Log
+
+After resolving a non-trivial bug, append a brief entry to `KNOWN_ISSUES.md`:
+
+```
+### <Short title>
+- **Symptom**: What went wrong
+- **Root cause**: Why it happened (Type 1/2/3)
+- **Fix pattern**: What worked and why
+```
+
+This prevents the same class of bug from wasting time again. If the same failure pattern appears 3+ times, it signals a structural issue worth addressing.

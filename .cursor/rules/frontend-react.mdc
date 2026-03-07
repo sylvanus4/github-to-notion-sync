@@ -1,0 +1,46 @@
+---
+description: "Frontend project conventions: directory structure, tech stack, deprecated paths"
+globs:
+  - "frontend/**"
+alwaysApply: false
+---
+
+# Frontend Conventions
+
+## Directory
+
+Primary: `frontend/` — the ONLY active frontend directory.
+
+```
+frontend/src/
+  components/   # Reusable UI components (@/components/ui)
+  features/     # Feature modules (auth, call, chatbot, dashboard, inbox, knowledge, quality, summary, admin)
+  hooks/        # Custom React hooks
+  stores/       # Zustand state management
+  config/       # Configuration
+  i18n/         # Internationalization (en, ko, ja, zh-CN)
+  lib/          # Utilities (api.ts for Axios client)
+frontend/e2e/   # Playwright E2E tests
+```
+
+## Deprecated — NEVER Reference
+
+- `apps/web/` — legacy, ignore entirely
+- `packages/` — legacy, ignore entirely
+
+## Tech Stack
+
+- React 18, TypeScript, Vite 6
+- Tailwind CSS, custom components in `@/components/ui`
+- Zustand (stores), TanStack Query (data fetching), react-i18next
+- Routes defined in `src/App.tsx` (React Router)
+
+## Dev Commands
+
+```bash
+cd frontend && pnpm install && pnpm dev   # http://localhost:5173
+pnpm build
+pnpm test:e2e
+```
+
+Backend APIs are proxied through Vite config. Auth handled by `services/admin/`.

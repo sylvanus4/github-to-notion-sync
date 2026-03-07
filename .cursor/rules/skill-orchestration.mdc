@@ -1,0 +1,128 @@
+---
+description: "Skill registry (58 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+alwaysApply: false
+---
+
+# Skill Orchestration
+
+## Superpowers Integration
+
+Superpowers handles **process orchestration** (brainstorming → plan → execute → verify → finish). This rule handles **domain-specific skill selection** — which project skill to delegate to for a given domain (backend, frontend, DB, security, etc.).
+
+When both apply, Superpowers process skills run first, then delegate domain work to project skills listed below.
+
+## Subagent Strategy
+
+- Use subagents to keep main context window clean
+- Offload research, exploration, and parallel analysis to subagents
+- One task per subagent for focused execution
+- Max 4 concurrent subagents
+
+## Skill Registry (58 project skills)
+
+**Git & shipping** (commit, push, PR, release):
+- `domain-commit` — Domain-split git commits
+- `release-ship` — Commit + push + PR (lightweight, no review)
+- `ship` — 4-agent review + auto-fix + commit + PR
+- `release-commander` — 10-skill full release pipeline
+- `commit-to-issue` — Create GitHub issues from commits with project field setup
+- `github-workflow-automation` — End-to-end GitHub flow (issue → branch → commit → push → PR)
+
+**Execution skills** (modify code/state):
+- `local-dev-runner` — Start/stop dev stack
+- `e2e-testing` — Playwright E2E tests
+- `ci-quality-gate` — Local CI pipeline (secret scan, lint, test, build)
+- `service-health-doctor` — Diagnose and recover services
+- `dependency-auditor` — Audit and update dependencies
+- `i18n-sync` — Translation key synchronization
+- `fsd-development` — FSD architecture domain creation and legacy migration
+- `overlay-layout-patterns` — useOverlay hook-based modal/drawer patterns
+- `notion-docs-sync` — Sync markdown docs to Notion
+- `cursor-sync` — Sync .cursor/ assets across projects
+- `cursor-automations` — Create and manage Cursor cloud automations
+- `slack-agent` — Build and deploy Slack bots via Bolt/Express
+
+**Review & analysis skills** (read-only):
+- `backend-expert` — FastAPI/Pydantic/async review
+- `frontend-expert` — React/Vite/bundle review
+- `db-expert` — Schema/migration/query review
+- `security-expert` — STRIDE/OWASP/secrets/PII
+- `compliance-governance` — Data governance/access control
+- `ux-expert` — UX/accessibility audit
+- `sre-devops-expert` — Infra/CI/CD/Helm review
+- `qa-test-expert` — Test strategy/coverage
+- `pr-review-captain` — PR summary/risk assessment
+- `performance-profiler` — Latency/query/bundle analysis
+- `design-architect` — 4-phase Jobs/Ive design audit
+- `problem-definition` — 5D problem definition framework
+- `codebase-archaeologist` — Git history ownership maps, churn hotspots, bus factor
+- `refactor-simulator` — Blast radius analysis before code changes
+- `skill-optimizer` — Audit, evaluate, benchmark agent skills
+- `evals-skills` — LLM eval pipeline (judge prompts, synthetic data, RAG eval)
+
+**Multi-agent pipeline skills** (parallel review + auto-fix):
+- `deep-review` — 4-agent full-stack code review (frontend, backend, security, tests)
+- `simplify` — 4-agent code review + auto-fix (refactor, quality, tech debt, performance)
+- `diagnose` — 3-agent bug diagnosis (root cause, error context, impact)
+- `test-suite` — Test coverage + quality review + test generation + runner
+- `ui-suite` — UI/UX review + auto-fix (design audit, web standards, UX)
+- `incident-to-improvement` — 7-skill incident response pipeline
+
+**Generation skills** (create artifacts):
+- `technical-writer` — ADR/docs/changelog
+- `visual-explainer` — Interactive HTML diagrams and visual explanations
+- `demo-forge` — Auto-generate interactive product demos from code changes
+- `prompt-architect` — Restructure prompts with 8 research-backed frameworks
+- `prompt-transformer` — Transform rough prompts into professional-grade prompts
+- `onboarding-accelerator` — Generate new developer onboarding kit
+- `docs-tutor-setup` — Transform docs into Obsidian StudyVault
+- `docs-tutor` — Interactive quiz tutor for StudyVault
+
+**Utility skills**:
+- `agent-browser` — Headless browser automation via CLI
+- `defuddle` — Extract clean markdown from web pages
+- `scrapling` — Python web scraping with anti-bot bypass
+- `transcribee` — Transcribe video/audio with speaker diarization
+- `video-compress` — Compress video files via ffmpeg
+- `public-apis` — Search 1,400+ free public APIs
+- `daiso-mcp` — Korean retail store/inventory lookup (Daiso, Olive Young, Megabox)
+- `x-to-slack` — Fetch tweet content and post to Slack
+- `ralph-loop` — Continuous AI agent loop for batch task execution
+
+**Orchestrator**:
+- `mission-control` — Decomposes goals, delegates to skills, aggregates results
+
+## Workflow Commands
+
+| Command | Skills Invoked | Type |
+|---------|---------------|------|
+| `/full-quality-audit` | ci-quality-gate, security-expert, compliance-governance, domain-commit | Parallel then Sequential |
+| `/feature-pipeline` | backend-expert, frontend-expert, qa-test-expert, e2e-testing, pr-review-captain, domain-commit | Sequential with parallel batches |
+| `/release-prep` | pr-review-captain, technical-writer, sre-devops-expert, ci-quality-gate | Parallel then Sequential |
+| `/release-commander` | deep-review, security-expert, test-suite, performance-profiler, i18n-sync, dependency-auditor, technical-writer, domain-commit, pr-review-captain | 10-skill release pipeline |
+| `/release-ship` | domain-commit, release-ship | Commit + Push + PR |
+| `/ship` | deep-review, simplify, domain-commit, ship | Review + Auto-fix + Commit + PR |
+| `/incident-response` | service-health-doctor, backend-expert, db-expert, technical-writer | Sequential (time-critical) |
+| `/incident-to-improvement` | diagnose, domain-commit, qa-test-expert, technical-writer, sre-devops-expert | 7-skill incident pipeline |
+| `/dependency-sweep` | dependency-auditor, ci-quality-gate, domain-commit | Sequential |
+| `/i18n-check` | i18n-sync, domain-commit | Sequential |
+| `/design-audit` | design-architect | Sequential (phased approval) |
+| `/define-problem` | problem-definition | Sequential (Socratic) |
+| `/deep-review` | frontend-expert, backend-expert, security-expert, qa-test-expert | 4-agent parallel review |
+| `/simplify` | simplify | 4-agent review + auto-fix |
+| `/diagnose` | diagnose | 3-agent bug diagnosis |
+| `/test-suite` | test-suite | Review + Generate + Run |
+| `/ui-suite` | ui-suite | UI/UX review + auto-fix |
+| `/codebase-archaeologist` | codebase-archaeologist | Git history analysis |
+| `/refactor-simulator` | refactor-simulator | Blast radius analysis |
+| `/demo-forge` | demo-forge | Interactive demo generation |
+| `/onboarding-accelerator` | onboarding-accelerator | New developer kit generation |
+| `/cursor-sync` | cursor-sync | Sync .cursor/ across projects |
+| `/plans` | prompt-architect, plans | Optimize prompt + execution plan |
+
+## Orchestration Rules
+
+- For multi-skill tasks, read `mission-control` SKILL.md first
+- Always read a skill's SKILL.md before delegating to it
+- Track orchestration progress in `tasks/todo.md`
+- Record failures and lessons in `tasks/lessons.md`
