@@ -123,4 +123,3 @@ For detailed discovery patterns and algorithms, consult:
 
 - **`references/search-strategies.md`** — Platform-specific search queries, query patterns by platform, and tips for maximizing discovery coverage
 - **`references/source-ranking.md`** — Source category definitions, ranking algorithm weights, and triage decision criteria
-

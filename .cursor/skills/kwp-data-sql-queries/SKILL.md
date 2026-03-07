@@ -429,4 +429,3 @@ When a query fails:
 4. **Division by zero**: Use `NULLIF(denominator, 0)` or dialect-specific safe division
 5. **Ambiguous columns**: Always qualify column names with table alias in JOINs
 6. **Group by errors**: All non-aggregated columns must be in GROUP BY (except in BigQuery which allows grouping by alias)
-
