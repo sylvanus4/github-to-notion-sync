@@ -18,10 +18,10 @@ Lightweight shipping pipeline: domain-split commits, git push, issue creation wi
 1. **Pre-flight** — Check for changes, detect branch, extract issue number
 2. **Domain-commit** — Pre-commit hooks + domain-split commits
 3. **Push** — `git push origin HEAD:tmp`
-4. **Issue** — Create GitHub issues from commits, link to Project #5
+4. **Issue** — Create GitHub issues from commits, link to Project #22
 5. **PR** — Create new PR or update existing one with change summary and issue references
-6. **Merge** — Squash-merge PR (webui: keep `tmp`; other repos: delete branch)
-7. **Report** — Commit list, issue URLs, PR URL, merge status
+6. **Merge** — Squash-merge PR (webui: keep `tmp`; other repos: delete branch), then switch to base branch
+7. **Report** — Commit list, issue URLs, PR URL, merge status, branch switch
 
 ### Execution
 

@@ -113,7 +113,7 @@ Save to: `my-specs/tasks/{descriptive-name}.md`
    Type: docs-sync
    Items: 11 (8 critical, 3 medium)
    Groups: 2 (api-docs, schema-and-events)
-   
+
    Run: ./my-specs/runner/runner.sh my-specs/tasks/fix-pipeline-docs.md
 ```
 
