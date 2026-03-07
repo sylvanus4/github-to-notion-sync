@@ -228,6 +228,19 @@ fi
 
 If merge fails (CI required, review required, conflicts), report the error with the PR URL so the user can merge manually later. Do NOT block the Report step.
 
+#### 6c. Switch to base branch after merge
+
+After a successful merge, pull the updated base branch and switch to it to prevent working on a stale feature branch:
+
+```bash
+git checkout $TARGET_BRANCH
+git pull origin $TARGET_BRANCH
+```
+
+For **ai-platform-webui** (where `tmp` is reused), stay on the current branch — do NOT switch.
+
+If the checkout fails (e.g., uncommitted changes), warn the user but do not block the Report step.
+
 ### Step 7: Report
 
 ```
@@ -243,8 +256,8 @@ Push:
   Branch: [branch] → origin/tmp
 
 Issues:
-  #N1 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
-  #N2 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
+  #N1 [TYPE] Title → Project #22 (Done, P2, S, Sprint X)
+  #N2 [TYPE] Title → Project #22 (Done, P2, S, Sprint X)
 
 PR:
   URL: https://github.com/ThakiCloud/ai-platform-webui/pull/N
@@ -255,6 +268,9 @@ PR:
 Merge:
   PR #N merged via squash into [base branch]
   Branch: [kept | deleted]
+
+Post-merge:
+  Switched to: [base branch]
 ```
 
 If `--no-issue` was used, omit the Issues section. If `--no-pr` was used, omit the PR and Merge sections. If `--no-merge` was used, omit the Merge section.
