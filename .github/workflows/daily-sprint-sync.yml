@@ -9,14 +9,13 @@ on:
   workflow_dispatch:
     inputs:
       team:
-        description: '팀 선택 (비워두면 레거시 모드 - config/sprint_config.yml 사용)'
+        description: '팀 선택 (기본값: synos)'
         required: false
         type: choice
         options:
-          - ''
           - synos
           - ragos
-        default: ''
+        default: 'synos'
       sprint_filter:
         description: 'Sprint filter (e.g., 25-10-Sprint4) - 비워두면 팀 설정 또는 config/sprint_config.yml의 값 사용'
         required: false
@@ -73,19 +72,19 @@ jobs:
       id: config
       run: |
         TEAM="${{ github.event.inputs.team }}"
+        if [ -z "$TEAM" ]; then
+          TEAM="synos"
+        fi
         
-        if [ -n "$TEAM" ] && [ -f "config/teams/${TEAM}/sprint_config.yml" ]; then
-          # 팀 설정 파일에서 로드
+        if [ -f "config/teams/${TEAM}/sprint_config.yml" ]; then
           echo "📋 Loading team config: ${TEAM}"
           CONFIG_FILE="config/teams/${TEAM}/sprint_config.yml"
           
-          # 팀 설정에서 값 추출 (sprint.current, sprint.notion_parent_id 등)
           SPRINT=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'current:' | head -1 | awk '{print $2}' | tr -d '"')
           NOTION_ID=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'notion_parent_id:' | head -1 | awk '{print $2}' | tr -d '"')
           SPRINT_CHECKER_ID=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'sprint_checker_parent_id:' | head -1 | awk '{print $2}' | tr -d '"')
           DAILY_SCRUM_ID=$(grep -A10 '^sprint:' "$CONFIG_FILE" | grep 'daily_scrum_parent_id:' | head -1 | awk '{print $2}' | tr -d '"')
           
-          # GitHub 설정 추출
           GH_ORG_CFG=$(grep -A5 '^github:' "$CONFIG_FILE" | grep 'org:' | head -1 | awk '{print $2}' | tr -d '"')
           GH_PROJECT_CFG=$(grep -A5 '^github:' "$CONFIG_FILE" | grep 'project_number:' | head -1 | awk '{print $2}' | tr -d '"')
           
@@ -93,14 +92,19 @@ jobs:
           echo "gh_org=${GH_ORG_CFG}" >> $GITHUB_OUTPUT
           echo "gh_project=${GH_PROJECT_CFG}" >> $GITHUB_OUTPUT
         else
-          # 레거시 모드: config/sprint_config.yml에서 설정 읽기
           echo "📋 Loading legacy config"
           CONFIG_FILE="config/sprint_config.yml"
           SPRINT=$(grep '^current_sprint:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
           NOTION_ID=$(grep '^notion_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
           SPRINT_CHECKER_ID=$(grep '^sprint_checker_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
           DAILY_SCRUM_ID=$(grep '^daily_scrum_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          
+          GH_ORG_CFG=$(grep '^github_org:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          GH_PROJECT_CFG=$(grep '^github_project_number:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          
           echo "team=" >> $GITHUB_OUTPUT
+          echo "gh_org=${GH_ORG_CFG}" >> $GITHUB_OUTPUT
+          echo "gh_project=${GH_PROJECT_CFG}" >> $GITHUB_OUTPUT
         fi
         
         echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
@@ -113,6 +117,8 @@ jobs:
         echo "   PR-Checker: ${NOTION_ID}"
         echo "   SprintChecker: ${SPRINT_CHECKER_ID}"
         echo "   DailyScrum: ${DAILY_SCRUM_ID}"
+        echo "   GH_ORG: ${GH_ORG_CFG}"
+        echo "   GH_PROJECT: ${GH_PROJECT_CFG}"
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -282,8 +288,11 @@ jobs:
       id: config
       run: |
         TEAM="${{ github.event.inputs.team }}"
+        if [ -z "$TEAM" ]; then
+          TEAM="synos"
+        fi
         
-        if [ -n "$TEAM" ] && [ -f "config/teams/${TEAM}/sprint_config.yml" ]; then
+        if [ -f "config/teams/${TEAM}/sprint_config.yml" ]; then
           echo "📋 Loading team config: ${TEAM}"
           CONFIG_FILE="config/teams/${TEAM}/sprint_config.yml"
           
@@ -303,7 +312,13 @@ jobs:
           SPRINT=$(grep '^current_sprint:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
           NOTION_ID=$(grep '^notion_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
           SPRINT_CHECKER_ID=$(grep '^sprint_checker_parent_id:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          
+          GH_ORG_CFG=$(grep '^github_org:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          GH_PROJECT_CFG=$(grep '^github_project_number:' "$CONFIG_FILE" | awk '{print $2}' | tr -d '"')
+          
           echo "team=" >> $GITHUB_OUTPUT
+          echo "gh_org=${GH_ORG_CFG}" >> $GITHUB_OUTPUT
+          echo "gh_project=${GH_PROJECT_CFG}" >> $GITHUB_OUTPUT
         fi
         
         echo "default_sprint=${SPRINT}" >> $GITHUB_OUTPUT
@@ -314,6 +329,8 @@ jobs:
         echo "   Sprint: ${SPRINT}"
         echo "   PR-Checker: ${NOTION_ID}"
         echo "   SprintChecker: ${SPRINT_CHECKER_ID}"
+        echo "   GH_ORG: ${GH_ORG_CFG}"
+        echo "   GH_PROJECT: ${GH_PROJECT_CFG}"
 
     - name: Set up Python
       uses: actions/setup-python@v5
