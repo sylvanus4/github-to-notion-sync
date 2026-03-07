@@ -160,10 +160,19 @@ class FieldMapper:
 
                 # Check for value mappings (GitHub value -> Notion value)
                 value_mappings = field_config.get("value_mappings", {})
-                if value_mappings and str(value) in value_mappings:
-                    return value_mappings[str(value)]
+                str_value = str(value)
+                if value_mappings and str_value in value_mappings:
+                    return value_mappings[str_value]
 
-                return str(value)
+                if field_type == "status" and "archive" in str_value.lower():
+                    default = field_config.get("default_value", "")
+                    archive_target = next(
+                        (v for k, v in value_mappings.items() if "archive" in k.lower()),
+                        default,
+                    )
+                    return archive_target or default
+
+                return str_value
             if field_type == "multi_select":
                 if isinstance(value, list):
                     # Apply value mappings to each item in the list

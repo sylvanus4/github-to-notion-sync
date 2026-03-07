@@ -38,8 +38,9 @@ github_to_notion:
       "Todo": "시작 전"        # → not-started
       "In Progress": "진행 중"  # → in-progress
       "Done": "완료"           # → done
+      "25-Archive": "보관"     # → archived (project #5)
       "25-07-Archive": "보관"  # → archived
-      "25-08-Archive": "보관"  # → archived (새로 추가)
+      "25-08-Archive": "보관"  # → archived
     default_value: "시작 전"
 
   # Priority Fields - GitHub 값에서 Notion 값으로 매핑
