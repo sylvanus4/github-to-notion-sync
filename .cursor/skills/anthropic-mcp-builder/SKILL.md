@@ -1,10 +1,11 @@
 ---
 name: anthropic-mcp-builder
-description: "Create high-quality MCP (Model Context Protocol) servers for LLM-external service integration. Use when building MCP servers in Python (FastMCP) or Node/TypeScript (MCP SDK) to integrate external APIs or services. Do NOT use for Claude API integration (use anthropic-claude-api)."
+description: "Build high-quality MCP (Model Context Protocol) servers that connect LLMs to external APIs and services. Use when building an MCP server, creating MCP tools, connecting an external API to an LLM, integrating a third-party service via MCP, or setting up MCP in Cursor. Supports Python (FastMCP) and Node/TypeScript (MCP SDK). Do NOT use for Claude API or Anthropic SDK integration (use anthropic-claude-api)."
 metadata:
   author: anthropic
-  version: 1.0.0
-  license: "See LICENSE.txt in skill directory"
+  version: 1.1.0
+  upstream: "https://github.com/ComposioHQ/awesome-claude-skills/tree/master/mcp-builder"
+  license: "Apache-2.0 — See LICENSE.txt in skill directory"
 ---
 
 # MCP Server Development Guide
@@ -17,7 +18,7 @@ Create MCP (Model Context Protocol) servers that enable LLMs to interact with ex
 
 # Process
 
-## 🚀 High-Level Workflow
+## High-Level Workflow
 
 Creating a high-quality MCP server involves four main phases:
 
@@ -58,15 +59,15 @@ Key pages to review:
 
 **Load framework documentation:**
 
-- **MCP Best Practices**: [📋 View Best Practices](./reference/mcp_best_practices.md) - Core guidelines
+- **MCP Best Practices**: [View Best Practices](./reference/mcp_best_practices.md) - Core guidelines
 
 **For TypeScript (recommended):**
 - **TypeScript SDK**: Use WebFetch to load `https://raw.githubusercontent.com/modelcontextprotocol/typescript-sdk/main/README.md`
-- [⚡ TypeScript Guide](./reference/node_mcp_server.md) - TypeScript patterns and examples
+- [TypeScript Guide](./reference/node_mcp_server.md) - TypeScript patterns and examples
 
 **For Python:**
 - **Python SDK**: Use WebFetch to load `https://raw.githubusercontent.com/modelcontextprotocol/python-sdk/main/README.md`
-- [🐍 Python Guide](./reference/python_mcp_server.md) - Python patterns and examples
+- [Python Guide](./reference/python_mcp_server.md) - Python patterns and examples
 
 #### 1.4 Plan Your Implementation
 
@@ -83,8 +84,8 @@ Prioritize comprehensive API coverage. List endpoints to implement, starting wit
 #### 2.1 Set Up Project Structure
 
 See language-specific guides for project setup:
-- [⚡ TypeScript Guide](./reference/node_mcp_server.md) - Project structure, package.json, tsconfig.json
-- [🐍 Python Guide](./reference/python_mcp_server.md) - Module organization, dependencies
+- [TypeScript Guide](./reference/node_mcp_server.md) - Project structure, package.json, tsconfig.json
+- [Python Guide](./reference/python_mcp_server.md) - Module organization, dependencies
 
 #### 2.2 Implement Core Infrastructure
 
@@ -155,7 +156,7 @@ See language-specific guides for detailed testing approaches and quality checkli
 
 After implementing your MCP server, create comprehensive evaluations to test its effectiveness.
 
-**Load [✅ Evaluation Guide](./reference/evaluation.md) for complete evaluation guidelines.**
+**Load the [Evaluation Guide](./reference/evaluation.md) for complete evaluation guidelines.**
 
 #### 4.1 Understand Evaluation Purpose
 
@@ -198,13 +199,13 @@ Create an XML file with this structure:
 
 # Reference Files
 
-## 📚 Documentation Library
+## Documentation Library
 
 Load these resources as needed during development:
 
 ### Core MCP Documentation (Load First)
 - **MCP Protocol**: Start with sitemap at `https://modelcontextprotocol.io/sitemap.xml`, then fetch specific pages with `.md` suffix
-- [📋 MCP Best Practices](./reference/mcp_best_practices.md) - Universal MCP guidelines including:
+- [MCP Best Practices](./reference/mcp_best_practices.md) - Universal MCP guidelines including:
   - Server and tool naming conventions
   - Response format guidelines (JSON vs Markdown)
   - Pagination best practices
@@ -216,14 +217,14 @@ Load these resources as needed during development:
 - **TypeScript SDK**: Fetch from `https://raw.githubusercontent.com/modelcontextprotocol/typescript-sdk/main/README.md`
 
 ### Language-Specific Implementation Guides (Load During Phase 2)
-- [🐍 Python Implementation Guide](./reference/python_mcp_server.md) - Complete Python/FastMCP guide with:
+- [Python Implementation Guide](./reference/python_mcp_server.md) - Complete Python/FastMCP guide with:
   - Server initialization patterns
   - Pydantic model examples
   - Tool registration with `@mcp.tool`
   - Complete working examples
   - Quality checklist
 
-- [⚡ TypeScript Implementation Guide](./reference/node_mcp_server.md) - Complete TypeScript guide with:
+- [TypeScript Implementation Guide](./reference/node_mcp_server.md) - Complete TypeScript guide with:
   - Project structure
   - Zod schema patterns
   - Tool registration with `server.registerTool`
@@ -231,9 +232,62 @@ Load these resources as needed during development:
   - Quality checklist
 
 ### Evaluation Guide (Load During Phase 4)
-- [✅ Evaluation Guide](./reference/evaluation.md) - Complete evaluation creation guide with:
+- [Evaluation Guide](./reference/evaluation.md) - Complete evaluation creation guide with:
   - Question creation guidelines
   - Answer verification strategies
   - XML format specifications
   - Example questions and answers
   - Running an evaluation with the provided scripts
+
+---
+
+# Cursor-Specific Integration
+
+## Registering an MCP Server in Cursor
+
+After building your MCP server, register it in `.cursor/mcp.json` (project-level) or `~/.cursor/mcp.json` (global):
+
+**stdio transport (local server):**
+
+```json
+{
+  "mcpServers": {
+    "my-service": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/your/mcp-server"
+    }
+  }
+}
+```
+
+**HTTP/SSE transport (remote or long-running server):**
+
+```json
+{
+  "mcpServers": {
+    "my-service": {
+      "url": "http://localhost:3000/sse"
+    }
+  }
+}
+```
+
+## Testing Workflow in Cursor
+
+1. Build the server: `npm run build` (TypeScript) or verify syntax (Python)
+2. Add to `.cursor/mcp.json`
+3. Restart Cursor to load the new MCP server
+4. Verify tools appear by asking: "List available MCP tools from my-service"
+5. Test each tool with realistic queries
+6. Run evaluations: `python scripts/evaluation.py -t stdio -c node -a dist/index.js eval.xml`
+
+## MCP Tool Descriptor Files
+
+After registering in Cursor, tool descriptors are auto-generated at:
+
+```
+.cursor/projects/<project-hash>/mcps/<server-name>/tools/<tool-name>.json
+```
+
+Review these to verify tool schemas match your implementation.

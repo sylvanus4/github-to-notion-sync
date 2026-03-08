@@ -1,22 +1,8 @@
-# Agent Browser — Common Patterns
+# Common Patterns
 
 Reusable recipes for frequent browser automation scenarios.
 
-## Table of Contents
-
-- [Form Submission](#form-submission)
-- [Authentication with Auth Vault](#authentication-with-auth-vault)
-- [Authentication with State Persistence](#authentication-with-state-persistence)
-- [Session Persistence](#session-persistence-auto-saverestore)
-- [Persistent Browser Profile](#persistent-browser-profile)
-- [Data Extraction](#data-extraction)
-- [Parallel Sessions](#parallel-sessions)
-- [Connect to Existing Chrome](#connect-to-existing-chrome-cdp)
-- [iOS Simulator](#ios-simulator-mobile-safari)
-- [Headed Mode](#headed-mode-visual-debugging)
-- [Local Files](#local-files) | [Downloads](#downloads)
-- [Color Scheme](#color-scheme-dark-mode)
-- [Cloud Browser Providers](#cloud-browser-providers)
+**Related**: [commands.md](commands.md) for full command reference, [SKILL.md](../SKILL.md) for quick start.
 
 ## Form Submission
 
@@ -32,24 +18,17 @@ agent-browser wait --load networkidle
 agent-browser snapshot -i  # verify result
 ```
 
-## Authentication with Auth Vault
+## Authentication with Auth Vault (Recommended)
 
 Store credentials encrypted locally so the LLM never sees passwords:
 
 ```bash
-# Save once (pipe password to avoid shell history)
 echo "$PASSWORD" | agent-browser auth save github \
   --url https://github.com/login \
-  --username "$USERNAME" \
-  --password-stdin
+  --username "$USERNAME" --password-stdin
 
-# Login using saved profile
 agent-browser auth login github
-
-# Manage profiles
-agent-browser auth list
-agent-browser auth show github
-agent-browser auth delete github
+agent-browser auth list / auth show github / auth delete github
 ```
 
 ## Authentication with State Persistence
@@ -57,7 +36,6 @@ agent-browser auth delete github
 Login once, save state, reuse across sessions:
 
 ```bash
-# Login flow
 agent-browser open https://app.example.com/login
 agent-browser snapshot -i
 agent-browser fill @e1 "$USERNAME"
@@ -82,11 +60,8 @@ agent-browser close  # state auto-saved
 
 # Next time, state auto-loaded
 agent-browser --session-name myapp open https://app.example.com/dashboard
-```
 
-Encrypt state at rest:
-
-```bash
+# Encrypt state at rest
 export AGENT_BROWSER_ENCRYPTION_KEY=$(openssl rand -hex 32)
 agent-browser --session-name secure open https://app.example.com
 ```
@@ -97,7 +72,6 @@ Full browser state (cookies, IndexedDB, cache, service workers) persists:
 
 ```bash
 agent-browser --profile ~/.myapp-profile open https://myapp.com
-# login once, then reuse:
 agent-browser --profile ~/.myapp-profile open https://myapp.com/dashboard
 ```
 
@@ -107,11 +81,8 @@ agent-browser --profile ~/.myapp-profile open https://myapp.com/dashboard
 agent-browser open https://example.com/products
 agent-browser wait --load networkidle
 
-# Specific element text
-agent-browser get text @e5
-
-# All page text
-agent-browser get text body > page.txt
+agent-browser get text @e5           # Specific element
+agent-browser get text body > page.txt  # All page text
 
 # JSON output for parsing
 agent-browser snapshot -i --json
@@ -131,18 +102,12 @@ EVALEOF
 
 ## Parallel Sessions
 
-Run multiple independent browser instances:
-
 ```bash
 agent-browser --session site1 open https://site-a.com
 agent-browser --session site2 open https://site-b.com
-
 agent-browser --session site1 snapshot -i
 agent-browser --session site2 snapshot -i
-
 agent-browser session list
-
-# Cleanup
 agent-browser --session site1 close
 agent-browser --session site2 close
 ```
@@ -150,14 +115,9 @@ agent-browser --session site2 close
 ## Connect to Existing Chrome (CDP)
 
 ```bash
-# Auto-discover running Chrome with remote debugging
-agent-browser --auto-connect snapshot
-
-# Explicit CDP port
-agent-browser --cdp 9222 snapshot
-
-# Remote WebSocket URL
-agent-browser --cdp "wss://browser-service.com/cdp?token=..." snapshot
+agent-browser --auto-connect snapshot          # Auto-discover running Chrome
+agent-browser --cdp 9222 snapshot              # Explicit CDP port
+agent-browser --cdp "wss://browser.com/cdp?token=..." snapshot  # Remote WebSocket
 ```
 
 ## iOS Simulator (Mobile Safari)
@@ -166,8 +126,6 @@ Requires macOS with Xcode, Appium (`npm install -g appium && appium driver insta
 
 ```bash
 agent-browser device list
-
-# Launch on specific device
 agent-browser -p ios --device "iPhone 16 Pro" open https://example.com
 agent-browser -p ios snapshot -i
 agent-browser -p ios tap @e1
@@ -175,14 +133,10 @@ agent-browser -p ios fill @e2 "text"
 agent-browser -p ios swipe up
 agent-browser -p ios screenshot mobile.png
 agent-browser -p ios close
-```
 
-Environment variables alternative:
-
-```bash
+# Environment variables alternative
 export AGENT_BROWSER_PROVIDER=ios
 export AGENT_BROWSER_IOS_DEVICE="iPhone 16 Pro"
-agent-browser open https://example.com
 ```
 
 ## Headed Mode (Visual Debugging)
@@ -190,32 +144,35 @@ agent-browser open https://example.com
 ```bash
 agent-browser --headed open https://example.com
 agent-browser highlight @e1
+agent-browser record start demo.webm
 agent-browser profiler start
-# ... actions ...
 agent-browser profiler stop trace.json
 ```
 
-## Local Files
+Use `AGENT_BROWSER_HEADED=1` to enable via env var. Extensions work in both headed and headless mode.
+
+## Local Files (PDFs, HTML)
 
 ```bash
 agent-browser --allow-file-access open file:///path/to/document.pdf
+agent-browser --allow-file-access open file:///path/to/page.html
 agent-browser screenshot output.png
 ```
 
 ## Downloads
 
 ```bash
-agent-browser download @e1 ./file.pdf          # click to trigger download
-agent-browser wait --download ./output.zip      # wait for download
-agent-browser --download-path ./downloads open <url>  # set download dir
+agent-browser download @e1 ./file.pdf          # Click to trigger download
+agent-browser wait --download ./output.zip     # Wait for download
+agent-browser --download-path ./downloads open <url>  # Set download dir
 ```
 
 ## Color Scheme (Dark Mode)
 
 ```bash
 agent-browser --color-scheme dark open https://example.com
-# or persist for session:
-agent-browser set media dark
+agent-browser set media dark  # Persist for session
+# Or: AGENT_BROWSER_COLOR_SCHEME=dark
 ```
 
 ## Cloud Browser Providers
@@ -240,4 +197,46 @@ agent-browser -p browseruse open https://example.com
 ```bash
 export KERNEL_API_KEY="your-api-key"
 agent-browser -p kernel open https://example.com
+# Optional: KERNEL_STEALTH=true, KERNEL_PROFILE_NAME=myprofile
+```
+
+## Streaming (Live Browser Preview)
+
+```bash
+AGENT_BROWSER_STREAM_PORT=9223 agent-browser open https://example.com
+# Connect WebSocket client to ws://localhost:9223 for live viewport stream
+```
+
+## Native Mode (Experimental)
+
+```bash
+agent-browser --native open example.com
+# Or persist: export AGENT_BROWSER_NATIVE=1
+# Use agent-browser close before switching modes
+```
+
+## Browser Engine Selection
+
+```bash
+agent-browser --engine lightpanda open example.com  # 10x faster
+# Or: export AGENT_BROWSER_ENGINE=lightpanda
+```
+
+## Proxy Configuration
+
+```bash
+agent-browser --proxy "http://proxy:8080" open https://example.com
+agent-browser --proxy "http://user:pass@proxy:8080" --proxy-bypass "localhost" open https://example.com  # pragma: allowlist secret
+```
+
+For detailed proxy patterns, see [proxy-support.md](proxy-support.md).
+
+## Semantic Locators (Alternative to Refs)
+
+```bash
+agent-browser find text "Sign In" click
+agent-browser find label "Email" fill "user@test.com"
+agent-browser find role button click --name "Submit"
+agent-browser find placeholder "Search" type "query"
+agent-browser find testid "submit-btn" click
 ```

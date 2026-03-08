@@ -3,12 +3,12 @@ name: weekly-stock-update
 metadata:
   version: "1.0.0"
   category: execution
-description: Fetch the last week of stock prices from Yahoo Finance and upsert into PostgreSQL for all 21 tracked tickers. Use when the user asks to update recent stock data, refresh weekly prices, sync latest prices to DB, or run a quick stock update. Do NOT use for historical backfill or gap-fill from investing.com (use stock-csv-downloader). Do NOT use for stock analysis, trading signals, or Slack posting (use daily-stock-check).
+description: Fetch the last week of stock prices from Yahoo Finance and upsert into PostgreSQL for all tracked tickers. Optionally sync quarterly financial statements (--fundamentals). Use when the user asks to update recent stock data, refresh weekly prices, sync latest prices to DB, sync financial statements, or run a quick stock update. Do NOT use for historical backfill or gap-fill from investing.com (use stock-csv-downloader). Do NOT use for stock analysis, trading signals, or Slack posting (use daily-stock-check).
 ---
 
 # Weekly Stock Update
 
-Fetch recent stock prices from Yahoo Finance (yfinance) and batch upsert them into PostgreSQL. Covers all 21 configured tickers (18 international + 3 KRX) with a single lightweight script — no browser automation required.
+Fetch recent stock prices from Yahoo Finance (yfinance) and batch upsert them into PostgreSQL. Covers all configured tickers with a single lightweight script — no browser automation required. With `--fundamentals`, also syncs quarterly financial statements (income, balance sheet, cash flow) and computed metrics (P/E, ROE, FCF yield, etc.).
 
 ## Prerequisites
 
@@ -19,9 +19,10 @@ Fetch recent stock prices from Yahoo Finance (yfinance) and batch upsert them in
 
 ```bash
 cd backend
-python scripts/weekly_stock_update.py               # All tickers, last 10 days
-python scripts/weekly_stock_update.py --status       # Show DB coverage
-python scripts/weekly_stock_update.py --dry-run      # Preview without DB write
+python scripts/weekly_stock_update.py                    # All tickers, last 10 days
+python scripts/weekly_stock_update.py --fundamentals     # Prices + financial statements
+python scripts/weekly_stock_update.py --status           # Show DB coverage
+python scripts/weekly_stock_update.py --dry-run          # Preview without DB write
 ```
 
 ## Workflow
@@ -77,6 +78,7 @@ curl http://localhost:4567/api/v1/stock-prices/NVDA?limit=5
 | `--dry-run` | Preview without writing to DB | Off |
 | `--status` | Show DB coverage and exit | Off |
 | `--delay` | Seconds between API calls | 0.5 |
+| `--fundamentals` | Also sync quarterly financial statements | Off |
 
 ## How It Works
 
@@ -155,5 +157,7 @@ Solution: Increase the delay between calls: `--delay 2`. For very large batches,
 - **Script**: `backend/scripts/weekly_stock_update.py`
 - **Ticker source**: `backend/scripts/download_stock_csv.py` (`TICKER_SLUG_MAP`)
 - **Yahoo client**: `backend/app/services/external_stock_api.py` (`YahooFinanceClient`)
-- **DB models**: `backend/app/models/stock_price.py` (`Ticker`, `StockPrice`)
+- **Financials collector**: `backend/scripts/financial_data_collector.py` (used by `--fundamentals`)
+- **DB models**: `backend/app/models/stock_price.py` (`Ticker`, `StockPrice`), `backend/app/models/llm_agents/models.py` (`FinancialStatement`)
+- **API endpoints**: `GET /api/v1/financial-statements/{symbol}` — view synced financial data in the UI
 - **Related skill**: `stock-csv-downloader` (for historical backfill via investing.com)

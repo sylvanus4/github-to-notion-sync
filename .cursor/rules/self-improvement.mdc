@@ -30,8 +30,21 @@ At the start of any work session:
 1. Read `MEMORY.md` if it exists — restore context before any work begins
 2. Read `KNOWN_ISSUES.md` if it exists — avoid repeating known agent pitfalls
 3. Read `tasks/lessons.md` for relevant project lessons
+4. Read `memory/decisions.md` and `memory/patterns.md` for consolidated decisions and recurring patterns
+5. If the user's request relates to prior work, use the `/recall` skill to search session history:
+   - Run `python scripts/memory/search.py --mode bm25 "<topic>" --top 5 --verbose` for quick lookup
+   - Escalate to `--mode hybrid` for conceptual queries
 
 This replaces the "15-minute context re-explanation" with a 5-second file read.
+
+## Long-Term Memory Sync
+
+At the end of every non-trivial session (as part of the done checklist):
+
+1. Run `python scripts/memory/extract-sessions.py --incremental` to capture this session's transcript
+2. Run `python scripts/memory/build-index.py --skip-embeddings` to update the BM25 index
+3. If significant decisions were made, update `memory/decisions.md` with the new entries
+4. If new failure/success patterns emerged, update `memory/patterns.md`
 
 ## KNOWN_ISSUES.md
 

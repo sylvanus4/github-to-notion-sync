@@ -1,0 +1,250 @@
+---
+name: ai-workflow-integrator
+description: >-
+  Design and orchestrate AI-powered stock analysis workflows that chain data
+  ingestion, LLM analysis, report generation, and Slack distribution into
+  seamless multi-stage pipelines. Supports daily, weekly, and event-driven
+  workflow templates with stage composition, error recovery, and parallel
+  execution. Use when the user asks to "design an AI workflow", "build an
+  analysis pipeline", "orchestrate stock analysis", "chain analysis stages",
+  "AI workflow", "워크플로우 설계", "분석 파이프라인", or wants to compose
+  existing skills into a new multi-stage pipeline.
+  Do NOT use for running the existing daily pipeline (use today).
+  Do NOT use for single-domain stock analysis (use daily-stock-check).
+  Do NOT use for orchestrating non-stock multi-skill tasks (use mission-control).
+  Do NOT use for building GitHub Actions or cron jobs (use pipeline-builder).
+metadata:
+  author: thaki
+  version: 1.0.0
+  category: generation
+---
+
+# AI Workflow Integrator
+
+Design and orchestrate AI-powered stock analysis workflows by composing existing skills and scripts into multi-stage pipelines. Each workflow defines stages, data flow between stages, error handling, and output targets.
+
+## Core Concepts
+
+### Workflow Anatomy
+
+A workflow consists of ordered stages, each backed by a skill or script:
+
+```
+[Data Source] → [Transform] → [AI Analysis] → [Quality Gate] → [Output]
+```
+
+Every stage has:
+- **Input**: Data from a previous stage or external source
+- **Processor**: A skill, script, or LLM call
+- **Output**: Structured data passed to the next stage
+- **Error handler**: Retry, skip, or abort behavior
+
+### Available Building Blocks
+
+| Block | Type | Source |
+|-------|------|--------|
+| DB status check | Script | `backend/scripts/weekly_stock_update.py --status` |
+| Yahoo Finance sync | Script | `backend/scripts/weekly_stock_update.py --days N` |
+| CSV import | Script | `backend/scripts/import_csv.py` |
+| Hot stock discovery | Script | `backend/scripts/discover_hot_stocks.py` |
+| Technical analysis | Script | `backend/scripts/daily_stock_check.py` |
+| News fetch | Skill | `alphaear-news` |
+| Sentiment scoring | Skill | `alphaear-sentiment` |
+| Price prediction | Skill | `alphaear-predictor` |
+| Signal tracking | Skill | `alphaear-signal-tracker` |
+| Report generation | Skill | `alphaear-reporter` |
+| DOCX creation | Skill + Script | `anthropic-docx` / `outputs/generate-report.js` |
+| Slack posting | MCP | `plugin-slack-slack` |
+| Web research | Tool | `WebSearch` |
+| Tweet analysis | Skill | `x-to-slack` |
+
+## Workflow
+
+### Step 1: Understand the Goal
+
+Ask the user (or infer from context):
+
+1. **Trigger**: When should this workflow run? (daily, weekly, on-demand, event-driven)
+2. **Data scope**: Which tickers, indices, or categories?
+3. **Analysis depth**: Quick scan, standard analysis, or deep dive?
+4. **Outputs**: Where should results go? (file, Slack, DB, terminal)
+5. **Error tolerance**: Should failures abort or skip?
+
+### Step 2: Select Workflow Template
+
+Choose the closest template and customize:
+
+#### Template A: Daily Analysis Pipeline
+
+```
+DB Freshness → Data Sync → Discovery → Analysis → News → Sentiment → Report → Slack
+```
+
+Based on the `today` skill pipeline. Suitable for comprehensive daily updates.
+
+Stages:
+1. Check DB freshness (`weekly_stock_update.py --status`)
+2. Sync gaps from Yahoo Finance (`weekly_stock_update.py --days 3`)
+3. Discover hot stocks (`discover_hot_stocks.py`)
+4. Run technical analysis (`daily_stock_check.py --source db`)
+5. Fetch market news (`alphaear-news` skill)
+6. Score sentiment for BUY/SELL stocks (`alphaear-sentiment` skill)
+7. Generate report (`alphaear-reporter` + `generate-report.js`)
+8. Post to Slack (`slack_send_message`)
+
+#### Template B: Quick Signal Scan
+
+```
+Analysis → Filter → Summary
+```
+
+For rapid signal checks without data sync or report generation.
+
+Stages:
+1. Run technical analysis on current DB data (`daily_stock_check.py --source db`)
+2. Filter for actionable signals (BUY/SELL only)
+3. Format inline summary or post to Slack
+
+#### Template C: Event-Driven Research
+
+```
+Trigger Event → Web Research → Sentiment → Impact Analysis → Alert
+```
+
+Triggered by news events, model releases, or market moves.
+
+Stages:
+1. Receive trigger (tweet URL, news headline, or manual input)
+2. Run web research on the event (`WebSearch`)
+3. Score sentiment for affected tickers (`alphaear-sentiment`)
+4. Analyze impact using signal tracker (`alphaear-signal-tracker`)
+5. Post alert to relevant Slack channel
+
+#### Template D: Weekly Deep Dive
+
+```
+Full Sync → Analysis → Prediction → Signal Evolution → Report → Distribute
+```
+
+Comprehensive weekly analysis with predictions and signal tracking.
+
+Stages:
+1. Full data sync with extended lookback (`weekly_stock_update.py --days 7`)
+2. Technical analysis (`daily_stock_check.py --source db`)
+3. Price prediction (`alphaear-predictor`)
+4. Track signal evolution (`alphaear-signal-tracker`)
+5. Generate themed report with predictions (`alphaear-reporter`)
+6. Create .docx and post to Slack
+
+### Step 3: Customize Stages
+
+For each stage in the chosen template:
+
+1. **Confirm the processor** is available (check skill/script exists)
+2. **Define input/output format** (JSON, file path, inline text)
+3. **Set error policy**:
+   - `abort`: Stop the workflow on failure
+   - `skip`: Log warning and continue to next stage
+   - `retry(N)`: Retry up to N times with exponential backoff
+4. **Add conditions**: Optional stages can be gated by flags or data availability
+
+### Step 4: Execute the Workflow
+
+Run stages sequentially or in parallel where dependencies allow:
+
+1. **Sequential stages**: Each stage waits for the previous to complete
+2. **Parallel stages**: Independent stages run as concurrent subagents (max 4)
+3. **Checkpoint**: After each stage, validate output before proceeding
+
+Parallel execution example:
+```
+Stage 1: Data Sync (sequential, must complete first)
+   ↓
+Stage 2a: Analysis     ← parallel
+Stage 2b: News Fetch   ← parallel
+   ↓
+Stage 3: Sentiment (depends on 2a + 2b)
+   ↓
+Stage 4: Report (depends on 3)
+```
+
+Use the Task tool for parallel execution:
+- Each parallel stage runs as a separate subagent
+- Collect results from all subagents before proceeding
+- If any parallel stage fails, apply its error policy
+
+### Step 5: Aggregate and Output
+
+Combine outputs from all stages into the final deliverable:
+
+1. Merge analysis JSON with news and sentiment data
+2. Apply the report template
+3. Save artifacts:
+   - `outputs/analysis-{date}.json`
+   - `outputs/discovery-{date}.json` (if discovery ran)
+   - `outputs/news-{date}.json` (if news fetched)
+   - `outputs/reports/daily-{date}.docx` (if .docx generated)
+4. Post to Slack (if configured)
+5. Log workflow execution summary
+
+### Step 6: Document the Workflow
+
+After successful execution, offer to save the workflow definition:
+
+```markdown
+## Workflow: [Name]
+- **Trigger**: [daily/weekly/event/manual]
+- **Stages**: [ordered list with processors]
+- **Outputs**: [file paths, Slack channels]
+- **Last run**: [date]
+- **Status**: [success/partial/failed]
+```
+
+Save to `tasks/todo.md` or suggest creating a dedicated command.
+
+## Error Handling
+
+| Error | Policy | Recovery |
+|-------|--------|----------|
+| Script not found | Abort | Report missing script path |
+| Skill not found | Skip | Note in summary, continue without that stage |
+| DB connection failure | Abort | Suggest `docker compose up -d db` |
+| Yahoo Finance timeout | Retry(3) | Wait 5s between retries |
+| Slack channel not found | Skip | Save report locally, note Slack failure |
+| Empty analysis results | Skip | Report "no data" for the stage |
+
+## Examples
+
+### Example 1: Custom daily pipeline without discovery
+
+User says: "Build me a daily workflow that syncs data, runs analysis, and posts to Slack -- skip the hot stock discovery"
+
+Actions:
+1. Select Template A, remove Stage 3 (discovery)
+2. Execute: DB check → Sync → Analysis → News → Sentiment → Report → Slack
+3. Report execution summary
+
+### Example 2: Event-driven tweet analysis
+
+User says: "When someone shares a tweet about AI models, analyze its impact on our tracked stocks"
+
+Actions:
+1. Select Template C
+2. Configure: Tweet fetch → Web research → Sentiment on AI semiconductor tickers → Impact alert
+3. Post findings to `#research` Slack channel
+
+### Example 3: Quick morning scan
+
+User says: "Just give me the signals, no report"
+
+Actions:
+1. Select Template B
+2. Execute: Analysis → Filter BUY/SELL → Inline summary
+3. Return results directly (no Slack, no .docx)
+
+## Integration
+
+- **Related skills**: `today`, `daily-stock-check`, `alphaear-*`, `mission-control`
+- **Scripts**: `backend/scripts/` (weekly_stock_update.py, import_csv.py, daily_stock_check.py, discover_hot_stocks.py)
+- **Outputs**: `outputs/` (analysis JSON, discovery JSON, news JSON, .docx reports)
+- **Slack**: `plugin-slack-slack` MCP server

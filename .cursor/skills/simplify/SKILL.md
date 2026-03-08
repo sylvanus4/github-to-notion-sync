@@ -120,7 +120,35 @@ Skip a fix if:
 
 1. Run `ReadLints` on all modified files to catch regressions
 2. Fix any lint errors introduced by the changes
-3. Present the final report using the template in [references/report-template.md](references/report-template.md)
+
+### Step 7: Re-Evaluate (Evaluator-Optimizer Loop)
+
+**Trigger:** Runs automatically when `--refine` flag is set. Skipped by default.
+
+**Pattern:** Evaluator-Optimizer — re-run focused review agents on modified files to verify fixes resolved the original findings and did not introduce new issues.
+
+1. Collect the list of files modified in Step 5
+2. Launch 1-2 focused review agents (pick the 2 most relevant from Step 2) on ONLY the modified files
+   - `subagent_type`: `generalPurpose`, `model`: `fast`, `readonly`: `true`
+   - Prompt: "Review these files for remaining issues. Focus on verifying that prior Critical/High findings are resolved."
+3. Compare re-evaluation findings against the original findings list
+4. If new Critical or High findings exist AND iteration count < 2:
+   - Apply fixes for the new findings (same rules as Step 5)
+   - Increment iteration counter
+   - Return to sub-step 1 of this step
+5. If quality threshold is met OR max iterations (2) reached, proceed to report
+
+**Stopping criteria (any one sufficient):**
+- No Critical or High findings remain
+- Total new findings <= 2 (Low severity only)
+- Max 2 refinement iterations reached
+- No improvement between iterations (same or more findings)
+
+**If max iterations exhausted with remaining findings:** Include them in the report under "Remaining Issues (post-refinement)".
+
+### Step 8: Report
+
+Present the final report using the template in [references/report-template.md](references/report-template.md).
 
 ## Output
 
@@ -165,6 +193,10 @@ The user can control scope and focus:
 
 # Directory scope (overrides mode)
 /simplify src/api/                 # scan specific directory only
+
+# Evaluator-Optimizer refinement (combinable with any mode)
+/simplify --refine                 # re-evaluate after fixes (max 2 iterations)
+/simplify today --refine           # today mode + re-evaluation loop
 ```
 
 When a focus is specified, still run all 4 agents but highlight and prioritize findings matching the focus area.

@@ -1,0 +1,205 @@
+---
+name: nlm-slides
+description: >-
+  End-to-end pipeline that transforms a local markdown document into professional
+  NotebookLM slide decks. Splits sections, rewrites each into expert-level English
+  and Korean, uploads to NotebookLM, generates slide decks, and downloads PDFs.
+  Use when the user asks to "create NLM slides", "NLM 슬라이드", "슬라이드 만들어",
+  "슬라이드 생성", "슬라이드로 만들어줘", "발표 자료 만들어", "프레젠테이션 생성",
+  "발표자료 생성해줘", "마크다운으로 슬라이드", "문서로 슬라이드",
+  "문서를 프레젠테이션으로", "이 문서로 발표자료", "NLM presentation",
+  "generate slides from doc", "make slide deck from markdown",
+  "slides from local doc", "expert slide deck", "NotebookLM slide deck",
+  "convert document to slides", "turn this into a presentation",
+  "영어 한국어 슬라이드", "nlm-slides", "/nlm-slides",
+  or any request to convert a local document into NotebookLM slide decks.
+  Do NOT use for ad-hoc studio_create calls on existing notebooks -- use
+  notebooklm-studio. Do NOT use for video generation from local docs -- use
+  nlm-video. Do NOT use for PowerPoint creation without NotebookLM -- use
+  anthropic-pptx. Do NOT use for notebook management or source CRUD -- use
+  notebooklm.
+metadata:
+  author: thaki
+  version: 1.1.0
+  category: generation
+---
+
+# NLM Slides: Local Document to Expert Slide Deck Pipeline
+
+End-to-end pipeline that transforms a local markdown document into professional NotebookLM slide decks in both English and Korean, written in domain-expert tone with white background styling.
+
+## Prerequisites
+
+- `notebooklm-mcp` MCP server registered and authenticated (see `notebooklm` skill)
+- A local markdown file with `##` section headings
+- Authentication often expires between sessions; if `notebook_create` fails with "Authentication expired", run `nlm login` in terminal, then call `refresh_auth` MCP tool before retrying
+
+## System Prompt
+
+The expert rewrite system prompt is stored at `references/system-prompt.md` (relative to this skill). Read it before starting the pipeline. It defines:
+
+- Expert tone and domain authority for each language
+- Presentation-friendly formatting rules
+- White background tone directive
+- Content density requirements
+
+## Pipeline
+
+### Step 1: Read the Local Markdown
+
+Read the user-specified markdown file. Identify the document title (from `#` heading or filename).
+
+### Step 2: Split by Sections
+
+Split the markdown content at `##` heading boundaries. Each section becomes an independent unit for rewriting. Preserve the heading text as the section title.
+
+### Step 3: Expert Rewrite (EN + KO)
+
+Using the system prompt from `references/system-prompt.md`, rewrite each section into **two versions**:
+
+**English version:**
+- Professional, authoritative domain-expert tone
+- Short bullet points with key metrics highlighted
+- Clear headers matching the original section structure
+- Presentation-ready: no paragraphs, only scannable points
+
+**Korean version:**
+- 전문가 톤 (formal expert voice)
+- Same structure and data points as the English version
+- Natural Korean business/technical phrasing
+- 핵심 지표와 데이터 강조
+
+Combine all English sections into one document. Combine all Korean sections into one document.
+
+### Step 4: Create NotebookLM Notebook
+
+```
+notebook_create(title="<Document Title> - Slides")
+```
+
+### Step 5: Upload Sources
+
+Upload both rewritten documents as text sources:
+
+```
+source_add(notebook_id, source_type="text", title="<Title> (EN)", text=<english_doc>, wait=True)
+source_add(notebook_id, source_type="text", title="<Title> (KO)", text=<korean_doc>, wait=True)
+```
+
+### Step 6: Generate Slide Deck
+
+```
+studio_create(notebook_id, artifact_type="slide_deck", slide_format="detailed_deck", confirm=True)
+```
+
+Available `slide_format` options:
+- `detailed_deck` (default) -- comprehensive slides with full content
+- `presenter_slides` -- speaker-note style with key talking points
+
+Available `slide_length` options:
+- `default` -- standard length
+- `short` -- condensed version
+
+Then poll until complete:
+
+```
+studio_status(notebook_id)
+```
+
+Poll every 30 seconds. Slide decks typically take **5-8 minutes** (not 2-4).
+
+### Step 7: Download
+
+Use an **absolute path** for `output_path` (MCP server resolves paths from its own cwd, not the workspace).
+
+Determine the workspace root using the Cursor workspace path, then construct the absolute path:
+
+```
+download_artifact(
+  notebook_id,
+  artifact_type="slide_deck",
+  output_path="<WORKSPACE_ROOT>/outputs/presentations/<title>-slides-<date>.pdf"
+)
+```
+
+For PPTX format instead of PDF:
+
+```
+download_artifact(
+  notebook_id,
+  artifact_type="slide_deck",
+  output_path="<WORKSPACE_ROOT>/outputs/presentations/<title>-slides-<date>.pptx",
+  slide_deck_format="pptx"
+)
+```
+
+## Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--lang en` | Generate English version only | Both EN + KO |
+| `--lang ko` | Generate Korean version only | Both EN + KO |
+| `--format detailed_deck` | Comprehensive slides | `detailed_deck` |
+| `--format presenter_slides` | Speaker-note style slides | `detailed_deck` |
+| `--length short` | Condensed slide count | `default` |
+| `--output pptx` | Download as PPTX instead of PDF | `pdf` |
+| `--revise "instructions"` | Revise existing slides with specific instructions | -- |
+
+### Revising Slides
+
+After initial generation, use `studio_revise` to iterate on individual slides:
+
+```
+studio_revise(notebook_id, artifact_id, instructions="Make slide 3 more data-driven", confirm=True)
+```
+
+## Output Convention
+
+Files are saved to `outputs/presentations/`. Default format is PDF (NotebookLM generates slides as PDF; use `slide_deck_format="pptx"` for PPTX):
+
+```
+outputs/presentations/
+  gpu-cloud-strategy-slides-2026-03-08.pdf
+  fed-rate-analysis-slides-2026-03-08.pdf
+```
+
+When generating single-language versions:
+
+```
+outputs/presentations/
+  gpu-cloud-strategy-slides-en-2026-03-08.pdf
+  gpu-cloud-strategy-slides-ko-2026-03-08.pdf
+```
+
+## Example
+
+```
+/nlm-slides docs/proposals/gpu-cloud-strategy.md
+```
+
+This will:
+1. Read `docs/proposals/gpu-cloud-strategy.md`
+2. Split into sections by `##` headings
+3. Rewrite each section in expert EN and KO
+4. Create notebook "GPU Cloud Strategy - Slides"
+5. Upload EN and KO documents as sources
+6. Generate slide deck
+7. Download to `outputs/presentations/gpu-cloud-strategy-slides-2026-03-08.pdf`
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| Authentication expired | Run `nlm login` in terminal, then call `refresh_auth` MCP tool |
+| Slides lack depth | Check that the rewrite step produced substantive content, not summaries |
+| Wrong language mix | Use `--lang en` or `--lang ko` to generate single-language versions |
+| Generation timeout | Poll `studio_status` every 30-60s; slides take **5-8 minutes** typically |
+| File not found after download | Use **absolute path** in `output_path`; MCP server resolves from its own cwd |
+| Revise not working | Ensure `confirm=True` is passed to `studio_revise` |
+
+## Related Skills
+
+- **notebooklm** -- notebook/source CRUD
+- **notebooklm-studio** -- ad-hoc studio content generation
+- **nlm-video** -- same pipeline but for video generation
+- **anthropic-pptx** -- local PowerPoint creation without NotebookLM

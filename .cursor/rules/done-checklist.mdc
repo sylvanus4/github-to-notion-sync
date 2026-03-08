@@ -14,6 +14,7 @@ Before declaring any non-trivial task complete, verify ALL of the following:
 - [ ] Confirm: error handling and logging for new code branches
 - [ ] Update `tasks/todo.md` — move completed items with date stamp, keep audit trail
 - [ ] Update `MEMORY.md` — append [decision], [task], [issue] entries for this session
+- [ ] Sync long-term memory: run `python scripts/memory/extract-sessions.py --incremental` and `python scripts/memory/build-index.py --skip-embeddings`
 - [ ] If user corrected you: update `tasks/lessons.md` with pattern + prevention rule
 - [ ] Provide: short summary + files changed + commands run + results
 
