@@ -1,28 +1,33 @@
 ---
 name: today
 description: >-
-  Run the daily data sync, hot stock discovery, multi-indicator analysis, and
-  report pipeline — check DB vs CSV freshness gaps, backfill missing data from
-  Yahoo Finance, discover the hottest untracked stocks from NASDAQ 100/KOSPI 100/
-  KOSDAQ 100, run Turtle/Bollinger/Oscillator analysis (SMA 20/55/200, MA alignment,
-  golden/death cross, RSI, MACD, Stochastic, ADX), optionally fetch market news
-  context (alphaear-news) and sentiment scores (alphaear-sentiment), generate a
-  Korean expert .docx report with per-stock buy/sell recommendations (via
-  anthropic-docx), and optionally post a summary to Slack #h-report.
+  Run the daily data sync, fundamental data collection, hot stock discovery,
+  multi-factor screening, multi-indicator analysis, and report pipeline — check
+  DB vs CSV freshness gaps, backfill missing data from Yahoo Finance, collect
+  financial statements from yfinance (P/E, FCF, ROE, balance sheet), discover
+  the hottest untracked stocks from NASDAQ 100/KOSPI 100/KOSDAQ 100, run
+  institutional-grade screening (P/E, RSI, volume spikes, MA crossovers,
+  earnings proximity, FCF yield, AI sentiment), run Turtle/Bollinger/Oscillator
+  analysis (SMA 20/55/200, MA alignment, golden/death cross, RSI, MACD,
+  Stochastic, ADX), optionally fetch market news context (alphaear-news) and
+  sentiment scores (alphaear-sentiment), generate a Korean expert .docx report
+  with per-stock buy/sell recommendations including fundamental metrics and
+  screener results (via anthropic-docx), and optionally post a summary to Slack
+  #h-report.
   Use when the user asks to run a daily pipeline, sync stock data, check data
-  freshness, discover hot stocks, or generate a daily report.
+  freshness, discover hot stocks, screen stocks, or generate a daily report.
   Do NOT use for weekly price updates only (use weekly-stock-update). Do NOT use
   for stock analysis without data sync (use daily-stock-check). Do NOT use for
   CSV downloads from investing.com (use stock-csv-downloader).
 metadata:
   author: thaki
-  version: "5.0.0"
+  version: "6.0.0"
   category: execution
 ---
 
-# Today — Daily Data Sync and Report Pipeline
+# Today — Daily Data Sync, Screening, and Report Pipeline
 
-Orchestrates a multi-phase pipeline: data freshness check, data sync, hot stock discovery, technical analysis (SMA 20/55/200, Bollinger Bands, RSI/MACD/Stochastic/ADX oscillators), optional market context (alphaear-news + alphaear-sentiment), and Korean expert report generation (.docx + optional Slack). Generates per-stock buy/sell recommendations using 3-way signal combination (Turtle + Bollinger + Oscillator) with MA alignment, golden/death cross, Bollinger %B, RSI zones, and MACD cross analysis. Reuses `weekly-stock-update`, `daily-stock-check`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, and `alphaear-sentiment` skills internally. No API keys are required for Cursor-side execution.
+Orchestrates a multi-phase pipeline: data freshness check, data sync, fundamental data collection (financial statements from yfinance), hot stock discovery, multi-factor stock screening (P/E, RSI, volume spikes, MA crossovers, earnings proximity, FCF yield, AI sentiment), technical analysis (SMA 20/55/200, Bollinger Bands, RSI/MACD/Stochastic/ADX oscillators), optional market context (alphaear-news + alphaear-sentiment), and Korean expert report generation (.docx + optional Slack). Generates per-stock buy/sell recommendations using 3-way signal combination (Turtle + Bollinger + Oscillator) enhanced with fundamental screening scores and AI sentiment. Reuses `weekly-stock-update`, `daily-stock-check`, `financial-data-collector`, `stock-screener`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, and `alphaear-sentiment` skills internally. No API keys are required for Cursor-side execution.
 
 ## Prerequisites
 
@@ -94,6 +99,28 @@ python scripts/weekly_stock_update.py --status
 
 Confirm `Last` dates have advanced. Report any tickers that still have gaps (market closed, delisted, etc.).
 
+### Phase 2.5: Fundamental Data Sync
+
+Collect financial statements and fundamental metrics for all tracked tickers. Skip with `skip-fundamentals`.
+
+**Step 2.5a — Yahoo Finance fundamentals:**
+
+```bash
+cd backend
+python scripts/financial_data_collector.py --all
+```
+
+This fetches quarterly income statements, balance sheets, and cash flow statements from yfinance, computes derived metrics (P/E, FCF yield, ROE, debt/equity, margins), and upserts into the `financial_statements` table.
+
+**Step 2.5b — Verify fundamental coverage:**
+
+```bash
+cd backend
+python scripts/financial_data_collector.py --status
+```
+
+Confirm financial data coverage. Report any tickers without fundamental data.
+
 ### Phase 3: Hot Stock Discovery
 
 Discover the hottest untracked stocks from major indices. Skip this phase if the `skip-discover` flag is set.
@@ -126,6 +153,42 @@ Present the discovered hot stocks:
 - Suggested category (mapped from GICS sector)
 
 The discovered stocks are included in the Phase 5 report but are NOT permanently added to the tracked ticker list.
+
+### Phase 3.5: Multi-Factor Screening (NEW)
+
+Run institutional-grade screening on all tracked tickers. Skip with `skip-screener`.
+
+**Step 3.5a — Run screener:**
+
+```bash
+cd backend
+python scripts/stock_screener.py --all --json > ../outputs/screener-$(date +%Y-%m-%d).json
+```
+
+Applies 7 screening filters:
+1. P/E ratio (0–50): eliminates overvalued / no-earnings stocks
+2. RSI sweet spot (30–70): avoids overbought/oversold extremes
+3. Volume spike (>1.5x 20-day avg): detects institutional flow
+4. Trend confirmation (price > 50-day SMA): uptrend filter
+5. Golden cross (20 SMA > 50 SMA): bullish crossover signal
+6. Free Cash Flow yield (>0%): value filter from fundamental data
+7. Earnings proximity (within 14 days): flags upcoming catalysts
+
+**Step 3.5b — AI sentiment (optional, include with `--sentiment`):**
+
+```bash
+cd backend
+python scripts/stock_screener.py --all --sentiment --json > ../outputs/screener-$(date +%Y-%m-%d).json
+```
+
+For each stock passing technical filters, fetches recent news headlines via yfinance and scores sentiment using Claude Haiku. Composite score: 70% technical + 30% sentiment.
+
+**Step 3.5c — Report screener summary:**
+
+Present screener results:
+- Total stocks passing all filters
+- STRONG BUY / BUY / NEUTRAL / CAUTION / AVOID distribution
+- Top 5 stocks by composite score with key metrics
 
 ### Phase 4: Analysis
 
@@ -176,7 +239,7 @@ Use the `alphaear-reporter` skill workflow with the daily-stock-check JSON as in
 
 **Step 5b — Generate Korean .docx report (skip if `skip-docx` flag is set):**
 
-1. Save analysis JSON to `outputs/analysis-{date}.json` and discovery JSON to `outputs/discovery-{date}.json`
+1. Save analysis JSON to `outputs/analysis-{date}.json`, screener JSON to `outputs/screener-{date}.json`, and discovery JSON to `outputs/discovery-{date}.json`
 2. Run the report generator:
 
 ```bash
@@ -184,17 +247,38 @@ cd outputs
 node generate-report.js {date}
 ```
 
-The generator also reads `outputs/news-{date}.json` for market context (if available).
+The generator also reads `outputs/news-{date}.json` for market context and `outputs/screener-{date}.json` for screening results (if available).
 It produces a Korean expert report (`outputs/reports/daily-{date}.docx`) with:
    - 표지 (제목, 날짜, 분석 종목 수)
    - 요약 (시그널 분포표, 정배열 종목 수, 스퀴즈 종목, 골든/데스크로스, RSI 과매수/과매도, MACD 크로스)
    - 시장 동향 (alphaear-news 뉴스 헤드라인, if available)
+   - **스크리너 결과** (STRONG BUY/BUY 종목 요약, composite score, 필터 통과 현황)
+   - **펀더멘탈 스냅샷** (종목별 P/E, FCF Yield, ROE, Debt/Equity, Revenue Growth)
+   - **거래량 분석** (RVOL, Volume Spike, OBV 추세)
    - 카테고리별 요약표
-   - 주요 종목 상세 분석 (BUY/SELL 종목별 이동평균선·볼린저·오실레이터 분석 + 감성 점수 + 매매 판단 근거)
-   - 전체 종목 시그널 일람표 (터틀/볼린저/오실레이터/종합 4열)
+   - 주요 종목 상세 분석 (BUY/SELL 종목별 이동평균선·볼린저·오실레이터 분석 + 감성 점수 + 펀더멘탈 메트릭스 + 매매 판단 근거)
+   - 전체 종목 시그널 일람표 (터틀/볼린저/오실레이터/스크리너/종합 5열)
+   - **어닝 캘린더** (14일 내 실적 발표 예정 종목)
    - 핫 종목 (미추적 종목 발견 결과)
    - 기술적 지표 상세표 (이동평균선, 볼린저, 오실레이터 3개 테이블)
    - 리스크 노트 및 면책 조항
+
+**Step 5b½ — Quality Gate (Evaluator-Optimizer, skip if `skip-quality-gate`):**
+
+Evaluate the generated report before posting. Uses the `ai-quality-evaluator` skill as the evaluator in an evaluator-optimizer loop.
+
+1. Score the report content on 5 dimensions: accuracy, hallucination detection, data consistency, coverage completeness, and actionability
+2. Compute the overall quality score (weighted average)
+3. Apply quality decision:
+   - **Score >= 8.0** → PASS — proceed to Slack posting
+   - **Score 6.0–7.9** → REFINE — feed evaluator feedback back to `alphaear-reporter`, regenerate the weak sections, re-score (max 2 refinement iterations)
+   - **Score < 6.0** → FAIL — halt pipeline, do not post, notify user with the score breakdown and specific failures
+4. Stopping criteria for refinement loop:
+   - Score reaches >= 8.0
+   - Max 2 iterations reached (post with best-scoring version and note the quality score)
+   - No improvement between iterations (score delta < 0.5)
+
+If `ai-quality-evaluator` skill is not available, log a warning and skip the gate (proceed to posting).
 
 **Step 5c — Post to Slack (optional, skip if `dry-run` or `skip-slack`):**
 
@@ -239,10 +323,13 @@ _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) +
 | `status` | Phase 1 only — show data freshness report | `/today status` |
 | `dry-run` | Run all phases but skip Slack posting (still generates .docx) | `/today dry-run` |
 | `skip-sync` | Skip Phase 2, run analysis on existing data | `/today skip-sync` |
+| `skip-fundamentals` | Skip Phase 2.5, no fundamental data collection | `/today skip-fundamentals` |
 | `skip-discover` | Skip Phase 3, no hot stock discovery | `/today skip-discover` |
+| `skip-screener` | Skip Phase 3.5, no multi-factor screening | `/today skip-screener` |
 | `skip-news` | Skip Phase 4.5a, no market news context | `/today skip-news` |
 | `skip-sentiment` | Skip Phase 4.5b, no sentiment scoring | `/today skip-sentiment` |
 | `skip-docx` | Skip .docx report generation (Step 5b) | `/today skip-docx` |
+| `skip-quality-gate` | Skip report quality evaluation (Step 5b½) | `/today skip-quality-gate` |
 | `skip-report` | Run Phase 1+2+3 only, no analysis or report | `/today skip-report` |
 
 ## Examples
@@ -333,19 +420,23 @@ Solution: Check `docker compose up -d db` or verify `DATABASE_URL` in `.env`.
 
 - **DB status script**: `backend/scripts/weekly_stock_update.py`
 - **CSV import script**: `backend/scripts/import_csv.py`
+- **Fundamental data collector**: `backend/scripts/financial_data_collector.py` (yfinance → financial_statements table)
+- **Stock screener**: `backend/scripts/stock_screener.py` (multi-factor screening + AI sentiment)
 - **Discovery script**: `backend/scripts/discover_hot_stocks.py`
 - **Analysis script**: `backend/scripts/daily_stock_check.py` (Turtle + Bollinger + Oscillators)
 - **Indicator engine**: `backend/app/services/technical_indicator_service.py` (RSI, MACD, Stochastic, ADX, etc.)
+- **Volume metrics**: `backend/app/services/llm_agents/data/financial_data_service.py` (RVOL, OBV, Volume SMA)
 - **Report workflow**: `alphaear-reporter` skill (Cluster → Write → Assemble)
 - **DOCX generation**: `anthropic-docx` skill (docx-js, tables, formatting)
 - **Report generator**: `outputs/generate-report.js`
 - **Report prompt**: `.cursor/skills/today/references/report-prompt.md`
 - **Report output**: `outputs/reports/daily-{date}.docx`
 - **Analysis output**: `outputs/analysis-{date}.json`
+- **Screener output**: `outputs/screener-{date}.json`
 - **Discovery output**: `outputs/discovery-{date}.json`
 - **News output**: `outputs/news-{date}.json` (optional, from alphaear-news)
 - **Data directory**: `data/latest/`
-- **DB models**: `backend/app/models/stock_price.py` (`Ticker`, `StockPrice`)
+- **DB models**: `backend/app/models/stock_price.py` (`Ticker`, `StockPrice`), `backend/app/models/llm_agents/models.py` (`FinancialStatement`)
 - **Tracked tickers**: `backend/app/core/constants.py` (`DEFAULT_STOCKS`, `TICKER_CATEGORY_MAP`)
 - **Slack channel**: `#h-report` (optional)
 - **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`

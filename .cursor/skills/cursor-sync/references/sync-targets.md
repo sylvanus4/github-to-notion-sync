@@ -11,6 +11,7 @@
 | Alias | Repo | Full Path |
 |-------|------|-----------|
 | `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/work/thakicloud/github-to-notion-sync` |
+| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/work/thakicloud/ai-platform-webui` |
 | `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/work/thakicloud/ai-model-event-stock-analytics` |
 | `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/work/thakicloud/ai-template` |
 

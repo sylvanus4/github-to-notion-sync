@@ -18,10 +18,26 @@ metadata:
 
 Lightweight pipeline to go from uncommitted changes to a merged PR. Chains domain-split commits, push, issue creation with project linking, PR creation, and auto-merge without code review overhead.
 
+## Repository-Specific Behavior
+
+### ai-platform-webui (ThakiCloud/ai-platform-webui)
+
+**Exception**: This repo works exclusively on the `tmp` branch. PR creation and merge steps are **always skipped**. The pipeline is:
+
+```
+commit → push → issue → report
+```
+
+No cross-branch merges. No PRs targeting `dev` or `main`. All work stays on `tmp`.
+
+### Other repos
+
+Full pipeline applies: `commit → push → issue → PR → merge`.
+
 ## Usage
 
 ```
-/release-ship                    # full pipeline: commit → push → issue → PR → merge
+/release-ship                    # full pipeline (webui: commit→push→issue→report)
 /release-ship --no-pr            # commit → push → issue (skip PR and merge)
 /release-ship --no-issue         # commit → push → PR → merge (skip issue creation)
 /release-ship --no-merge         # commit → push → issue → PR (skip merge)
@@ -63,6 +79,16 @@ git push origin HEAD:tmp
 ```
 
 If push fails (e.g., rejected), inform the user with remediation steps (`git pull origin tmp`).
+
+**Repo detection** (used in Steps 5 and 6):
+
+```bash
+REPO_URL=$(git remote get-url origin)
+IS_WEBUI=false
+echo "$REPO_URL" | grep -q 'ai-platform-webui' && IS_WEBUI=true
+```
+
+If `IS_WEBUI` is true, skip Steps 5 and 6 entirely (proceed to Step 4, then Step 7).
 
 If both `--no-pr` and `--no-issue` flags are set, skip to Step 7 (Report).
 
@@ -134,6 +160,8 @@ Default field values:
 
 ### Step 5: PR Create or Update
 
+**Skip this step** if `IS_WEBUI` is true (ai-platform-webui works on `tmp` only — no PRs).
+
 Determine target branch (override with `--base`):
 
 | Branch pattern | Target |
@@ -192,56 +220,51 @@ For the full PR body template, see [references/pr-template.md](references/pr-tem
 
 ### Step 6: Merge PR
 
+**Skip this step** if `IS_WEBUI` is true (ai-platform-webui works on `tmp` only — no merges).
+
 If `--no-pr` or `--no-merge` flag is set, skip to Step 7 (Report).
 
-Auto-merge the PR created or updated in Step 5. Merge behavior adapts based on the repository.
-
-#### 6a. Detect repository
-
-```bash
-REPO_URL=$(git remote get-url origin)
-```
-
-#### 6b. Merge with repo-aware strategy
-
-**ai-platform-webui** (`ThakiCloud/ai-platform-webui`): PR is `tmp → dev`. Preserve the `tmp` branch (it is reused across PRs).
-
-```bash
-gh pr merge $PR_NUMBER --squash
-```
-
-**Other repos**: PR is `branch → main`. Delete the source branch after merge.
+Auto-merge the PR created or updated in Step 5.
 
 ```bash
 gh pr merge $PR_NUMBER --squash --delete-branch
 ```
 
-Detection logic:
-
-```bash
-if echo "$REPO_URL" | grep -q 'ai-platform-webui'; then
-  gh pr merge $PR_NUMBER --squash
-else
-  gh pr merge $PR_NUMBER --squash --delete-branch
-fi
-```
-
 If merge fails (CI required, review required, conflicts), report the error with the PR URL so the user can merge manually later. Do NOT block the Report step.
 
-#### 6c. Switch to base branch after merge
+#### 6a. Switch to base branch after merge
 
-After a successful merge, pull the updated base branch and switch to it to prevent working on a stale feature branch:
+After a successful merge, pull the updated base branch and switch to it:
 
 ```bash
 git checkout $TARGET_BRANCH
 git pull origin $TARGET_BRANCH
 ```
 
-For **ai-platform-webui** (where `tmp` is reused), stay on the current branch — do NOT switch.
-
-If the checkout fails (e.g., uncommitted changes), warn the user but do not block the Report step.
+If the checkout or pull fails (e.g., uncommitted changes), warn the user but do not block the Report step.
 
 ### Step 7: Report
+
+**ai-platform-webui** format (no PR/Merge):
+
+```
+Release Ship Report
+====================
+Pipeline: commit → push → issue → report (webui: tmp-only mode)
+
+Commits:
+  [TYPE] commit message 1
+  [TYPE] commit message 2
+
+Push:
+  Branch: tmp → origin/tmp
+
+Issues:
+  #N1 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
+  #N2 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
+```
+
+**Other repos** format (full pipeline):
 
 ```
 Release Ship Report
@@ -256,38 +279,34 @@ Push:
   Branch: [branch] → origin/tmp
 
 Issues:
-  #N1 [TYPE] Title → Project #22 (Done, P2, S, Sprint X)
-  #N2 [TYPE] Title → Project #22 (Done, P2, S, Sprint X)
+  #N1 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
+  #N2 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
 
 PR:
-  URL: https://github.com/ThakiCloud/ai-platform-webui/pull/N
+  URL: https://github.com/ThakiCloud/REPO/pull/N
   Title: [PR title]
   Base: [target] ← [branch]
   Status: [Created | Updated]
 
 Merge:
   PR #N merged via squash into [base branch]
-  Branch: [kept | deleted]
-
-Post-merge:
-  Switched to: [base branch]
+  Branch: deleted
 ```
 
 If `--no-issue` was used, omit the Issues section. If `--no-pr` was used, omit the PR and Merge sections. If `--no-merge` was used, omit the Merge section.
 
 ## Examples
 
-### Example 1: Full pipeline from feature branch (webui)
+### Example 1: ai-platform-webui (tmp-only mode)
 
-User runs `/release-ship` on `issue/42-add-auth` in `ai-platform-webui`.
+User runs `/release-ship` on `tmp` in `ai-platform-webui`.
 
-1. `git status` finds 6 changed files across `services/`, `frontend/`, `docs/`
-2. 3 domain-split commits: `[enhance] Add auth service`, `[enhance] Add login UI`, `[docs] Add auth docs`
+1. `git status` finds 6 changed files across `.cursor/skills/`, `.cursor/commands/`, `docs/`
+2. 3 domain-split commits created
 3. Push to `origin/tmp`
 4. Fetch Notion issue guide → create 3 issues from commits → add to Project #5 with fields (Done, P2, S, current sprint, 0.5 SP each)
-5. No existing PR found → create PR `#42 [enhance] Add user authentication` with `Resolves #101, Resolves #102, Resolves #103`
-6. Squash-merge PR into `dev`, `tmp` branch kept
-7. Report with PR URL, issue URLs, merge status
+5. PR and merge skipped (webui: tmp-only mode)
+6. Report with commit list, issue URLs — no PR/merge sections
 
 ### Example 2: Full pipeline from other repo
 
@@ -309,7 +328,7 @@ User runs `/release-ship --no-pr` to commit and push only.
 3. Issues created and added to Project #5
 4. Report without PR and Merge sections
 
-### Example 4: Existing PR update
+### Example 4: Existing PR update (non-webui repos)
 
 User runs `/release-ship` on a branch that already has an open PR.
 
@@ -330,17 +349,6 @@ User runs `/release-ship --no-issue` to ship without creating issues.
 4. PR created without issue references
 5. Squash-merge PR
 6. Report without Issues section
-
-### Example 6: Skip merge
-
-User runs `/release-ship --no-merge` to stop after PR creation.
-
-1. Domain-split commits created
-2. Push to origin
-3. Issues created and added to Project #5
-4. PR created with issue references
-5. Merge skipped
-6. Report without Merge section
 
 ## Error Handling
 
@@ -370,4 +378,5 @@ User runs `/release-ship --no-merge` to stop after PR creation.
 - **Never create issues** without user confirmation of the issue plan
 - **Always fetch Notion guide** before issue or PR creation
 - **Never merge** without a successfully created PR in the same pipeline run
-- **Never delete `tmp` branch** in `ai-platform-webui` (it is reused across PRs)
+- **ai-platform-webui**: Never create PRs or merge to other branches — `tmp` is the only working branch
+- **ai-platform-webui**: Never delete `tmp` branch (it is reused permanently)

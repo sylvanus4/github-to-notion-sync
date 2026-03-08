@@ -69,6 +69,23 @@ Sub-agent config: `subagent_type: generalPurpose`, `model: fast`, `readonly: tru
 2. Fix any lint errors introduced
 3. If `--dry-run`, present findings report and stop here
 
+### Step 4.5: Quick Re-Evaluation (Evaluator-Optimizer)
+
+**Pattern:** Lightweight evaluator-optimizer — verify that Critical/High findings from Step 2 are resolved after auto-fix.
+
+1. Collect the list of original Critical and High findings from Step 2
+2. If no Critical/High findings existed, skip this step
+3. Launch 1 fast re-check agent on ONLY the files that were modified in Step 3
+   - `subagent_type`: `generalPurpose`, `model`: `fast`, `readonly`: `true`
+   - Prompt: "Verify these specific Critical/High findings are resolved: [list findings]. Review only the modified files."
+4. If unresolved Critical findings remain:
+   - Attempt one more fix pass on the unresolved Critical findings only
+   - Run `ReadLints` again
+   - If still unresolved after 1 retry, report the remaining Critical findings and pause for user decision
+5. If only unresolved High findings remain: note them in the report but proceed
+
+**Max iterations:** 1 (ship should stay fast — full refinement is for `/simplify --refine` or `/deep-review --refine`)
+
 ### Step 5: Domain-Split Commits (skip if `--dry-run`)
 
 Follow the `domain-commit` skill pattern:

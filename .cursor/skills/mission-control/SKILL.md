@@ -59,6 +59,29 @@ Date: YYYY-MM-DD
 - [ ] Aggregate results and report
 ```
 
+### Step 2.5: Select Orchestration Pattern
+
+For each sub-task group, classify which workflow pattern applies (per `workflow-patterns.mdc`):
+
+| Sub-task characteristic | Pattern | Example |
+|---|---|---|
+| Independent review/analysis tasks | **Parallel** | 4 review agents in `/deep-review` |
+| Tasks where output B depends on input A | **Sequential** | Data sync → Analysis → Report in `/today` |
+| Tasks producing content that must meet a quality bar | **Evaluator-Optimizer** | Report generation with `ai-quality-evaluator` gate |
+
+For the overall workflow, select a combination:
+
+1. **Default:** Sequential pipeline with Parallel stages at bottleneck points
+2. **Quality-critical outputs:** Add Evaluator-Optimizer loops at content generation stages (reports, PRDs, communications)
+3. **Speed-critical:** Maximize Parallel stages; skip Evaluator-Optimizer loops
+
+Document the pattern choice in the task plan (Step 2). Example:
+
+```markdown
+## [Goal Title]
+Pattern: Parallel (review) → Evaluator-Optimizer (fix+verify) → Sequential (commit+PR)
+```
+
 ### Step 3: Delegate via Subagents
 
 Use the Task tool to run skills in parallel. Maximum 4 concurrent subagents.

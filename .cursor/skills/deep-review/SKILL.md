@@ -84,11 +84,39 @@ For each finding (highest severity first):
 
 Skip if: conflict with prior fix, ambiguous change, or file already modified at that location.
 
-### Step 5: Verify and Report
+### Step 5: Verify
 
 1. Run `ReadLints` on all modified files
 2. Fix any introduced lint errors
-3. Present report:
+
+### Step 6: Re-Evaluate (Evaluator-Optimizer Loop)
+
+**Trigger:** Runs automatically when `--refine` flag is set. Skipped by default.
+
+**Pattern:** Evaluator-Optimizer — re-run focused domain agents on modified files to verify fixes resolved the original findings.
+
+1. Collect the list of files modified in Step 4
+2. Launch 1-2 focused domain agents (pick the domains with the most Critical/High findings) on ONLY the modified files
+   - `subagent_type`: `generalPurpose`, `model`: `fast`, `readonly`: `true`
+   - Prompt: "Review these files from a [domain] perspective. Focus on verifying that prior Critical/High findings are resolved."
+3. Compare re-evaluation findings against the original findings list
+4. If new Critical or High findings exist AND iteration count < 2:
+   - Apply fixes for the new findings (same rules as Step 4)
+   - Increment iteration counter
+   - Return to sub-step 1 of this step
+5. If quality threshold is met OR max iterations (2) reached, proceed to report
+
+**Stopping criteria (any one sufficient):**
+- No Critical or High findings remain
+- Total new findings <= 2 (Low severity only)
+- Max 2 refinement iterations reached
+- No improvement between iterations (same or more findings)
+
+**If max iterations exhausted with remaining findings:** Include them in the report under "Remaining Issues (post-refinement)".
+
+### Step 7: Report
+
+Present report:
 
 ```
 Deep Review Report
@@ -104,6 +132,7 @@ Findings by Domain:
 Total: [N] (Critical: X, High: X, Medium: X, Low: X)
 Applied Fixes: [N] / [N]
 Skipped: [N] (reasons listed)
+Refinement: [N] iterations (if --refine used)
 
 Top Issues:
   1. [file] — [domain] — [what was found/fixed]
@@ -118,6 +147,10 @@ Top Issues:
 /deep-review full                     # full mode — entire project
 /deep-review focus on security        # prioritize security findings
 /deep-review src/api/                 # scope to specific directory
+
+# Evaluator-Optimizer refinement (combinable with any mode)
+/deep-review --refine                 # re-evaluate after fixes (max 2 iterations)
+/deep-review today --refine           # today mode + re-evaluation loop
 ```
 
 ## Examples
