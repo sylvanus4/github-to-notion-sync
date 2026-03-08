@@ -1,27 +1,32 @@
 ## Release Ship
 
-Lightweight shipping pipeline: domain-split commits, git push, issue creation with GitHub Project linking, PR creation/update, and auto-merge — without code review overhead.
+Lightweight shipping pipeline: domain-split commits, git push, issue creation with GitHub Project linking. For non-webui repos, also creates PRs and auto-merges.
+
+### Repository-Specific Behavior
+
+- **ai-platform-webui**: `commit → push → issue → report` (tmp-only mode, no PR/merge)
+- **Other repos**: `commit → push → issue → PR → merge` (full pipeline)
 
 ### Usage
 
 ```
-/release-ship                    # full pipeline: commit → push → issue → PR → merge
+/release-ship                    # full pipeline (webui: commit→push→issue→report)
 /release-ship --no-pr            # commit → push → issue (skip PR and merge)
-/release-ship --no-issue         # commit → push → PR → merge (skip issue creation)
+/release-ship --no-issue         # commit → push only (skip issue creation)
 /release-ship --no-merge         # commit → push → issue → PR (skip merge)
-/release-ship --base dev         # specify PR base branch
-/release-ship --update           # force-update existing PR body
+/release-ship --base dev         # specify PR base branch (non-webui only)
+/release-ship --update           # force-update existing PR body (non-webui only)
 ```
 
 ### Workflow
 
-1. **Pre-flight** — Check for changes, detect branch, extract issue number
+1. **Pre-flight** — Check for changes, detect branch, detect repo
 2. **Domain-commit** — Pre-commit hooks + domain-split commits
 3. **Push** — `git push origin HEAD:tmp`
-4. **Issue** — Create GitHub issues from commits, link to Project #22
-5. **PR** — Create new PR or update existing one with change summary and issue references
-6. **Merge** — Squash-merge PR (webui: keep `tmp`; other repos: delete branch), then switch to base branch
-7. **Report** — Commit list, issue URLs, PR URL, merge status, branch switch
+4. **Issue** — Create GitHub issues from commits, link to Project #5
+5. **PR** — Create/update PR (**skipped for ai-platform-webui**)
+6. **Merge** — Squash-merge PR (**skipped for ai-platform-webui**)
+7. **Report** — Commit list, issue URLs, PR URL (if applicable)
 
 ### Execution
 
@@ -29,27 +34,22 @@ Read and follow the `release-ship` skill (`.cursor/skills/release-ship/SKILL.md`
 
 ### Examples
 
-Ship changes from a feature branch:
+Ship changes in ai-platform-webui (tmp-only):
 ```
 /release-ship
 ```
 
-Commit and push without creating PR:
+Ship changes in other repos (full pipeline):
 ```
-/release-ship --no-pr
+/release-ship
 ```
 
-Ship without creating issues:
+Commit and push without creating issues:
 ```
 /release-ship --no-issue
 ```
 
-Stop after PR creation (skip merge):
+Stop after PR creation in non-webui repo:
 ```
 /release-ship --no-merge
-```
-
-Target a specific base branch:
-```
-/release-ship --base main
 ```
