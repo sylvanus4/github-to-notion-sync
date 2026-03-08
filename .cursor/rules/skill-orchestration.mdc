@@ -1,5 +1,5 @@
 ---
-description: "Skill registry (59 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+description: "Skill registry (75 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
 alwaysApply: false
 ---
 
@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (59 project skills)
+## Skill Registry (75 project skills)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -68,6 +68,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `test-suite` — Test coverage + quality review + test generation + runner
 - `ui-suite` — UI/UX review + auto-fix (design audit, web standards, UX)
 - `incident-to-improvement` — 7-skill incident response pipeline
+- `code-review-all` — 3-agent adversarial review (checklist, abnormal scenarios, hacker security) with stack-aware checks and 10-point scoring
 
 **Generation skills** (create artifacts):
 - `technical-writer` — ADR/docs/changelog
@@ -78,6 +79,21 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `onboarding-accelerator` — Generate new developer onboarding kit
 - `docs-tutor-setup` — Transform docs into Obsidian StudyVault
 - `docs-tutor` — Interactive quiz tutor for StudyVault
+- `ai-workflow-integrator` — Design and orchestrate AI-powered stock analysis workflows
+- `pipeline-builder` — Build automated data pipelines using scripts, GitHub Actions, cron
+- `context-engineer` — Manage project knowledge architecture and AI agent context
+- `ai-quality-evaluator` — Score and validate AI-generated financial reports (5-dimension quality gate)
+- `system-thinker` — Design end-to-end automated systems with data flow mapping and feedback loops
+- `automation-strategist` — Strategic automation planning with ARIA framework and human-in-the-loop design
+
+**Trading analysis skills** (options/stock analysis):
+- `trading-options-theta` — 12 quant-firm-style options theta prompts (0DTE, iron condor, regime, skew, earnings IV crush, etc.)
+
+**NLM x PM composite skills** (PM frameworks → NotebookLM multi-format outputs):
+- `nlm-strategy-hub` — PM strategy + market research → NLM research hub (slides, podcast, mind map, report)
+- `nlm-launch-kit` — GTM + execution + marketing → NLM launch kit (slides, video, infographic, flashcards, quiz)
+- `nlm-discovery-lab` — Product discovery + user research + data → NLM learning lab (quiz, debate, slides, study guide, data table)
+- `nlm-arxiv-slides` — arXiv paper PDF → expert rewrite + NLM analysis + slide deck (defuddle, anthropic-pdf, nlm-slides, notebooklm, notebooklm-research, notebooklm-studio)
 
 **Utility skills**:
 - `agent-browser` — Headless browser automation via CLI
@@ -90,37 +106,62 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `x-to-slack` — Fetch tweet content and post to Slack
 - `ralph-loop` — Continuous AI agent loop for batch task execution
 
+**Paperclip (AI agent orchestration)**:
+- `paperclip-control` — Company, agent, goal, approval, cost, and dashboard management
+- `paperclip-tasks` — Issue CRUD, atomic checkout, delegation, status transitions
+- `paperclip-agents` — Agent creation, heartbeats, budgets, skill injection
+- `paperclip-setup` — Installation, configuration, deployment, diagnostics
+
 **Orchestrator**:
 - `mission-control` — Decomposes goals, delegates to skills, aggregates results
 
 ## Workflow Commands
 
-| Command | Skills Invoked | Type |
-|---------|---------------|------|
-| `/full-quality-audit` | ci-quality-gate, security-expert, compliance-governance, domain-commit | Parallel then Sequential |
-| `/feature-pipeline` | backend-expert, frontend-expert, qa-test-expert, e2e-testing, pr-review-captain, domain-commit | Sequential with parallel batches |
-| `/release-prep` | pr-review-captain, technical-writer, sre-devops-expert, ci-quality-gate | Parallel then Sequential |
-| `/release-commander` | deep-review, security-expert, test-suite, performance-profiler, i18n-sync, dependency-auditor, technical-writer, domain-commit, pr-review-captain | 10-skill release pipeline |
-| `/release-ship` | domain-commit, release-ship | Commit + Push + PR |
-| `/ship` | deep-review, simplify, domain-commit, ship | Review + Auto-fix + Commit + PR |
+| Command | Skills Invoked | Pattern |
+|---------|---------------|---------|
+| `/full-quality-audit` | ci-quality-gate, security-expert, compliance-governance, domain-commit | Parallel (review) → Sequential (commit) |
+| `/feature-pipeline` | backend-expert, frontend-expert, qa-test-expert, e2e-testing, pr-review-captain, domain-commit | Sequential with Parallel batches |
+| `/release-prep` | pr-review-captain, technical-writer, sre-devops-expert, ci-quality-gate | Parallel (review) → Sequential (commit) |
+| `/release-commander` | deep-review, security-expert, test-suite, performance-profiler, i18n-sync, dependency-auditor, technical-writer, domain-commit, pr-review-captain | Parallel (Groups A,B) → Eval-Opt (gates) → Sequential (Groups C,D) |
+| `/release-ship` | domain-commit, release-ship | Sequential |
+| `/ship` | deep-review, simplify, domain-commit, ship | Parallel (review) → Eval-Opt (fix+verify) → Sequential (commit+PR) |
 | `/incident-response` | service-health-doctor, backend-expert, db-expert, technical-writer | Sequential (time-critical) |
-| `/incident-to-improvement` | diagnose, domain-commit, qa-test-expert, technical-writer, sre-devops-expert | 7-skill incident pipeline |
+| `/incident-to-improvement` | diagnose, domain-commit, qa-test-expert, technical-writer, sre-devops-expert | Parallel (triage) → Sequential (fix) → Parallel (prevent) |
 | `/dependency-sweep` | dependency-auditor, ci-quality-gate, domain-commit | Sequential |
 | `/i18n-check` | i18n-sync, domain-commit | Sequential |
 | `/design-audit` | design-architect | Sequential (phased approval) |
 | `/define-problem` | problem-definition | Sequential (Socratic) |
-| `/deep-review` | frontend-expert, backend-expert, security-expert, qa-test-expert | 4-agent parallel review |
-| `/simplify` | simplify | 4-agent review + auto-fix |
-| `/diagnose` | diagnose | 3-agent bug diagnosis |
-| `/test-suite` | test-suite | Review + Generate + Run |
-| `/ui-suite` | ui-suite | UI/UX review + auto-fix |
-| `/codebase-archaeologist` | codebase-archaeologist | Git history analysis |
-| `/refactor-simulator` | refactor-simulator | Blast radius analysis |
-| `/demo-forge` | demo-forge | Interactive demo generation |
-| `/onboarding-accelerator` | onboarding-accelerator | New developer kit generation |
-| `/cursor-sync` | cursor-sync | Sync .cursor/ across projects |
-| `/plans` | prompt-architect, plans | Optimize prompt + execution plan |
-| `/today` | today (weekly-stock-update, discover-hot-stocks, daily-stock-check, alphaear-news, alphaear-sentiment, alphaear-reporter, anthropic-docx) | Sequential multi-phase pipeline |
+| `/deep-review` | frontend-expert, backend-expert, security-expert, qa-test-expert | Parallel (review) → Eval-Opt (fix+re-evaluate, with --refine) |
+| `/simplify` | simplify | Parallel (review) → Eval-Opt (fix+re-evaluate, with --refine) |
+| `/diagnose` | diagnose | Parallel (analysis) → Sequential (synthesis+fix) |
+| `/test-suite` | test-suite | Parallel (review) → Eval-Opt (generate+run with retry) |
+| `/ui-suite` | ui-suite | Parallel (review) → Sequential (builder) |
+| `/codebase-archaeologist` | codebase-archaeologist | Sequential |
+| `/refactor-simulator` | refactor-simulator | Sequential |
+| `/demo-forge` | demo-forge | Sequential |
+| `/onboarding-accelerator` | onboarding-accelerator | Parallel (8 skills) → Sequential (assembly) |
+| `/cursor-sync` | cursor-sync | Sequential |
+| `/plans` | prompt-architect, plans | Sequential → Eval-Opt (user-driven refinement) |
+| `/today` | today (weekly-stock-update, discover-hot-stocks, daily-stock-check, alphaear-news, alphaear-sentiment, alphaear-reporter, anthropic-docx) | Sequential → Eval-Opt (report quality gate) |
+| `/paperclip-status` | paperclip-control | Sequential |
+| `/paperclip-task` | paperclip-tasks | Sequential |
+| `/paperclip-agent` | paperclip-agents | Sequential |
+| `/paperclip-setup` | paperclip-setup | Sequential |
+| `/paperclip-approve` | paperclip-control | Sequential |
+| `/paperclip-costs` | paperclip-control | Sequential |
+| `/ai-workflow` | ai-workflow-integrator | Sequential with Parallel stages |
+| `/pipeline-build` | pipeline-builder | Sequential |
+| `/context-engineer` | context-engineer | Sequential |
+| `/ai-quality` | ai-quality-evaluator | Eval-Opt (score+feedback) |
+| `/system-think` | system-thinker | Sequential |
+| `/automation-strategy` | automation-strategist | Sequential |
+| `/nlm-strategy-hub` | pm-product-strategy, pm-market-research, pm-marketing-growth, notebooklm, notebooklm-research, notebooklm-studio | Sequential (PM analysis) → Sequential (compile+upload+research) → Parallel (4 artifacts) |
+| `/nlm-launch-kit` | pm-go-to-market, pm-execution, pm-marketing-growth, notebooklm, notebooklm-research, notebooklm-studio | Sequential (PM analysis) → Sequential (compile+upload+research) → Parallel (5 artifacts) |
+| `/nlm-discovery-lab` | pm-product-discovery, pm-market-research, pm-data-analytics, notebooklm, notebooklm-research, notebooklm-studio | Sequential (PM analysis) → Sequential (compile+upload+research) → Parallel (5 artifacts) |
+| `/nlm-arxiv-slides` | defuddle, anthropic-pdf, nlm-slides, notebooklm, notebooklm-research, notebooklm-studio | Sequential (download+extract+rewrite+upload+research+analyze+slides) |
+| `/options-theta` | trading-options-theta | Sequential (route → load prompt → execute) or Combo (regime → pre-market → setup → risk) |
+| `/code-review-all` | code-review-all | Sequential (stack detect) → Parallel (3 agents) → Sequential (score+report) |
+| `/future-skills-audit` | all 6 future skills | Parallel (audit) → Sequential (report) |
 
 ## Orchestration Rules
 
