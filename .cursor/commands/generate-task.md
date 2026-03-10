@@ -4,7 +4,7 @@ Analyze the request and generate a task document for runner.sh execution.
 
 ## Request: $ARGUMENTS
 
-> Pre-condition: Read `my-specs/CONTEXT.md` and `my-specs/AGENTS.md` first.
+> Pre-condition: Read `MEMORY.md` and project context first.
 
 ---
 
