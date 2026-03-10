@@ -1,0 +1,96 @@
+---
+description: "Commands for activating and orchestrating Agency agent skills (68 AI specialists across 9 divisions). Handles /agency-roster, /agency-team, /agency-activate, /agency-review commands."
+alwaysApply: false
+---
+
+# Agency Commands
+
+## Available Commands
+
+### `/agency-roster`
+
+List all 68 installed agency agents organized by division.
+
+**Procedure:**
+1. Read the `agency-roster` SKILL.md
+2. Present the full roster table grouped by division
+3. Highlight any agents relevant to the user's current context (open files, recent work)
+
+### `/agency-team <scenario>`
+
+Suggest an optimal agent team for a given scenario.
+
+**Procedure:**
+1. Read the `agency-roster` SKILL.md, specifically the Team Templates section
+2. If the scenario matches a template, present it directly
+3. If custom, compose a team of 3-6 agents based on the scenario requirements
+4. For each agent, explain their role in the team
+5. Show the activation command to use all selected agents
+
+**Built-in scenarios:**
+- `mvp` -- Startup MVP build (5 agents)
+- `marketing` -- Marketing campaign launch (5 agents)
+- `enterprise` -- Enterprise feature development (6 agents)
+- `discovery` -- Full product discovery (8 agents)
+- `data-pipeline` -- Data pipeline build (5 agents)
+- `ai-feature` -- AI feature development (5 agents)
+- Custom: describe the scenario in natural language
+
+### `/agency-activate <agent-name>`
+
+Activate a specific agency agent's persona for the current conversation.
+
+**Procedure:**
+1. Read the corresponding `.cursor/skills/agency-<agent-name>/SKILL.md` skill file
+2. Adopt the agent's identity, personality, communication style, and expertise
+3. Apply the agent's critical rules and workflow processes
+4. Respond as that agent for subsequent interactions until deactivated
+
+**Examples:**
+```
+/agency-activate frontend-developer
+/agency-activate reality-checker
+/agency-activate growth-hacker
+```
+
+### `/agency-review [scope]`
+
+Run a multi-agent review using agency agents. Deploys 3-4 agents in parallel for a comprehensive review from different perspectives.
+
+**Procedure:**
+1. Determine scope: `diff` (changed files), `today` (daily work), or `full` (specified files/dirs)
+2. Select review agents based on the code being reviewed:
+   - Web frontend: `agency-frontend-developer` + `agency-ux-researcher` + `agency-accessibility-auditor`
+   - Backend API: `agency-backend-architect` + `agency-security-engineer` + `agency-api-tester`
+   - Full-stack: `agency-frontend-developer` + `agency-backend-architect` + `agency-security-engineer` + `agency-reality-checker`
+   - Infrastructure: `agency-devops-automator` + `agency-infrastructure-maintainer` + `agency-security-engineer`
+3. Launch parallel subagents (max 4), each reading its respective agency skill and reviewing the code
+4. Aggregate findings into a unified report with each agent's perspective clearly labeled
+5. Present prioritized issues with agent attribution
+
+**Examples:**
+```
+/agency-review diff
+/agency-review full src/components/
+/agency-review today
+```
+
+## Agent vs Project Skill Selection Guide
+
+Use **agency agents** when you want:
+- Personality-driven review with distinct voice and communication style
+- General-purpose expertise not tied to this specific project
+- Creative work (branding, marketing, visual storytelling)
+- Multi-perspective team reviews with named specialists
+
+Use **project skills** when you want:
+- Project-specific patterns (FastAPI, React/Vite, FSD architecture)
+- Automated pipelines (CI, release, deployment)
+- Domain-specific analysis (trading, finance, NLM)
+- Established workflow commands (/ship, /deep-review, /simplify)
+
+Combine both for maximum coverage:
+```
+Review this component using the agency-frontend-developer skill for general quality
+and the frontend-expert skill for project-specific patterns.
+```
