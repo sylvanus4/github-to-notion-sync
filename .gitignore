@@ -74,6 +74,9 @@ database_analysis.json
 test_report.md
 bandit-report.json
 
+# Generated output
+output/
+
 # Temporary files
 *.tmp
 *.temp
