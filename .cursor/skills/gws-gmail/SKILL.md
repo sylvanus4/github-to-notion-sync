@@ -99,20 +99,100 @@ gws schema gmail.users.messages.send
 
 ## Common Patterns
 
-```bash
-# List unread messages (use --fields to protect context window)
-gws gmail users messages list \
-  --params '{"userId": "me", "q": "is:unread", "maxResults": 10}' \
-  --fields "messages(id,threadId)"
+**Note**: `--fields` is NOT a standalone flag. Pass `fields` inside `--params` JSON.
 
-# Get a specific message
+```bash
+# List unread messages
+gws gmail users messages list \
+  --params '{"userId": "me", "q": "is:unread", "maxResults": 10}'
+
+# Get a specific message (full)
 gws gmail users messages get \
   --params '{"userId": "me", "id": "MSG_ID"}'
+
+# Get message metadata only (lightweight)
+gws gmail users messages get \
+  --params '{"userId": "me", "id": "MSG_ID", "format": "metadata", "metadataHeaders": ["From", "Subject", "Date", "To", "Cc"]}'
 
 # List labels
 gws gmail users labels list --params '{"userId": "me"}'
 
-# Search messages
+# Search messages by date range
+gws gmail users messages list \
+  --params '{"userId": "me", "q": "after:2026/03/09 before:2026/03/10", "maxResults": 20}'
+
+# Search messages by sender
 gws gmail users messages list \
   --params '{"userId": "me", "q": "from:alice subject:report after:2026/01/01"}'
+
+# Trash a message (reversible)
+gws gmail users messages trash \
+  --params '{"userId": "me", "id": "MSG_ID"}'
+
+# Modify labels (move to label, remove from inbox)
+gws gmail users messages modify \
+  --params '{"userId": "me", "id": "MSG_ID"}' \
+  --json '{"addLabelIds": ["LABEL_ID"], "removeLabelIds": ["INBOX"]}'
+
+# Create a label
+gws gmail users labels create \
+  --params '{"userId": "me"}' \
+  --json '{"name": "Low Priority", "labelListVisibility": "labelShow", "messageListVisibility": "show"}'
+
+# Get attachment data
+gws gmail users messages attachments get \
+  --params '{"userId": "me", "messageId": "MSG_ID", "id": "ATTACHMENT_ID"}'
 ```
+
+## Gmail Filters
+
+Manage automatic email rules via the Gmail settings API.
+
+```bash
+# List existing filters
+gws gmail users settings filters list --params '{"userId": "me"}'
+
+# Create a filter (e.g., label GitHub notifications and skip inbox)
+gws gmail users settings filters create \
+  --params '{"userId": "me"}' \
+  --json '{
+    "criteria": {"from": "notifications@github.com"},
+    "action": {"addLabelIds": ["LABEL_ID"], "removeLabelIds": ["INBOX"]}
+  }'
+
+# Create a filter to auto-delete spam-like emails
+gws gmail users settings filters create \
+  --params '{"userId": "me"}' \
+  --json '{
+    "criteria": {"from": "noreply@spam-domain.com"},
+    "action": {"removeLabelIds": ["INBOX"], "addLabelIds": ["TRASH"]}
+  }'
+
+# Delete a filter
+gws gmail users settings filters delete \
+  --params '{"userId": "me", "id": "FILTER_ID"}'
+
+# Get a specific filter
+gws gmail users settings filters get \
+  --params '{"userId": "me", "id": "FILTER_ID"}'
+```
+
+### Filter Criteria Fields
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `from` | Sender address or pattern | `"notifications@github.com"` |
+| `to` | Recipient address | `"me@company.com"` |
+| `subject` | Subject contains | `"[GitHub]"` |
+| `query` | Gmail search query | `"is:unread category:promotions"` |
+| `hasAttachment` | Has attachment | `true` |
+| `size` | Message size (bytes) | `5000000` |
+| `sizeComparison` | `"larger"` or `"smaller"` | `"larger"` |
+
+### Filter Action Fields
+
+| Field | Description |
+|-------|-------------|
+| `addLabelIds` | Label IDs to add |
+| `removeLabelIds` | Label IDs to remove (e.g., `["INBOX"]` to skip inbox) |
+| `forward` | Email to forward to |

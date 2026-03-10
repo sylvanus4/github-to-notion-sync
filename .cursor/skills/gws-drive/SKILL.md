@@ -76,21 +76,20 @@ gws schema drive.files.create
 
 ## Common Patterns
 
+**Note**: `--fields` is NOT a standalone flag. Pass `fields` inside `--params` JSON.
+
 ```bash
-# List files (ALWAYS use --fields to protect context window)
+# List files (use fields inside params to protect context window)
 gws drive files list \
-  --params '{"pageSize": 10}' \
-  --fields "files(id,name,mimeType,modifiedTime)"
+  --params '{"pageSize": 10, "fields": "files(id,name,mimeType,modifiedTime)"}'
 
 # Search by name
 gws drive files list \
-  --params '{"q": "name contains '\''Report'\''", "pageSize": 10}' \
-  --fields "files(id,name)"
+  --params '{"q": "name contains '\''Report'\''", "pageSize": 10, "fields": "files(id,name)"}'
 
 # Search by type
 gws drive files list \
-  --params '{"q": "mimeType = '\''application/pdf'\''"}' \
-  --fields "files(id,name)"
+  --params '{"q": "mimeType = '\''application/pdf'\''", "fields": "files(id,name)"}'
 
 # Download a file
 gws drive files get --params '{"fileId": "FILE_ID"}' -o ./download.pdf
@@ -110,8 +109,7 @@ gws drive permissions list --params '{"fileId": "FILE_ID"}'
 
 # List externally shared files
 gws drive files list \
-  --params '{"q": "visibility = '\''anyoneWithLink'\''"}' \
-  --fields "files(id,name,owners)"
+  --params '{"q": "visibility = '\''anyoneWithLink'\''", "fields": "files(id,name,owners)"}'
 
 # Create a folder
 gws drive files create \
