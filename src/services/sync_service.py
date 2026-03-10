@@ -30,7 +30,13 @@ class SyncService:
         self.notion_service = NotionService()
 
         # Track sync statistics
-        self.sync_stats = {"last_full_sync": None, "total_synced": 0, "webhook_syncs": 0, "full_syncs": 0, "errors": 0}
+        self.sync_stats: dict[str, Any] = {
+            "last_full_sync": None,
+            "total_synced": 0,
+            "webhook_syncs": 0,
+            "full_syncs": 0,
+            "errors": 0,
+        }
 
     async def sync_webhook_event(self, webhook_event: WebhookEvent) -> dict[str, Any]:
         """Sync a single webhook event.
@@ -45,23 +51,24 @@ class SyncService:
 
         logger_manager = get_logger_manager()
 
+        payload = webhook_event.payload
+        payload_action = payload.action.value if hasattr(payload, "action") else "unknown"
+
         # Log webhook event
         logger_manager.log_webhook_event(
             logger,
             webhook_event.event_type.value,
-            webhook_event.payload.action.value if hasattr(webhook_event.payload, "action") else "unknown",
+            payload_action,
             webhook_event.get_item_id(),
             webhook_event.get_repository().full_name if webhook_event.get_repository() else None,
         )
 
-        result = {"success": False, "action": "none", "item_id": None, "error": None}
+        result: dict[str, Any] = {"success": False, "action": "none", "item_id": None, "error": None}
 
         try:
             # Check if this event should be processed
             if not webhook_event.should_process(self.config.webhook_events):
-                logger.info(
-                    f"Skipping webhook event {webhook_event.event_type.value}:{webhook_event.payload.action.value}"
-                )
+                logger.info(f"Skipping webhook event {webhook_event.event_type.value}:{payload_action}")
                 result["action"] = "skipped"
                 result["success"] = True
                 return result
@@ -78,7 +85,7 @@ class SyncService:
             result["item_id"] = project_item_id
 
             # Handle different webhook actions
-            action = webhook_event.payload.action.value
+            action = payload_action
 
             if action in ["created", "edited", "opened", "closed", "reopened", "assigned", "unassigned"]:
                 # Sync the item from GitHub to Notion
@@ -107,7 +114,12 @@ class SyncService:
 
             # Log sync event
             logger_manager.log_sync_event(
-                logger, "webhook", project_item_id, result["action"], result["success"], result.get("error")
+                logger,
+                "webhook",
+                project_item_id,
+                str(result["action"]),
+                bool(result["success"]),
+                str(result.get("error")) if result.get("error") else None,
             )
 
         except Exception as e:
@@ -183,13 +195,13 @@ class SyncService:
 
         logger.info("Starting full sync from GitHub to Notion")
 
-        result = {
+        result: dict[str, Any] = {
             "success": False,
             "total_items": 0,
             "created": 0,
             "updated": 0,
             "failed": 0,
-            "duration_seconds": 0,
+            "duration_seconds": 0.0,
             "error": None,
         }
 
@@ -313,7 +325,7 @@ class SyncService:
         """
         logger.info("Starting cleanup of orphaned Notion pages")
 
-        result = {
+        result: dict[str, Any] = {
             "success": False,
             "total_notion_pages": 0,
             "orphaned_pages": 0,
@@ -393,7 +405,7 @@ class SyncService:
         """
         logger.info("Validating sync setup")
 
-        validation_result = {
+        validation_result: dict[str, Any] = {
             "success": False,
             "github_connection": False,
             "notion_connection": False,

@@ -16,7 +16,7 @@ class JSONFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON."""
         # Create base log entry
-        log_entry = {
+        log_entry: dict[str, object] = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "level": record.levelname,
             "logger": record.name,
@@ -346,6 +346,11 @@ def init_logging(log_level: str = "INFO", log_format: str = "json") -> LoggerMan
     return _logger_manager
 
 
+def setup_logging(log_level: str = "INFO", log_format: str = "json") -> LoggerManager:
+    """Setup logging configuration (alias for init_logging)."""
+    return init_logging(log_level, log_format)
+
+
 def get_logger(name: str) -> logging.Logger:
     """Get a logger instance with the specified name.
 
@@ -357,6 +362,7 @@ def get_logger(name: str) -> logging.Logger:
     """
     if _logger_manager is None:
         init_logging()
+    assert _logger_manager is not None
     return _logger_manager.get_logger(name)
 
 
@@ -368,4 +374,5 @@ def get_logger_manager() -> LoggerManager:
     """
     if _logger_manager is None:
         init_logging()
+    assert _logger_manager is not None
     return _logger_manager

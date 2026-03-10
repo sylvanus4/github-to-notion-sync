@@ -27,7 +27,7 @@ class RateLimiter:
         """
         self.requests_per_second = requests_per_second
         self.burst_size = burst_size or max(1, int(requests_per_second))
-        self.tokens = self.burst_size
+        self.tokens: float = float(self.burst_size)
         self.last_update = time.time()
         self.lock = Lock()
 

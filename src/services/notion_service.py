@@ -4,7 +4,7 @@ Handles page creation, updates, queries, and rate limiting.
 """
 
 from datetime import datetime
-from typing import Any
+from typing import Any, NoReturn
 
 from notion_client import Client
 from notion_client.errors import APIResponseError
@@ -55,7 +55,7 @@ class NotionService:
         """
         return self.rate_limiter.execute(func, *args, **kwargs)
 
-    def _handle_api_error(self, error: APIResponseError) -> None:
+    def _handle_api_error(self, error: APIResponseError) -> NoReturn:
         """Handle Notion API errors.
 
         Args:
@@ -125,7 +125,7 @@ class NotionService:
         try:
 
             def _query_pages():
-                query_params = {"database_id": self.settings.notion_db_id, "page_size": page_size}
+                query_params: dict[str, Any] = {"database_id": self.settings.notion_db_id, "page_size": page_size}
 
                 # Only include filter if it's not None
                 if filter_dict is not None:
@@ -192,7 +192,10 @@ class NotionService:
         try:
 
             def _create_page():
-                page_data = {"parent": {"database_id": self.settings.notion_db_id}, "properties": properties}
+                page_data: dict[str, Any] = {
+                    "parent": {"database_id": self.settings.notion_db_id},
+                    "properties": properties,
+                }
 
                 if content:
                     page_data["children"] = content
@@ -947,7 +950,7 @@ class NotionService:
 
             response = self._handle_rate_limit(_create_database)
 
-            database_id = response["id"]
+            database_id: str = response["id"]
             logger.info(
                 f"Created Notion database: {title}",
                 extra={"database_id": database_id, "parent_page_id": parent_page_id},

@@ -4,7 +4,7 @@ Handles project data fetching, rate limiting, and error handling.
 """
 
 import time
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from datetime import datetime
 from typing import Any
 
@@ -147,14 +147,14 @@ class GitHubService:
                 )
                 time.sleep(wait_time + 1)
 
-    def _update_rate_limit_info(self, headers: dict[str, str]):
+    def _update_rate_limit_info(self, headers: Mapping[str, str]):
         """Update rate limit information from response headers."""
         try:
             if "x-ratelimit-limit" in headers:
                 self.rate_limit_info = GitHubRateLimitInfo(
                     limit=int(headers["x-ratelimit-limit"]),
                     remaining=int(headers["x-ratelimit-remaining"]),
-                    reset_at=datetime.fromtimestamp(int(headers["x-ratelimit-reset"])),
+                    resetAt=datetime.fromtimestamp(int(headers["x-ratelimit-reset"])),
                     used=int(headers["x-ratelimit-used"]),
                 )
 
@@ -168,7 +168,7 @@ class GitHubService:
         except (KeyError, ValueError) as e:
             logger.warning(f"Failed to parse rate limit headers: {e}")
 
-    def _get_rate_limit_reset_time(self, headers: dict[str, str]) -> datetime | None:
+    def _get_rate_limit_reset_time(self, headers: Mapping[str, str]) -> datetime | None:
         """Get rate limit reset time from headers."""
         try:
             if "x-ratelimit-reset" in headers:
@@ -257,7 +257,7 @@ class GitHubService:
         """
         try:
             # Parse content based on type
-            content = None
+            content: GitHubIssue | GitHubPullRequest | GitHubDraftIssue | None = None
             content_data = item_data.get("content")
 
             if content_data:
@@ -322,7 +322,7 @@ class GitHubService:
 
             # Determine field value type and parse accordingly
             if field.dataType == GitHubProjectFieldType.TITLE and "text" in field_value_data:
-                return GitHubProjectTitleFieldValue(field=field, text=field_value_data["text"])
+                return GitHubProjectTitleFieldValue(field=field, text=field_value_data["text"], startDate=None)
             if field.dataType == GitHubProjectFieldType.TEXT and "text" in field_value_data:
                 return GitHubProjectTextFieldValue(field=field, text=field_value_data["text"])
             if field.dataType == GitHubProjectFieldType.NUMBER and "number" in field_value_data:
@@ -333,18 +333,13 @@ class GitHubService:
                 )
             if field.dataType == GitHubProjectFieldType.SINGLE_SELECT and "name" in field_value_data:
                 return GitHubProjectSingleSelectFieldValue(
-                    field=field, name=field_value_data["name"], option_id=field_value_data.get("optionId")
+                    field=field, name=field_value_data["name"], optionId=field_value_data.get("optionId")
                 )
             if field.dataType == GitHubProjectFieldType.ITERATION and "title" in field_value_data:
                 return GitHubProjectIterationFieldValue(
                     field=field,
                     title=field_value_data["title"],
                     duration=field_value_data.get("duration"),
-                    start_date=(
-                        datetime.fromisoformat(field_value_data["startDate"].replace("Z", "+00:00"))
-                        if field_value_data.get("startDate")
-                        else None
-                    ),
                 )
 
         except Exception as e:
@@ -427,7 +422,7 @@ class GitHubService:
                 if hasattr(field_value, "iteration") and field_value.iteration:
                     iteration_title = getattr(field_value.iteration, "title", None)
                     if iteration_title:
-                        return iteration_title == sprint_filter
+                        return bool(iteration_title == sprint_filter)
         return False
 
     def get_issue_comments(self, repo_owner: str, repo_name: str, issue_number: int) -> list[GitHubComment]:

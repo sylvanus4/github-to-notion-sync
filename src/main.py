@@ -357,7 +357,7 @@ def create_app() -> FastAPI:
     return app
 
 
-def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
+def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):  # nosec B104
     """Run the FastAPI server."""
     logger.info(f"Starting server on {host}:{port}")
 

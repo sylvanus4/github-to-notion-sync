@@ -29,7 +29,7 @@ class WebhookHandler:
         self.sync_service = SyncService()
 
         # Track webhook statistics
-        self.webhook_stats = {
+        self.webhook_stats: dict[str, Any] = {
             "total_received": 0,
             "total_processed": 0,
             "total_failed": 0,
@@ -88,14 +88,14 @@ class WebhookHandler:
         start_time = datetime.utcnow()
         self.webhook_stats["total_received"] += 1
 
-        result = {
+        result: dict[str, Any] = {
             "success": False,
             "event_type": None,
             "delivery_id": None,
             "action": None,
             "item_id": None,
             "error": None,
-            "processing_time_ms": 0,
+            "processing_time_ms": 0.0,
         }
 
         try:
@@ -255,12 +255,13 @@ class WebhookHandler:
         Returns:
             Dictionary with webhook statistics
         """
-        stats = self.webhook_stats.copy()
+        stats: dict[str, Any] = self.webhook_stats.copy()
 
         # Add calculated fields
-        if stats["total_received"] > 0:
-            stats["success_rate"] = (stats["total_processed"] / stats["total_received"]) * 100
-            stats["failure_rate"] = (stats["total_failed"] / stats["total_received"]) * 100
+        total_received = int(stats.get("total_received", 0))
+        if total_received > 0:
+            stats["success_rate"] = (int(stats.get("total_processed", 0)) / total_received) * 100
+            stats["failure_rate"] = (int(stats.get("total_failed", 0)) / total_received) * 100
         else:
             stats["success_rate"] = 0.0
             stats["failure_rate"] = 0.0
@@ -273,9 +274,9 @@ class WebhookHandler:
         Returns:
             Dictionary with validation results
         """
-        validation_result = {
+        validation_result: dict[str, Any] = {
             "success": False,
-            "webhook_secret_configured": False,
+            "webhook_secret_configured": False,  # nosec B105
             "sync_service_ready": False,
             "enabled_events": [],
             "errors": [],

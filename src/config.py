@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     # Webhook Configuration
     webhook_secret: str = Field(alias="GH_WEBHOOK_SECRET")
     webhook_port: int = Field(default=8000, alias="WEBHOOK_PORT")
-    webhook_host: str = Field(default="0.0.0.0", alias="WEBHOOK_HOST")
+    webhook_host: str = Field(default="0.0.0.0", alias="WEBHOOK_HOST")  # nosec B104
 
     # Rate Limiting
     notion_rate_limit: int = Field(default=3, alias="NOTION_RATE_LIMIT")  # requests per second
@@ -112,7 +112,7 @@ class ConfigManager:
         Args:
             settings: Optional pre-configured settings. If None, loads from environment.
         """
-        self.settings = settings or Settings()
+        self.settings = settings or Settings()  # type: ignore[call-arg]
         self._field_mappings: dict[str, Any] | None = None
         self._webhook_events: dict[str, Any] | None = None
         self._sync_config: dict[str, Any] | None = None
@@ -192,7 +192,8 @@ class ConfigManager:
         Returns:
             Field mapping configuration or None if not found
         """
-        return self.field_mappings.get(field_name)
+        result: dict[str, Any] | None = self.field_mappings.get(field_name)
+        return result
 
     def get_field_mapping_by_github_field(self, github_field: str) -> dict[str, Any] | None:
         """Get field mapping configuration by GitHub field name.
@@ -205,7 +206,8 @@ class ConfigManager:
         """
         for _mapping_key, mapping_config in self.field_mappings.items():
             if mapping_config.get("github_field") == github_field:
-                return mapping_config
+                result: dict[str, Any] = mapping_config
+                return result
         return None
 
     def get_notion_property_name(self, github_field: str) -> str | None:
@@ -219,7 +221,8 @@ class ConfigManager:
         """
         for field_config in self.field_mappings.values():
             if field_config.get("github_field") == github_field:
-                return field_config.get("notion_property")
+                result: str | None = field_config.get("notion_property")
+                return result
         return None
 
     def get_github_field_name(self, notion_property: str) -> str | None:
@@ -233,7 +236,8 @@ class ConfigManager:
         """
         for field_config in self.field_mappings.values():
             if field_config.get("notion_property") == notion_property:
-                return field_config.get("github_field")
+                result: str | None = field_config.get("github_field")
+                return result
         return None
 
     def is_webhook_event_enabled(self, event_type: str, action: str) -> bool:
@@ -264,9 +268,9 @@ class ConfigManager:
         """
         rate_limits = self.sync_config.get("rate_limits", {})
         if service == "notion":
-            return rate_limits.get("notion_api", self.settings.notion_rate_limit)
+            return int(rate_limits.get("notion_api", self.settings.notion_rate_limit))
         if service == "github":
-            return rate_limits.get("github_api", self.settings.github_rate_limit)
+            return int(rate_limits.get("github_api", self.settings.github_rate_limit))
         return 0
 
     def map_github_user_to_notion(self, github_login: str) -> str | None:
