@@ -1,0 +1,126 @@
+class ContractReviewSystem:
+    def __init__(self):
+        self.risk_keywords = {
+            'high_risk': [
+                'unlimited liability', 'personal guarantee', 'indemnification',
+                'liquidated damages', 'injunctive relief', 'non-compete'
+            ],
+            'medium_risk': [
+                'intellectual property', 'confidentiality', 'data processing',
+                'termination rights', 'governing law', 'dispute resolution'
+            ],
+            'compliance_terms': [
+                'gdpr', 'ccpa', 'hipaa', 'sox', 'pci-dss', 'data protection',
+                'privacy', 'security', 'audit rights', 'regulatory compliance'
+            ]
+        }
+        
+    def review_contract(self, contract_text, contract_type):
+        """
+        Automated contract review with risk assessment
+        """
+        review_results = {
+            'contract_type': contract_type,
+            'risk_assessment': self.assess_contract_risk(contract_text),
+            'compliance_analysis': self.analyze_compliance_terms(contract_text),
+            'key_terms_analysis': self.analyze_key_terms(contract_text),
+            'recommendations': self.generate_recommendations(contract_text),
+            'approval_required': self.determine_approval_requirements(contract_text)
+        }
+        
+        return self.compile_review_report(review_results)
+    
+    def assess_contract_risk(self, contract_text):
+        """
+        Assess risk level based on contract terms
+        """
+        risk_scores = {
+            'high_risk': 0,
+            'medium_risk': 0,
+            'low_risk': 0
+        }
+        
+        # Scan for risk keywords
+        for risk_level, keywords in self.risk_keywords.items():
+            if risk_level != 'compliance_terms':
+                for keyword in keywords:
+                    risk_scores[risk_level] += contract_text.lower().count(keyword.lower())
+        
+        # Calculate overall risk score
+        total_high = risk_scores['high_risk'] * 3
+        total_medium = risk_scores['medium_risk'] * 2
+        total_low = risk_scores['low_risk'] * 1
+        
+        overall_score = total_high + total_medium + total_low
+        
+        if overall_score >= 10:
+            return 'HIGH - Legal review required'
+        elif overall_score >= 5:
+            return 'MEDIUM - Manager approval required'
+        else:
+            return 'LOW - Standard approval process'
+    
+    def analyze_compliance_terms(self, contract_text):
+        """
+        Analyze compliance-related terms and requirements
+        """
+        compliance_findings = []
+        
+        # Check for data processing terms
+        if any(term in contract_text.lower() for term in ['personal data', 'data processing', 'gdpr']):
+            compliance_findings.append({
+                'area': 'Data Protection',
+                'requirement': 'Data Processing Agreement (DPA) required',
+                'risk_level': 'HIGH',
+                'action': 'Ensure DPA covers GDPR Article 28 requirements'
+            })
+        
+        # Check for security requirements
+        if any(term in contract_text.lower() for term in ['security', 'encryption', 'access control']):
+            compliance_findings.append({
+                'area': 'Information Security',
+                'requirement': 'Security assessment required',
+                'risk_level': 'MEDIUM',
+                'action': 'Verify security controls meet SOC2 standards'
+            })
+        
+        # Check for international terms
+        if any(term in contract_text.lower() for term in ['international', 'cross-border', 'global']):
+            compliance_findings.append({
+                'area': 'International Compliance',
+                'requirement': 'Multi-jurisdiction compliance review',
+                'risk_level': 'HIGH',
+                'action': 'Review local law requirements and data residency'
+            })
+        
+        return compliance_findings
+    
+    def generate_recommendations(self, contract_text):
+        """
+        Generate specific recommendations for contract improvement
+        """
+        recommendations = []
+        
+        # Standard recommendation categories
+        recommendations.extend([
+            {
+                'category': 'Limitation of Liability',
+                'recommendation': 'Add mutual liability caps at 12 months of fees',
+                'priority': 'HIGH',
+                'rationale': 'Protect against unlimited liability exposure'
+            },
+            {
+                'category': 'Termination Rights',
+                'recommendation': 'Include termination for convenience with 30-day notice',
+                'priority': 'MEDIUM',
+                'rationale': 'Maintain flexibility for business changes'
+            },
+            {
+                'category': 'Data Protection',
+                'recommendation': 'Add data return and deletion provisions',
+                'priority': 'HIGH',
+                'rationale': 'Ensure compliance with data protection regulations'
+            }
+        ])
+        
+        return recommendations

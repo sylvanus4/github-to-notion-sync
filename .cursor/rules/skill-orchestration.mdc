@@ -1,5 +1,5 @@
 ---
-description: "Skill registry (75 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+description: "Skill registry (77 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
 alwaysApply: false
 ---
 
@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (75 project skills)
+## Skill Registry (77 project skills + 68 agency agents)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -38,6 +38,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `fsd-development` — FSD architecture domain creation and legacy migration
 - `overlay-layout-patterns` — useOverlay hook-based modal/drawer patterns
 - `notion-docs-sync` — Sync markdown docs to Notion
+- `notion-meeting-sync` — Sync Notion meeting DB → Korean summary + action items + PPTX
 - `cursor-sync` — Sync .cursor/ assets across projects
 - `cursor-automations` — Create and manage Cursor cloud automations
 - `slack-agent` — Build and deploy Slack bots via Bolt/Express
@@ -115,6 +116,11 @@ When both apply, Superpowers process skills run first, then delegate domain work
 **Orchestrator**:
 - `mission-control` — Decomposes goals, delegates to skills, aggregates results
 
+**Agency Agents** (68 personality-driven AI specialists from [agency-agents](https://github.com/msitarzewski/agency-agents)):
+- `agency-roster` — Manage and orchestrate 68 agency agents across 9 divisions (engineering, design, marketing, product, PM, testing, support, spatial-computing, specialized)
+- See `agency-commands.mdc` for `/agency-roster`, `/agency-team`, `/agency-activate`, `/agency-review` commands
+- All agency skills use `agency-` prefix in `.cursor/skills/agency-*/SKILL.md` (on-demand only)
+
 ## Workflow Commands
 
 | Command | Skills Invoked | Pattern |
@@ -160,8 +166,13 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/nlm-discovery-lab` | pm-product-discovery, pm-market-research, pm-data-analytics, notebooklm, notebooklm-research, notebooklm-studio | Sequential (PM analysis) → Sequential (compile+upload+research) → Parallel (5 artifacts) |
 | `/nlm-arxiv-slides` | defuddle, anthropic-pdf, nlm-slides, notebooklm, notebooklm-research, notebooklm-studio | Sequential (download+extract+rewrite+upload+research+analyze+slides) |
 | `/options-theta` | trading-options-theta | Sequential (route → load prompt → execute) or Combo (regime → pre-market → setup → risk) |
+| `/notion-meeting-sync` | notion-meeting-sync, pm-execution, anthropic-pptx, anthropic-theme-factory | Sequential (sync → analysis → summary → action items → PPTX) |
 | `/code-review-all` | code-review-all | Sequential (stack detect) → Parallel (3 agents) → Sequential (score+report) |
 | `/future-skills-audit` | all 6 future skills | Parallel (audit) → Sequential (report) |
+| `/agency-roster` | agency-roster | Sequential (list agents by division) |
+| `/agency-team <scenario>` | agency-roster, agency-commands | Sequential (select agents for scenario) |
+| `/agency-activate <name>` | agency-commands | Sequential (adopt agent persona) |
+| `/agency-review [scope]` | agency-commands, 3-4 agency-* skills | Parallel (multi-agent review) |
 
 ## Orchestration Rules
 

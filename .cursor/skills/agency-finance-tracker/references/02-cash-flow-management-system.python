@@ -1,0 +1,95 @@
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+
+class CashFlowManager:
+    def __init__(self, historical_data):
+        self.data = historical_data
+        self.current_cash = self.get_current_cash_position()
+    
+    def forecast_cash_flow(self, periods=12):
+        """
+        Generate 12-month rolling cash flow forecast
+        """
+        forecast = pd.DataFrame()
+        
+        # Historical patterns analysis
+        monthly_patterns = self.data.groupby('month').agg({
+            'receipts': ['mean', 'std'],
+            'payments': ['mean', 'std'],
+            'net_cash_flow': ['mean', 'std']
+        }).round(2)
+        
+        # Generate forecast with seasonality
+        for i in range(periods):
+            forecast_date = datetime.now() + timedelta(days=30*i)
+            month = forecast_date.month
+            
+            # Apply seasonality factors
+            seasonal_factor = self.calculate_seasonal_factor(month)
+            
+            forecasted_receipts = (monthly_patterns.loc[month, ('receipts', 'mean')] * 
+                                 seasonal_factor * self.get_growth_factor())
+            forecasted_payments = (monthly_patterns.loc[month, ('payments', 'mean')] * 
+                                 seasonal_factor)
+            
+            net_flow = forecasted_receipts - forecasted_payments
+            
+            forecast = forecast.append({
+                'date': forecast_date,
+                'forecasted_receipts': forecasted_receipts,
+                'forecasted_payments': forecasted_payments,
+                'net_cash_flow': net_flow,
+                'cumulative_cash': self.current_cash + forecast['net_cash_flow'].sum() if len(forecast) > 0 else self.current_cash + net_flow,
+                'confidence_interval_low': net_flow * 0.85,
+                'confidence_interval_high': net_flow * 1.15
+            }, ignore_index=True)
+        
+        return forecast
+    
+    def identify_cash_flow_risks(self, forecast_df):
+        """
+        Identify potential cash flow problems and opportunities
+        """
+        risks = []
+        opportunities = []
+        
+        # Low cash warnings
+        low_cash_periods = forecast_df[forecast_df['cumulative_cash'] < 50000]
+        if not low_cash_periods.empty:
+            risks.append({
+                'type': 'Low Cash Warning',
+                'dates': low_cash_periods['date'].tolist(),
+                'minimum_cash': low_cash_periods['cumulative_cash'].min(),
+                'action_required': 'Accelerate receivables or delay payables'
+            })
+        
+        # High cash opportunities
+        high_cash_periods = forecast_df[forecast_df['cumulative_cash'] > 200000]
+        if not high_cash_periods.empty:
+            opportunities.append({
+                'type': 'Investment Opportunity',
+                'excess_cash': high_cash_periods['cumulative_cash'].max() - 100000,
+                'recommendation': 'Consider short-term investments or prepay expenses'
+            })
+        
+        return {'risks': risks, 'opportunities': opportunities}
+    
+    def optimize_payment_timing(self, payment_schedule):
+        """
+        Optimize payment timing to improve cash flow
+        """
+        optimized_schedule = payment_schedule.copy()
+        
+        # Prioritize by discount opportunities
+        optimized_schedule['priority_score'] = (
+            optimized_schedule['early_pay_discount'] * 
+            optimized_schedule['amount'] * 365 / 
+            optimized_schedule['payment_terms']
+        )
+        
+        # Schedule payments to maximize discounts while maintaining cash flow
+        optimized_schedule = optimized_schedule.sort_values('priority_score', ascending=False)
+        
+        return optimized_schedule

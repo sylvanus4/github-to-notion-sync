@@ -1,0 +1,81 @@
+// Simple analytics and A/B testing setup
+import { useEffect, useState } from 'react';
+
+// Lightweight analytics helper
+export function trackEvent(eventName: string, properties?: Record<string, any>) {
+  // Send to multiple analytics providers
+  if (typeof window !== 'undefined') {
+    // Google Analytics 4
+    window.gtag?.('event', eventName, properties);
+    
+    // Simple internal tracking
+    fetch('/api/analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: eventName,
+        properties,
+        timestamp: Date.now(),
+        url: window.location.href,
+      }),
+    }).catch(() => {}); // Fail silently
+  }
+}
+
+// Simple A/B testing hook
+export function useABTest(testName: string, variants: string[]) {
+  const [variant, setVariant] = useState<string>('');
+
+  useEffect(() => {
+    // Get or create user ID for consistent experience
+    let userId = localStorage.getItem('user_id');
+    if (!userId) {
+      userId = crypto.randomUUID();
+      localStorage.setItem('user_id', userId);
+    }
+
+    // Simple hash-based assignment
+    const hash = [...userId].reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const variantIndex = Math.abs(hash) % variants.length;
+    const assignedVariant = variants[variantIndex];
+    
+    setVariant(assignedVariant);
+    
+    // Track assignment
+    trackEvent('ab_test_assignment', {
+      test_name: testName,
+      variant: assignedVariant,
+      user_id: userId,
+    });
+  }, [testName, variants]);
+
+  return variant;
+}
+
+// Usage in component
+export function LandingPageHero() {
+  const heroVariant = useABTest('hero_cta', ['Sign Up Free', 'Start Your Trial']);
+  
+  if (!heroVariant) return <div>Loading...</div>;
+
+  return (
+    <section className="text-center py-20">
+      <h1 className="text-4xl font-bold mb-6">
+        Revolutionary Prototype App
+      </h1>
+      <p className="text-xl mb-8">
+        Validate your ideas faster than ever before
+      </p>
+      <button
+        onClick={() => trackEvent('hero_cta_click', { variant: heroVariant })}
+        className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700"
+      >
+        {heroVariant}
+      </button>
+    </section>
+  );
+}
