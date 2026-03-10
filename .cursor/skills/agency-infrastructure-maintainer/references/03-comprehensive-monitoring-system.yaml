@@ -1,0 +1,76 @@
+# Prometheus Monitoring Configuration
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "infrastructure_alerts.yml"
+  - "application_alerts.yml"
+  - "business_metrics.yml"
+
+scrape_configs:
+  # Infrastructure monitoring
+  - job_name: 'infrastructure'
+    static_configs:
+      - targets: ['localhost:9100']  # Node Exporter
+    scrape_interval: 30s
+    metrics_path: /metrics
+    
+  # Application monitoring
+  - job_name: 'application'
+    static_configs:
+      - targets: ['app:8080']
+    scrape_interval: 15s
+    
+  # Database monitoring
+  - job_name: 'database'
+    static_configs:
+      - targets: ['db:9104']  # PostgreSQL Exporter
+    scrape_interval: 30s
+
+# Critical Infrastructure Alerts
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Infrastructure Alert Rules
+groups:
+  - name: infrastructure.rules
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for 5 minutes on {{ $labels.instance }}"
+          
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 90% on {{ $labels.instance }}"
+          
+      - alert: DiskSpaceLow
+        expr: 100 - ((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes) > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage is above 85% on {{ $labels.instance }}"
+          
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute"
