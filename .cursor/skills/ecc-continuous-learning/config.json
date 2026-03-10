@@ -1,0 +1,11 @@
+{
+  "version": "2.1",
+  "observer": {
+    "enabled": true,
+    "run_interval_minutes": 5,
+    "min_observations_to_analyze": 10
+  },
+  "project_scope": "ai-model-event-stock-analytics",
+  "instinct_promotion_threshold": 0.8,
+  "max_instincts": 50
+}
