@@ -59,7 +59,7 @@ Protect against agent mistakes at the infrastructure level:
 
 Agents will make the same mistakes repeatedly. Guardrails at the tool level are more reliable than instructions in prompts.
 
-## AGENTS.md / CLAUDE.md Scope
+## MEMORY.md / Agent Instruction File Scope
 
 Keep agent instruction files focused on what code alone cannot convey:
 
