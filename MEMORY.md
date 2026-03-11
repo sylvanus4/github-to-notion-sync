@@ -25,6 +25,16 @@
 - Virtual environment path: project root `.venv/`
 - If `gh` project linking fails: run `gh auth refresh -s read:org,read:discussion` then retry
 
+## [task] Google Daily (2026-03-10)
+
+- Calendar: 12 events (Research 데일리 스크럼, 기획 스프린트, QA 집중 시간, AI 트렌드/Papers 정리)
+- Gmail: 11 emails triaged (spam: 0, notifications: 7, colleague: 1, news: 1, reply-needed: 0)
+- Colleague emails: 이정훈 팀장 (경영관리팀) - Google Cloud 비용 계정 생성 완료 회신
+- News themes: AI 에이전트 시장 폭발 (오픈클로), AI 보안 취약점, 프로액티브 AI (카톡/나우넛지), AI 이미지 생성 GPU 효율 향상, 네이버 검색 점유율 vs AI 플랫폼
+- Action items: Google Cloud 계정 설정 확인 필요
+- Slack: summary + 2 threads posted to #효정-할일
+- Drive: bespin-news-2026-03-10.docx uploaded to "Google Daily - 2026-03-10" folder
+
 ## [issue] continual-learning 스킬 AGENTS.md 문제 (2026-03-10)
 
 - `continual-learning` 스킬(cursor-public 플러그인)은 Claude Code 컨벤션인 `AGENTS.md`를 생성함
