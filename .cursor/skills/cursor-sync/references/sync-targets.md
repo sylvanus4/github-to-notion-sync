@@ -10,10 +10,11 @@
 
 | Alias | Repo | Full Path |
 |-------|------|-----------|
-| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/work/thakicloud/github-to-notion-sync` |
-| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/work/thakicloud/ai-platform-webui` |
-| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/work/thakicloud/ai-model-event-stock-analytics` |
-| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/work/thakicloud/ai-template` |
+| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` |
+| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` |
+| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` |
+| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` |
+| `research` | `thakicloud/research` | `/Users/hanhyojung/thaki/research` |
 
 The alias is used with `--targets` flag: `/cursor-sync --targets ai-template`.
 The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/ai-template`.
@@ -43,6 +44,11 @@ The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/
 - Template repository — intended to have the most complete set of shared assets
 - Has project-specific skills: `kwp-sync`, `i18n-sync`
 - Has domain-specific rules: `sales.mdc`, `product-management.mdc`, `marketing.mdc`, etc.
+
+### research
+
+- Research and experimentation repository
+- No project-specific skills or commands
 
 ## Managing Targets
 
