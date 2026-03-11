@@ -1,0 +1,28 @@
+---
+description: Reduce LLM token consumption by routing CLI commands through RTK proxy
+alwaysApply: true
+---
+
+# RTK Token Optimization
+
+Prefix supported commands with `rtk` to compress output (60-90% token reduction).
+
+## Command Mapping
+
+**Git**: `rtk git status`, `rtk git diff`, `rtk git log`, `rtk git add`, `rtk git commit -m "msg"`, `rtk git push`, `rtk git pull`
+
+**Files**: `rtk ls` (instead of `ls`), `rtk read <file>` (instead of `cat/head/tail`), `rtk grep <pattern>` (instead of `rg/grep`), `rtk diff <a> <b>`
+
+**Test runners**: `rtk vitest run`, `rtk pytest`, `rtk cargo test`, `rtk go test`, `rtk playwright test`
+
+**Build & Lint**: `rtk lint` (eslint/biome), `rtk tsc`, `rtk prettier --check .`, `rtk cargo build`, `rtk cargo clippy`, `rtk ruff check`, `rtk golangci-lint run`, `rtk go build`
+
+**Containers**: `rtk docker ps`, `rtk docker images`, `rtk docker logs <c>`, `rtk kubectl pods`, `rtk kubectl logs <pod>`
+
+**GitHub CLI**: `rtk gh pr list`, `rtk gh issue list`, `rtk gh run list`
+
+For maximum compression on large outputs, add `-u` flag: `rtk -u git diff`
+
+## Do NOT Rewrite
+
+Commands already using `rtk`, heredocs (`<<`), interactive commands (`vim/nano/less`), piped output (`| jq/awk/sed`), install commands (`pnpm install/pip install`), file redirects (`> file`).
