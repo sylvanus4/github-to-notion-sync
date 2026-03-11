@@ -23,6 +23,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
 - `release-ship` — Commit + push + PR (lightweight, no review)
+- `eod-ship` — End-of-day multi-project ship (cursor-sync + release-ship x5 + Slack)
 - `ship` — 4-agent review + auto-fix + commit + PR
 - `release-commander` — 10-skill full release pipeline
 - `commit-to-issue` — Create GitHub issues from commits with project field setup
@@ -130,6 +131,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/release-prep` | pr-review-captain, technical-writer, sre-devops-expert, ci-quality-gate | Parallel (review) → Sequential (commit) |
 | `/release-commander` | deep-review, security-expert, test-suite, performance-profiler, i18n-sync, dependency-auditor, technical-writer, domain-commit, pr-review-captain | Parallel (Groups A,B) → Eval-Opt (gates) → Sequential (Groups C,D) |
 | `/release-ship` | domain-commit, release-ship | Sequential |
+| `/eod-ship` | cursor-sync, release-ship | Sequential (sync → ship current → ship 5 projects → Slack notify) |
 | `/ship` | deep-review, simplify, domain-commit, ship | Parallel (review) → Eval-Opt (fix+verify) → Sequential (commit+PR) |
 | `/incident-response` | service-health-doctor, backend-expert, db-expert, technical-writer | Sequential (time-critical) |
 | `/incident-to-improvement` | diagnose, domain-commit, qa-test-expert, technical-writer, sre-devops-expert | Parallel (triage) → Sequential (fix) → Parallel (prevent) |
