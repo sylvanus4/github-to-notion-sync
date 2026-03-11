@@ -9,24 +9,28 @@ alwaysApply: true
 
 - Always respond in Korean
 - Daily briefings and summaries should be in Korean
-- Plans and technical documentation should be in English when explicitly requested
+- All generated documents (DOCX, PPTX, markdown reviews) must be entirely in Korean — headings, labels, section titles, bullet points, and conclusions included
+- English is allowed only for proper nouns and technical terms with no standard Korean translation
+- Plans and skill definitions (SKILL.md) should be written in English when explicitly requested ("영어로 계획해줘")
+- Content must be substantive and detailed, never skeleton or template-only output
 - Slack notifications go to `#효정-할일` channel (ID: `C0AA8NT4T8T`) — never send to DM
-- Colleague email tone: casual for @thakicloud.co.kr, formal for @bespinglobal.com
-- Colleague emails must always be summarized with a draft reply, not just when attachments exist
-- Bespin News links must be fully fetched, summarized into a docx, and analyzed from an AI/GPU/Cloud perspective
-- Slack posts use threaded replies: main summary first, then thread replies for colleague emails and news digest
-- Daily work results should accumulate in MEMORY.md for long-term context
+- Slack posts use threaded replies: main summary first, then individual items in thread
+- After creating or modifying a skill, always test it end-to-end and fix issues before declaring done
+- When creating a new skill, also create the corresponding Cursor command if one doesn't exist
+- When Notion API cannot upload binary files (DOCX/PPTX), adapt content as structured sub-pages instead
+- Subagent-generated files must be verified after completion — missing output files are a pipeline failure
 
 ## Learned Workspace Facts
 
-- This repo (`github-to-notion-sync`) syncs GitHub Project items to Notion databases
-- GitHub org: ThakiCloud, Project #22
-- Sprint field name in GitHub Project: "스프린트"
-- Sprint naming convention: `YY-MM-SprintN` (e.g., `26-03-Sprint1`)
-- Sprint config files: `config/sprint_config.yml` and `config/teams/{team}/sprint_config.yml`
+- `paper-review` skill: 8-phase pipeline (Ingest → Review → PM Analysis → DOCX → PPTX → NLM Slides → Notion → Slack)
+- `related-papers-scout` skill: finds 5 hot related papers from top institutions and posts to Slack with thread-per-paper
+- Paper review and related-papers-scout Slack channel: `#deep-research` (ID: `C0A6X68LTN1`)
+- EOD Ship Report Slack channel: `#효정-할일` (ID: `C0AA8NT4T8T`) — report must be in Korean
+- Paper review outputs: `outputs/papers/{id}-{perspective}-{DATE}.md`, `outputs/papers/{id}-analysis-{DATE}.docx`, `outputs/presentations/{id}-presentation-{DATE}.pptx`
+- Default Notion parent page for paper reviews: `3209eddc34e6801b8921f55d85153730` (ThakiCloud 논문 리뷰)
+- Notion API does not support pipe tables — convert to bulleted lists or HTML table blocks
+- Node.js scripts for DOCX/PPTX generation need `NODE_PATH=$(npm root -g)` to resolve globally installed packages
+- Phase 3 subagents must use the Write tool to persist their markdown outputs — they do not auto-save
+- NotebookLM MCP requires absolute paths for all file operations
+- Slack file upload uses the 3-step flow: `getUploadURLExternal` → POST file → `completeUploadExternal`
 - The git-push-pull `tmp` branch rule applies ONLY to `ai-platform-webui`, not this repo
-- Python codebase uses mypy strict mode — all type annotations required
-- Pydantic models with `populate_by_name = True` accept both field name and alias
-- `_handle_api_error` methods that always raise should be typed as `NoReturn`
-- Use `dict[str, Any]` for heterogeneous dict types to avoid mypy assignment errors
-- Bandit false positives on `0.0.0.0` binding and boolean flags are suppressed with `# nosec`

@@ -110,53 +110,54 @@ Post a consolidated summary to `#효정-할일` using the `slack_send_message` M
 **Message template** (Slack mrkdwn — use `*bold*`, `_italic_`, `<url|text>`):
 
 ```
-*EOD Ship Report* (YYYY-MM-DD)
+*📦 EOD 배포 리포트* (YYYY-MM-DD)
 
-*Cursor Sync*
-- N targets synced, M files new/updated
+*커서 동기화*
+- N개 타겟 동기화 완료, M개 파일 신규/업데이트
 
-*Projects Shipped*
-- project-a: N commits, <PR_URL|PR #X> merged
-- project-b: no changes
-- project-c: N commits (tmp-only)
+*프로젝트 배포*
+- project-a: N개 커밋, <PR_URL|PR #X> 머지 완료
+- project-b: 변경사항 없음
+- project-c: N개 커밋 (tmp 전용)
 
-*Issues Created*
-- <ISSUE_URL|#N1>, <ISSUE_URL|#N2> → Project #5
+*이슈 생성*
+- <ISSUE_URL|#N1>, <ISSUE_URL|#N2> → 프로젝트 #5
 
-*Total*
-- N projects shipped, M commits, K issues created
+*합계*
+- N개 프로젝트 배포, M개 커밋, K개 이슈 생성
 ```
 
 Rules:
 - Use `*bold*` (single asterisk, never `**`)
 - Use `<url|text>` for links
+- Write all message text in Korean (한국어)
 - Omit sections with no data (e.g., no Issues if `--no-issue` was used)
 - Keep message under 5000 chars
 
 ### Phase 5: Report
 
-Display the same consolidated summary in the chat as a formatted report.
+Display the same consolidated summary in the chat as a formatted report (in Korean).
 
 ```
-EOD Ship Report
+EOD 배포 리포트
 ================
-Date: YYYY-MM-DD
+날짜: YYYY-MM-DD
 
-Cursor Sync:
-  Targets synced: N/N
-  Files: M new, K updated
+커서 동기화:
+  동기화 타겟: N/N
+  파일: M개 신규, K개 업데이트
 
-Projects:
-  github-to-notion-sync:          3 commits, PR #12 merged
-  ai-template:                    no changes
-  ai-model-event-stock-analytics: 2 commits, PR #8 merged
-  research:                       1 commit, PR #5 merged
-  ai-platform-webui:              2 commits (tmp-only)
+프로젝트:
+  github-to-notion-sync:          3개 커밋, PR #12 머지 완료
+  ai-template:                    변경사항 없음
+  ai-model-event-stock-analytics: 2개 커밋, PR #8 머지 완료
+  research:                       1개 커밋, PR #5 머지 완료
+  ai-platform-webui:              2개 커밋 (tmp 전용)
 
-Issues: #101, #102, #103, #104 → Project #5
-Slack: posted to #효정-할일
+이슈: #101, #102, #103, #104 → 프로젝트 #5
+슬랙: #효정-할일 채널에 게시 완료
 
-Total: 4/5 projects shipped, 8 commits, 4 issues
+합계: 4/5 프로젝트 배포, 8개 커밋, 4개 이슈
 ```
 
 ## Examples

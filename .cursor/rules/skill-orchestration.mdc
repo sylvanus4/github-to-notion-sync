@@ -62,6 +62,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `refactor-simulator` — Blast radius analysis before code changes
 - `skill-optimizer` — Audit, evaluate, benchmark agent skills
 - `evals-skills` — LLM eval pipeline (judge prompts, synthetic data, RAG eval)
+- `related-papers-scout` — Multi-source discovery of hot related papers from elite institutions (Semantic Scholar, arXiv, PapersWithCode, Twitter/GitHub)
 
 **Multi-agent pipeline skills** (parallel review + auto-fix):
 - `deep-review` — 4-agent full-stack code review (frontend, backend, security, tests)
@@ -167,6 +168,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/nlm-launch-kit` | pm-go-to-market, pm-execution, pm-marketing-growth, notebooklm, notebooklm-research, notebooklm-studio | Sequential (PM analysis) → Sequential (compile+upload+research) → Parallel (5 artifacts) |
 | `/nlm-discovery-lab` | pm-product-discovery, pm-market-research, pm-data-analytics, notebooklm, notebooklm-research, notebooklm-studio | Sequential (PM analysis) → Sequential (compile+upload+research) → Parallel (5 artifacts) |
 | `/nlm-arxiv-slides` | defuddle, anthropic-pdf, nlm-slides, notebooklm, notebooklm-research, notebooklm-studio | Sequential (download+extract+rewrite+upload+research+analyze+slides) |
+| `/related-papers-scout` | related-papers-scout (defuddle, WebSearch, Semantic Scholar API, Slack MCP) | Parallel (4 search agents) → Sequential (filter+rank+deep-dive+report+slack) |
 | `/options-theta` | trading-options-theta | Sequential (route → load prompt → execute) or Combo (regime → pre-market → setup → risk) |
 | `/notion-meeting-sync` | notion-meeting-sync, pm-execution, anthropic-pptx, anthropic-theme-factory | Sequential (sync → analysis → summary → action items → PPTX) |
 | `/code-review-all` | code-review-all | Sequential (stack detect) → Parallel (3 agents) → Sequential (score+report) |
