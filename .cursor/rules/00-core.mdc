@@ -11,3 +11,4 @@ alwaysApply: true
 - No secrets, PII, or credentials in code or commits
 - For non-trivial changes, pause and consider a more elegant approach; skip for obvious fixes
 - Report format: summary + files changed + commands run + results
+- All skill files (`.cursor/skills/**/SKILL.md` and references) MUST be written in English. Korean is only allowed inside example user prompts or output templates that are explicitly user-facing

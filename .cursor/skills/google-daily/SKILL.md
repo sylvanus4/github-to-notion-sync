@@ -1,160 +1,189 @@
 ---
 name: google-daily
 description: >-
-  Master Google Workspace daily automation: calendar briefing, Gmail triage
-  (spam cleanup, notification filing, news digest, reply-needed summary),
-  and Drive upload of generated documents. Chains calendar-daily-briefing,
-  gmail-daily-triage, and gws-drive skills sequentially. Use when the user
-  runs /google, asks for "google daily", "구글 일일 자동화", "google 자동화",
-  "daily google", "구글 데일리", or wants all Google Workspace daily tasks
-  done in one flow. Do NOT use for individual tasks (use the specific skill).
+  Google Workspace 데일리 자동화: 캘린더 브리핑, Gmail 정리, Drive 업로드,
+  Slack 알림(쓰레드 포함), 메모리 동기화를 순차 실행. /google, "google daily",
+  "구글 데일리" 등으로 호출. 개별 작업은 해당 스킬 사용.
 metadata:
   author: thaki
-  version: 1.0.0
+  version: 3.0.0
 ---
 
 # Google Daily Automation
 
-Master orchestrator that chains all Google Workspace daily tasks into a single sequential pipeline.
+Google Workspace 일일 작업을 순차 파이프라인으로 실행하는 마스터 오케스트레이터.
 
-> **Prerequisites**: `gws` CLI installed and authenticated with gmail, calendar, drive scopes. See `gws-workspace` skill.
+> **Prerequisites**: `gws` CLI 설치 및 인증 (`gws auth login -s drive,gmail,calendar`). See `gws-workspace` skill.
 
-## Pipeline Overview
+## Pipeline
 
 ```
-Phase 1: Calendar Briefing  →  Phase 2: Gmail Triage  →  Phase 3: Drive Upload  →  Phase 4: Summary
+Calendar → Gmail Triage → Drive Upload → Slack Notify (+ threads) → Memory Sync
 ```
 
-Sequential pattern: each phase depends on the previous.
+## Slack Configuration
 
-## Execution
+| Key | Value |
+|-----|-------|
+| Channel | `#효정-할일` |
+| Channel ID | `C0AA8NT4T8T` |
 
-### Phase 1 -- Calendar Briefing
+All Slack messages go to this channel. Never use DM.
 
-Read and execute the `calendar-daily-briefing` skill at `.cursor/skills/calendar-daily-briefing/SKILL.md`.
+## Phase 1 -- Calendar Briefing
 
-1. Fetch today's events via `gws calendar +agenda --today`
-2. Classify events (interviews, meetings, focus time)
-3. Present the Korean briefing with preparation alerts
-4. Note any HIGH priority items that need attention
+`.cursor/skills/calendar-daily-briefing/SKILL.md` 실행.
 
-**Output**: Korean schedule briefing displayed to user.
+```bash
+gws calendar +agenda --today
+```
 
-### Phase 2 -- Gmail Triage
+1. 이벤트 분류: 면접(HIGH), 외부미팅(HIGH), 팀미팅(MEDIUM), 집중시간(LOW)
+2. 한국어 브리핑 생성 + 준비 알림
+3. 집중 가능 시간대 계산 (09:00-18:00 기준, 30분 이상 공백)
 
-Read and execute the `gmail-daily-triage` skill at `.cursor/skills/gmail-daily-triage/SKILL.md`.
+## Phase 2 -- Gmail Triage
 
-1. Ensure "Low Priority" label exists
-2. Fetch yesterday's emails
-3. Classify each email using sender rules
-4. Execute actions (trash spam, label notifications, extract news, summarize replies)
-5. Generate `.docx` documents:
-   - `/tmp/reply-needed-YYYY-MM-DD.docx` -- unanswered emails with action items
-   - `/tmp/bespin-news-YYYY-MM-DD.docx` -- news digest (if bespin_news emails exist)
-6. Create Gmail filters for recurring patterns
-7. Present the triage report
+`.cursor/skills/gmail-daily-triage/SKILL.md` 실행.
 
-**Output**: Triage summary + generated .docx files.
+1. "Low Priority" 라벨 확인/생성
+2. 어제 메일 조회: `gws gmail +triage --max 50 --query "after:YYYY/MM/DD before:YYYY/MM/DD" --labels --format json`
+3. 분류 및 처리:
 
-### Phase 3 -- Drive Upload
+| Category | Sender Pattern | Action |
+|----------|---------------|--------|
+| Spam | 광고, 마케팅 | `messages trash` |
+| Notification | Notion, RunPod, GitHub, NotebookLM, Calendar | `messages modify` → Low Priority |
+| News | bespin_news@bespinglobal.com | 링크 추출 → 기사 요약 → docx 생성 → AI/GPU Cloud 인사이트 |
+| Colleague | @thakicloud.co.kr, @bespinglobal.com | 요약 + 답변 초안 작성 (첨부 있으면 첨부도 요약) |
+| Reply Needed | 직접 수신 + 미답장 | 요약 + 액션아이템 → docx 생성 |
 
-Upload all generated documents to Google Drive.
+4. 생성 문서: `/tmp/reply-needed-YYYY-MM-DD.docx`, `/tmp/bespin-news-YYYY-MM-DD.docx`
 
-1. Create a dated folder:
+**Collect structured output** from Phase 2 for use in Phase 4:
+- `colleague_emails[]`: list of {sender, subject, summary, draft_reply, attachment_summary}
+- `news_articles[]`: list of {title, url, summary}
+- `news_insights[]`: 3-5 AI/GPU Cloud insight bullets
+- `triage_counts`: {spam, notifications, colleague, news, reply_needed}
+
+## Phase 3 -- Drive Upload
+
+생성된 문서가 있을 때만 실행. 없으면 건너뛰기.
 
 ```bash
 gws drive files create \
   --json '{"name": "Google Daily - YYYY-MM-DD", "mimeType": "application/vnd.google-apps.folder"}'
-```
 
-2. Extract the folder ID from the response.
-
-3. Upload each generated file:
-
-```bash
-gws drive +upload /tmp/reply-needed-YYYY-MM-DD.docx --parent FOLDER_ID
 gws drive +upload /tmp/bespin-news-YYYY-MM-DD.docx --parent FOLDER_ID
+gws drive +upload /tmp/reply-needed-YYYY-MM-DD.docx --parent FOLDER_ID
 ```
 
-4. Upload any other `.docx` or `.pptx` files generated during the session.
+Save Drive folder URL and file links for Phase 4.
 
-**Output**: Drive folder URL with uploaded files.
+## Phase 4 -- Slack Notify (threaded)
 
-### Phase 4 -- Summary
+Three-step posting pattern using `slack_send_message` MCP tool.
 
-Present a unified Korean daily briefing:
+### Step 1: Main Summary
+
+Post the daily summary to `#효정-할일` (`C0AA8NT4T8T`). **Capture `message_ts` from the response** for thread replies.
+
+```json
+{
+  "channel_id": "C0AA8NT4T8T",
+  "message": "*Google 데일리 자동화 완료* (YYYY-MM-DD)\n\n*오늘의 일정*\n- 회의 N건, 면접 N건\n- 집중 가능: HH:MM~HH:MM\n\n*메일 정리*\n- 알림 정리: N건 → Low Priority\n- 팀원 메일: N건 (쓰레드 확인)\n- 뉴스: N건 (쓰레드 확인)\n- 답장 필요: N건\n\n*생성된 문서*\n- <DRIVE_LINK|bespin-news.docx>\n- <DRIVE_LINK|reply-needed.docx>\n\n*주의사항*\n- HIGH 우선순위 일정 알림"
+}
+```
+
+### Step 2: Colleague Email Threads
+
+For EACH colleague email, post a thread reply using `thread_ts`:
+
+```json
+{
+  "channel_id": "C0AA8NT4T8T",
+  "thread_ts": "MAIN_MESSAGE_TS",
+  "message": "*[팀원 메일] {sender_name}* - {subject}\n\n*요약*\n{2-3 sentence summary}\n\n*답변 초안*\n> {draft reply text}\n\n{attachment_summary if any}"
+}
+```
+
+Reply tone rules:
+- `@thakicloud.co.kr` senders: team-casual tone
+- `@bespinglobal.com` senders: formal business tone
+
+### Step 3: Bespin News Thread (articles)
+
+If bespin_news email exists, post a thread reply with article summaries:
+
+```json
+{
+  "channel_id": "C0AA8NT4T8T",
+  "thread_ts": "MAIN_MESSAGE_TS",
+  "message": "*[뉴스 다이제스트]* Bespin News ({article_count}건)\n\n{for each article:\n*{title}*\n{2-sentence summary}\n<{url}|원문 보기>\n}\n\n문서: <DRIVE_LINK|bespin-news-YYYY-MM-DD.docx>"
+}
+```
+
+### Step 4: Bespin News Insights Thread
+
+Post a SEPARATE thread reply with AI/GPU Cloud insights analysis:
+
+```json
+{
+  "channel_id": "C0AA8NT4T8T",
+  "thread_ts": "MAIN_MESSAGE_TS",
+  "message": "*[AI/GPU Cloud 핵심 인사이트]*\n_ThakiCloud 관점에서의 시사점_\n\n{3-5 numbered insight bullets, each 1-2 sentences}\n\nEach insight must cover one of:\n- Market trends (시장 트렌드)\n- Competitor moves (경쟁사 동향)\n- Technology shifts (기술 변화)\n- Customer pain points (고객 페인포인트)\n- Opportunities for ThakiCloud (사업 기회)"
+}
+```
+
+Insight format example:
+```
+*1.* AI 에이전트 시장 폭발적 성장 → ThakiCloud 에이전트 플랫폼 포지셔닝 필요
+*2.* AI 보안 취약점 실제 피해 발생 → 엔터프라이즈 배포 시 guardrails 필수
+*3.* GPU 연산 수요 지속 증가 → 배치 처리 최적화 인프라 경쟁력 핵심
+```
+
+### Slack mrkdwn Rules
+
+- `*bold*` (single asterisk only, never `**`)
+- `_italic_` (underscore)
+- `<url|text>` (links)
+- No `## headers` -- use `*bold text*` on its own line
+- `> quote` for draft replies
+
+## Phase 5 -- Memory Sync
+
+Append a daily entry to `MEMORY.md` at the project root following the protocol in `.cursor/rules/self-improvement.mdc`.
 
 ```markdown
-# Google 데일리 자동화 완료 (YYYY-MM-DD)
+## [task] Google Daily (YYYY-MM-DD)
 
-## 1. 오늘의 일정
-[Calendar briefing summary from Phase 1]
-
-## 2. 메일 정리 결과
-- 스팸 삭제: N건
-- 알림 정리: N건
-- 답장 필요: N건
-- 뉴스 정리: N건 (N개 기사)
-
-## 3. 생성된 문서
-| 문서 | Drive 위치 |
-|------|-----------|
-| reply-needed-YYYY-MM-DD.docx | [Drive link] |
-| bespin-news-YYYY-MM-DD.docx | [Drive link] |
-
-## 4. Gmail 필터
-- 새로 생성: N건
-- 기존 유지: N건
-
-## 5. 주의사항
-[Any HIGH priority items from calendar or urgent emails]
+- Calendar: N events, {key meetings}
+- Gmail: N emails triaged (spam: N, notifications: N, colleague: N, news: N, reply-needed: N)
+- Colleague emails: {sender names and topics}
+- News themes: {top 2-3 themes from Bespin digest}
+- Action items: {any pending replies or follow-ups}
+- Slack: summary + N threads posted to #효정-할일
 ```
 
-## Examples
-
-### Example 1: Full daily run
-
-User: "/google"
-
-Result:
-1. Calendar: 5 events today, 1 interview (HIGH), 2 team meetings
-2. Gmail: 9 emails yesterday -- 0 spam, 4 notifications moved, 1 news digest, 2 need reply
-3. Drive: 2 documents uploaded to "Google Daily - 2026-03-09" folder
-4. Summary presented in Korean with action items
-
-### Example 2: Light day
-
-User: "구글 데일리"
-
-Result:
-1. Calendar: 1 all-day event, no time-specific meetings
-2. Gmail: 3 emails yesterday -- all calendar notifications, moved to Low Priority
-3. Drive: No documents to upload (no news or reply-needed emails)
-4. Summary: "오늘은 가볍습니다. 집중 업무에 활용하세요!"
-
-## Subagent Strategy
-
-Use sequential execution (Phase 2 depends on Phase 1 for context, Phase 3 depends on Phase 2 for files):
-
-1. Run calendar briefing inline (fast, read-only)
-2. Run Gmail triage as a Task subagent (slower, many API calls)
-3. Run Drive upload inline (fast, few API calls)
+This accumulates context so future sessions can reference past daily patterns, recurring senders, and action item history.
 
 ## Error Recovery
 
 | Phase | Failure | Action |
 |-------|---------|--------|
-| Phase 1 | Calendar API error | Report error, continue to Phase 2 |
-| Phase 2 | Gmail API error | Report partial results, continue to Phase 3 |
-| Phase 2 | Playwright timeout | Skip that article, note in digest |
-| Phase 2 | docx generation fails | Report error, continue |
-| Phase 3 | Drive upload fails | Save files locally, report paths |
-| Any | Auth expired | Prompt: `gws auth login -s drive,gmail,calendar` |
+| Calendar | API error | 에러 보고, Phase 2 계속 |
+| Gmail | API error | 부분 결과 보고, Phase 3 계속 |
+| Gmail | Browser/fetch timeout | 해당 기사 건너뛰기, "[접속 불가]" 표시 |
+| Drive | Upload 실패 | 로컬 경로 안내 |
+| Slack | Main message 실패 | 에러 보고, 사용자에게 직접 요약 표시 |
+| Slack | Thread reply 실패 | 에러 보고, 계속 진행 |
+| Memory | MEMORY.md 쓰기 실패 | 에러 보고, 요약은 정상 완료 |
+| Any | Auth expired | `gws auth login -s drive,gmail,calendar` 안내 |
 
 ## Security Rules
 
-- All security rules from `gmail-daily-triage` apply
-- Never auto-send emails
-- Never delete calendar events
-- Confirm before creating Gmail filters
-- Never upload files containing credentials or secrets
+- 메일 자동 발송 금지 (답변 초안은 Slack 쓰레드에만 게시)
+- 캘린더 이벤트 삭제 금지
+- Gmail 필터 생성 전 사용자 확인
+- credentials/secrets 포함 파일 업로드 금지
+- 스팸 본문 열기 금지 (발신자/제목만으로 분류)

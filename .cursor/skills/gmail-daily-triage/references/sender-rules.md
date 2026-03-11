@@ -54,14 +54,15 @@ microsoft.com
 |---------------|--------|
 | `bespin_news@bespinglobal.com` | Extract links, Playwright fetch, compile .docx |
 
-## Category D -- Company Colleagues (with attachments)
+## Category D -- Company Colleagues
 
-| Domain | Company | Action |
-|--------|---------|--------|
-| `@thakicloud.co.kr` | ThakiCloud | Download & summarize attachments |
-| `@bespinglobal.com` | Bespin Global | Download & summarize attachments |
+| Domain | Company | Tone | Action |
+|--------|---------|------|--------|
+| `@thakicloud.co.kr` | ThakiCloud | Team-casual | Summarize + draft reply |
+| `@bespinglobal.com` | Bespin Global | Formal business | Summarize + draft reply |
 
-Only triggers if the email has attachments (`payload.mimeType` is `multipart/mixed` or parts contain attachment disposition).
+Triggers for ALL emails from these domains (not just those with attachments).
+If attachments exist, also download and summarize them.
 
 ## Category E -- Needs Reply
 

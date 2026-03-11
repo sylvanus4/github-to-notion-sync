@@ -1,0 +1,32 @@
+---
+description: "Learned user preferences and workspace facts extracted from session transcripts. Updated by the continual-learning hook."
+alwaysApply: true
+---
+
+# Learned Memory
+
+## Learned User Preferences
+
+- Always respond in Korean
+- Daily briefings and summaries should be in Korean
+- Plans and technical documentation should be in English when explicitly requested
+- Slack notifications go to `#효정-할일` channel (ID: `C0AA8NT4T8T`) — never send to DM
+- Colleague email tone: casual for @thakicloud.co.kr, formal for @bespinglobal.com
+- Colleague emails must always be summarized with a draft reply, not just when attachments exist
+- Bespin News links must be fully fetched, summarized into a docx, and analyzed from an AI/GPU/Cloud perspective
+- Slack posts use threaded replies: main summary first, then thread replies for colleague emails and news digest
+- Daily work results should accumulate in MEMORY.md for long-term context
+
+## Learned Workspace Facts
+
+- This repo (`github-to-notion-sync`) syncs GitHub Project items to Notion databases
+- GitHub org: ThakiCloud, Project #22
+- Sprint field name in GitHub Project: "스프린트"
+- Sprint naming convention: `YY-MM-SprintN` (e.g., `26-03-Sprint1`)
+- Sprint config files: `config/sprint_config.yml` and `config/teams/{team}/sprint_config.yml`
+- The git-push-pull `tmp` branch rule applies ONLY to `ai-platform-webui`, not this repo
+- Python codebase uses mypy strict mode — all type annotations required
+- Pydantic models with `populate_by_name = True` accept both field name and alias
+- `_handle_api_error` methods that always raise should be typed as `NoReturn`
+- Use `dict[str, Any]` for heterogeneous dict types to avoid mypy assignment errors
+- Bandit false positives on `0.0.0.0` binding and boolean flags are suppressed with `# nosec`

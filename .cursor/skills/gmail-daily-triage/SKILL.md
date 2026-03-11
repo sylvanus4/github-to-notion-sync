@@ -95,37 +95,53 @@ gws gmail users messages modify \
 #### Category C -- bespin_news@bespinglobal.com
 
 1. Fetch full message body: `gws gmail users messages get --params '{"userId": "me", "id": "MSG_ID"}'`
-2. Extract all URLs from the HTML body
-3. For each URL, use the `playwright-runner` skill to fetch article content:
+2. Extract all URLs from the HTML body (filter out unsubscribe/tracking links)
+3. For each article URL, use `cursor-ide-browser` MCP tools to fetch content:
 
-```javascript
-const { chromium } = require('playwright');
-const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage();
-await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
-const title = await page.title();
-const text = await page.locator('article, main, .post-content, .article-body, body').first().innerText();
-await browser.close();
+```
+browser_navigate → URL
+browser_snapshot → extract article text
 ```
 
-4. Compile all article summaries into a single `.docx` using `anthropic-docx` skill:
-   - Title: "Bespin News Digest - YYYY-MM-DD"
-   - One section per article with title, source URL, and 2-3 sentence summary
-   - Save to `/tmp/bespin-news-YYYY-MM-DD.docx`
+If browser tools are unavailable, fall back to `WebFetch` tool.
 
-#### Category D -- Company Colleague Emails with Attachments
+4. Summarize each article in 2-3 sentences (Korean)
+5. Generate an "AI/GPU Cloud Insights" analysis section covering:
+   - Market trends relevant to AI infrastructure
+   - Competitor moves (cloud providers, GPU vendors)
+   - Technology shifts (new models, hardware, frameworks)
+   - Customer pain points and opportunities for ThakiCloud
+6. Compile into `/tmp/bespin-news-YYYY-MM-DD.docx` using `anthropic-docx` skill:
+   - Title: "Bespin News Digest - YYYY-MM-DD"
+   - Per-article section: title, source URL, 2-3 sentence summary
+   - Final section: "AI/GPU Cloud 핵심 인사이트" with 3-5 actionable bullet points
+
+**Output**: article summaries (for Slack thread), docx path, insight bullets
+
+#### Category D -- Company Colleague Emails
 
 Detect by known company domains: `@thakicloud.co.kr`, `@bespinglobal.com`.
+Triggers for ALL colleague emails regardless of attachments.
 
-1. Fetch full message with attachments
-2. Download each attachment:
+1. Fetch full message body:
+
+```bash
+gws gmail users messages get \
+  --params '{"userId": "me", "id": "MSG_ID"}'
+```
+
+2. Summarize email content in 2-3 sentences (Korean)
+3. Draft a reply:
+   - `@thakicloud.co.kr` senders: team-casual tone
+   - `@bespinglobal.com` senders: formal business tone
+4. If attachments exist, download and summarize:
 
 ```bash
 gws gmail users messages attachments get \
   --params '{"userId": "me", "messageId": "MSG_ID", "id": "ATTACHMENT_ID"}'
 ```
 
-3. Read and summarize attachment content alongside the email body
+**Output per email**: sender, subject, summary, draft_reply, attachment_summary (if any)
 
 #### Category E -- Needs Reply (Unanswered)
 
