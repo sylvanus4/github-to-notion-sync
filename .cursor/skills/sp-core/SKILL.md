@@ -1,8 +1,15 @@
 ---
 name: using-superpowers
-description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+description: >-
+  Use when starting any conversation - establishes how to find and use skills,
+  requiring Skill tool invocation before ANY response including clarifying
+  questions. Korean triggers: "스킬 호출", "스킬 시작". Do NOT use for specific skill execution
+  (invoke the relevant skill directly).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 <EXTREMELY-IMPORTANT>
 If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
 
@@ -93,3 +100,10 @@ The skill itself tells you which.
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.

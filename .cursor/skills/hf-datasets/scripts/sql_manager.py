@@ -12,7 +12,7 @@
 Hugging Face Dataset SQL Manager
 
 Query, transform, and push Hugging Face datasets using DuckDB's SQL interface.
-Supports the hf:// protocol for direct dataset access, data wrangling, and 
+Supports the hf:// protocol for direct dataset access, data wrangling, and
 pushing results back to the Hub.
 
 Version: 1.0.0
@@ -20,20 +20,20 @@ Version: 1.0.0
 Usage:
     # Query a dataset
     uv run sql_manager.py query --dataset "cais/mmlu" --sql "SELECT * FROM data LIMIT 10"
-    
+
     # Query and push to new dataset
     uv run sql_manager.py query --dataset "cais/mmlu" --sql "SELECT * FROM data WHERE subject='nutrition'" \
         --push-to "username/nutrition-subset"
-    
+
     # Describe dataset schema
     uv run sql_manager.py describe --dataset "cais/mmlu"
-    
+
     # List available splits/configs
     uv run sql_manager.py info --dataset "cais/mmlu"
-    
+
     # Get random sample
     uv run sql_manager.py sample --dataset "cais/mmlu" --n 5
-    
+
     # Export to parquet
     uv run sql_manager.py export --dataset "cais/mmlu" --output "data.parquet"
 """
@@ -352,7 +352,7 @@ class HFDatasetSQL:
 
         quoted_col = self._quote_identifier(column)
         sql = f"""
-        SELECT 
+        SELECT
             {quoted_col},
             COUNT(*) as count
         FROM '{hf_path}'
@@ -650,27 +650,27 @@ def main():
 Examples:
   # Query dataset with SQL
   python sql_manager.py query --dataset "cais/mmlu" --sql "SELECT * FROM data WHERE subject='nutrition' LIMIT 10"
-  
+
   # Get random sample
   python sql_manager.py sample --dataset "cais/mmlu" --n 5
-  
+
   # Describe schema
   python sql_manager.py describe --dataset "cais/mmlu"
-  
+
   # Get value counts
   python sql_manager.py histogram --dataset "cais/mmlu" --column "subject"
-  
+
   # Filter and transform
   python sql_manager.py transform --dataset "cais/mmlu" \\
     --select "subject, COUNT(*) as cnt" \\
     --group-by "subject" \\
     --order-by "cnt DESC"
-  
+
   # Query and push to Hub
   python sql_manager.py query --dataset "cais/mmlu" \\
     --sql "SELECT * FROM data WHERE subject='nutrition'" \\
     --push-to "username/nutrition-subset"
-  
+
   # Export to Parquet
   python sql_manager.py export --dataset "cais/mmlu" \\
     --sql "SELECT * FROM data WHERE subject='nutrition'" \\

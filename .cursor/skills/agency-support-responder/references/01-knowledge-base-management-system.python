@@ -3,7 +3,7 @@ class KnowledgeBaseManager:
         self.articles = []
         self.categories = {}
         self.search_analytics = {}
-        
+
     def create_article(self, title, content, category, tags, difficulty_level):
         """
         Create comprehensive knowledge base article
@@ -23,19 +23,19 @@ class KnowledgeBaseManager:
             'customer_feedback': [],
             'related_tickets': []
         }
-        
+
         # Add step-by-step instructions
         article['steps'] = self.extract_steps(content)
-        
+
         # Add troubleshooting section
         article['troubleshooting'] = self.generate_troubleshooting_section(category)
-        
+
         # Add related articles
         article['related_articles'] = self.find_related_articles(tags, category)
-        
+
         self.articles.append(article)
         return article
-    
+
     def generate_article_template(self, issue_type):
         """
         Generate standardized article template based on issue type
@@ -57,7 +57,7 @@ class KnowledgeBaseManager:
             'account_management': {
                 'structure': [
                     'Overview',
-                    'Prerequisites', 
+                    'Prerequisites',
                     'Step-by-Step Instructions',
                     'Important Notes',
                     'Frequently Asked Questions',
@@ -81,16 +81,16 @@ class KnowledgeBaseManager:
                 'include_video': False
             }
         }
-        
+
         return templates.get(issue_type, templates['technical_troubleshooting'])
-    
+
     def optimize_article_content(self, article_id, usage_data):
         """
         Optimize article content based on usage analytics and customer feedback
         """
         article = self.get_article(article_id)
         optimization_suggestions = []
-        
+
         # Analyze search patterns
         if usage_data['bounce_rate'] > 60:
             optimization_suggestions.append({
@@ -98,7 +98,7 @@ class KnowledgeBaseManager:
                 'recommendation': 'Add clearer introduction and improve content organization',
                 'priority': 'HIGH'
             })
-        
+
         # Analyze customer feedback
         negative_feedback = [f for f in article['customer_feedback'] if f['rating'] <= 2]
         if len(negative_feedback) > 5:
@@ -108,7 +108,7 @@ class KnowledgeBaseManager:
                 'recommendation': f"Address common complaints: {', '.join(common_complaints)}",
                 'priority': 'MEDIUM'
             })
-        
+
         # Analyze related ticket patterns
         if len(article['related_tickets']) > 20:
             optimization_suggestions.append({
@@ -116,9 +116,9 @@ class KnowledgeBaseManager:
                 'recommendation': 'Article may not be solving the problem completely - review and expand',
                 'priority': 'HIGH'
             })
-        
+
         return optimization_suggestions
-    
+
     def create_interactive_troubleshooter(self, issue_category):
         """
         Create interactive troubleshooting flow
@@ -133,5 +133,5 @@ class KnowledgeBaseManager:
                 'device_type': 'optimize_for_platform'
             }
         }
-        
+
         return troubleshooter

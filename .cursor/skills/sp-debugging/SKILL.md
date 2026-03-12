@@ -1,8 +1,14 @@
 ---
 name: systematic-debugging
-description: Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes
+description: >-
+  Use when encountering any bug, test failure, or unexpected behavior, before
+  proposing fixes. Korean triggers: "디버깅", "버그 추적". Do NOT use for code review
+  (use simplify or deep-review).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Systematic Debugging
 
 ## Overview
@@ -294,3 +300,10 @@ From debugging sessions:
 - Random fixes approach: 2-3 hours of thrashing
 - First-time fix rate: 95% vs 40%
 - New bugs introduced: Near zero vs common
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.

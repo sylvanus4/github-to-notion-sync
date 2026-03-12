@@ -1,14 +1,14 @@
 ---
 name: google-daily
 description: >-
-  Google Workspace 데일리 자동화: 캘린더 브리핑, Gmail 정리, Drive 업로드,
-  Slack 알림(쓰레드 포함), 메모리 동기화를 순차 실행. /google, "google daily",
-  "구글 데일리" 등으로 호출. 개별 작업은 해당 스킬 사용.
+  Google Workspace 데일리 자동화: 캘린더 브리핑, Gmail 정리, Drive 업로드, Slack 알림(쓰레드 포함), 메모리
+  동기화를 순차 실행. /google, "google daily", "구글 데일리" 등으로 호출. 개별 작업은 해당 스킬 사용.
+  Do NOT use for individual Google Workspace operations (use the specific gws-* skill).
 metadata:
-  author: thaki
-  version: 3.0.0
+  author: "thaki"
+  version: "3.0.0"
+  category: "execution"
 ---
-
 # Google Daily Automation
 
 Google Workspace 일일 작업을 순차 파이프라인으로 실행하는 마스터 오케스트레이터.
@@ -187,3 +187,10 @@ This accumulates context so future sessions can reference past daily patterns, r
 - Gmail 필터 생성 전 사용자 확인
 - credentials/secrets 포함 파일 업로드 금지
 - 스팸 본문 열기 금지 (발신자/제목만으로 분류)
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "google daily" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.

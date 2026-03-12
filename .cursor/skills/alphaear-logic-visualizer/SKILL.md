@@ -1,12 +1,17 @@
 ---
 name: alphaear-logic-visualizer
-description: Creates Draw.io XML diagrams to visualize financial logic chains and transmission flows. Use when explaining investment theses, signal transmission chains, or complex finance logic flows as diagrams. Do NOT use for general architecture diagrams or system design visuals (use visual-explainer). Do NOT use for slide decks or data tables (use visual-explainer).
+description: >-
+  Creates Draw.io XML diagrams to visualize financial logic chains and
+  transmission flows. Use when explaining investment theses, signal transmission
+  chains, or complex finance logic flows as diagrams. Do NOT use for general
+  architecture diagrams or system design visuals (use visual-explainer). Do NOT
+  use for slide decks or data tables (use visual-explainer). Korean triggers:
+  "생성", "설계", "슬라이드", "데이터".
 metadata:
   version: "1.0.0"
-  category: visualization
-  author: alphaear
+  category: "visualization"
+  author: "alphaear"
 ---
-
 # AlphaEar Logic Visualizer
 
 ## Overview

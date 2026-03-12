@@ -6,15 +6,14 @@ description: >-
   emails with action items into a .docx, compile bespin_news links into a news
   digest .docx via Playwright, open company colleague attachments, and create
   Gmail filters for recurring patterns. Use when the user asks to "triage
-  email", "clean up inbox", "yesterday's emails", "메일 정리", "이메일 트리아지",
-  "어제 메일 정리", "gmail triage", or "inbox cleanup". Do NOT use for sending
-  emails (use gws-gmail), reading a single email, or calendar management
-  (use gws-calendar).
+  email", "clean up inbox", "yesterday's emails", "메일 정리", "이메일 트리아지", "어제 메일
+  정리", "gmail triage", or "inbox cleanup". Do NOT use for sending emails (use
+  gws-gmail), reading a single email, or calendar management (use gws-calendar).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Gmail Daily Triage
 
 Automated daily inbox cleanup that classifies yesterday's emails, trashes spam, files low-priority notifications, summarizes actionable emails, and creates Gmail filters.

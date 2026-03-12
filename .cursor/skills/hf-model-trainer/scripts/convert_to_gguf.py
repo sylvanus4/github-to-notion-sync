@@ -50,7 +50,7 @@ import subprocess
 def check_system_dependencies():
     """Check if required system packages are available."""
     print("🔍 Checking system dependencies...")
-    
+
     # Check for git
     if subprocess.run(["which", "git"], capture_output=True).returncode != 0:
         print("  ❌ git is not installed. Please install it:")
@@ -58,18 +58,18 @@ def check_system_dependencies():
         print("     RHEL/CentOS: sudo yum install git")
         print("     macOS: brew install git")
         return False
-    
+
     # Check for make or cmake
     has_make = subprocess.run(["which", "make"], capture_output=True).returncode == 0
     has_cmake = subprocess.run(["which", "cmake"], capture_output=True).returncode == 0
-    
+
     if not has_make and not has_cmake:
         print("  ❌ Neither make nor cmake found. Please install build tools:")
         print("     Ubuntu/Debian: sudo apt-get install build-essential cmake")
         print("     RHEL/CentOS: sudo yum groupinstall 'Development Tools' && sudo yum install cmake")
         print("     macOS: xcode-select --install && brew install cmake")
         return False
-    
+
     print("  ✅ System dependencies found")
     return True
 
@@ -269,7 +269,7 @@ for quant_type, description in quant_formats:
         continue
 
     quantized_files.append((quant_file, quant_type))
-    
+
     # Get file size
     size_mb = os.path.getsize(quant_file) / (1024 * 1024)
     print(f"   ✅ {quant_type}: {size_mb:.1f} MB")

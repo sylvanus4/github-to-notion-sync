@@ -1,12 +1,17 @@
 ---
 name: kwp-operations-compliance-tracking
-description: Track compliance requirements and audit readiness. Trigger with "compliance", "audit prep", "SOC 2", "ISO 27001", "GDPR", "regulatory requirement", or when the user needs help tracking, preparing
-  for, or documenting compliance activities. Do NOT use for this project's data governance or regulatory compliance — prefer compliance-governance skill.
+description: >-
+  Track compliance requirements and audit readiness. Trigger with "compliance",
+  "audit prep", "SOC 2", "ISO 27001", "GDPR", "regulatory requirement", or when
+  the user needs help tracking, preparing for, or documenting compliance
+  activities. Do NOT use for this project's data governance or regulatory
+  compliance — prefer compliance-governance skill. Korean triggers: "감사", "문서",
+  "스킬", "데이터".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Compliance Tracking
 
 Help track compliance requirements, prepare for audits, and maintain regulatory readiness.
@@ -46,3 +51,30 @@ Help track compliance requirements, prepare for audits, and maintain regulatory 
 ## Output
 
 Produce compliance status dashboards, gap analyses, audit prep checklists, and evidence collection plans.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with operations compliance tracking"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

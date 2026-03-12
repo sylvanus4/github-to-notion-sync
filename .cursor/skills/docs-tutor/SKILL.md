@@ -1,16 +1,17 @@
 ---
 name: docs-tutor
-description: >
-  Interactive quiz tutor for the project's StudyVault. Tracks concept-level proficiency with
-  badges, drills weak areas, and updates a learning dashboard. Use when the user wants to
-  "quiz me", "test my knowledge", "study the docs", "docs-tutor", "학습", "퀴즈", "평가",
-  or review specific platform topics. Do NOT use for generating the StudyVault (use
-  docs-tutor-setup) or for general documentation reading.
+description: >-
+  Interactive quiz tutor for the project's StudyVault. Tracks concept-level
+  proficiency with badges, drills weak areas, and updates a learning dashboard.
+  Use when the user wants to "quiz me", "test my knowledge", "study the docs",
+  "docs-tutor", "학습", "퀴즈", "평가", or review specific platform topics. Do NOT use
+  for generating the StudyVault (use docs-tutor-setup) or for general
+  documentation reading.
 metadata:
   version: "1.0.0"
-  category: learning
+  category: "learning"
+  author: "thaki"
 ---
-
 # Docs Tutor — Interactive Quiz for Platform Knowledge
 
 Quiz-based tutor that tracks what the user knows and doesn't know at the **concept level**. The goal is helping users discover blind spots in their platform knowledge through targeted questions.
@@ -191,3 +192,18 @@ Create per section when first question is asked. Filename: `{section-name}.md`.
 - Communicate in user's detected language
 - If user wants to continue, loop back to Phase 2 (ask session type again)
 - Keep dashboard compact — never append session logs or per-question history
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "docs tutor" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

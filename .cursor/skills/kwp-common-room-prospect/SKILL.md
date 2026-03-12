@@ -1,12 +1,16 @@
 ---
 name: kwp-common-room-prospect
-description: Build targeted account or contact lists using Common Room's Prospector. Triggers on 'find companies that match [criteria]', 'build a prospect list', 'find contacts at [type of company]', 'show
-  me companies hiring [role]', or any list-building request. Do NOT use for tasks outside the common-room domain.
+description: >-
+  Build targeted account or contact lists using Common Room's Prospector.
+  Triggers on 'find companies that match [criteria]', 'build a prospect list',
+  'find contacts at [type of company]', 'show me companies hiring [role]', or
+  any list-building request. Do NOT use for tasks outside the common-room
+  domain. Korean triggers: "빌드".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Prospecting
 
 Build targeted account and contact lists using Common Room's Prospector. Supports iterative refinement through natural conversation, intent-based discovery, and both net-new prospecting and signal-based queries against existing accounts.
@@ -101,3 +105,30 @@ For `ProspectorOrganization` results (net-new companies not in CR), run a quick 
 ## Reference Files
 
 - **`references/prospect-guide.md`** — filter types, signal-based sorting, object type distinctions, and list-building strategies
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with common room prospect"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

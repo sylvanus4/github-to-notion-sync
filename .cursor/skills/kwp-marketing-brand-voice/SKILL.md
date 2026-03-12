@@ -1,12 +1,16 @@
 ---
 name: kwp-marketing-brand-voice
-description: Apply and enforce brand voice, style guide, and messaging pillars across content. Use when reviewing content for brand consistency, documenting a brand voice, adapting tone for different audiences,
-  or checking terminology and style guide compliance. Do NOT use for tasks outside the marketing domain.
+description: >-
+  Apply and enforce brand voice, style guide, and messaging pillars across
+  content. Use when reviewing content for brand consistency, documenting a brand
+  voice, adapting tone for different audiences, or checking terminology and
+  style guide compliance. Do NOT use for tasks outside the marketing domain.
+  Korean triggers: "리뷰", "체크", "시장", "문서".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Brand Voice Skill
 
 Frameworks for documenting, applying, and enforcing brand voice and style guidelines across marketing content.
@@ -186,3 +190,30 @@ Maintain a list of preferred terms and their incorrect alternatives:
 - How to refer to competitors (by name or generically)
 - Terms competitors have coined that you should avoid (to prevent reinforcing their positioning)
 - Your preferred differentiation language
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Reviewing content for brand consistency"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

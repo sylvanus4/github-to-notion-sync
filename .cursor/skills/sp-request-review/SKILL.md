@@ -1,8 +1,14 @@
 ---
 name: requesting-code-review
-description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements
+description: >-
+  Use when completing tasks, implementing major features, or before merging to
+  verify work meets requirements. Korean triggers: "리뷰 요청", "코드 리뷰". Do NOT use for
+  receiving review feedback (use sp-receive-review).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Requesting Code Review
 
 Dispatch superpowers:code-reviewer subagent to catch issues before they cascade.

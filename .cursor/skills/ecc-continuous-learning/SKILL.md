@@ -7,11 +7,14 @@ description: >-
   setting up session learning, reviewing instincts, or evolving patterns into
   reusable skills. Do NOT use for one-off corrections (update tasks/lessons.md
   directly). Do NOT use for skill creation from scratch (use
-  anthropic-skill-creator).
+  anthropic-skill-creator). Korean triggers: "지속 학습", "인스팅트".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 version: 2.1.0
 ---
-
 # Continuous Learning v2.1 - Instinct
 -Based Architecture
 
@@ -369,3 +372,21 @@ v2.1 is fully compatible with v2.0 and v1:
 ---
 
 *Instinct-based learning: teaching Claude your patterns, one project at a time.*
+
+## Examples
+
+### Example 1: Applying the pattern
+
+**User says:** "Setting up session learning"
+
+**Actions:**
+1. Read and understand the current project context
+2. Apply the continuous learning methodology as described in this skill
+3. Report findings and recommendations
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

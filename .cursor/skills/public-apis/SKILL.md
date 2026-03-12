@@ -4,15 +4,14 @@ description: >-
   Search and discover 1,400+ free public APIs across 50+ categories (weather,
   finance, AI/ML, games, government data, cryptocurrency, etc.) via the
   public-apis MCP server. Use when the user asks to "find an API", "search for
-  free APIs", "list weather APIs", "public API for X", "free API", "API
-  추천", "무료 API", "API 검색", or any API discovery/lookup task. Do NOT use
-  for calling the discovered APIs directly, building MCP servers, or
-  non-API-related searches.
+  free APIs", "list weather APIs", "public API for X", "free API", "API 추천", "무료
+  API", "API 검색", or any API discovery/lookup task. Do NOT use for calling the
+  discovered APIs directly, building MCP servers, or non-API-related searches.
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Public APIs: Free API Discovery & Recommendation
 
 Search, filter, and discover 1,400+ free public APIs across 50+ categories. Get project-based recommendations, generate integration code, and find alternatives -- all via a single MCP server.

@@ -1,12 +1,16 @@
 ---
 name: kwp-marketing-campaign-planning
-description: Plan marketing campaigns with objectives, audience segmentation, channel strategy, content calendars, and success metrics. Use when launching a campaign, planning a product launch, building
-  a content calendar, allocating budget across channels, or defining campaign KPIs. Do NOT use for tasks outside the marketing domain.
+description: >-
+  Plan marketing campaigns with objectives, audience segmentation, channel
+  strategy, content calendars, and success metrics. Use when launching a
+  campaign, planning a product launch, building a content calendar, allocating
+  budget across channels, or defining campaign KPIs. Do NOT use for tasks
+  outside the marketing domain. Korean triggers: "캠페인", "마케팅 계획", "콘텐츠 캘린더".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Campaign Planning Skill
 
 Frameworks and guidance for planning, structuring, and executing marketing campaigns.
@@ -204,3 +208,30 @@ A common starting framework (adjust based on goals and historical data):
 | Engagement during event | Questions, polls, chat activity |
 | Post-event conversions | Leads or pipeline from attendees |
 | Content repurposing reach | Downstream audience from recordings |
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Launching a campaign"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

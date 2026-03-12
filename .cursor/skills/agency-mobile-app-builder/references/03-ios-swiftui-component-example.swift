@@ -5,7 +5,7 @@ import Combine
 struct ProductListView: View {
     @StateObject private var viewModel = ProductListViewModel()
     @State private var searchText = ""
-    
+
     var body: some View {
         NavigationView {
             List(viewModel.filteredProducts) { product in
@@ -50,14 +50,14 @@ class ProductListViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var showFilterSheet = false
     @Published var filters = ProductFilters()
-    
+
     private let productService = ProductService()
     private var cancellables = Set<AnyCancellable>()
-    
+
     func loadInitialProducts() async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             products = try await productService.fetchProducts()
             filteredProducts = products
@@ -66,7 +66,7 @@ class ProductListViewModel: ObservableObject {
             print("Error loading products: \(error)")
         }
     }
-    
+
     func filterProducts(_ searchText: String) {
         if searchText.isEmpty {
             filteredProducts = products

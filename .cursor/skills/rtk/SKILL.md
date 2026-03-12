@@ -3,16 +3,15 @@ name: rtk
 description: >-
   Manage RTK (Rust Token Killer) CLI proxy for token-optimized command
   execution. Use when the user asks to "check token savings", "rtk gain",
-  "optimize tokens", "reduce token usage", "rtk discover", "rtk status",
-  "토큰 절감", "토큰 사용량", "RTK 상태", "RTK 분석",
-  or wants to view/manage RTK analytics and configuration.
-  Do NOT use for general shell commands — the rtk-token-optimization
-  rule handles auto-prefixing transparently.
+  "optimize tokens", "reduce token usage", "rtk discover", "rtk status", "토큰
+  절감", "토큰 사용량", "RTK 상태", "RTK 분석", or wants to view/manage RTK analytics and
+  configuration. Do NOT use for general shell commands — the
+  rtk-token-optimization rule handles auto-prefixing transparently.
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # RTK — Token Optimization Proxy Management
 
 RTK compresses CLI output before it reaches the LLM context window, reducing token consumption by 60-90%. This skill covers analytics, configuration, and troubleshooting — not command rewriting (handled by the always-on `rtk-token-optimization` rule).
@@ -133,3 +132,11 @@ Actions:
 3. `rtk gain` — verify database
 4. Check `.cursor/rules/rtk-token-optimization.mdc` exists
 5. Report findings and fix
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

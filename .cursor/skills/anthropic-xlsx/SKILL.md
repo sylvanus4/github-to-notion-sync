@@ -1,12 +1,16 @@
 ---
 name: anthropic-xlsx
-description: Work with spreadsheets (.xlsx, .csv, .tsv). Create, read, edit, fix, format, chart, clean data; convert between tabular formats. Do NOT use for Word documents (use anthropic-docx), presentations (use anthropic-pptx), or PDFs (use anthropic-pdf).
+description: >-
+  Work with spreadsheets (.xlsx, .csv, .tsv). Create, read, edit, fix, format,
+  chart, clean data; convert between tabular formats. Do NOT use for Word
+  documents (use anthropic-docx), presentations (use anthropic-pptx), or PDFs
+  (use anthropic-pdf). Korean triggers: "엑셀", "스프레드시트", "xlsx".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Proprietary. LICENSE.txt has complete terms
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Proprietary. LICENSE.txt has complete terms"
+  category: "document"
 ---
-
 # Requirements for Outputs
 
 ## All Excel files
@@ -293,3 +297,18 @@ The script returns JSON with error details:
 - Add comments to cells with complex formulas or important assumptions
 - Document data sources for hardcoded values
 - Include notes for key calculations and model sections
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to work with spreadsheets (
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

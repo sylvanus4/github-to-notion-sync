@@ -1,15 +1,18 @@
 ---
 name: ecc-search-first
 description: >-
-  Research-before-coding workflow — always search for existing tools, libraries,
-  and patterns before writing custom code. Invokes web search and codebase
-  search before implementation. Use when starting a new feature, adding a
-  dependency, or solving a problem that likely has existing solutions. Do NOT
+  Research-before-coding workflow — always search for existing tools,
+  libraries, and patterns before writing custom code. Invokes web search and
+  codebase search before implementation. Use when starting a new feature, adding
+  a dependency, or solving a problem that likely has existing solutions. Do NOT
   use for known implementations. Do NOT use for general web search (use
-  WebSearch directly).
+  WebSearch directly). Korean triggers: "검색 우선", "기존 도구 탐색".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 ---
-
 # /search-first — Research Before You Code
 
 Systematizes the "search for existing solutions before implementing" workflow.
@@ -165,3 +168,11 @@ Result: 1 package + 1 schema file, no custom validation logic
 - **Ignoring MCP**: Not checking if an MCP server already provides the capability
 - **Over-customizing**: Wrapping a library so heavily it loses its benefits
 - **Dependency bloat**: Installing a massive package for one small feature
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

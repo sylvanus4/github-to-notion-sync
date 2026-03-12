@@ -5,10 +5,14 @@ description: >-
   scan, and diff review. Produces a structured PASS/FAIL report with coverage
   stats. Use after completing features, before creating PRs, or after
   refactoring. Do NOT use for CI pipeline execution (use ci-quality-gate). Do
-  NOT use for single-domain code review (use simplify or deep-review).
+  NOT use for single-domain code review (use simplify or deep-review). Korean
+  triggers: "리뷰", "테스트", "빌드", "체크".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 ---
-
 # Verification Loop Skill
 
 A comprehensive verification system for Claude Code sessions.
@@ -129,3 +133,21 @@ Run: /verify
 
 This skill complements PostToolUse hooks but provides deeper verification.
 Hooks catch issues immediately; this skill provides comprehensive review.
+
+## Examples
+
+### Example 1: Applying the pattern
+
+**User says:** "Apply verification loop to this task"
+
+**Actions:**
+1. Read and understand the current project context
+2. Apply the verification loop methodology as described in this skill
+3. Report findings and recommendations
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

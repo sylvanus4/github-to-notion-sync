@@ -1,8 +1,14 @@
 ---
 name: executing-plans
-description: Use when you have a written implementation plan to execute in a separate session with review checkpoints
+description: >-
+  Use when you have a written implementation plan to execute in a separate
+  session with review checkpoints. Korean triggers: "계획 실행", "구현 플랜". Do
+  NOT use for writing plans (use sp-writing-plans).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Executing Plans
 
 ## Overview
@@ -82,3 +88,18 @@ After all tasks complete and verified:
 - **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
 - **superpowers:writing-plans** - Creates the plan this skill executes
 - **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Process step fails | Do not skip — diagnose the failure before proceeding to the next step |
+| Verification fails | Roll back to the last passing checkpoint and retry |
+| Conflicting with other processes | Follow the priority order defined in the skill |

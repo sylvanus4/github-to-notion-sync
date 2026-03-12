@@ -1,8 +1,15 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: >-
+  You MUST use this before any creative work - creating features, building
+  components, adding functionality, or modifying behavior. Explores user intent,
+  requirements and design before implementation. Korean triggers: "브레인스토밍", "아이디어".
+  Do NOT use for implementation tasks (use sp-tdd or sp-executing-plans).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Brainstorming Ideas Into Designs
 
 ## Overview
@@ -94,3 +101,18 @@ digraph brainstorming {
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design, get approval before moving on
 - **Be flexible** - Go back and clarify when something doesn't make sense
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Process step fails | Do not skip — diagnose the failure before proceeding to the next step |
+| Verification fails | Roll back to the last passing checkpoint and retry |
+| Conflicting with other processes | Follow the priority order defined in the skill |

@@ -5,15 +5,16 @@ description: >-
   positioning, value proposition statements, North Star metrics, and product
   naming. Based on phuryn/pm-skills. Use when the user asks for "marketing
   ideas", "positioning", "value proposition statements", "North Star metric",
-  "product name ideas", or "growth metrics". Do NOT use for marketing
-  campaign planning (use kwp-marketing-campaign-planning), brand voice (use
-  kwp-marketing-brand-voice), or GTM strategy (use pm-go-to-market).
+  "product name ideas", or "growth metrics". Do NOT use for marketing campaign
+  planning (use kwp-marketing-campaign-planning), brand voice (use
+  kwp-marketing-brand-voice), or GTM strategy (use pm-go-to-market). Korean
+  triggers: "계획", "워크플로우", "시장", "스킬".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/phuryn/pm-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/phuryn/pm-skills"
+  category: "product"
 ---
-
 # PM Marketing and Growth
 
 Orchestrate product marketing and growth workflows using phuryn/pm-skills — marketing ideas, positioning, value proposition statements, North Star metrics, and product naming.

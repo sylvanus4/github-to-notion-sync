@@ -1,14 +1,22 @@
 ---
 name: kwp-bio-research-scvi-tools
-description: Deep learning for single-cell analysis using scvi-tools. This skill should be used when users need (1) data integration and batch correction with scVI/scANVI, (2) ATAC-seq analysis with PeakVI,
-  (3) CITE-seq multi-modal analysis with totalVI, (4) multiome RNA+ATAC analysis with MultiVI, (5) spatial transcriptomics deconvolution with DestVI, (6) label transfer and reference mapping with scANVI/scArches,
-  (7) RNA velocity with veloVI, or (8) any deep learning-based single-cell method. Triggers include mentions of scVI, scANVI, totalVI, PeakVI, MultiVI, DestVI, veloVI, sysVI, scArches, variational autoencoder,
-  VAE, batch correction, data integration, multi-modal, CITE-seq, multiome, reference mapping, latent space. Do NOT use for tasks outside the bio domain.
+description: >-
+  Deep learning for single-cell analysis using scvi-tools. This skill should be
+  used when users need (1) data integration and batch correction with
+  scVI/scANVI, (2) ATAC-seq analysis with PeakVI, (3) CITE-seq multi-modal
+  analysis with totalVI, (4) multiome RNA+ATAC analysis with MultiVI, (5)
+  spatial transcriptomics deconvolution with DestVI, (6) label transfer and
+  reference mapping with scANVI/scArches, (7) RNA velocity with veloVI, or (8)
+  any deep learning-based single-cell method. Triggers include mentions of scVI,
+  scANVI, totalVI, PeakVI, MultiVI, DestVI, veloVI, sysVI, scArches, variational
+  autoencoder, VAE, batch correction, data integration, multi-modal, CITE-seq,
+  multiome, reference mapping, latent space. Do NOT use for tasks outside the
+  bio domain. Korean triggers: "리서치", "스캔", "스킬", "데이터".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # scvi-tools Deep Learning Skill
 
 This skill provides guidance for deep learning-based single-cell analysis using scvi-tools, the leading framework for probabilistic models in single-cell genomics.
@@ -159,3 +167,30 @@ Strong cross-technology batch effects?
 - [scvi-tools Tutorials](https://docs.scvi-tools.org/en/stable/tutorials/index.html)
 - [Model Hub](https://huggingface.co/scvi-tools)
 - [GitHub Issues](https://github.com/scverse/scvi-tools/issues)
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with bio research scvi tools"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -55,7 +55,7 @@ hub_repo_details(["trl-lib/ultrafeedback_binarized"], repo_type="dataset")
 - [ ] Validate file paths in repositories
 - [ ] Check for recent updates/renames of resources
 
-**Time cost:** 5-10 seconds  
+**Time cost:** 5-10 seconds
 **Time saved:** Hours of failed job time + debugging
 
 ---
@@ -130,7 +130,7 @@ subprocess.run([
 - [ ] Document known incompatibilities
 - [ ] Provide "safe" and "fast" variants when needed
 
-**Performance loss:** 10-20% in best case  
+**Performance loss:** 10-20% in best case
 **Reliability gain:** 95%+ success rate vs 60-70%
 
 ---
@@ -210,7 +210,7 @@ subprocess.run(["git", "clone", "https://github.com/ggerganov/llama.cpp.git", "/
 - [ ] Test scripts in clean environment
 - [ ] Document why each dependency is needed
 
-**Complexity:** Slightly longer scripts  
+**Complexity:** Slightly longer scripts
 **Reliability:** Scripts "just work" every time
 
 ---
@@ -310,7 +310,7 @@ TEST_BASE = "Qwen/Qwen2.5-0.5B"  # Compatible base
 - [ ] Keep test jobs cheap (small models, short timeouts)
 - [ ] Only move to production after test succeeds
 
-**Time cost:** 5-10 minutes for test run  
+**Time cost:** 5-10 minutes for test run
 **Debugging time saved:** Hours
 
 ---

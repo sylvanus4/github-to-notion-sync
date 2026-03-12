@@ -1,20 +1,20 @@
 ---
 name: incident-to-improvement
 description: >-
-  Close the loop from production incident to lasting prevention. Orchestrates
-  7 existing skills in a pipeline: incident triage, root cause analysis, code
-  fix with regression tests, knowledge base article, monitoring recommendations,
-  and blameless post-mortem document. Ensures every incident produces lasting
+  Close the loop from production incident to lasting prevention. Orchestrates 7
+  existing skills in a pipeline: incident triage, root cause analysis, code fix
+  with regression tests, knowledge base article, monitoring recommendations, and
+  blameless post-mortem document. Ensures every incident produces lasting
   improvements. Use when the user reports an "incident", "post-mortem",
-  "production issue", "outage", "인시던트", "장애 대응", "장애 복구",
-  "incident to improvement", or wants to run the full incident response lifecycle.
-  Do NOT use for non-incident debugging (use diagnose), code review (use
-  deep-review), or monitoring setup only (use sre-devops-expert).
+  "production issue", "outage", "인시던트", "장애 대응", "장애 복구", "incident to
+  improvement", or wants to run the full incident response lifecycle. Do NOT use
+  for non-incident debugging (use diagnose), code review (use deep-review), or
+  monitoring setup only (use sre-devops-expert).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Incident to Improvement — Closed-Loop Incident Response
 
 Every incident is a gift — if you learn from it. This skill ensures that production incidents don't just get fixed, they produce regression tests, knowledge base articles, monitoring improvements, and blameless post-mortems.

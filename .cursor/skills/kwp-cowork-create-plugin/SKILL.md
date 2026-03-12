@@ -1,14 +1,17 @@
 ---
 name: kwp-cowork-create-plugin
-description: 'Guide users through creating a new plugin from scratch in a cowork session. Use when users want to create a plugin, build a plugin, make a new plugin, develop a plugin, scaffold a plugin,
-  start a plugin from scratch, or design a plugin. This skill requires Cowork mode with access to the outputs directory for delivering the final .plugin file.
-
-  . Do NOT use for tasks outside the cowork domain.'
+description: >-
+  Guide users through creating a new plugin from scratch in a cowork session.
+  Use when users want to create a plugin, build a plugin, make a new plugin,
+  develop a plugin, scaffold a plugin, start a plugin from scratch, or design a
+  plugin. This skill requires Cowork mode with access to the outputs directory
+  for delivering the final .plugin file. . Do NOT use for tasks outside the
+  cowork domain. Korean triggers: "생성", "빌드", "설계", "스킬".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Create Cowork Plugin
 
 Build a new plugin from scratch through guided conversation. Walk the user through discovery, planning, design, implementation, and packaging — delivering a ready-to-install `.plugin` file at the end.
@@ -262,3 +265,30 @@ The `.plugin` file will appear in the chat as a rich preview where the user can 
 
 - **`references/component-schemas.md`** — Detailed format specifications for every component type (commands, skills, agents, hooks, MCP, CONNECTORS.md)
 - **`references/example-plugins.md`** — Three complete example plugin structures at different complexity levels
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Users want to create a plugin"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

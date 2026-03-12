@@ -1,8 +1,16 @@
 ---
 name: github-workflow-automation
-description: ai-platform-webui 레포지토리의 GitHub 워크플로우를 자동화합니다. 변경사항 확인 → 이슈 생성 → 브랜치 생성 → 커밋 → 푸시 → PR 생성/업데이트 → 이슈 코멘트 추가까지 전체 흐름을 처리합니다. 기존 PR이 있으면 자동으로 업데이트하고, 이슈에 진행 상황 코멘트를 남깁니다. "이슈 만들어줘", "커밋해줘", "PR 생성해줘", "변경사항 정리해줘", "깃 워크플로우" 등 GitHub 관련 작업 요청 시 사용합니다.
+description: >-
+  ai-platform-webui 레포지토리의 GitHub 워크플로우를 자동화합니다. 변경사항 확인 → 이슈 생성 → 브랜치 생성 → 커밋
+  → 푸시 → PR 생성/업데이트 → 이슈 코멘트 추가까지 전체 흐름을 처리합니다. 기존 PR이 있으면 자동으로 업데이트하고, 이슈에 진행
+  상황 코멘트를 남깁니다. "이슈 만들어줘", "커밋해줘", "PR 생성해줘", "변경사항 정리해줘", "깃 워크플로우" 등 GitHub 관련
+  작업 요청 시 사용합니다.
+  Do NOT use for code review or CI pipeline validation (use ci-quality-gate).
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # GitHub 워크플로우 자동화
 
 ai-platform-webui 레포지토리의 GitHub 워크플로우를 자동화합니다.
@@ -65,55 +73,7 @@ gh project item-add 5 --owner ThakiCloud --url [이슈URL]
 
 #### A-3. 프로젝트 필드 설정
 
-프로젝트 아이템 ID 조회:
-
-```bash
-gh api graphql -f query='
-query($owner: String!, $repo: String!, $issueNumber: Int!) {
-  repository(owner: $owner, name: $repo) {
-    issue(number: $issueNumber) {
-      projectItems(first: 10) {
-        nodes {
-          id
-          project { number }
-        }
-      }
-    }
-  }
-}' -f owner='ThakiCloud' -f repo='ai-platform-webui' -F issueNumber=$ISSUE_NUMBER
-```
-
-필드 설정 (Priority/Size/Estimate/Sprint):
-
-```bash
-# 프로젝트 필드 ID 조회 (최초 1회)
-gh api graphql -f query='
-query($owner: String!, $number: Int!) {
-  organization(login: $owner) {
-    projectV2(number: $number) {
-      fields(first: 50) {
-        nodes {
-          ... on ProjectV2SingleSelectField {
-            id
-            name
-            options { id name }
-          }
-          ... on ProjectV2IterationField {
-            id
-            name
-            configuration {
-              iterations { id title startDate }
-            }
-          }
-        }
-      }
-    }
-  }
-}' -f owner='ThakiCloud' -F number=5
-
-# 필드 값 설정
-gh project item-edit --id $ITEM_ID --field-id $FIELD_ID --single-select-option-id $OPTION_ID --project-id $PROJECT_ID
-```
+프로젝트 아이템 ID 조회 및 필드 설정: `references/graphql-bash-scripts.md` 참조 (GraphQL 쿼리, `gh project item-edit`).
 
 **필드 설정 규칙**:
 
@@ -277,41 +237,7 @@ fi
 
 ##### D-3a. 기존 PR 업데이트 (PR이 이미 있을 때)
 
-```bash
-# PR 번호 추출
-PR_NUMBER=$(gh pr list --head tmp --json number --jq '.[0].number')
-
-# PR 본문에 새 변경사항 추가
-# 방법 1: 기존 본문 유지하면서 Changes 섹션만 업데이트
-gh pr view $PR_NUMBER --json body --jq '.body' > /tmp/pr_body.md
-
-# 방법 2: 전체 본문 교체 (권장)
-gh pr edit $PR_NUMBER --body "$(cat <<EOF
-## Issue?
-Resolves #${ISSUE_NUMBER}
-
-## Changes?
-- 기존 변경사항 1
-- 기존 변경사항 2
-- **[NEW]** 새로 추가된 변경사항
-
-## Why we need?
-이 PR이 필요한 이유 설명
-
-## Test?
-- [x] 완료된 테스트
-- [ ] 남은 테스트 항목
-
-## CC (Optional)
-<!-- 사용자가 직접 멘션 예정 -->
-
-## Anything else? (Optional)
-- 추가 커밋: {커밋 메시지}
-EOF
-)"
-
-echo "✅ PR #$PR_NUMBER 본문 업데이트 완료"
-```
+`PR_NUMBER=$(gh pr list --head tmp --json number --jq '.[0].number')`로 PR 번호 추출 후 `gh pr edit $PR_NUMBER --body "..."`로 본문 업데이트. 템플릿: `references/graphql-bash-scripts.md`.
 
 ---
 
@@ -362,66 +288,7 @@ EOF
 
 #### D-4. 이슈 업데이트 (진행 상황 코멘트 추가)
 
-커밋/PR 작업 후 관련 이슈에 진행 상황을 코멘트로 남깁니다.
-
-```bash
-# 이슈 번호 추출 (브랜치명에서)
-BRANCH=$(git branch --show-current)
-ISSUE_NUMBER=$(echo $BRANCH | sed 's/issue\/\([0-9]*\).*/\1/')
-
-# 최근 커밋 정보
-COMMIT_SHA=$(git rev-parse --short HEAD)
-COMMIT_MSG=$(git log -1 --pretty=format:'%s')
-
-# PR 정보 (있으면)
-PR_INFO=$(gh pr list --head tmp --json number,url --jq '.[0]')
-PR_NUMBER=$(echo $PR_INFO | jq -r '.number // empty')
-PR_URL=$(echo $PR_INFO | jq -r '.url // empty')
-
-# 이슈에 진행 상황 코멘트 추가
-if [ -n "$PR_NUMBER" ]; then
-  gh issue comment $ISSUE_NUMBER --body "$(cat <<EOF
-## 📝 진행 상황 업데이트
-
-### 커밋
-- **SHA**: \`$COMMIT_SHA\`
-- **메시지**: $COMMIT_MSG
-
-### PR
-- **PR**: #$PR_NUMBER
-- **URL**: $PR_URL
-
-### 상태
-- [x] 코드 변경 완료
-- [x] 커밋 & 푸시 완료
-- [x] PR 생성/업데이트 완료
-- [ ] 리뷰 대기 중
-
----
-_자동 생성된 코멘트입니다._
-EOF
-)"
-  echo "✅ 이슈 #$ISSUE_NUMBER에 진행 상황 코멘트 추가됨"
-else
-  gh issue comment $ISSUE_NUMBER --body "$(cat <<EOF
-## 📝 진행 상황 업데이트
-
-### 커밋
-- **SHA**: \`$COMMIT_SHA\`
-- **메시지**: $COMMIT_MSG
-
-### 상태
-- [x] 코드 변경 완료
-- [x] 커밋 & 푸시 완료
-- [ ] PR 생성 필요
-
----
-_자동 생성된 코멘트입니다._
-EOF
-)"
-  echo "✅ 이슈 #$ISSUE_NUMBER에 진행 상황 코멘트 추가됨 (PR 미생성)"
-fi
-```
+`BRANCH`에서 `ISSUE_NUMBER` 추출, `COMMIT_SHA`/`COMMIT_MSG` 수집, PR 정보가 있으면 `gh issue comment`로 진행 상황 코멘트 추가. 템플릿: `references/graphql-bash-scripts.md`.
 
 **코멘트 추가 타이밍**:
 
@@ -433,31 +300,7 @@ fi
 
 #### D-5. 이슈 상태 업데이트 (선택적)
 
-PR이 생성되면 프로젝트 보드의 Status를 업데이트합니다.
-
-```bash
-# 이슈의 프로젝트 아이템 ID 조회
-ITEM_ID=$(gh api graphql -f query='
-query($owner: String!, $repo: String!, $issueNumber: Int!) {
-  repository(owner: $owner, name: $repo) {
-    issue(number: $issueNumber) {
-      projectItems(first: 10) {
-        nodes {
-          id
-          project { number }
-        }
-      }
-    }
-  }
-}' -f owner='ThakiCloud' -f repo='ai-platform-webui' -F issueNumber=$ISSUE_NUMBER \
-  | jq -r '.data.repository.issue.projectItems.nodes[] | select(.project.number == 5) | .id')
-
-if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
-  # Status를 "In Review"로 변경 (필드 ID와 옵션 ID는 프로젝트 설정에서 조회)
-  # gh project item-edit --id $ITEM_ID --field-id $STATUS_FIELD_ID --single-select-option-id $IN_REVIEW_OPTION_ID --project-id $PROJECT_ID
-  echo "📊 프로젝트 상태 업데이트 필요: Status → In Review"
-fi
-```
+프로젝트 아이템 ID로 Status를 "In Review"로 변경. GraphQL/`gh project item-edit`: `references/graphql-bash-scripts.md`.
 
 ---
 

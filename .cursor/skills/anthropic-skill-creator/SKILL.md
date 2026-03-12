@@ -1,11 +1,18 @@
 ---
 name: anthropic-skill-creator
-description: Create new skills, modify and improve existing skills, and measure skill performance. Use when creating a skill from scratch, editing or optimizing an existing skill, running evals to test a skill, benchmarking skill performance with variance analysis, or optimizing a skill's description for better triggering accuracy. Do NOT use for Cursor-specific skill creation (use create-skill skill), or skill auditing/benchmarking only (use skill-optimizer).
+description: >-
+  Create new skills, modify and improve existing skills, and measure skill
+  performance. Use when creating a skill from scratch, editing or optimizing an
+  existing skill, running evals to test a skill, benchmarking skill performance
+  with variance analysis, or optimizing a skill's description for better
+  triggering accuracy. Do NOT use for Cursor-specific skill creation (use
+  create-skill skill), or skill auditing/benchmarking only (use
+  skill-optimizer). Korean triggers: "스킬 생성", "스킬 제작".
 metadata:
-  author: anthropic
-  version: 1.0.0
+  author: "anthropic"
+  version: "1.0.0"
+  category: "document"
 ---
-
 # Skill Creator
 
 A skill for creating new skills and iteratively improving them.

@@ -1,9 +1,17 @@
 ---
 name: kwp-cowork-cowork-plugin-customizer
-description: > Do NOT use for tasks outside the cowork domain.
+description: >-
+  Customize a Claude Cowork plugin for a specific organization — either set up
+  a generic plugin template (replace ~~placeholders) or tweak an already-configured
+  plugin. Guides through knowledge MCP search, todo-driven customization, MCP
+  connector discovery, and packaging as a .plugin file.
+  Use when the user asks to "customize plugin", "set up plugin", "configure
+  plugin", "tailor plugin", or "update the standup command" for a Cowork plugin.
+  Do NOT use for tasks outside the cowork domain.
 metadata:
   author: anthropic-kwp
   version: 1.0.0
+  category: workflow
 ---
 
 # Cowork Plugin Customization

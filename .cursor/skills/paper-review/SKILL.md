@@ -306,7 +306,7 @@ Read `references/nlm-slack-integration.md` for detailed instructions.
 3. **Add review as text source**: `notebook_add_text(notebook_id, title="Korean Review", file_path="<ABSOLUTE_PATH>/outputs/papers/{paper-id}-review-{DATE}.md")`
 4. **Generate slides**: `slide_deck_create(notebook_id, format="detailed_deck", confirm=true)`
 5. **Poll status**: `studio_status(notebook_id)` every 30s until complete (5-8 min typical)
-6. **Share/Download**: Share notebook link via Slack or download slides from NotebookLM UI
+6. **Download PDF**: `download_artifact(notebook_id, artifact_type="slide_deck", output_path="<ABSOLUTE_PATH>/outputs/presentations/{paper-id}-nlm-slides-{DATE}.pdf")`
 
 Use **absolute paths** for all MCP file operations — the MCP server resolves from its own cwd.
 
@@ -359,7 +359,7 @@ If the channel is not in the registry, use `slack_search_channels` MCP tool to r
 
 ### Distribution Steps
 
-1. **Main message** — Post paper title + Korean summary + NotebookLM notebook link (if NLM slides generated) using `slack_send_message` MCP tool; if NLM slides PDF was downloaded, upload via 3-step Slack API (`getUploadURLExternal` → upload → `completeUploadExternal`); capture `ts` from response
+1. **Main message** — Upload NLM slides PDF via 3-step Slack API (`getUploadURLExternal` → upload → `completeUploadExternal`) with paper title + Korean summary as `initial_comment`; capture `ts` from response. If NLM slides PDF is unavailable (Phase 6 skipped), fall back to `slack_send_message` text-only post.
 2. **Thread: Paper Summary** — `slack_send_message` MCP tool with detailed Korean summary (500-1000 chars)
 3. **Thread: Notion Link** — `slack_send_message` MCP tool with the Notion main page URL from Phase 7 (skip if `--skip-notion`)
 4. **Thread: Upload DOCX** — 3-step Slack upload with `thread_ts` from step 1
@@ -389,21 +389,7 @@ Skills used: **Slack MCP** (text messages), **curl** (3-step file upload via `ge
 
 ## Output Convention
 
-```
-outputs/
-├── papers/
-│   ├── {paper-id}-review-{DATE}.md
-│   ├── {paper-id}-pm-strategy-{DATE}.md
-│   ├── {paper-id}-market-research-{DATE}.md
-│   ├── {paper-id}-discovery-{DATE}.md
-│   ├── {paper-id}-gtm-{DATE}.md
-│   ├── {paper-id}-statistics-{DATE}.md
-│   ├── {paper-id}-execution-{DATE}.md
-│   └── {paper-id}-analysis-{DATE}.docx
-└── presentations/
-    ├── {paper-id}-presentation-{DATE}.pptx
-    └── {paper-id}-nlm-slides-{DATE}.pdf
-```
+`outputs/papers/`: review, pm-strategy, market-research, discovery, gtm, statistics, execution, analysis.docx. `outputs/presentations/`: presentation.pptx, nlm-slides.pdf.
 
 ## Example
 
@@ -419,7 +405,7 @@ This will:
 5. Generate a PowerPoint presentation
 6. Generate NotebookLM slide deck from DOCX
 7. Create Notion pages (main + 7 sub-pages) under the default parent
-8. Upload NLM slides to `#deep-research`, post Korean summary + Notion link + DOCX + PPTX in thread
+8. Upload NLM slides PDF to `#deep-research`, post Korean summary + Notion link + DOCX + PPTX in thread
 
 ```
 /paper-review /path/to/paper.pdf --skip-pm --skip-slack

@@ -1,11 +1,17 @@
 ---
 name: frontend-expert
-description: Review and improve React component architecture, Vite build performance, Core Web Vitals, and testing strategy. Use when the user asks about frontend code review, component refactoring, bundle optimization, or frontend testing gaps. Do NOT use for building new UI from scratch (use frontend-design), UX audits or accessibility evaluation (use ux-expert), or writing Playwright E2E tests (use e2e-testing).
+description: >-
+  Review and improve React component architecture, Vite build performance, Core
+  Web Vitals, and testing strategy. Use when the user asks about frontend code
+  review, component refactoring, bundle optimization, or frontend testing gaps.
+  Do NOT use for building new UI from scratch (use frontend-design), UX audits
+  or accessibility evaluation (use ux-expert), or writing Playwright E2E tests
+  (use e2e-testing). Korean triggers: "프론트엔드", "감사", "리뷰", "테스트".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # Frontend Expert
 
 Specialist for the React 18 + TypeScript + Vite 6 + Tailwind CSS frontend at `frontend/`.

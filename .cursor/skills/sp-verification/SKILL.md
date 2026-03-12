@@ -1,8 +1,16 @@
 ---
 name: verification-before-completion
-description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
+description: >-
+  Use when about to claim work is complete, fixed, or passing, before
+  committing or creating PRs - requires running verification commands and
+  confirming output before making any success claims; evidence before assertions
+  always. Korean triggers: "검증", "완료 확인". Do NOT use for code review (use
+  sp-request-review).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Verification Before Completion
 
 ## Overview
@@ -137,3 +145,10 @@ From 24 failure memories:
 Run the command. Read the output. THEN claim the result.
 
 This is non-negotiable.
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.

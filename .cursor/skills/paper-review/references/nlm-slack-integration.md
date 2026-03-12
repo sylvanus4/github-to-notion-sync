@@ -84,18 +84,27 @@ If generation appears stuck after 15 minutes:
 1. Check `studio_status` one more time
 2. If still processing, the DOCX may be too large — try regenerating
 
-#### 6.6 Download Slides
+#### 6.6 Download Slide PDF
 
-The `studio_status` response includes slide URLs when generation is complete.
-The NLM slides are viewable in the NotebookLM web interface.
+After `studio_status` confirms generation is complete, download the slide deck
+as a PDF using the `download_artifact` MCP tool:
 
-To download the slide PDF, check the `studio_status` response for download URLs.
-If no direct download is available, the slides can be exported from the
-NotebookLM web UI or shared via link.
+```
+download_artifact(
+  notebook_id=<notebook_id>,
+  artifact_type="slide_deck",
+  output_path="<WORKSPACE_ABSOLUTE_PATH>/outputs/presentations/{paper-id}-nlm-slides-{DATE}.pdf"
+)
+```
 
-Note: The slide deck is shared to the Slack channel as a NotebookLM link or
-as a downloaded PDF if the MCP server supports download. If download is not
-available, share the notebook link instead in the Slack message.
+**Critical**: Use the full absolute path. Verify the file was saved:
+
+```bash
+ls -la outputs/presentations/{paper-id}-nlm-slides-{DATE}.pdf
+```
+
+The downloaded PDF is uploaded to Slack in Phase 8. Do NOT share a notebook
+link — always upload the PDF file directly.
 
 ---
 

@@ -1,12 +1,16 @@
 ---
 name: kwp-finance-journal-entry-prep
-description: Prepare journal entries with proper debits, credits, and supporting documentation for month-end close. Use when booking accruals, prepaid amortization, fixed asset depreciation, payroll entries,
-  revenue recognition, or any manual journal entry. Do NOT use for tasks outside the finance domain.
+description: >-
+  Prepare journal entries with proper debits, credits, and supporting
+  documentation for month-end close. Use when booking accruals, prepaid
+  amortization, fixed asset depreciation, payroll entries, revenue recognition,
+  or any manual journal entry. Do NOT use for tasks outside the finance domain.
+  Korean triggers: "수정", "문서".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Journal Entry Preparation
 
 **Important**: This skill assists with journal entry workflows but does not provide financial advice. All entries should be reviewed by qualified financial professionals before posting.
@@ -187,3 +191,30 @@ Before approving a journal entry, the reviewer should verify:
 10. **Missing intercompany elimination:** Entries between entities without corresponding elimination
 11. **Capitalization errors:** Expenses that should be capitalized, or capitalized items that should be expensed
 12. **Cut-off errors:** Transactions recorded in the wrong period based on delivery or service date
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Booking accruals"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -1,11 +1,14 @@
 ---
 name: kwp-slack-slack-search
-description: Guidance for effectively searching Slack to find messages, files, channels, and people. Do NOT use for tasks outside the slack domain.
+description: >-
+  Guidance for effectively searching Slack to find messages, files, channels,
+  and people. Do NOT use for tasks outside the slack domain. Korean triggers:
+  "슬랙 검색", "메시지 찾기".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Slack Search
 
 This skill provides guidance for effectively searching Slack to find messages, files, and information.
@@ -94,3 +97,30 @@ After finding relevant messages:
 - **Parentheses don't work.** Don't try to group search terms with `()`.
 - **Search is not real-time.** Very recent messages (last few seconds) may not appear in search results. Use `slack_read_channel` for the most recent messages.
 - **Private channel access.** Use `slack_search_public_and_private` when you need to include private channels, but note this requires user consent.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with slack slack search"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

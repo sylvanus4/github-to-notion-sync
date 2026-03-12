@@ -38,10 +38,10 @@ export function FeedbackForm() {
         throw new Error('Failed to submit feedback');
       }
     } catch (error) {
-      toast({ 
-        title: 'Error', 
+      toast({
+        title: 'Error',
         description: 'Failed to submit feedback. Please try again.',
-        variant: 'destructive' 
+        variant: 'destructive'
       });
     }
   }
@@ -86,8 +86,8 @@ export function FeedbackForm() {
         </select>
       </div>
 
-      <Button 
-        type="submit" 
+      <Button
+        type="submit"
         disabled={form.formState.isSubmitting}
         className="w-full"
       >

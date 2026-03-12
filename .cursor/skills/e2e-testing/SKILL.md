@@ -1,11 +1,16 @@
 ---
 name: e2e-testing
-description: Write, run, and debug Playwright E2E tests for the frontend application. Use when the user asks to create E2E tests, run E2E tests, debug test failures, or automate browser-based testing scenarios. Do NOT use for test strategy planning, coverage analysis, or unit test generation (use qa-test-expert).
+description: >-
+  Write, run, and debug Playwright E2E tests for the frontend application. Use
+  when the user asks to create E2E tests, run E2E tests, debug test failures, or
+  automate browser-based testing scenarios. Do NOT use for test strategy
+  planning, coverage analysis, or unit test generation (use qa-test-expert).
+  Korean triggers: "테스트", "생성", "계획", "디버깅".
 metadata:
   version: "1.0.0"
-  category: execution
+  category: "execution"
+  author: "thaki"
 ---
-
 # E2E Testing Skill
 
 Playwright 기반 E2E 테스트 작성, 실행, 디버깅 가이드.
@@ -207,3 +212,18 @@ npx playwright codegen http://localhost:5173
 
 - 기존 테스트 파일별 상세 패턴: [references/reference.md](references/reference.md)
 - Playwright 공식 문서: https://playwright.dev/docs/intro
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "e2e testing" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

@@ -4,18 +4,18 @@ description: >-
   Auto-generate interactive product demos from recent code changes. Reads git
   diff, classifies user-facing features, captures browser screenshots of
   before/after states, and produces a shareable HTML demo page with animations
-  and annotations — or a video script with timestamps and talking points.
-  Use when the user asks to "create demo", "demo forge", "generate demo",
-  "product demo", "showcase changes", "데모 생성", "변경사항 데모",
-  "stakeholder demo", "show what changed", or wants to present code changes
-  to non-technical stakeholders.
-  Do NOT use for static architecture diagrams (use visual-explainer), text-only
-  release notes (use pr-review-captain), or video transcription (use transcribee).
+  and annotations — or a video script with timestamps and talking points. Use
+  when the user asks to "create demo", "demo forge", "generate demo", "product
+  demo", "showcase changes", "데모 생성", "변경사항 데모", "stakeholder demo", "show what
+  changed", or wants to present code changes to non-technical stakeholders. Do
+  NOT use for static architecture diagrams (use visual-explainer), text-only
+  release notes (use pr-review-captain), or video transcription (use
+  transcribee).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Demo Forge — Auto-Generate Product Demos from Code Changes
 
 Bridge the gap between "developer changelog" and "stakeholder demo". Turns git diffs into visual, interactive demo pages that non-technical stakeholders can understand.

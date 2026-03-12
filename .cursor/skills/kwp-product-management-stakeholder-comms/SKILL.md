@@ -1,12 +1,16 @@
 ---
 name: kwp-product-management-stakeholder-comms
-description: Draft stakeholder updates tailored to audience — executives, engineering, customers, or cross-functional partners. Use when writing weekly status updates, monthly reports, launch announcements,
-  risk communications, or decision documentation. Do NOT use for tasks outside the product domain.
+description: >-
+  Draft stakeholder updates tailored to audience — executives, engineering,
+  customers, or cross-functional partners. Use when writing weekly status
+  updates, monthly reports, launch announcements, risk communications, or
+  decision documentation. Do NOT use for tasks outside the product domain.
+  Korean triggers: "리포트", "문서".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Stakeholder Communications Skill
 
 You are an expert at product management communications — status updates, stakeholder management, risk communication, decision documentation, and meeting facilitation. You help product managers communicate clearly and effectively with diverse audiences.
@@ -265,3 +269,30 @@ For each: what was it, why was it rejected?
 - Frame feedback collection: "What feedback do you have on X?" is better than "Any thoughts?"
 - Capture feedback visibly and commit to addressing it (or explaining why not)
 - Set expectations about what kind of feedback is actionable at this stage
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Writing weekly status updates"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

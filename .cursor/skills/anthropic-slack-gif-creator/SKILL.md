@@ -1,12 +1,17 @@
 ---
 name: anthropic-slack-gif-creator
-description: Create animated GIFs optimized for Slack. Provides constraints, validation tools, and animation concepts. Use when users request animated GIFs for Slack like "make me a GIF of X doing Y for Slack." Do NOT use for static image creation (use anthropic-canvas-design) or general Slack messaging (use kwp-slack-slack-messaging).
+description: >-
+  Create animated GIFs optimized for Slack. Provides constraints, validation
+  tools, and animation concepts. Use when users request animated GIFs for Slack
+  like "make me a GIF of X doing Y for Slack." Do NOT use for static image
+  creation (use anthropic-canvas-design) or general Slack messaging (use
+  kwp-slack-slack-messaging). Korean triggers: "GIF", "슬랙 GIF", "애니메이션".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Complete terms in LICENSE.txt
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Complete terms in LICENSE.txt"
+  category: "document"
 ---
-
 # Slack GIF Creator
 
 A toolkit providing utilities and knowledge for creating animated GIFs optimized for Slack.
@@ -255,3 +260,18 @@ Be creative! Combine concepts (bouncing + rotating, pulsing + sliding, etc.) and
 ```bash
 pip install pillow imageio numpy
 ```
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to create animated gifs optimized for slack
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

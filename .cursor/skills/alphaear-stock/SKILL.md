@@ -1,12 +1,17 @@
 ---
 name: alphaear-stock
-description: Search A-Share/HK/US stock tickers and retrieve OHLCV price history. Use when the user asks about stock codes, recent price changes, specific company stock info, or ad-hoc historical price queries. Do NOT use for routine weekly price updates (use weekly-stock-update). Do NOT use for CSV downloads from investing.com (use stock-csv-downloader). Do NOT use for technical indicator analysis (use daily-stock-check).
+description: >-
+  Search A-Share/HK/US stock tickers and retrieve OHLCV price history. Use when
+  the user asks about stock codes, recent price changes, specific company stock
+  info, or ad-hoc historical price queries. Do NOT use for routine weekly price
+  updates (use weekly-stock-update). Do NOT use for CSV downloads from
+  investing.com (use stock-csv-downloader). Do NOT use for technical indicator
+  analysis (use daily-stock-check). Korean triggers: "주식", "체크", "검색".
 metadata:
   version: "1.0.0"
-  category: data-collection
-  author: alphaear
+  category: "data-collection"
+  author: "alphaear"
 ---
-
 # AlphaEar Stock
 
 ## Overview

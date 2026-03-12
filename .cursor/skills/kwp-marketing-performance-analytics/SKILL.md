@@ -1,12 +1,16 @@
 ---
 name: kwp-marketing-performance-analytics
-description: Analyze marketing performance with key metrics, trend analysis, and optimization recommendations. Use when building performance reports, reviewing campaign results, analyzing channel metrics
-  (email, social, paid, SEO), or identifying what's working and what needs improvement. Do NOT use for tasks outside the marketing domain.
+description: >-
+  Analyze marketing performance with key metrics, trend analysis, and
+  optimization recommendations. Use when building performance reports, reviewing
+  campaign results, analyzing channel metrics (email, social, paid, SEO), or
+  identifying what's working and what needs improvement. Do NOT use for tasks
+  outside the marketing domain. Korean triggers: "성능", "리뷰", "빌드", "분석".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Performance Analytics Skill
 
 Frameworks for measuring, reporting, and optimizing marketing performance across channels and campaigns.
@@ -257,3 +261,30 @@ Priority order:
 - **Bi-weekly**: refresh ad creative and test new variants
 - **Monthly**: full performance review, identify new optimization opportunities, update forecasts
 - **Quarterly**: strategic review of channel mix, budget allocation, and targeting strategy
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Building performance reports"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

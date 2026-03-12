@@ -1,12 +1,16 @@
 ---
 name: kwp-operations-resource-planning
-description: Plan and optimize resource allocation. Trigger with "resource planning", "capacity", "utilization", "staffing plan", "who should work on what", "we're stretched thin", or when the user needs
-  help allocating people, budget, or time across projects and teams. Do NOT use for tasks outside the operations domain.
+description: >-
+  Plan and optimize resource allocation. Trigger with "resource planning",
+  "capacity", "utilization", "staffing plan", "who should work on what", "we're
+  stretched thin", or when the user needs help allocating people, budget, or
+  time across projects and teams. Do NOT use for tasks outside the operations
+  domain. Korean triggers: "최적화", "계획".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Resource Planning
 
 Help plan and optimize resource allocation across projects and teams.
@@ -49,3 +53,30 @@ Help plan and optimize resource allocation across projects and teams.
 ## Output
 
 Produce allocation plans, utilization dashboards, scenario analyses (what if we hire / don't hire / deprioritize), and staffing recommendations.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with operations resource planning"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

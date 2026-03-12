@@ -1,21 +1,15 @@
 ---
 name: today
 description: >-
-  Run the daily data sync, fundamental data collection, hot stock discovery,
-  multi-factor screening, multi-indicator analysis, and report pipeline — check
-  DB vs CSV freshness gaps, backfill missing data from Yahoo Finance, collect
-  financial statements from yfinance (P/E, FCF, ROE, balance sheet), discover
-  the hottest untracked stocks from NASDAQ 100/KOSPI 100/KOSDAQ 100, run
-  institutional-grade screening (P/E, RSI, volume spikes, MA crossovers,
-  earnings proximity, FCF yield, AI sentiment), run Turtle/Bollinger/Oscillator
-  analysis (SMA 20/55/200, MA alignment, golden/death cross, RSI, MACD,
-  Stochastic, ADX), optionally fetch market news context (alphaear-news) and
-  sentiment scores (alphaear-sentiment), generate a Korean expert .docx report
-  with per-stock buy/sell recommendations including fundamental metrics and
-  screener results (via anthropic-docx), and optionally post a summary to Slack
-  #h-report.
-  Use when the user asks to run a daily pipeline, sync stock data, check data
-  freshness, discover hot stocks, screen stocks, or generate a daily report.
+  Run the daily data sync, fundamental collection, hot stock discovery,
+  multi-factor screening, Turtle/Bollinger/Oscillator analysis, and Korean .docx
+  report pipeline — check DB vs CSV freshness, backfill from Yahoo Finance,
+  discover hot stocks from NASDAQ/KOSPI/KOSDAQ 100, screen (P/E, RSI, volume,
+  MA crossovers, FCF yield), run SMA 20/55/200 + RSI/MACD/Stochastic/ADX,
+  optionally fetch news (alphaear-news) and sentiment (alphaear-sentiment),
+  generate buy/sell report via anthropic-docx, post to Slack #h-report.
+  Use when the user asks to run a daily pipeline, sync stock data, discover hot
+  stocks, screen stocks, or generate a daily report.
   Do NOT use for weekly price updates only (use weekly-stock-update). Do NOT use
   for stock analysis without data sync (use daily-stock-check). Do NOT use for
   CSV downloads from investing.com (use stock-csv-downloader).

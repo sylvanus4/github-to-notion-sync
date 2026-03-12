@@ -1,12 +1,16 @@
 ---
 name: kwp-data-data-validation
-description: QA an analysis before sharing with stakeholders — methodology checks, accuracy verification, and bias detection. Use when reviewing an analysis for errors, checking for survivorship bias, validating
-  aggregation logic, or preparing documentation for reproducibility. Do NOT use for tasks outside the data domain.
+description: >-
+  QA an analysis before sharing with stakeholders — methodology checks,
+  accuracy verification, and bias detection. Use when reviewing an analysis for
+  errors, checking for survivorship bias, validating aggregation logic, or
+  preparing documentation for reproducibility. Do NOT use for tasks outside the
+  data domain. Korean triggers: "데이터", "리뷰", "체크", "출시".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Data Validation Skill
 
 Pre-delivery QA checklist, common data analysis pitfalls, result sanity checking, and documentation standards for reproducibility.
@@ -235,3 +239,30 @@ Output:
 - Note the date of the data snapshot used
 - If an analysis is re-run with updated data, document what changed and why
 - Link to prior versions of recurring analyses for trend comparison
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Reviewing an analysis for errors"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

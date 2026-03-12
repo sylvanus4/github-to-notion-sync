@@ -1,12 +1,16 @@
 ---
 name: kwp-finance-reconciliation
-description: Reconcile accounts by comparing GL balances to subledgers, bank statements, or third-party data. Use when performing bank reconciliations, GL-to-subledger recs, intercompany reconciliations,
-  or identifying and categorizing reconciling items. Do NOT use for tasks outside the finance domain.
+description: >-
+  Reconcile accounts by comparing GL balances to subledgers, bank statements,
+  or third-party data. Use when performing bank reconciliations, GL-to-subledger
+  recs, intercompany reconciliations, or identifying and categorizing
+  reconciling items. Do NOT use for tasks outside the finance domain. Korean
+  triggers: "데이터".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Reconciliation
 
 **Important**: This skill assists with reconciliation workflows but does not provide financial advice. All reconciliations should be reviewed by qualified financial professionals before sign-off.
@@ -176,3 +180,30 @@ Define escalation triggers based on your organization's risk tolerance:
 6. **Root cause analysis:** For recurring reconciling items, investigate and fix the underlying process issue
 7. **Standardization:** Use consistent templates and procedures across all accounts
 8. **Retention:** Maintain reconciliations and supporting detail per your organization's document retention policy
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Performing bank reconciliations"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -1,12 +1,16 @@
 ---
 name: kwp-finance-audit-support
-description: Support SOX 404 compliance with control testing methodology, sample selection, and documentation standards. Use when generating testing workpapers, selecting audit samples, classifying control
-  deficiencies, or preparing for internal or external audits. Do NOT use for tasks outside the finance domain.
+description: >-
+  Support SOX 404 compliance with control testing methodology, sample
+  selection, and documentation standards. Use when generating testing
+  workpapers, selecting audit samples, classifying control deficiencies, or
+  preparing for internal or external audits. Do NOT use for tasks outside the
+  finance domain. Korean triggers: "감사", "테스트", "문서", "논문".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Audit Support
 
 **Important**: This skill assists with SOX compliance workflows but does not provide audit or legal advice. All testing workpapers and assessments should be reviewed by qualified financial professionals. While "significance" and "materiality" are context-specific concepts that are ultimately assessed by auditors, this skill is intended to assist professionals in the creation and evaluation of effective internal controls and documentation for audits.
@@ -375,3 +379,30 @@ Broad controls that operate at the organizational level and affect multiple proc
 - Entity-level controls can mitigate but typically cannot replace process-level controls
 - Ineffective entity-level controls (especially audit committee oversight and tone at the top) are strong indicators of a material weakness
 - Effective entity-level controls may reduce the extent of testing needed for process-level controls
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Generating testing workpapers"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

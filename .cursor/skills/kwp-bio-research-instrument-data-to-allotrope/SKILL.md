@@ -1,14 +1,20 @@
 ---
 name: kwp-bio-research-instrument-data-to-allotrope
-description: Convert laboratory instrument output files (PDF, CSV, Excel, TXT) to Allotrope Simple Model (ASM) JSON format or flattened 2D CSV. Use this skill when scientists need to standardize instrument
-  data for LIMS systems, data lakes, or downstream analysis. Supports auto-detection of instrument types. Outputs include full ASM JSON, flattened CSV for easy import, and exportable Python code for data
-  engineers. Common triggers include converting instrument files, standardizing lab data, preparing data for upload to LIMS/ELN systems, or generating parser code for production pipelines. Do NOT use for
-  tasks outside the bio domain.
+description: >-
+  Convert laboratory instrument output files (PDF, CSV, Excel, TXT) to
+  Allotrope Simple Model (ASM) JSON format or flattened 2D CSV. Use this skill
+  when scientists need to standardize instrument data for LIMS systems, data
+  lakes, or downstream analysis. Supports auto-detection of instrument types.
+  Outputs include full ASM JSON, flattened CSV for easy import, and exportable
+  Python code for data engineers. Common triggers include converting instrument
+  files, standardizing lab data, preparing data for upload to LIMS/ELN systems,
+  or generating parser code for production pipelines. Do NOT use for tasks
+  outside the bio domain. Korean triggers: "리서치", "데이터", "파이프라인", "스킬".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Instrument Data to Allotrope Converter
 
 Convert instrument files into standardized Allotrope Simple Model (ASM) format for LIMS upload, data lakes, or handoff to data engineering teams.
@@ -284,3 +290,30 @@ Validate output against Allotrope schemas when available:
 import jsonschema
 # Schema URLs in references/asm_schema_overview.md
 ```
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with bio research instrument data to allotrope"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

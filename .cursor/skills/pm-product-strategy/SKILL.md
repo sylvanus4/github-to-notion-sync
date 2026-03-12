@@ -2,21 +2,21 @@
 name: pm-product-strategy
 description: >-
   Orchestrate product strategy workflows: vision, strategy canvas, value
-  propositions, Lean Canvas, Business Model Canvas, SWOT, PESTLE, Ansoff
-  Matrix, Porter's Five Forces, and monetization/pricing strategy. Based on
+  propositions, Lean Canvas, Business Model Canvas, SWOT, PESTLE, Ansoff Matrix,
+  Porter's Five Forces, and monetization/pricing strategy. Based on
   phuryn/pm-skills frameworks. Use when the user asks for "product strategy",
-  "product vision", "business model", "lean canvas", "SWOT analysis",
-  "PESTLE", "Porter's Five Forces", "pricing strategy", "monetization",
-  "value proposition", "Ansoff matrix", or "startup canvas". Do NOT use for
-  product discovery/ideation (use pm-product-discovery), competitive
-  analysis only (use kwp-product-management-competitive-analysis), or
-  execution/PRD (use pm-execution).
+  "product vision", "business model", "lean canvas", "SWOT analysis", "PESTLE",
+  "Porter's Five Forces", "pricing strategy", "monetization", "value
+  proposition", "Ansoff matrix", or "startup canvas". Do NOT use for product
+  discovery/ideation (use pm-product-discovery), competitive analysis only (use
+  kwp-product-management-competitive-analysis), or execution/PRD (use
+  pm-execution). Korean triggers: "워크플로우", "스킬", "모델".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/phuryn/pm-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/phuryn/pm-skills"
+  category: "product"
 ---
-
 # PM Product Strategy
 
 Orchestrate product strategy workflows using phuryn/pm-skills frameworks — vision, strategy canvas, value propositions, Lean/Business Model/Startup Canvas, SWOT, PESTLE, Ansoff, Porter's Five Forces, monetization, and pricing.

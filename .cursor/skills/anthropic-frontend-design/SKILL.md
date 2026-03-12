@@ -1,12 +1,18 @@
 ---
 name: anthropic-frontend-design
-description: "Create distinctive, production-grade frontend interfaces with high design quality. Use when building web components, pages, dashboards, React components, HTML/CSS layouts, websites, landing pages, or styling/beautifying web UI. Generates creative, polished code that avoids generic AI aesthetics. Do NOT use for frontend code review (use frontend-expert) or UX audits (use ux-expert)."
+description: >-
+  Create distinctive, production-grade frontend interfaces with high design
+  quality. Use when building web components, pages, dashboards, React
+  components, HTML/CSS layouts, websites, landing pages, or styling/beautifying
+  web UI. Generates creative, polished code that avoids generic AI aesthetics.
+  Do NOT use for frontend code review (use frontend-expert) or UX audits (use
+  ux-expert). Korean triggers: "프론트엔드 디자인", "UI 구현", "웹 디자인".
 metadata:
-  author: anthropic
-  version: 1.0.0
+  author: "anthropic"
+  version: "1.0.0"
   license: "See LICENSE.txt in skill directory"
+  category: "document"
 ---
-
 This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
 
 The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
@@ -43,3 +49,18 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 **IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to create distinctive, production-grade frontend interfaces with high design quality
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

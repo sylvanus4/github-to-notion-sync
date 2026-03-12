@@ -2,21 +2,14 @@
 name: nlm-slides
 description: >-
   End-to-end pipeline that transforms a local markdown document into professional
-  NotebookLM slide decks. Splits sections, rewrites each into expert-level English
-  and Korean, uploads to NotebookLM, generates slide decks, and downloads PDFs.
+  NotebookLM slide decks. Splits sections, rewrites each into expert-level EN + KO,
+  uploads to NotebookLM, generates slide decks, and downloads PDFs.
   Use when the user asks to "create NLM slides", "NLM 슬라이드", "슬라이드 만들어",
-  "슬라이드 생성", "슬라이드로 만들어줘", "발표 자료 만들어", "프레젠테이션 생성",
-  "발표자료 생성해줘", "마크다운으로 슬라이드", "문서로 슬라이드",
-  "문서를 프레젠테이션으로", "이 문서로 발표자료", "NLM presentation",
-  "generate slides from doc", "make slide deck from markdown",
-  "slides from local doc", "expert slide deck", "NotebookLM slide deck",
-  "convert document to slides", "turn this into a presentation",
-  "영어 한국어 슬라이드", "nlm-slides", "/nlm-slides",
-  or any request to convert a local document into NotebookLM slide decks.
-  Do NOT use for ad-hoc studio_create calls on existing notebooks -- use
-  notebooklm-studio. Do NOT use for video generation from local docs -- use
-  nlm-video. Do NOT use for PowerPoint creation without NotebookLM -- use
-  anthropic-pptx. Do NOT use for notebook management or source CRUD -- use
+  "generate slides from doc", "convert document to slides", or convert a local
+  document into NotebookLM slide decks.
+  Do NOT use for ad-hoc studio_create on existing notebooks -- use notebooklm-studio.
+  Do NOT use for video from local docs -- use nlm-video. Do NOT use for PowerPoint
+  without NotebookLM -- use anthropic-pptx. Do NOT use for notebook CRUD -- use
   notebooklm.
 metadata:
   author: thaki

@@ -1,13 +1,20 @@
 ---
 name: kwp-brand-voice-discover-brand
-description: This skill orchestrates autonomous discovery of brand materials across enterprise platforms (Notion, Confluence, Google Drive, Box, SharePoint, Figma, Gong, Granola, Slack). It should be used
-  when the user asks to "discover brand materials", "find brand documents", "search for brand guidelines", "audit brand content", "what brand materials do we have", "find our style guide", "where are our
-  brand docs", "do we have a style guide", "discover brand voice", "brand content audit", or "find brand assets". Do NOT use for tasks outside the brand-voice domain.
+description: >-
+  This skill orchestrates autonomous discovery of brand materials across
+  enterprise platforms (Notion, Confluence, Google Drive, Box, SharePoint,
+  Figma, Gong, Granola, Slack). It should be used when the user asks to
+  "discover brand materials", "find brand documents", "search for brand
+  guidelines", "audit brand content", "what brand materials do we have", "find
+  our style guide", "where are our brand docs", "do we have a style guide",
+  "discover brand voice", "brand content audit", or "find brand assets". Do NOT
+  use for tasks outside the brand-voice domain. Korean triggers: "감사", "검색",
+  "문서", "스킬".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Brand Discovery
 
 Orchestrate autonomous discovery of brand materials across enterprise platforms. This skill coordinates the discover-brand agent to search connected platforms (Notion, Confluence, Google Drive, Box, Microsoft 365, Figma, Gong, Granola, Slack), triage sources, and produce a structured discovery report with open questions.
@@ -123,3 +130,23 @@ For detailed discovery patterns and algorithms, consult:
 
 - **`references/search-strategies.md`** — Platform-specific search queries, query patterns by platform, and tips for maximizing discovery coverage
 - **`references/source-ranking.md`** — Source category definitions, ranking algorithm weights, and triage decision criteria
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with brand voice discover brand"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps

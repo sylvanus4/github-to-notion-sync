@@ -3,14 +3,15 @@ name: transcribee
 description: >-
   Transcribe YouTube, Instagram Reels, TikTok, and local audio/video files with
   speaker diarization, then auto-categorize into a self-organizing knowledge
-  library. Use when the user asks to transcribe a video URL, podcast, audio file,
-  or build a transcript library. Do NOT use for live audio capture, real-time
-  streaming, or text-to-speech generation.
+  library. Use when the user asks to transcribe a video URL, podcast, audio
+  file, or build a transcript library. Do NOT use for live audio capture,
+  real-time streaming, or text-to-speech generation. Korean triggers: "빌드",
+  "비디오", "트랜스크립션".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Transcribee
 
 Transcribe video/audio content with speaker diarization (ElevenLabs) and auto-categorize transcripts into a self-organizing knowledge library (Claude).

@@ -3,18 +3,17 @@ name: plans
 description: >-
   Two-phase pipeline: optimize a raw prompt using prompt-architect frameworks,
   then decompose the optimized prompt into a skill-based execution plan with
-  task delegation, dependency ordering, and verification criteria.
-  Use when the user runs /plans, asks to "plan and optimize", "architect and plan",
-  "optimize then plan", "프롬프트 최적화 후 계획", "플랜 작성", or wants both
-  prompt optimization and execution planning in one flow.
-  Do NOT use for prompt optimization only (use prompt-architect),
-  execution only without optimization (use mission-control),
+  task delegation, dependency ordering, and verification criteria. Use when the
+  user runs /plans, asks to "plan and optimize", "architect and plan", "optimize
+  then plan", "프롬프트 최적화 후 계획", "플랜 작성", or wants both prompt optimization and
+  execution planning in one flow. Do NOT use for prompt optimization only (use
+  prompt-architect), execution only without optimization (use mission-control),
   or simple implementation planning (use /plan command).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Plans — Optimize Prompt, Then Plan Execution
 
 A meta-orchestrator that combines prompt-architect (framework-based prompt design) with mission-control-style skill planning. Takes a raw prompt, structures it using the best framework, then decomposes it into a skill-based execution plan.

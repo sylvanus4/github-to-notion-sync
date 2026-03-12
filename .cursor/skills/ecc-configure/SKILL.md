@@ -6,10 +6,13 @@ description: >-
   and optimizing installed files. Use when setting up ECC skills for a new
   project or auditing existing ECC configuration. Do NOT use for general skill
   creation (use anthropic-skill-creator). Do NOT use for Cursor settings (use
-  update-cursor-settings).
+  update-cursor-settings). Korean triggers: "ECC 설정", "ECC 구성".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 ---
-
 # Configure Everything Claude Code (ECC)
 
 An interactive, step-by-step installation wizard for the Everything Claude Code project. Uses `AskUserQuestion` to guide users through selective installation of skills and rules, then verifies correctness and offers optimization.
@@ -330,3 +333,14 @@ Then print a summary report:
 ### "Path reference errors after project-level install"
 - Some skills assume `~/.claude/` paths. Run Step 4 verification to find and fix these.
 - For `continuous-learning-v2`, the `~/.claude/homunculus/` directory is always user-level — this is expected and not an error.
+
+## Examples
+
+### Example 1: Applying the pattern
+
+**User says:** "Setting up ECC skills for a new project or auditing existing ECC configuration"
+
+**Actions:**
+1. Read and understand the current project context
+2. Apply the configure methodology as described in this skill
+3. Report findings and recommendations

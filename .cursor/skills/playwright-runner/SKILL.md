@@ -1,12 +1,22 @@
 ---
 name: playwright-runner
-description: "Run ad-hoc Playwright browser automation scripts with a universal Node.js executor. Detects local dev servers, writes scripts to /tmp, and provides helper utilities for common browser tasks (screenshots, form filling, responsive testing, link validation, login flows). Use when running quick browser tests, ad-hoc page automation, taking screenshots, testing responsive design, checking broken links, or automating form interactions. Do NOT use for project E2E test suites (use e2e-testing). Do NOT use for Python-based browser testing (use anthropic-webapp-testing). Do NOT use for CLI-based browser automation (use agent-browser)."
+description: >-
+  Run ad-hoc Playwright browser automation scripts with a universal Node.js
+  executor. Detects local dev servers, writes scripts to /tmp, and provides
+  helper utilities for common browser tasks (screenshots, form filling,
+  responsive testing, link validation, login flows). Use when running quick
+  browser tests, ad-hoc page automation, taking screenshots, testing responsive
+  design, checking broken links, or automating form interactions. Do NOT use for
+  project E2E test suites (use e2e-testing). Do NOT use for Python-based browser
+  testing (use anthropic-webapp-testing). Do NOT use for CLI-based browser
+  automation (use agent-browser). Korean triggers: "테스트", "설계", "체크", "자동화".
 metadata:
   upstream: "https://github.com/lackeyjb/playwright-skill"
-  version: 4.1.0
-  license: MIT
+  version: "4.1.0"
+  license: "MIT"
+  category: "execution"
+  author: "thaki"
 ---
-
 # Playwright Runner — Ad-hoc Browser Automation
 
 General-purpose browser automation via a universal Node.js executor. Write custom Playwright scripts, execute them from the skill directory, and get results in real-time with a visible browser window.
@@ -278,3 +288,18 @@ PW_EXTRA_HEADERS='{"Authorization":"Bearer tok","X-Custom":"val"}' node run.js /
 ## Detailed Reference
 
 For full Playwright API reference (selectors, assertions, network interception, mobile emulation, debugging), see [references/api-reference.md](references/api-reference.md).
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "playwright runner" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

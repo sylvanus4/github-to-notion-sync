@@ -1,11 +1,19 @@
 ---
 name: prompt-transformer
-description: Transform rough or casual prompts into professional-grade prompts with proper structure, clarity, and enforcement. Use when the user asks to transform a prompt, improve a prompt, rewrite a prompt, upgrade a prompt, refine a prompt, make a prompt professional, or convert a prompt to expert quality. Supports system prompts, Cursor rules (.mdc), SKILL.md files, task instructions, and generic prompts. Do NOT use for creating new skills from scratch (use skill-creator) or writing documentation (use technical-writer).
+description: >-
+  Transform rough or casual prompts into professional-grade prompts with proper
+  structure, clarity, and enforcement. Use when the user asks to transform a
+  prompt, improve a prompt, rewrite a prompt, upgrade a prompt, refine a prompt,
+  make a prompt professional, or convert a prompt to expert quality. Supports
+  system prompts, Cursor rules (.mdc), SKILL.md files, task instructions, and
+  generic prompts. Do NOT use for creating new skills from scratch (use
+  skill-creator) or writing documentation (use technical-writer). Korean
+  triggers: "프롬프트", "문서", "스킬".
 metadata:
   version: "1.0.0"
-  category: generation
+  category: "generation"
+  author: "thaki"
 ---
-
 # Prompt Transformer
 
 Transform any rough prompt into a professional, unambiguous, and well-structured prompt.

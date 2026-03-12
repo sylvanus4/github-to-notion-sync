@@ -6,10 +6,13 @@ description: >-
   Includes a decision guide for when to compact and what survives. Use when
   running long sessions, switching task phases, or approaching context limits.
   Do NOT use for short single-task sessions. Do NOT use for memory persistence
-  (use recall or context-engineer).
+  (use recall or context-engineer). Korean triggers: "컨텍스트 압축", "컴팩션".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 ---
-
 # Strategic Compact Skill
 
 Suggests manual `/compact` at strategic points in your workflow rather than relying on arbitrary auto-compaction.
@@ -107,3 +110,21 @@ Understanding what persists helps you compact with confidence:
 - [The Longform Guide](https://x.com/affaanmustafa/status/2014040193557471352) — Token optimization section
 - Memory persistence hooks — For state that survives compaction
 - `continuous-learning` skill — Extracts patterns before session ends
+
+## Examples
+
+### Example 1: Applying the pattern
+
+**User says:** "Running long sessions"
+
+**Actions:**
+1. Read and understand the current project context
+2. Apply the strategic compact methodology as described in this skill
+3. Report findings and recommendations
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

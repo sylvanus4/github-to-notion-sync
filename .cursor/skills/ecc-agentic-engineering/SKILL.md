@@ -2,14 +2,17 @@
 name: ecc-agentic-engineering
 description: >-
   Operate as an agentic engineer using eval-first execution, 15-minute task
-  decomposition, and cost-aware model routing (Haiku for boilerplate, Sonnet
-  for implementation, Opus for architecture). Use when planning agent-delegated
+  decomposition, and cost-aware model routing (Haiku for boilerplate, Sonnet for
+  implementation, Opus for architecture). Use when planning agent-delegated
   work, choosing model tiers, or reviewing AI-generated code. Do NOT use for
   manual coding tasks. Do NOT use for workflow orchestration (use
-  mission-control).
+  mission-control). Korean triggers: "에이전트 엔지니어링", "모델 라우팅".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 ---
-
 # Agentic Engineering
 
 Use this skill for engineering workflows where AI agents perform most implementation work and humans enforce quality and risk controls.
@@ -67,3 +70,21 @@ Track per task:
 - success/failure
 
 Escalate model tier only when lower tier fails with a clear reasoning gap.
+
+## Examples
+
+### Example 1: Applying the pattern
+
+**User says:** "Planning agent-delegated work"
+
+**Actions:**
+1. Read and understand the current project context
+2. Apply the agentic engineering methodology as described in this skill
+3. Report findings and recommendations
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

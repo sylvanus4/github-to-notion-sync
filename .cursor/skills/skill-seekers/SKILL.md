@@ -1,12 +1,20 @@
 ---
 name: skill-seekers
-description: "Convert documentation sites, GitHub repos, PDFs, and videos into structured Cursor skill files with conflict detection. Use when converting external docs/repos into skills, scraping documentation for skill creation, building skills from existing sources, or detecting conflicts with installed skills. Do NOT use for creating skills from scratch (use anthropic-skill-creator or create-skill). Do NOT use for discovering pre-built skills from a registry (use find-skills)."
+description: >-
+  Convert documentation sites, GitHub repos, PDFs, and videos into structured
+  Cursor skill files with conflict detection. Use when converting external
+  docs/repos into skills, scraping documentation for skill creation, building
+  skills from existing sources, or detecting conflicts with installed skills. Do
+  NOT use for creating skills from scratch (use anthropic-skill-creator or
+  create-skill). Do NOT use for discovering pre-built skills from a registry
+  (use find-skills). Korean triggers: "스킬", "빌드", "생성", "비디오".
 metadata:
   upstream: "https://github.com/yusufkaraaslan/Skill_Seekers"
-  version: 3.2.0
-  license: MIT
+  version: "3.2.0"
+  license: "MIT"
+  category: "execution"
+  author: "thaki"
 ---
-
 # Skill Seekers — Documentation-to-Skill Converter
 
 Convert any documentation source into a structured Cursor skill file. Supports doc sites (with llms.txt), GitHub repos, PDFs, videos, and local directories.
@@ -191,3 +199,18 @@ Common presets: `security-focus`, `architecture-comprehensive`, `api-deep-dive`.
 For full CLI reference, see [references/cli-commands.md](references/cli-commands.md).
 For MCP server setup details, see [references/mcp-setup.md](references/mcp-setup.md).
 For config preset details, see [references/presets.md](references/presets.md).
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "skill seekers" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

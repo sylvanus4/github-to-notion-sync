@@ -1,12 +1,17 @@
 ---
 name: kwp-sales-competitive-intelligence
-description: Research your competitors and build an interactive battlecard. Outputs an HTML artifact with clickable competitor cards and a comparison matrix. Trigger with "competitive intel", "research
-  competitors", "how do we compare to [competitor]", "battlecard for [competitor]", or "what's new with [competitor]". Do NOT use for tasks outside the sales domain.
+description: >-
+  Research your competitors and build an interactive battlecard. Outputs an
+  HTML artifact with clickable competitor cards and a comparison matrix. Trigger
+  with "competitive intel", "research competitors", "how do we compare to
+  [competitor]", "battlecard for [competitor]", or "what's new with
+  [competitor]". Do NOT use for tasks outside the sales domain. Korean triggers:
+  "빌드", "검색", "리서치".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Competitive Intelligence
 
 Research your competitors extensively and generate an **interactive HTML battlecard** you can use in deals. The output is a self-contained artifact with clickable competitor tabs and an overall comparison matrix.
@@ -403,3 +408,30 @@ Competitive intel gets stale. Recommended refresh:
 - **account-research** — Research a specific prospect before reaching out
 - **call-prep** — Prep for a call where you know competitor is involved
 - **create-an-asset** — Build a custom comparison page for a specific deal
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with sales competitive intelligence"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

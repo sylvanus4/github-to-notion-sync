@@ -15,13 +15,13 @@ scrape_configs:
       - targets: ['localhost:9100']  # Node Exporter
     scrape_interval: 30s
     metrics_path: /metrics
-    
+
   # Application monitoring
   - job_name: 'application'
     static_configs:
       - targets: ['app:8080']
     scrape_interval: 15s
-    
+
   # Database monitoring
   - job_name: 'database'
     static_configs:
@@ -47,7 +47,7 @@ groups:
         annotations:
           summary: "High CPU usage detected"
           description: "CPU usage is above 80% for 5 minutes on {{ $labels.instance }}"
-          
+
       - alert: HighMemoryUsage
         expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
         for: 5m
@@ -56,7 +56,7 @@ groups:
         annotations:
           summary: "High memory usage detected"
           description: "Memory usage is above 90% on {{ $labels.instance }}"
-          
+
       - alert: DiskSpaceLow
         expr: 100 - ((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes) > 85
         for: 2m
@@ -65,7 +65,7 @@ groups:
         annotations:
           summary: "Low disk space"
           description: "Disk usage is above 85% on {{ $labels.instance }}"
-          
+
       - alert: ServiceDown
         expr: up == 0
         for: 1m

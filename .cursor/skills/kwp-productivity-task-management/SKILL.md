@@ -1,12 +1,15 @@
 ---
 name: kwp-productivity-task-management
-description: Simple task management using a shared TASKS.md file. Reference this when the user asks about their tasks, wants to add/complete tasks, or needs help tracking commitments. Do NOT use for this
-  project's git commit workflow or pre-commit hooks — prefer domain-commit skill.
+description: >-
+  Simple task management using a shared TASKS.md file. Reference this when the
+  user asks about their tasks, wants to add/complete tasks, or needs help
+  tracking commitments. Do NOT use for this project's git commit workflow or
+  pre-commit hooks — prefer domain-commit skill. Korean triggers: "태스크 관리", "할일 목록".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Task Management
 
 Tasks are tracked in a simple `TASKS.md` file that both you and the user can edit.
@@ -78,3 +81,30 @@ When summarizing meetings or conversations, offer to add extracted tasks:
 - Follow-ups mentioned
 
 Ask before adding - don't auto-add without confirmation.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with productivity task management"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

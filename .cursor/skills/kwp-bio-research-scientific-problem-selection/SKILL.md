@@ -1,14 +1,20 @@
 ---
 name: kwp-bio-research-scientific-problem-selection
-description: This skill should be used when scientists need help with research problem selection, project ideation, troubleshooting stuck projects, or strategic scientific decisions. Use this skill when
-  users ask to pitch a new research idea, work through a project problem, evaluate project risks, plan research strategy, navigate decision trees, or get help choosing what scientific problem to work on.
-  Typical requests include "I have an idea for a project", "I'm stuck on my research", "help me evaluate this project", "what should I work on", or "I need strategic advice about my research". Do NOT use
-  for tasks outside the bio domain.
+description: >-
+  This skill should be used when scientists need help with research problem
+  selection, project ideation, troubleshooting stuck projects, or strategic
+  scientific decisions. Use this skill when users ask to pitch a new research
+  idea, work through a project problem, evaluate project risks, plan research
+  strategy, navigate decision trees, or get help choosing what scientific
+  problem to work on. Typical requests include "I have an idea for a project",
+  "I'm stuck on my research", "help me evaluate this project", "what should I
+  work on", or "I need strategic advice about my research". Do NOT use for tasks
+  outside the bio domain. Korean triggers: "리서치", "검색", "계획", "스킬".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Scientific Problem Selection Skills
 
 A conversational framework for systematic scientific problem selection based on Fischbach & Walsh's "Problem choice and decision trees in science and engineering" (Cell, 2024).
@@ -250,3 +256,30 @@ Detailed skill documentation is available in the `references/` folder:
 ---
 
 > **Note**: This rule has been truncated for context efficiency. Truncated: 2500+ lines of scientific problem selection reference materials (intuition pumps, risk assessment, optimization functions, parameter strategy, decision trees, adversity planning, problem inversion, integration synthesis, meta-framework). Full content available from the upstream repository.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with bio research scientific problem selection"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

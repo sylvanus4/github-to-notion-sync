@@ -4,18 +4,17 @@ description: >-
   Generate a complete "new developer kit" by orchestrating 8 existing skills:
   architecture analysis, code ownership maps, interactive diagrams, study
   materials, getting-started guides, environment setup docs, and infrastructure
-  overview. Produces a comprehensive onboarding package in docs/onboarding/.
-  Use when the user asks about "onboarding", "new developer", "onboard",
-  "getting started kit", "온보딩", "신규 개발자", "new team member",
-  "developer onboarding", or wants to create documentation for someone
-  joining the project.
-  Do NOT use for code review (use deep-review), running the dev environment
-  (use local-dev-runner), or creating study quizzes only (use docs-tutor).
+  overview. Produces a comprehensive onboarding package in docs/onboarding/. Use
+  when the user asks about "onboarding", "new developer", "onboard", "getting
+  started kit", "온보딩", "신규 개발자", "new team member", "developer onboarding", or
+  wants to create documentation for someone joining the project. Do NOT use for
+  code review (use deep-review), running the dev environment (use
+  local-dev-runner), or creating study quizzes only (use docs-tutor).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Onboarding Accelerator — New Developer Kit Generator
 
 Turn weeks of onboarding into hours. Automatically generates a comprehensive onboarding package by analyzing the codebase and orchestrating 8 specialized skills.

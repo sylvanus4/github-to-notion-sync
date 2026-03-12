@@ -1,11 +1,17 @@
 ---
 name: security-expert
-description: Perform threat modeling (STRIDE), vulnerability assessments (OWASP Top 10), secret detection, LLM/AI-specific security checks, and PII handling reviews. Use when the user asks for a security review, threat model, vulnerability scan, or secret audit. Do NOT use for data governance or regulatory compliance documentation (use compliance-governance) or dependency CVE scanning only (use dependency-auditor).
+description: >-
+  Perform threat modeling (STRIDE), vulnerability assessments (OWASP Top 10),
+  secret detection, LLM/AI-specific security checks, and PII handling reviews.
+  Use when the user asks for a security review, threat model, vulnerability
+  scan, or secret audit. Do NOT use for data governance or regulatory compliance
+  documentation (use compliance-governance) or dependency CVE scanning only (use
+  dependency-auditor). Korean triggers: "보안", "감사", "리뷰", "체크".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # Security Expert
 
 Procedural security skill for a FastAPI microservices platform with LLM inference, RAG, PII redaction, and multi-tenant architecture.

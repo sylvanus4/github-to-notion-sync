@@ -1,12 +1,16 @@
 ---
 name: kwp-marketing-content-creation
-description: Draft marketing content across channels — blog posts, social media, email newsletters, landing pages, press releases, and case studies. Use when writing any marketing content, when you need
-  channel-specific formatting, SEO-optimized copy, headline options, or calls to action. Do NOT use for tasks outside the marketing domain.
+description: >-
+  Draft marketing content across channels — blog posts, social media, email
+  newsletters, landing pages, press releases, and case studies. Use when writing
+  any marketing content, when you need channel-specific formatting,
+  SEO-optimized copy, headline options, or calls to action. Do NOT use for tasks
+  outside the marketing domain. Korean triggers: "최적화", "릴리즈", "이메일", "시장".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Content Creation Skill
 
 Guidelines and frameworks for creating effective marketing content across channels.
@@ -169,3 +173,30 @@ If the user has brand voice guidelines configured, note that they will be applie
 - At the end of blog posts (after you have earned the reader's trust)
 - In-line within content when contextually relevant (e.g., a related guide mention)
 - Repeat the primary CTA at the bottom of long-form pages
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Writing any marketing content"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

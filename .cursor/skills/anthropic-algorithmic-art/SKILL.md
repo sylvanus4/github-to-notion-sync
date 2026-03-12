@@ -1,12 +1,18 @@
 ---
 name: anthropic-algorithmic-art
-description: Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. Use when users request creating art using code, generative art, algorithmic art, flow fields, or particle systems. Create original algorithmic art rather than copying existing artists' work to avoid copyright violations. Do NOT use for static image creation (use anthropic-canvas-design).
+description: >-
+  Creating algorithmic art using p5.js with seeded randomness and interactive
+  parameter exploration. Use when users request creating art using code,
+  generative art, algorithmic art, flow fields, or particle systems. Create
+  original algorithmic art rather than copying existing artists' work to avoid
+  copyright violations. Do NOT use for static image creation (use
+  anthropic-canvas-design). Korean triggers: "생성 아트", "알고리즘 아트", "p5.js".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Complete terms in LICENSE.txt
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Complete terms in LICENSE.txt"
+  category: "document"
 ---
-
 Algorithmic philosophies are computational aesthetic movements that are then expressed through code. Output .md files (philosophy), .html files (interactive viewer), and .js files (generative algorithms).
 
 This happens in two steps:

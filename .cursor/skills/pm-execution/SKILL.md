@@ -3,20 +3,20 @@ name: pm-execution
 description: >-
   Orchestrate product execution workflows: PRDs, OKRs, roadmaps, sprint
   planning, retrospectives, release notes, stakeholder mapping, user stories,
-  job stories, pre-mortems, test scenarios, and prioritization frameworks.
-  Based on phuryn/pm-skills. Use when the user asks for "write PRD",
-  "plan OKRs", "sprint plan", "retrospective", "release notes", "stakeholder
-  map", "user stories", "pre-mortem", "test scenarios", "prioritization",
-  "outcome roadmap", "meeting summary", or "dummy dataset". Do NOT use for
-  product discovery (use pm-product-discovery), product strategy (use
-  pm-product-strategy), or general feature spec (use
-  kwp-product-management-feature-spec).
+  job stories, pre-mortems, test scenarios, and prioritization frameworks. Based
+  on phuryn/pm-skills. Use when the user asks for "write PRD", "plan OKRs",
+  "sprint plan", "retrospective", "release notes", "stakeholder map", "user
+  stories", "pre-mortem", "test scenarios", "prioritization", "outcome roadmap",
+  "meeting summary", or "dummy dataset". Do NOT use for product discovery (use
+  pm-product-discovery), product strategy (use pm-product-strategy), or general
+  feature spec (use kwp-product-management-feature-spec). Korean triggers:
+  "테스트", "계획", "워크플로우", "릴리즈".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/phuryn/pm-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/phuryn/pm-skills"
+  category: "product"
 ---
-
 # PM Execution
 
 Product execution skill orchestrator. Routes user requests to 15 sub-skills for planning, documentation, backlog management, and delivery. Read the matching reference file and follow its instructions.

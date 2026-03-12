@@ -1,12 +1,17 @@
 ---
 name: kwp-operations-risk-assessment
-description: Identify, assess, and mitigate operational risks. Trigger with "what are the risks", "risk assessment", "risk register", "what could go wrong", or when the user is evaluating risks associated
-  with a project, vendor, process, or decision. Do NOT use for this project's security threat modeling or vulnerability assessment — prefer security-expert skill.
+description: >-
+  Identify, assess, and mitigate operational risks. Trigger with "what are the
+  risks", "risk assessment", "risk register", "what could go wrong", or when the
+  user is evaluating risks associated with a project, vendor, process, or
+  decision. Do NOT use for this project's security threat modeling or
+  vulnerability assessment — prefer security-expert skill. Korean triggers:
+  "보안", "스킬", "모델".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Risk Assessment
 
 Systematically identify, assess, and plan mitigations for operational risks.
@@ -52,3 +57,30 @@ For each risk, document:
 ## Output
 
 Produce a prioritized risk register with specific, actionable mitigations. Focus on risks that are controllable and material.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with operations risk assessment"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

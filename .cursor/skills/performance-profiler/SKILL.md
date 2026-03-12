@@ -1,11 +1,18 @@
 ---
 name: performance-profiler
-description: Measure API endpoint latency (p50/p95/p99), analyze PostgreSQL slow queries, profile frontend bundle size, and evaluate against SLO targets. Use when the user asks about performance issues, latency problems, slow queries, bundle optimization, or SLO compliance. Do NOT use for database schema design (use db-expert), code-level optimization (use backend-expert or frontend-expert), or infrastructure scaling review (use sre-devops-expert).
+description: >-
+  Measure API endpoint latency (p50/p95/p99), analyze PostgreSQL slow queries,
+  profile frontend bundle size, and evaluate against SLO targets. Use when the
+  user asks about performance issues, latency problems, slow queries, bundle
+  optimization, or SLO compliance. Do NOT use for database schema design (use
+  db-expert), code-level optimization (use backend-expert or frontend-expert),
+  or infrastructure scaling review (use sre-devops-expert). Korean triggers:
+  "성능", "리뷰", "분석", "설계".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # Performance Profiler
 
 Measures and analyzes performance across the full stack — API endpoints, database queries, and frontend assets.

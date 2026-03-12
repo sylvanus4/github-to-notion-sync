@@ -1,8 +1,14 @@
 ---
 name: overlay-layout-patterns
-description: useOverlay 훅 기반 오버레이(모달/드로어) 구현 패턴 가이드. Overlay.Template 사용법, 올바른 Props 정의, 금지 패턴을 포함합니다. 모달, 드로어, 오버레이 컴포넌트 구현 시 사용합니다.
+description: >-
+  useOverlay 훅 기반 오버레이(모달/드로어) 구현 패턴 가이드. Overlay.Template 사용법, 올바른 Props 정의,
+  금지 패턴을 포함합니다. 모달, 드로어, 오버레이 컴포넌트 구현 시 사용합니다.
+  Do NOT use for general React component patterns (use frontend-expert).
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Overlay 패턴 가이드
 
 ## useOverlay 훅 패턴 (권장)
@@ -189,3 +195,18 @@ openOverlay({
 ## 추가 레퍼런스
 
 - Overlay 컴포넌트 API: [reference.md](reference.md)
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "overlay layout patterns" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

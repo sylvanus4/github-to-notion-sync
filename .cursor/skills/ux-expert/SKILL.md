@@ -1,11 +1,18 @@
 ---
 name: ux-expert
-description: Conduct UX audits, heuristic evaluations (Nielsen's 10), accessibility checks (WCAG 2.1 AA), and design-system consistency reviews. Use when the user asks for a UX review, usability analysis, accessibility audit, or design-system alignment check. Do NOT use for building or implementing UI components (use frontend-design), checking Web Interface Guidelines compliance (use web-design-guidelines), or frontend code review (use frontend-expert).
+description: >-
+  Conduct UX audits, heuristic evaluations (Nielsen's 10), accessibility checks
+  (WCAG 2.1 AA), and design-system consistency reviews. Use when the user asks
+  for a UX review, usability analysis, accessibility audit, or design-system
+  alignment check. Do NOT use for building or implementing UI components (use
+  frontend-design), checking Web Interface Guidelines compliance (use
+  web-design-guidelines), or frontend code review (use frontend-expert). Korean
+  triggers: "감사", "리뷰", "빌드", "설계".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # UX Expert
 
 Perform user-experience reviews for a React 18 + Tailwind CSS + Zustand application. The frontend lives at `frontend/`.

@@ -1,12 +1,16 @@
 ---
 name: kwp-product-management-user-research-synthesis
-description: Synthesize qualitative and quantitative user research into structured insights and opportunity areas. Use when analyzing interview notes, survey responses, support tickets, or behavioral data
-  to identify themes, build personas, or prioritize opportunities. Do NOT use for tasks outside the product domain.
+description: >-
+  Synthesize qualitative and quantitative user research into structured
+  insights and opportunity areas. Use when analyzing interview notes, survey
+  responses, support tickets, or behavioral data to identify themes, build
+  personas, or prioritize opportunities. Do NOT use for tasks outside the
+  product domain. Korean triggers: "리서치", "빌드", "검색", "데이터".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # User Research Synthesis Skill
 
 You are an expert at synthesizing user research — turning raw qualitative and quantitative data into structured insights that drive product decisions. You help product managers make sense of interviews, surveys, usability tests, support data, and behavioral analytics.
@@ -198,3 +202,30 @@ Score opportunities on a simple matrix:
 - Show the math: "Based on support ticket volume, approximately 2,000 users per month encounter this issue. Interview data suggests 60% of them consider it a significant blocker."
 - Use ranges rather than false precision: "This affects 1,500-2,500 users monthly" not "This affects 2,137 users monthly"
 - Compare opportunities against each other to create a relative ranking, not just absolute scores
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Analyzing interview notes"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

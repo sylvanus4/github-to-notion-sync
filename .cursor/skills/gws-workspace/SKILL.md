@@ -6,12 +6,12 @@ description: >-
   Use when the user asks to set up gws, configure Google Workspace CLI,
   authenticate with Google, or start the gws MCP server. Do NOT use for
   service-specific operations (use gws-gmail, gws-drive, gws-calendar,
-  gws-sheets, gws-docs, or gws-chat instead).
+  gws-sheets, gws-docs, or gws-chat instead). Korean triggers: "구글 워크스페이스", "gws 설정".
 metadata:
-  author: googleworkspace/cli (adapted)
-  version: 1.0.0
+  author: "googleworkspace/cli (adapted)"
+  version: "1.0.0"
+  category: "integration"
 ---
-
 # Google Workspace CLI — Setup & Reference
 
 One CLI for all of Google Workspace. Built for humans and AI agents.
@@ -149,3 +149,23 @@ gws schema <service>.<resource>.<method>
 | Too many scopes error | Use `--scopes drive,gmail,calendar` instead of all |
 | `gcloud` not found | Use manual OAuth setup or install gcloud CLI |
 | API not enabled (403 accessNotConfigured) | Click the enable_url in the error, wait 10s, retry |
+
+## Examples
+
+### Example 1: Basic operation
+
+**User says:** "Set up gws"
+
+**Actions:**
+1. Verify `gws` CLI is authenticated (`gws auth status`)
+2. Execute the appropriate `gws` command with required parameters
+3. Confirm the result and report back
+
+### Example 2: Troubleshooting
+
+**User says:** "The command failed with an authentication error"
+
+**Actions:**
+1. Check auth status: `gws auth status`
+2. Re-authenticate if expired: `gws auth login`
+3. Retry the original command

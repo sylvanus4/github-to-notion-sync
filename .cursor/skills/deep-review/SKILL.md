@@ -7,12 +7,13 @@ description: >-
   /deep-review, asks for "full-stack review", "multi-domain review", "review
   frontend and backend", or "comprehensive code review". Do NOT use for
   single-domain review (use /refactor, /security, etc.), code quality metrics
-  only (use /simplify), or general Q&A.
+  only (use /simplify), or general Q&A. Korean triggers: "리뷰", "테스트", "수정",
+  "보안".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Deep Review — Multi-Domain Full-Stack Review
 
 Review code from 4 engineering perspectives simultaneously: frontend, backend/DB, security, and test coverage. Complements `/simplify` (code craftsmanship) with domain expertise.

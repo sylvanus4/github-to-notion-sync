@@ -1,12 +1,15 @@
 ---
 name: kwp-enterprise-search-source-management
 description: >-
-  Manages connected MCP sources for enterprise search. Detects available sources, guides users to connect new ones, handles source priority ordering, and manages rate limiting awareness. Do NOT use for tasks outside the enterprise-search domain.
+  Manages connected MCP sources for enterprise search. Detects available
+  sources, guides users to connect new ones, handles source priority ordering,
+  and manages rate limiting awareness. Do NOT use for tasks outside the
+  enterprise-search domain. Korean triggers: "검색".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Source Management
 
 
@@ -173,3 +176,30 @@ To add a new source:
 1. Add the MCP server configuration to `.mcp.json`
 2. Authenticate if required
 3. The source will be included in subsequent searches automatically
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with enterprise search source management"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

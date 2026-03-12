@@ -3,15 +3,15 @@ name: calendar-daily-briefing
 description: >-
   Fetch today's Google Calendar events and produce a concise Korean briefing
   with preparation alerts for meetings and interviews. Use when the user asks
-  for "today's schedule", "calendar briefing", "오늘 일정", "캘린더 브리핑",
-  "daily briefing", "오늘 미팅", "일정 요약", or "what's on my calendar".
-  Do NOT use for creating events (use gws-calendar), email triage
-  (use gmail-daily-triage), or weekly digests (use ai-chief-of-staff).
+  for "today's schedule", "calendar briefing", "오늘 일정", "캘린더 브리핑", "daily
+  briefing", "오늘 미팅", "일정 요약", or "what's on my calendar". Do NOT use for
+  creating events (use gws-calendar), email triage (use gmail-daily-triage), or
+  weekly digests (use ai-chief-of-staff).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Calendar Daily Briefing
 
 Fetch today's calendar events, classify them, and produce a concise Korean briefing highlighting meetings and interviews that need preparation.

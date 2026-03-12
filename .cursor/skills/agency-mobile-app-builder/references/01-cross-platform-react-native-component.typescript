@@ -15,7 +15,7 @@ interface ProductListProps {
 
 export const ProductList: React.FC<ProductListProps> = ({ onProductSelect }) => {
   const insets = useSafeAreaInsets();
-  
+
   const {
     data,
     fetchNextPage,

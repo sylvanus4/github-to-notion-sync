@@ -4,13 +4,13 @@ description: >-
   Manage Gmail via the gws CLI -- send emails, triage inbox, watch for new
   messages, manage labels and filters. Use when the user asks to send email,
   check inbox, read mail, triage messages, or manage Gmail. Do NOT use for
-  Google Chat messages (use gws-chat), calendar invites (use gws-calendar),
-  or Drive file operations (use gws-drive).
+  Google Chat messages (use gws-chat), calendar invites (use gws-calendar), or
+  Drive file operations (use gws-drive). Korean triggers: "이메일", "메일 보내기", "받은편지함".
 metadata:
-  author: googleworkspace/cli (adapted)
-  version: 1.0.0
+  author: "googleworkspace/cli (adapted)"
+  version: "1.0.0"
+  category: "integration"
 ---
-
 # Gmail
 
 > **Prerequisites**: `gws` must be installed and authenticated. See `gws-workspace` skill.
@@ -196,3 +196,30 @@ gws gmail users settings filters get \
 | `addLabelIds` | Label IDs to add |
 | `removeLabelIds` | Label IDs to remove (e.g., `["INBOX"]` to skip inbox) |
 | `forward` | Email to forward to |
+
+## Examples
+
+### Example 1: Basic operation
+
+**User says:** "Send email"
+
+**Actions:**
+1. Verify `gws` CLI is authenticated (`gws auth status`)
+2. Execute the appropriate `gws` command with required parameters
+3. Confirm the result and report back
+
+### Example 2: Troubleshooting
+
+**User says:** "The command failed with an authentication error"
+
+**Actions:**
+1. Check auth status: `gws auth status`
+2. Re-authenticate if expired: `gws auth login`
+3. Retry the original command
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Authentication error | Run `gws auth status` and re-authenticate if expired |
+| API rate limit | Wait and retry. For bulk operations, add delays between requests |
+| Resource not found | Verify the resource ID/name and check permissions |

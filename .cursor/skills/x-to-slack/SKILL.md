@@ -1,17 +1,17 @@
 ---
 name: x-to-slack
 description: >-
-  Fetches tweet content from X/Twitter via FxTwitter API, performs web research,
-  and posts structured intelligence to Slack in a 3-message thread. Use when
-  user shares an X/Twitter link (x.com or twitter.com URL) and wants to analyze
-  it for Slack posting, or says "tweet to slack", "share this tweet", "x-to-slack".
-  Do NOT use for general Slack messaging, channel management, or non-Twitter
-  content sharing.
+  Fetches tweet content from X/Twitter via FxTwitter API, performs web
+  research, and posts structured intelligence to Slack in a 3-message thread.
+  Use when user shares an X/Twitter link (x.com or twitter.com URL) and wants to
+  analyze it for Slack posting, or says "tweet to slack", "share this tweet",
+  "x-to-slack". Do NOT use for general Slack messaging, channel management, or
+  non-Twitter content sharing. Korean triggers: "분석", "검색", "리서치", "API".
 metadata:
-  author: thaki
-  version: 1.1.0
+  author: "thaki"
+  version: "1.1.0"
+  category: "execution"
 ---
-
 # X-to-Slack: Tweet Intelligence Pipeline
 
 Process an X (Twitter) URL, gather context through web research, and post a structured 3-message thread to a specified Slack channel.

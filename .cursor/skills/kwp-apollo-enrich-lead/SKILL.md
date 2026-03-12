@@ -1,12 +1,15 @@
 ---
 name: kwp-apollo-enrich-lead
-description: Instant lead enrichment. Drop a name, company, LinkedIn URL, or email and get the full contact card with email, phone, title, company intel, and next actions. Do NOT use for tasks outside the
-  apollo domain.
+description: >-
+  Instant lead enrichment. Drop a name, company, LinkedIn URL, or email and get
+  the full contact card with email, phone, title, company intel, and next
+  actions. Do NOT use for tasks outside the apollo domain. Korean triggers:
+  "이메일".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Enrich Lead
 
 Turn any identifier into a full contact dossier. The user provides identifying info via "$ARGUMENTS".
@@ -80,3 +83,11 @@ Ask the user which action to take:
 2. **Add to a sequence** — Ask which sequence, then run the sequence-load flow
 3. **Find colleagues** — Search for more people at the same company using `mcp__claude_ai_Apollo_MCP__apollo_mixed_people_api_search` with `q_organization_domains_list` set to this company
 4. **Find similar people** — Search for people with the same title/seniority at other companies
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

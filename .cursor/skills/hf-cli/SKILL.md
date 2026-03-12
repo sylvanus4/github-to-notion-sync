@@ -2,13 +2,17 @@
 name: hf-cli
 description: >-
   Execute HuggingFace Hub operations via the hf CLI — download models/datasets,
-  upload files, manage repos, run jobs, and manage auth. Use when uploading financial
-  models to Hub, downloading pre-trained models (FinBERT, sentence-transformers),
-  managing HF repos, or checking auth status. Do NOT use for model training (use
-  hf-model-trainer). Do NOT use for dataset CRUD (use hf-datasets). Do NOT use
-  for stock analysis (use daily-stock-check).
+  upload files, manage repos, run jobs, and manage auth. Use when uploading
+  financial models to Hub, downloading pre-trained models (FinBERT,
+  sentence-transformers), managing HF repos, or checking auth status. Do NOT use
+  for model training (use hf-model-trainer). Do NOT use for dataset CRUD (use
+  hf-datasets). Do NOT use for stock analysis (use daily-stock-check). Korean
+  triggers: "체크", "주식", "모델", "학습".
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "ml"
 ---
-
 Install: `curl -LsSf https://hf.co/cli/install.sh | bash -s`.
 
 The Hugging Face Hub CLI tool `hf` is available. IMPORTANT: The `hf` command replaces the deprecated `huggingface-cli` command.
@@ -161,3 +165,21 @@ Generated with `huggingface_hub v1.6.0`. Run `hf skills add --force` to regenera
 - Use `--format json` for machine-readable output on list commands
 - Use `-q` / `--quiet` to print only IDs
 - Authenticate with `HF_TOKEN` env var (recommended) or with `--token`
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "Uploading financial models to Hub"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Authentication error | Run `hf auth status` or `huggingface-cli login` to re-authenticate |
+| Model/dataset not found | Verify the repo ID and check if it is public or requires access |
+| Quota exceeded | Check HF account limits and upgrade plan if needed |

@@ -55,11 +55,11 @@ dataset = load_dataset("trl-lib/Capybara", split="train")
 config = SFTConfig(
     output_dir="my-model",
     num_train_epochs=3,
-    
+
     # ✅ CRITICAL: Hub push configuration
     push_to_hub=True,
     hub_model_id="myusername/my-trained-model",
-    
+
     # Optional: Push strategy
     push_to_hub_model_id="myusername/my-trained-model",
     push_to_hub_organization=None,
@@ -111,7 +111,7 @@ SFTConfig(
     output_dir="my-model",
     push_to_hub=True,
     hub_model_id="username/my-model",
-    
+
     # Checkpoint configuration
     save_strategy="steps",
     save_steps=100,              # Save every 100 steps
@@ -308,21 +308,21 @@ print(f"✅ Dataset loaded: {len(dataset)} examples")
 # Configure with comprehensive Hub settings
 config = SFTConfig(
     output_dir="qwen-capybara-sft",
-    
+
     # Hub configuration
     push_to_hub=True,
     hub_model_id="myusername/qwen-capybara-sft",
     hub_strategy="checkpoint",  # Push checkpoints
-    
+
     # Checkpoint configuration
     save_strategy="steps",
     save_steps=100,
     save_total_limit=3,
-    
+
     # Training settings
     num_train_epochs=3,
     per_device_train_batch_size=4,
-    
+
     # Logging
     logging_steps=10,
     logging_first_step=True,

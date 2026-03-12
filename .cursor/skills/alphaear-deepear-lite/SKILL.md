@@ -1,12 +1,18 @@
 ---
 name: alphaear-deepear-lite
-description: Lightweight orchestration of AlphaEar skills for comprehensive financial analysis. Use when the user asks broad questions like "Analyze how X affects the market" or needs multi-domain synthesis (news, sentiment, signals, prediction, logic, report). Do NOT use for single-domain analysis (use individual alphaear-* skills). Do NOT use for daily stock checks (use daily-stock-check). Do NOT use for routine stock price updates (use weekly-stock-update).
+description: >-
+  Lightweight orchestration of AlphaEar skills for comprehensive financial
+  analysis. Use when the user asks broad questions like "Analyze how X affects
+  the market" or needs multi-domain synthesis (news, sentiment, signals,
+  prediction, logic, report). Do NOT use for single-domain analysis (use
+  individual alphaear-* skills). Do NOT use for daily stock checks (use
+  daily-stock-check). Do NOT use for routine stock price updates (use
+  weekly-stock-update). Korean triggers: "분석", "체크", "리포트", "주식".
 metadata:
   version: "1.0.0"
-  category: orchestration
-  author: alphaear
+  category: "orchestration"
+  author: "alphaear"
 ---
-
 # AlphaEar DeepEar Lite
 
 ## Overview

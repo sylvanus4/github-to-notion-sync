@@ -1,8 +1,16 @@
 ---
 name: receiving-code-review
-description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation
+description: >-
+  Use when receiving code review feedback, before implementing suggestions,
+  especially if feedback seems unclear or technically questionable - requires
+  technical rigor and verification, not performative agreement or blind
+  implementation. Korean triggers: "리뷰 피드백", "코드 리뷰 수정". Do NOT use for requesting reviews
+  (use sp-request-review).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Code Review Reception
 
 ## Overview
@@ -211,3 +219,18 @@ When replying to inline review comments on GitHub, reply in the comment thread (
 Verify. Question. Then implement.
 
 No performative agreement. Technical rigor always.
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Process step fails | Do not skip — diagnose the failure before proceeding to the next step |
+| Verification fails | Roll back to the last passing checkpoint and retry |
+| Conflicting with other processes | Follow the priority order defined in the skill |

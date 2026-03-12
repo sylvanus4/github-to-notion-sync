@@ -1,20 +1,20 @@
 ---
 name: codebase-archaeologist
 description: >-
-  Analyze git history to create ownership maps, churn hotspot analysis,
-  "bus factor" reports, pattern evolution timelines, and dead code detection
-  through commit frequency decay. Adds the TIME dimension to code understanding.
-  Use when the user asks "who owns this code", "code archaeology", "bus factor",
-  "churn analysis", "what's the riskiest module", "dead code", "코드 히스토리",
-  "코드 소유자", "위험 분석", "who should review this", or any question about
-  code ownership, history, or temporal risk patterns.
-  Do NOT use for static code review (use simplify or deep-review), debugging
-  (use diagnose), or git commit/PR operations (use domain-commit or ship).
+  Analyze git history to create ownership maps, churn hotspot analysis, "bus
+  factor" reports, pattern evolution timelines, and dead code detection through
+  commit frequency decay. Adds the TIME dimension to code understanding. Use
+  when the user asks "who owns this code", "code archaeology", "bus factor",
+  "churn analysis", "what's the riskiest module", "dead code", "코드 히스토리", "코드
+  소유자", "위험 분석", "who should review this", or any question about code ownership,
+  history, or temporal risk patterns. Do NOT use for static code review (use
+  simplify or deep-review), debugging (use diagnose), or git commit/PR
+  operations (use domain-commit or ship).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Codebase Archaeologist — Temporal Code Analysis
 
 Unearth the hidden history of your codebase. While code review tools see a snapshot, this skill sees the full timeline — who wrote what, what's decaying, what's risky, and what's been forgotten.

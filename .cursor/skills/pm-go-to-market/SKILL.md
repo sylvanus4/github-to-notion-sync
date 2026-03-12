@@ -3,19 +3,18 @@ name: pm-go-to-market
 description: >-
   Orchestrate go-to-market workflows: GTM strategy and launch plans, ideal
   customer profiles, beachhead segments, growth loops, GTM motions assessment,
-  and competitive battlecards. Based on phuryn/pm-skills. Use when the user
-  asks for "GTM strategy", "go-to-market plan", "ideal customer profile",
-  "ICP", "beachhead segment", "growth loops", "GTM motions", "battlecard",
-  or "launch plan". Do NOT use for product discovery (use
-  pm-product-discovery), marketing content creation (use
-  kwp-marketing-content-creation), or sales outreach (use
-  kwp-sales-draft-outreach).
+  and competitive battlecards. Based on phuryn/pm-skills. Use when the user asks
+  for "GTM strategy", "go-to-market plan", "ideal customer profile", "ICP",
+  "beachhead segment", "growth loops", "GTM motions", "battlecard", or "launch
+  plan". Do NOT use for product discovery (use pm-product-discovery), marketing
+  content creation (use kwp-marketing-content-creation), or sales outreach (use
+  kwp-sales-draft-outreach). Korean triggers: "시장", "계획", "워크플로우", "스킬".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/phuryn/pm-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/phuryn/pm-skills"
+  category: "product"
 ---
-
 # PM Go-to-Market
 
 Orchestrate go-to-market workflows using phuryn/pm-skills frameworks — GTM strategy, ICP, beachhead segments, growth loops, GTM motions, and competitive battlecards.

@@ -1,12 +1,16 @@
 ---
 name: kwp-customer-support-response-drafting
-description: Draft professional, empathetic customer-facing responses adapted to the situation, urgency, and channel. Use when responding to customer tickets, escalations, outage notifications, bug reports,
-  feature requests, or any customer-facing communication. Do NOT use for tasks outside the customer domain.
+description: >-
+  Draft professional, empathetic customer-facing responses adapted to the
+  situation, urgency, and channel. Use when responding to customer tickets,
+  escalations, outage notifications, bug reports, feature requests, or any
+  customer-facing communication. Do NOT use for tasks outside the customer
+  domain. Korean triggers: "고객 응대", "답변 작성", "고객 지원".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Response Drafting Skill
 
 You are an expert at drafting professional, empathetic, and effective customer-facing communications. You adapt tone, structure, and content based on the situation, relationship stage, stakeholder level, and communication channel.
@@ -304,3 +308,30 @@ When drafting customer responses:
 6. Read the draft from the customer's perspective before finalizing
 7. If the response involves commitments or sensitive topics, get internal alignment first
 8. Keep it concise — every sentence should earn its place
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Responding to customer tickets"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -1,11 +1,17 @@
 ---
 name: compliance-governance
-description: Review data classification, access control policies, audit logging, and regulatory compliance documentation. Use when the user asks about data governance, compliance audits, access control reviews, GDPR, SOC2, or policy documentation. Do NOT use for vulnerability scanning or threat modeling (use security-expert) or general code review (use backend-expert).
+description: >-
+  Review data classification, access control policies, audit logging, and
+  regulatory compliance documentation. Use when the user asks about data
+  governance, compliance audits, access control reviews, GDPR, SOC2, or policy
+  documentation. Do NOT use for vulnerability scanning or threat modeling (use
+  security-expert) or general code review (use backend-expert). Korean triggers:
+  "감사", "리뷰", "스캔", "보안".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # Compliance & Governance
 
 Review governance posture for a multi-tenant SaaS platform with LLM/AI capabilities. Key services: `admin` (8018), `pii-redaction` (8021), `analytics` (8022).

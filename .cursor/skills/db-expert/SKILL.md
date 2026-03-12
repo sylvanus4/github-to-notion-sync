@@ -1,11 +1,17 @@
 ---
 name: db-expert
-description: Review PostgreSQL schemas, Alembic migrations, query plans, indexing strategies, and Redis caching patterns. Use when the user asks about database design, migration safety, query optimization, schema review, or connection pooling. Do NOT use for backend API design or service architecture (use backend-expert) or full-stack performance profiling (use performance-profiler).
+description: >-
+  Review PostgreSQL schemas, Alembic migrations, query plans, indexing
+  strategies, and Redis caching patterns. Use when the user asks about database
+  design, migration safety, query optimization, schema review, or connection
+  pooling. Do NOT use for backend API design or service architecture (use
+  backend-expert) or full-stack performance profiling (use
+  performance-profiler). Korean triggers: "리뷰", "설계", "계획", "성능".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # DB Expert
 
 Specialist for PostgreSQL 16, PgBouncer, Redis 7, and Qdrant. Migrations managed by Alembic at `db/migrations/`. Init scripts at `db/init.sql`.

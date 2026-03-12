@@ -1,11 +1,17 @@
 ---
 name: qa-test-expert
-description: Design test strategies, generate test code (pytest, Playwright, Vitest), analyze coverage, and plan regression testing. Use when the user asks about test planning, test generation, coverage improvement, or QA strategy. Do NOT use for writing or running Playwright E2E tests directly (use e2e-testing) or running the full CI pipeline (use ci-quality-gate).
+description: >-
+  Design test strategies, generate test code (pytest, Playwright, Vitest),
+  analyze coverage, and plan regression testing. Use when the user asks about
+  test planning, test generation, coverage improvement, or QA strategy. Do NOT
+  use for writing or running Playwright E2E tests directly (use e2e-testing) or
+  running the full CI pipeline (use ci-quality-gate). Korean triggers: "테스트",
+  "분석", "생성", "설계".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # QA / Test Expert
 
 Specialist for testing the FastAPI microservices (pytest + httpx) and React frontend (Vitest + Playwright). Tests at `tests/` (integration), per-service `tests/` dirs, and `frontend/` for E2E.

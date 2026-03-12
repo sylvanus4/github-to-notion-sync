@@ -1,11 +1,16 @@
 ---
 name: local-dev-runner
-description: Start, stop, and manage the full local development environment on macOS. Use when the user asks to run the project locally, start/stop services, or set up the development stack from scratch. Do NOT use for diagnosing specific service failures after startup (use service-health-doctor) or reviewing infrastructure configuration (use sre-devops-expert).
+description: >-
+  Start, stop, and manage the full local development environment on macOS. Use
+  when the user asks to run the project locally, start/stop services, or set up
+  the development stack from scratch. Do NOT use for diagnosing specific service
+  failures after startup (use service-health-doctor) or reviewing infrastructure
+  configuration (use sre-devops-expert). Korean triggers: "리뷰".
 metadata:
   version: "1.0.0"
-  category: execution
+  category: "execution"
+  author: "thaki"
 ---
-
 # Local Development Runner
 
 로컬 macOS 환경에서 프로젝트 전체 스택을 실행하고 관리하는 스킬.
@@ -135,3 +140,10 @@ The PII redaction service (`:8031`) is optional. When it is unavailable, the RAG
 - `scripts/dev-start.sh` - 전체 스택 시작 (정리 → 인프라 → 서비스 → 프론트엔드)
 - `scripts/dev-stop.sh` - 전체 스택 중지
 - `scripts/dev-status.sh` - 모든 서비스 헬스체크
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "local dev runner" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.

@@ -3,16 +3,17 @@ name: ui-suite
 description: >-
   Run a full UI/UX lifecycle pipeline: 3 parallel review agents (Design Audit,
   Web Standards, UX/Design System) analyze UI code, then a UI Builder agent
-  auto-fixes findings and generates missing UI elements. Supports diff/today/full
-  scoping. Use when the user runs /ui-suite, asks for "UI review", "design audit",
-  "UX check", "frontend quality review", or "fix my UI". Do NOT use for building
-  new UIs from scratch without existing code (use frontend-design), single-domain
-  code review (use /simplify or /deep-review), or backend-only review.
+  auto-fixes findings and generates missing UI elements. Supports
+  diff/today/full scoping. Use when the user runs /ui-suite, asks for "UI
+  review", "design audit", "UX check", "frontend quality review", or "fix my
+  UI". Do NOT use for building new UIs from scratch without existing code (use
+  frontend-design), single-domain code review (use /simplify or /deep-review),
+  or backend-only review. Korean triggers: "감사", "리뷰", "빌드", "분석".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # UI Suite — UI/UX Full-Lifecycle Orchestrator
 
 Review UI code from 3 design perspectives simultaneously, aggregate findings, then auto-fix issues and generate missing UI elements. Combines design auditing with hands-on improvement.

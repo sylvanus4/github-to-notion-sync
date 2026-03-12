@@ -1,11 +1,17 @@
 ---
 name: dependency-auditor
-description: Audit and update Python, Go, and Node.js dependencies — scan for CVEs, classify severity, apply safe patch updates, and generate impact reports for major updates. Use when the user asks to audit dependencies, update packages, check for vulnerabilities, or run a dependency sweep. Do NOT use for general security reviews or threat modeling (use security-expert) or running the full CI pipeline (use ci-quality-gate).
+description: >-
+  Audit and update Python, Go, and Node.js dependencies — scan for CVEs,
+  classify severity, apply safe patch updates, and generate impact reports for
+  major updates. Use when the user asks to audit dependencies, update packages,
+  check for vulnerabilities, or run a dependency sweep. Do NOT use for general
+  security reviews or threat modeling (use security-expert) or running the full
+  CI pipeline (use ci-quality-gate). Korean triggers: "감사", "리뷰", "생성", "체크".
 metadata:
   version: "1.0.0"
-  category: execution
+  category: "execution"
+  author: "thaki"
 ---
-
 # Dependency Auditor
 
 Manages dependencies across the entire polyglot stack (19 Python services, 1 Go service, 1 Node.js frontend).

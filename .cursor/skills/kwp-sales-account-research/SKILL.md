@@ -1,12 +1,16 @@
 ---
 name: kwp-sales-account-research
-description: Research a company or person and get actionable sales intel. Works standalone with web search, supercharged when you connect enrichment tools or your CRM. Trigger with "research [company]",
-  "look up [person]", "intel on [prospect]", "who is [name] at [company]", or "tell me about [company]". Do NOT use for tasks outside the sales domain.
+description: >-
+  Research a company or person and get actionable sales intel. Works standalone
+  with web search, supercharged when you connect enrichment tools or your CRM.
+  Trigger with "research [company]", "look up [person]", "intel on [prospect]",
+  "who is [name] at [company]", or "tell me about [company]". Do NOT use for
+  tasks outside the sales domain. Korean triggers: "리서치", "검색".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Account Research
 
 Get a complete picture of any company or person before outreach. This skill always works with web search, and gets significantly better with enrichment and CRM data.
@@ -289,3 +293,30 @@ Focus on: Attendee backgrounds, recent news, relationship history
 - **call-prep** — Full meeting prep with this research plus context
 - **draft-outreach** — Write personalized message based on research
 - **prospecting** — Qualify and prioritize research targets
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with sales account research"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

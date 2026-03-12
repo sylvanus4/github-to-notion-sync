@@ -1,18 +1,20 @@
 ---
 name: trading-market-environment-analysis
 description: >-
-  Comprehensive market environment analysis and reporting. Analyzes global markets: US, European, Asian, forex, commodities, economic indicators.
-  Use when the user asks "market analysis", "market environment", "global markets", "trading environment", "risk-on risk-off",
-  "market conditions", "investment climate", "market sentiment", "相場環境", "市場分析", "マーケット状況", "投資環境".
-  Do NOT use for daily stock signals (use daily-stock-check). Do NOT use for AlphaEar news aggregation (use alphaear-news).
+  Comprehensive market environment analysis and reporting. Analyzes global
+  markets: US, European, Asian, forex, commodities, economic indicators. Use
+  when the user asks "market analysis", "market environment", "global markets",
+  "trading environment", "risk-on risk-off", "market conditions", "investment
+  climate", "market sentiment", "相場環境", "市場分析", "マーケット状況", "投資環境". Do NOT use
+  for daily stock signals (use daily-stock-check). Do NOT use for AlphaEar news
+  aggregation (use alphaear-news). Korean triggers: "시장", "분석", "체크", "리포트".
 metadata:
-  author: tradermonty
+  author: "tradermonty"
   version: "1.0.0"
-  category: analysis
-  source: claude-trading-skills
-  api_required: none
+  category: "analysis"
+  source: "claude-trading-skills"
+  api_required: "none"
 ---
-
 # Market Environment Analysis
 
 Comprehensive analysis tool for understanding market conditions and creating professional market reports anytime.

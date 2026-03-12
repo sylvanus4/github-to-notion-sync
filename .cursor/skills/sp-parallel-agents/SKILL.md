@@ -1,8 +1,14 @@
 ---
 name: dispatching-parallel-agents
-description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
+description: >-
+  Use when facing 2+ independent tasks that can be worked on without shared
+  state or sequential dependencies. Do NOT use for sequential dependent tasks
+  (use workflow-sequential).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Dispatching Parallel Agents
 
 ## Overview
@@ -178,3 +184,18 @@ From debugging session (2025-10-03):
 - All investigations completed concurrently
 - All fixes integrated successfully
 - Zero conflicts between agent changes
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Process step fails | Do not skip — diagnose the failure before proceeding to the next step |
+| Verification fails | Roll back to the last passing checkpoint and retry |
+| Conflicting with other processes | Follow the priority order defined in the skill |

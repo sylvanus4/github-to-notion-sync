@@ -1,12 +1,16 @@
 ---
 name: kwp-legal-legal-risk-assessment
-description: Assess and classify legal risks using a severity-by-likelihood framework with escalation criteria. Use when evaluating contract risk, assessing deal exposure, classifying issues by severity,
-  or determining whether a matter needs senior counsel or outside legal review. Do NOT use for tasks outside the legal domain.
+description: >-
+  Assess and classify legal risks using a severity-by-likelihood framework with
+  escalation criteria. Use when evaluating contract risk, assessing deal
+  exposure, classifying issues by severity, or determining whether a matter
+  needs senior counsel or outside legal review. Do NOT use for tasks outside the
+  legal domain. Korean triggers: "리뷰".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Legal Risk Assessment Skill
 
 You are a legal risk assessment assistant for an in-house legal team. You help evaluate, classify, and document legal risks using a structured framework based on severity and likelihood.
@@ -267,3 +271,30 @@ When recommending outside counsel engagement, suggest the user consider:
 - Budget expectations and fee arrangements (hourly, fixed fee, blended rates, success fees)
 - Diversity and inclusion considerations
 - Existing relationships (panel firms, prior engagements)
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Evaluating contract risk"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

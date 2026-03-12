@@ -1,11 +1,18 @@
 ---
 name: commit-to-issue
-description: Analyze recent git commits and create GitHub issues with project field setup on ThakiCloud project boards. Use when the user asks to "create issues from commits", "track commits as issues", "register work to project", "sync commits to GitHub project", or "turn commits into issues". Do NOT use for committing local changes (use domain-commit), PR creation or review (use pr-review-captain), or CI pipeline validation (use ci-quality-gate).
+description: >-
+  Analyze recent git commits and create GitHub issues with project field setup
+  on ThakiCloud project boards. Use when the user asks to "create issues from
+  commits", "track commits as issues", "register work to project", "sync commits
+  to GitHub project", or "turn commits into issues". Do NOT use for committing
+  local changes (use domain-commit), PR creation or review (use
+  pr-review-captain), or CI pipeline validation (use ci-quality-gate). Korean
+  triggers: "커밋", "리뷰", "분석", "생성".
 metadata:
   version: "1.0.0"
-  category: execution
+  category: "execution"
+  author: "thaki"
 ---
-
 # Commit-to-Issue
 
 Turns git commit history into tracked GitHub issues with full project board integration. Analyzes commits, groups them into logical issue batches, creates issues with structured bodies, adds them to a ThakiCloud project, and configures all project fields (Status, Priority, Size, Sprint, Estimate).

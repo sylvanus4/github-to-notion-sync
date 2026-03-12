@@ -1,12 +1,15 @@
 ---
 name: kwp-sales-create-an-asset
-description: Generate tailored sales assets (landing pages, decks, one-pagers, workflow demos) from your deal context. Describe your prospect, audience, and goal — get a polished, branded asset ready to
-  share with customers. Do NOT use for tasks outside the sales domain.
+description: >-
+  Generate tailored sales assets (landing pages, decks, one-pagers, workflow
+  demos) from your deal context. Describe your prospect, audience, and goal —
+  get a polished, branded asset ready to share with customers. Do NOT use for
+  tasks outside the sales domain. Korean triggers: "생성", "워크플로우".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Create an Asset
 
 Generate custom sales assets tailored to your prospect, audience, and goals. Supports interactive landing pages, presentation decks, executive one-pagers, and workflow/architecture demos.

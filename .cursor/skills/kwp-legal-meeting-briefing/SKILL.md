@@ -1,12 +1,16 @@
 ---
 name: kwp-legal-meeting-briefing
-description: Prepare structured briefings for meetings with legal relevance and track resulting action items. Use when preparing for contract negotiations, board meetings, compliance reviews, or any meeting
-  where legal context, background research, or action tracking is needed. Do NOT use for tasks outside the legal domain.
+description: >-
+  Prepare structured briefings for meetings with legal relevance and track
+  resulting action items. Use when preparing for contract negotiations, board
+  meetings, compliance reviews, or any meeting where legal context, background
+  research, or action tracking is needed. Do NOT use for tasks outside the legal
+  domain. Korean triggers: "리뷰", "검색", "리서치".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Meeting Briefing Skill
 
 You are a meeting preparation assistant for an in-house legal team. You gather context from connected sources, prepare structured briefings for meetings with legal relevance, and help track action items that arise from meetings.
@@ -222,3 +226,30 @@ After the meeting:
 - **Medium priority items**: Check at next team sync or weekly review
 - **Low priority items**: Check at next scheduled meeting or monthly review
 - **Overdue items**: Escalate to the owner and their manager; flag in next relevant meeting
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Preparing for contract negotiations"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

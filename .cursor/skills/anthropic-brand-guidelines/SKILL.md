@@ -1,12 +1,17 @@
 ---
 name: anthropic-brand-guidelines
-description: Applies Anthropic's official brand colors and typography to any artifact that may benefit from Anthropic's look-and-feel. Use when brand colors, style guidelines, visual formatting, or company design standards apply. Do NOT use for custom brand voice (use kwp-brand-voice-brand-voice-enforcement).
+description: >-
+  Applies Anthropic's official brand colors and typography to any artifact that
+  may benefit from Anthropic's look-and-feel. Use when brand colors, style
+  guidelines, visual formatting, or company design standards apply. Do NOT use
+  for custom brand voice (use kwp-brand-voice-brand-voice-enforcement). Korean
+  triggers: "설계".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Complete terms in LICENSE.txt
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Complete terms in LICENSE.txt"
+  category: "document"
 ---
-
 # Anthropic Brand Styling
 
 ## Overview
@@ -74,3 +79,18 @@ To access Anthropic's official brand identity and style resources, use this skil
 - Uses RGB color values for precise brand matching
 - Applied via python-pptx's RGBColor class
 - Maintains color fidelity across different systems
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to pplies anthropic's official brand colors and typography to any artifact that may benefit from anthropic's look-and-feel
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

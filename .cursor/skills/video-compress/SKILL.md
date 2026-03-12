@@ -3,14 +3,15 @@ name: video-compress
 description: >-
   Compress video files using ffmpeg with optimized presets. Use when the user
   asks to compress, shrink, or re-encode a video file, or mentions ffmpeg, demo
-  recording, screen capture, video size reduction, or says "make this video smaller".
-  Do NOT use for audio-only compression, image optimization, video editing/trimming,
-  or format conversion without size reduction intent.
+  recording, screen capture, video size reduction, or says "make this video
+  smaller". Do NOT use for audio-only compression, image optimization, video
+  editing/trimming, or format conversion without size reduction intent. Korean
+  triggers: "비디오", "압축", "최적화".
 metadata:
-  author: thaki
-  version: 1.1.0
+  author: "thaki"
+  version: "1.1.0"
+  category: "execution"
 ---
-
 # Video Compress
 
 Compress video files using ffmpeg with configurable presets. Default preset is **H264-CRF32** (~14.9x compression, 93.3% size reduction).

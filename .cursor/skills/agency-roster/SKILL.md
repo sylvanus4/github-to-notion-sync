@@ -1,12 +1,19 @@
 ---
 name: agency-roster
-description: "Manage and orchestrate 68 Agency AI specialist agents installed as Cursor skills. List agents by division, compose teams for scenarios, activate agents, and map overlaps with existing project skills. Use when the user asks to 'list agency agents', 'agency roster', 'agency team', 'activate agent', 'agency-roster', 'agency 목록', 'agency 팀', 'agent 활성화', or wants to use specialized AI personalities for tasks. Do NOT use for creating new skills (use create-skill) or optimizing existing skills (use skill-optimizer)."
+description: >-
+  Manage and orchestrate 68 Agency AI specialist agents installed as Cursor
+  skills. List agents by division, compose teams for scenarios, activate agents,
+  and map overlaps with existing project skills. Use when the user asks to 'list
+  agency agents', 'agency roster', 'agency team', 'activate agent',
+  'agency-roster', 'agency 목록', 'agency 팀', 'agent 활성화', or wants to use
+  specialized AI personalities for tasks. Do NOT use for creating new skills
+  (use create-skill) or optimizing existing skills (use skill-optimizer).
 metadata:
-  author: thaki
+  author: "thaki"
   version: "1.1.0"
   source: "msitarzewski/agency-agents@2293264"
+  category: "persona"
 ---
-
 # Agency Roster
 
 68 specialized AI agents from [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) installed as Cursor skills under `.cursor/skills/agency-*/SKILL.md`. Source commit: `2293264` (2026-03-09).
@@ -213,3 +220,18 @@ Agency agents bring **personality-driven perspectives** that complement existing
 - **Location**: `.cursor/skills/agency-*/SKILL.md` (68 skills)
 - **Update**: Re-clone source repo, run `scripts/convert-agency-rules-to-skills.py`, then `scripts/optimize-agency-skills.py`
 - **Optimization**: All skills optimized to <500 lines via `optimize-agency-skills.py` (large code blocks extracted to `references/`)
+
+## Examples
+
+### Example 1: Activate agent
+**User says:** "Activate the Roster agent" or "I need a roster perspective"
+**Actions:** Agent persona is loaded and responds in character with domain expertise.
+**Result:** Agent provides specialized guidance based on its core mission and expertise.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Agent breaks character | Re-read the identity section and re-establish persona context |
+| Output lacks domain depth | Request the agent to reference its core capabilities and provide detailed analysis |
+| Conflicting with project skills | Use the project-specific skill instead; agency agents are for general domain expertise |

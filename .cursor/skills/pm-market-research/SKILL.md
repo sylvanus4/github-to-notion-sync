@@ -2,19 +2,20 @@
 name: pm-market-research
 description: >-
   Orchestrate market research workflows: user personas, market segmentation,
-  customer journey mapping, competitive analysis, sentiment analysis, and
-  market sizing (TAM/SAM/SOM). Based on phuryn/pm-skills. Use when the user
-  asks for "user persona", "market segmentation", "customer journey map",
-  "competitor analysis", "sentiment analysis", "market sizing", "TAM SAM SOM",
-  or "user segmentation". Do NOT use for product discovery ideation (use
-  pm-product-discovery), marketing campaigns (use kwp-marketing-campaign-planning),
-  or sales competitive intelligence (use kwp-sales-competitive-intelligence).
+  customer journey mapping, competitive analysis, sentiment analysis, and market
+  sizing (TAM/SAM/SOM). Based on phuryn/pm-skills. Use when the user asks for
+  "user persona", "market segmentation", "customer journey map", "competitor
+  analysis", "sentiment analysis", "market sizing", "TAM SAM SOM", or "user
+  segmentation". Do NOT use for product discovery ideation (use
+  pm-product-discovery), marketing campaigns (use
+  kwp-marketing-campaign-planning), or sales competitive intelligence (use
+  kwp-sales-competitive-intelligence). Korean triggers: "시장", "리서치", "검색", "계획".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/phuryn/pm-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/phuryn/pm-skills"
+  category: "product"
 ---
-
 # PM Market Research
 
 Orchestrates product-market research workflows using seven sub-skills. Routes user requests to the appropriate reference, applies structured analysis steps, and delivers research-backed outputs for personas, segments, journeys, competitors, sentiment, and market sizing.

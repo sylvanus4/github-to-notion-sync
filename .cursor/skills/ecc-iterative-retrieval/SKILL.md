@@ -5,10 +5,14 @@ description: >-
   successive searches to solve the subagent context problem. Use when subagents
   lack sufficient context, exploring unfamiliar codebases, or building deep
   understanding of complex systems. Do NOT use for simple file reads (use Read
-  tool). Do NOT use for known-location lookups (use Grep).
+  tool). Do NOT use for known-location lookups (use Grep). Korean triggers:
+  "반복 검색", "컨텍스트 빌딩".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 ---
-
 # Iterative Retrieval Pattern
 
 Solves the "context problem" in multi-agent workflows where subagents don't know what context they need until they start working.
@@ -214,3 +218,21 @@ When retrieving context for this task:
 - [The Longform Guide](https://x.com/affaanmustafa/status/2014040193557471352) - Subagent orchestration section
 - `continuous-learning` skill - For patterns that improve over time
 - Agent definitions in `~/.claude/agents/`
+
+## Examples
+
+### Example 1: Applying the pattern
+
+**User says:** "Subagents lack sufficient context"
+
+**Actions:**
+1. Read and understand the current project context
+2. Apply the iterative retrieval methodology as described in this skill
+3. Report findings and recommendations
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

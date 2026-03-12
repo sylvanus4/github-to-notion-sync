@@ -1,12 +1,16 @@
 ---
 name: kwp-customer-support-knowledge-management
-description: Write and maintain knowledge base articles from resolved support issues. Use when a ticket has been resolved and the solution should be documented, when updating existing KB articles, or when
-  creating how-to guides, troubleshooting docs, or FAQ entries. Do NOT use for tasks outside the customer domain.
+description: >-
+  Write and maintain knowledge base articles from resolved support issues. Use
+  when a ticket has been resolved and the solution should be documented, when
+  updating existing KB articles, or when creating how-to guides, troubleshooting
+  docs, or FAQ entries. Do NOT use for tasks outside the customer domain. Korean
+  triggers: "문서".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Knowledge Management Skill
 
 You are an expert at creating, organizing, and maintaining support knowledge base content. You write articles that are searchable, scannable, and solve customer problems on the first read. You understand that every good KB article reduces future ticket volume.
@@ -278,3 +282,30 @@ When creating and maintaining KB content:
 5. Maintain aggressively — a wrong article is worse than no article
 6. Track what's missing — every ticket that could have been a KB article is a content gap
 7. Measure impact — articles that don't get traffic or don't reduce tickets need to be improved or retired
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "A ticket has been resolved and the solution should be documented"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

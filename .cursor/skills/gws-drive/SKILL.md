@@ -5,12 +5,12 @@ description: >-
   files and folders. Use when the user asks to upload files, list Drive
   contents, manage permissions, search Drive, or organize folders. Do NOT use
   for Sheets data (use gws-sheets), Docs content (use gws-docs), or email
-  attachments (use gws-gmail).
+  attachments (use gws-gmail). Korean triggers: "구글 드라이브", "파일 업로드", "파일 공유".
 metadata:
-  author: googleworkspace/cli (adapted)
-  version: 1.0.0
+  author: "googleworkspace/cli (adapted)"
+  version: "1.0.0"
+  category: "integration"
 ---
-
 # Google Drive
 
 > **Prerequisites**: `gws` must be installed and authenticated. See `gws-workspace` skill.
@@ -118,3 +118,30 @@ gws drive files create \
 # Paginate all files
 gws drive files list --params '{"pageSize": 100}' --page-all | jq -r '.files[].name'
 ```
+
+## Examples
+
+### Example 1: Basic operation
+
+**User says:** "Upload files"
+
+**Actions:**
+1. Verify `gws` CLI is authenticated (`gws auth status`)
+2. Execute the appropriate `gws` command with required parameters
+3. Confirm the result and report back
+
+### Example 2: Troubleshooting
+
+**User says:** "The command failed with an authentication error"
+
+**Actions:**
+1. Check auth status: `gws auth status`
+2. Re-authenticate if expired: `gws auth login`
+3. Retry the original command
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Authentication error | Run `gws auth status` and re-authenticate if expired |
+| API rate limit | Wait and retry. For bulk operations, add delays between requests |
+| Resource not found | Verify the resource ID/name and check permissions |

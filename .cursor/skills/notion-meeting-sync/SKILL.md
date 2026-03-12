@@ -4,20 +4,19 @@ description: >-
   Sync meeting notes from a Notion database, analyze with PM skills, generate
   comprehensive Korean summaries with detailed action items, and produce a
   PowerPoint deck. Use when the user asks to "sync meetings from Notion",
-  "notion meeting sync", "회의록 동기화", "회의 요약", "노션 회의록",
-  "meeting digest", "meeting to PPTX", "meeting summary from Notion",
-  "노션 회의 요약", or any request to pull Notion meeting data, analyze it,
-  and produce summaries or presentations. Do NOT use for summarizing a
-  meeting transcript without Notion source (use pm-execution summarize-meeting).
-  Do NOT use for syncing markdown docs to Notion (use notion-docs-sync).
-  Do NOT use for GitHub-to-Notion project sync (use the project's sync
-  scripts). Do NOT use for ad-hoc PPTX creation without Notion source
-  (use anthropic-pptx).
+  "notion meeting sync", "회의록 동기화", "회의 요약", "노션 회의록", "meeting digest",
+  "meeting to PPTX", "meeting summary from Notion", "노션 회의 요약", or any request
+  to pull Notion meeting data, analyze it, and produce summaries or
+  presentations. Do NOT use for summarizing a meeting transcript without Notion
+  source (use pm-execution summarize-meeting). Do NOT use for syncing markdown
+  docs to Notion (use notion-docs-sync). Do NOT use for GitHub-to-Notion project
+  sync (use the project's sync scripts). Do NOT use for ad-hoc PPTX creation
+  without Notion source (use anthropic-pptx).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Notion Meeting Sync
 
 Pull meeting notes from a Notion database, analyze them with PM skills,

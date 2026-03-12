@@ -1,5 +1,5 @@
 ---
-description: "Learned user preferences and workspace facts extracted from session transcripts. Updated by the continual-learning hook."
+description: "Learned user preferences and workspace facts extracted from session transcripts. Updated by the continual-learning hook. This is the SOLE memory target — AGENTS.md is a static redirect."
 alwaysApply: true
 ---
 
@@ -7,30 +7,30 @@ alwaysApply: true
 
 ## Learned User Preferences
 
-- Always respond in Korean
-- Daily briefings and summaries should be in Korean
-- All generated documents (DOCX, PPTX, markdown reviews) must be entirely in Korean — headings, labels, section titles, bullet points, and conclusions included
-- English is allowed only for proper nouns and technical terms with no standard Korean translation
+- Always respond in Korean; all generated documents (DOCX, PPTX, markdown reviews) must be entirely in Korean — English is allowed only for proper nouns and technical terms with no standard Korean translation
 - Plans and skill definitions (SKILL.md) should be written in English when explicitly requested ("영어로 계획해줘")
-- Content must be substantive and detailed, never skeleton or template-only output
-- Slack notifications go to `#효정-할일` channel (ID: `C0AA8NT4T8T`) — never send to DM
-- Slack posts use threaded replies: main summary first, then individual items in thread
-- After creating or modifying a skill, always test it end-to-end and fix issues before declaring done
-- When creating a new skill, also create the corresponding Cursor command if one doesn't exist
-- When Notion API cannot upload binary files (DOCX/PPTX), adapt content as structured sub-pages instead
+- Use clear, assertive wording in docs; include step-by-step calculation formulas with explicit variable substitution, assumption sources, and "why this value" justifications — bare tables without derivation context are insufficient
+- Follow professional, concise, technically precise doc style (reference: `01-sellable-services-catalog.md`); no ASCII box-drawing characters — use tables and hierarchical bullets for PDF/Notion compatibility
+- Documents must be self-contained — no cross-references like "see document X"; each doc must stand alone when delivered externally
+- TDD documents must clearly separate as-is from to-be; after creating cost/pricing documents, always verify calculation accuracy and cross-reference consistency
+- Use "Slurm-on-K8s (Slinky)" terminology; clearly separate deployment modes (standalone k0s vs Thaki Suite); RACI framing should emphasize ThakiCloud doing more (investment-positive)
+- Content must be substantive and detailed, never skeleton or template-only output; attribute data to source (author, date, repositories)
+- Slack notifications go to `#효정-할일` channel (ID: `C0AA8NT4T8T`) — never send to DM; use threaded replies (main summary first, then individual items in thread)
+- After creating or modifying a skill, always test it end-to-end and fix issues before declaring done; also create the corresponding Cursor command if one doesn't exist
+- When Notion API cannot upload binary files (DOCX/PPTX), adapt content as structured sub-pages instead; Notion API does not support pipe tables — use bulleted lists or HTML table blocks
 - Subagent-generated files must be verified after completion — missing output files are a pipeline failure
 
 ## Learned Workspace Facts
 
-- `paper-review` skill: 8-phase pipeline (Ingest → Review → PM Analysis → DOCX → PPTX → NLM Slides → Notion → Slack)
-- `related-papers-scout` skill: finds 5 hot related papers from top institutions and posts to Slack with thread-per-paper
-- Paper review and related-papers-scout Slack channel: `#deep-research` (ID: `C0A6X68LTN1`)
-- EOD Ship Report Slack channel: `#효정-할일` (ID: `C0AA8NT4T8T`) — report must be in Korean
-- Paper review outputs: `outputs/papers/{id}-{perspective}-{DATE}.md`, `outputs/papers/{id}-analysis-{DATE}.docx`, `outputs/presentations/{id}-presentation-{DATE}.pptx`
-- Default Notion parent page for paper reviews: `3209eddc34e6801b8921f55d85153730` (ThakiCloud 논문 리뷰)
-- Notion API does not support pipe tables — convert to bulleted lists or HTML table blocks
-- Node.js scripts for DOCX/PPTX generation need `NODE_PATH=$(npm root -g)` to resolve globally installed packages
-- Phase 3 subagents must use the Write tool to persist their markdown outputs — they do not auto-save
-- NotebookLM MCP requires absolute paths for all file operations
-- Slack file upload uses the 3-step flow: `getUploadURLExternal` → POST file → `completeUploadExternal`
-- The git-push-pull `tmp` branch rule applies ONLY to `ai-platform-webui`, not this repo
+- ThakiCloud AI Platform (ai-platform-webui): K8s-based AI/ML platform with GPU orchestration, inference, fine-tuning
+- Tech stack: Go (Fiber) backend, React 19 frontend, PostgreSQL, NATS JetStream, Valkey, Keycloak, ArgoCD, Kueue, GPU Operator, Traefik
+- Monitoring: VictoriaMetrics / VictoriaLogs; Lightweight K8s: k0s for standalone deployment; HPC: Slurm-on-K8s (SchedMD Slinky); GPU: H100/B200 tested
+- Doc structure: TDD under `docs/technical-due-diligence/`, VC pitch under `docs/vc-pitch/`, KSA proposal under `docs/ksa-proposal/`, platform overview under `docs/platform-overview/`; Korean translations use `.ko.md` suffix
+- Repos: ThakiCloud/tkai-deploy, ThakiCloud/ai-platform-webui, ThakiCloud/tkai-agents; EOD managed repos: github-to-notion-sync, ai-template, ai-model-event-stock-analytics, research
+- Security: Thaki Suite (IAM, ABAC, STS, VXLAN) vs AI Platform (RBAC, Keycloak JWT, namespace isolation); CP communication via NATS Pub/Sub
+- `paper-review` skill: 8-phase pipeline (Ingest → Review → PM Analysis → DOCX → PPTX → NLM Slides → Notion → Slack); `related-papers-scout`: 5 hot papers from top institutions
+- Paper/scout Slack channel: `#deep-research` (ID: `C0A6X68LTN1`); EOD Ship Report: `#효정-할일` (ID: `C0AA8NT4T8T`) — report must be in Korean
+- Paper review outputs: `outputs/papers/{id}-{perspective}-{DATE}.md`, `.docx`, `outputs/presentations/{id}-presentation-{DATE}.pptx`; Notion parent: `3209eddc34e6801b8921f55d85153730`
+- Notion: no pipe tables (use bulleted lists or HTML); Node.js DOCX/PPTX scripts need `NODE_PATH=$(npm root -g)`; NotebookLM MCP requires absolute paths
+- Slack file upload: 3-step flow (`getUploadURLExternal` → POST file → `completeUploadExternal`); Google Workspace CLI: `gws` (alias for @googleworkspace/cli), not `gwcli`
+- The git-push-pull `tmp` branch rule applies ONLY to `ai-platform-webui`; Phase 3 subagents must use the Write tool to persist their markdown outputs

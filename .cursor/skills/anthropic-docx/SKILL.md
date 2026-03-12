@@ -1,12 +1,20 @@
 ---
 name: anthropic-docx
-description: "Create, read, edit, and manipulate Word documents (.docx). Use when the user mentions Word doc, .docx, or requests professional documents with tables of contents, headings, page numbers, letterheads; extracting or reorganizing content from .docx; inserting or replacing images; find-and-replace; tracked changes or comments; reports, memos, letters, templates as Word files. Do NOT use for PDFs (use anthropic-pdf), spreadsheets (use anthropic-xlsx), or presentations (use anthropic-pptx)."
+description: >-
+  Create, read, edit, and manipulate Word documents (.docx). Use when the user
+  mentions Word doc, .docx, or requests professional documents with tables of
+  contents, headings, page numbers, letterheads; extracting or reorganizing
+  content from .docx; inserting or replacing images; find-and-replace; tracked
+  changes or comments; reports, memos, letters, templates as Word files. Do NOT
+  use for PDFs (use anthropic-pdf), spreadsheets (use anthropic-xlsx), or
+  presentations (use anthropic-pptx). Korean triggers: "워드 문서", "docx",
+  "문서 생성", "리포트".
 metadata:
-  author: anthropic
-  version: 1.0.0
+  author: "anthropic"
+  version: "1.0.0"
   license_note: "See LICENSE.txt in skill directory"
+  category: "document"
 ---
-
 # DOCX creation, editing, and analysis
 
 ## Overview

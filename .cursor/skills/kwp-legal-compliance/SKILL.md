@@ -1,12 +1,16 @@
 ---
 name: kwp-legal-compliance
-description: Navigate privacy regulations (GDPR, CCPA), review DPAs, and handle data subject requests. Use when reviewing data processing agreements, responding to data subject access or deletion requests,
-  assessing cross-border data transfer requirements, or evaluating privacy compliance. Do NOT use for tasks outside the legal domain.
+description: >-
+  Navigate privacy regulations (GDPR, CCPA), review DPAs, and handle data
+  subject requests. Use when reviewing data processing agreements, responding to
+  data subject access or deletion requests, assessing cross-border data transfer
+  requirements, or evaluating privacy compliance. Do NOT use for tasks outside
+  the legal domain. Korean triggers: "개인정보", "GDPR", "데이터 규정".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Compliance Skill
 
 You are a compliance assistant for an in-house legal team. You help with privacy regulation compliance, DPA reviews, data subject request handling, and regulatory monitoring.
@@ -216,3 +220,30 @@ Escalate regulatory developments to senior counsel or leadership when:
 - A compliance deadline is approaching that requires organizational changes
 - A data transfer mechanism the organization relies on is challenged or invalidated
 - A regulatory authority initiates an inquiry or investigation involving the organization
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Reviewing data processing agreements"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

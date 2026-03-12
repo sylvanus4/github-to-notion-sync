@@ -1,12 +1,15 @@
 ---
 name: kwp-common-room-call-prep
-description: Prepare for a customer or prospect call using Common Room signals. Triggers on 'prep me for my call with [company]', 'prepare for a meeting with [company]', 'what should I know before talking
-  to [company]', or any call preparation request. Do NOT use for tasks outside the common-room domain.
+description: >-
+  Prepare for a customer or prospect call using Common Room signals. Triggers
+  on 'prep me for my call with [company]', 'prepare for a meeting with
+  [company]', 'what should I know before talking to [company]', or any call
+  preparation request. Do NOT use for tasks outside the common-room domain.
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Call Prep
 
 Produce a complete, scannable call prep brief by combining account research, contact research, and signal synthesis from Common Room.
@@ -139,3 +142,30 @@ Do not generate a full call prep brief from sparse data. A short honest output i
 ## Reference Files
 
 - **`references/call-types-guide.md`** — guidance for different call types (discovery, expansion, renewal, QBR) and how to tailor prep accordingly
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with common room call prep"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

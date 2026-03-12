@@ -1,12 +1,18 @@
 ---
 name: anthropic-canvas-design
-description: Create beautiful visual art in .png and .pdf documents using design philosophy. Use when the user asks to create a poster, piece of art, design, or other static piece. Create original visual designs, never copying existing artists' work to avoid copyright violations. Do NOT use for generative/algorithmic art (use anthropic-algorithmic-art) or web UI design (use anthropic-frontend-design).
+description: >-
+  Create beautiful visual art in .png and .pdf documents using design
+  philosophy. Use when the user asks to create a poster, piece of art, design,
+  or other static piece. Create original visual designs, never copying existing
+  artists' work to avoid copyright violations. Do NOT use for
+  generative/algorithmic art (use anthropic-algorithmic-art) or web UI design
+  (use anthropic-frontend-design). Korean triggers: "포스터", "시각 디자인", "아트워크".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Complete terms in LICENSE.txt
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Complete terms in LICENSE.txt"
+  category: "document"
 ---
-
 These are instructions for creating design philosophies - aesthetic movements that are then EXPRESSED VISUALLY. Output only .md files, .pdf files, and .png files.
 
 Complete this in two steps:
@@ -131,3 +137,18 @@ Take a second pass. Go back to the code and refine/polish further to make this a
 ## MULTI-PAGE OPTION
 
 To create additional pages when requested, create more creative pages along the same lines as the design philosophy but distinctly different as well. Bundle those pages in the same .pdf or many .pngs. Treat the first page as just a single page in a whole coffee table book waiting to be filled. Make the next pages unique twists and memories of the original. Have them almost tell a story in a very tasteful way. Exercise full creative freedom.
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to create beautiful visual art in
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

@@ -1,12 +1,16 @@
 ---
 name: kwp-design-ux-writing
-description: Write effective microcopy for user interfaces. Trigger with "write copy for", "help with UX copy", "what should this button say", "error message for", "empty state copy", or when the user needs
-  help with any interface text. Do NOT use for this project's UX audit or heuristic evaluation — prefer ux-expert skill.
+description: >-
+  Write effective microcopy for user interfaces. Trigger with "write copy for",
+  "help with UX copy", "what should this button say", "error message for",
+  "empty state copy", or when the user needs help with any interface text. Do
+  NOT use for this project's UX audit or heuristic evaluation — prefer ux-expert
+  skill. Korean triggers: "설계", "감사", "스킬".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # UX Writing
 
 Write clear, concise, and helpful interface copy.
@@ -46,3 +50,30 @@ Adapt tone to context:
 - **Error**: Empathetic and helpful
 - **Warning**: Clear and actionable
 - **Neutral**: Informative and concise
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with design ux writing"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -1,12 +1,16 @@
 ---
 name: kwp-data-data-exploration
-description: Profile and explore datasets to understand their shape, quality, and patterns before analysis. Use when encountering a new dataset, assessing data quality, discovering column distributions,
-  identifying nulls and outliers, or deciding which dimensions to analyze. Do NOT use for tasks outside the data domain.
+description: >-
+  Profile and explore datasets to understand their shape, quality, and patterns
+  before analysis. Use when encountering a new dataset, assessing data quality,
+  discovering column distributions, identifying nulls and outliers, or deciding
+  which dimensions to analyze. Do NOT use for tasks outside the data domain.
+  Korean triggers: "데이터", "분석".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Data Exploration Skill
 
 Systematic methodology for profiling datasets, assessing data quality, discovering patterns, and understanding schemas.
@@ -243,3 +247,30 @@ When exploring an unfamiliar data environment:
 3. Identify raw/staging/mart layers
 4. Map the transformation chain from raw data to analytical tables
 5. Note where data is enriched, filtered, or aggregated
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Encountering a new dataset"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

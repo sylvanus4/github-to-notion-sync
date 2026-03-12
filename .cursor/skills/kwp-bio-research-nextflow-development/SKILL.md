@@ -1,13 +1,17 @@
 ---
 name: kwp-bio-research-nextflow-development
-description: Run nf-core bioinformatics pipelines (rnaseq, sarek, atacseq) on sequencing data. Use when analyzing RNA-seq, WGS/WES, or ATAC-seq data—either local FASTQs or public datasets from GEO/SRA.
-  Triggers on nf-core, Nextflow, FASTQ analysis, variant calling, gene expression, differential expression, GEO reanalysis, GSE/GSM/SRR accessions, or samplesheet creation. Do NOT use for tasks outside
-  the bio domain.
+description: >-
+  Run nf-core bioinformatics pipelines (rnaseq, sarek, atacseq) on sequencing
+  data. Use when analyzing RNA-seq, WGS/WES, or ATAC-seq data—either local
+  FASTQs or public datasets from GEO/SRA. Triggers on nf-core, Nextflow, FASTQ
+  analysis, variant calling, gene expression, differential expression, GEO
+  reanalysis, GSE/GSM/SRR accessions, or samplesheet creation. Do NOT use for
+  tasks outside the bio domain. Korean triggers: "리서치", "파이프라인", "데이터".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # nf-core Pipeline Deployment
 
 Run nf-core bioinformatics pipelines on local or public sequencing data.
@@ -293,3 +297,30 @@ When publishing results, cite the appropriate pipeline. Citations are available 
 - **nf-core pipelines:** MIT License (https://nf-co.re/about)
 - **Nextflow:** Apache License, Version 2.0 (https://www.nextflow.io/about-us.html)
 - **NCBI SRA Toolkit:** Public Domain (https://github.com/ncbi/sra-tools/blob/master/LICENSE)
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Analyzing RNA-seq"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -43,9 +43,9 @@ class WhimsyAchievements {
         <p>${achievement.description}</p>
       </div>
     `;
-    
+
     document.body.appendChild(celebration);
-    
+
     // Auto-remove after animation
     setTimeout(() => {
       celebration.remove();
@@ -65,7 +65,7 @@ class EasterEggManager {
     document.addEventListener('keydown', (e) => {
       this.sequence.push(e.keyCode);
       this.sequence = this.sequence.slice(-10); // Keep last 10 keys
-      
+
       if (this.sequence.join(',') === this.konami) {
         this.triggerKonamiEgg();
       }
@@ -77,7 +77,7 @@ class EasterEggManager {
       if (e.target.classList.contains('easter-egg-zone')) {
         clickSequence.push(Date.now());
         clickSequence = clickSequence.filter(time => Date.now() - time < 2000);
-        
+
         if (clickSequence.length >= 5) {
           this.triggerClickEgg();
           clickSequence = [];
@@ -90,7 +90,7 @@ class EasterEggManager {
     // Add rainbow mode to entire page
     document.body.classList.add('rainbow-mode');
     this.showEasterEggMessage('🌈 Rainbow mode activated! You found the secret!');
-    
+
     // Auto-remove after 10 seconds
     setTimeout(() => {
       document.body.classList.remove('rainbow-mode');
@@ -113,9 +113,9 @@ class EasterEggManager {
     element.className = 'floating-emoji';
     element.style.left = Math.random() * window.innerWidth + 'px';
     element.style.animationDuration = (Math.random() * 2 + 2) + 's';
-    
+
     document.body.appendChild(element);
-    
+
     setTimeout(() => element.remove(), 4000);
   }
 }

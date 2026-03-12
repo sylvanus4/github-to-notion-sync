@@ -1,17 +1,18 @@
 ---
 name: skill-optimizer
 description: >-
-  Audit, evaluate, benchmark, and compare existing agent skills (SKILL.md files)
-  for quality assurance. Use when the user asks to "optimize skills", "audit skills",
-  "check skill quality", "evaluate skill", "benchmark skill", "test skill effectiveness",
-  "compare skill versions", "skill regression test", or "measure skill impact".
-  Do NOT use for creating new skills from scratch (use create-skill instead),
-  general code review, or non-skill file optimization.
+  Audit, evaluate, benchmark, and compare existing agent skills (SKILL.md
+  files) for quality assurance. Use when the user asks to "optimize skills",
+  "audit skills", "check skill quality", "evaluate skill", "benchmark skill",
+  "test skill effectiveness", "compare skill versions", "skill regression test",
+  or "measure skill impact". Do NOT use for creating new skills from scratch
+  (use create-skill instead), general code review, or non-skill file
+  optimization. Korean triggers: "스킬", "감사", "리뷰", "테스트".
 metadata:
-  author: thaki
-  version: 2.0.0
+  author: "thaki"
+  version: "2.0.0"
+  category: "execution"
 ---
-
 # Skill Optimizer
 
 Quality assurance for agent skills: static audit, runtime evaluation, quantitative benchmarking, and A/B comparison. Adapted from Anthropic's Executor/Grader/Comparator/Analyzer pattern for Cursor's Task subagent system.
@@ -118,7 +119,7 @@ For each finding, apply the appropriate fix:
 When extracting content to `references/`:
 1. Create the `references/` directory if it doesn't exist
 2. Move the content to a descriptively named `.md` file
-3. Replace the original content with a link: `For [topic], see [references/filename.md](references/filename.md)`
+3. Replace the original content with a link: `For [topic], see [references/audit-checklist.md](references/audit-checklist.md)` (use the actual created filename)
 
 ### Step 5: Verify
 

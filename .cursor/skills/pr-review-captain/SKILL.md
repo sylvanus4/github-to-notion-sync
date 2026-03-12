@@ -1,11 +1,16 @@
 ---
 name: pr-review-captain
-description: Summarize pull request changes, assess risks, generate review checklists, and produce release notes. Use when the user asks for a PR summary, change risk assessment, review checklist, or release note generation. Do NOT use for committing local changes (use domain-commit) or writing ADR/operational documentation (use technical-writer).
+description: >-
+  Summarize pull request changes, assess risks, generate review checklists, and
+  produce release notes. Use when the user asks for a PR summary, change risk
+  assessment, review checklist, or release note generation. Do NOT use for
+  committing local changes (use domain-commit) or writing ADR/operational
+  documentation (use technical-writer). Korean triggers: "리뷰", "생성", "체크", "커밋".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # PR Review Captain
 
 Coordinate code reviews and release documentation for pull requests. Works alongside the existing PR commands (`pr-review.md`, `pr-create.md`).

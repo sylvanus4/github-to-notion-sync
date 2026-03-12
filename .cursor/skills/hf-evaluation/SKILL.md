@@ -1,15 +1,19 @@
 ---
 name: hf-evaluation
 description: >-
-  Evaluate ML model quality and manage evaluation results in HuggingFace model cards.
-  Supports running benchmarks with lighteval/inspect-ai, extracting eval tables, and
-  importing scores from Artificial Analysis API. Use when evaluating fine-tuned financial
-  sentiment models, benchmarking prediction accuracy, or adding evaluation metrics to
-  model cards. Do NOT use for model training (use hf-model-trainer). Do NOT use for
-  AI report quality scoring (use ai-quality-evaluator). Do NOT use for stock signal
-  analysis (use daily-stock-check).
+  Evaluate ML model quality and manage evaluation results in HuggingFace model
+  cards. Supports running benchmarks with lighteval/inspect-ai, extracting eval
+  tables, and importing scores from Artificial Analysis API. Use when evaluating
+  fine-tuned financial sentiment models, benchmarking prediction accuracy, or
+  adding evaluation metrics to model cards. Do NOT use for model training (use
+  hf-model-trainer). Do NOT use for AI report quality scoring (use
+  ai-quality-evaluator). Do NOT use for stock signal analysis (use
+  daily-stock-check). Korean triggers: "모델 평가", "벤치마크".
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "ml"
 ---
-
 # Overview
 This skill provides tools to add structured evaluation results to Hugging Face model cards. It supports multiple methods for adding evaluation data:
 - Extracting existing evaluation tables from README content
@@ -87,8 +91,8 @@ uv run scripts/evaluation_manager.py extract-readme --help
 Key workflow (matches CLI help):
 
 1) `get-prs` → check for existing open PRs first
-2) `inspect-tables` → find table numbers/columns  
-3) `extract-readme --table N` → prints YAML by default  
+2) `inspect-tables` → find table numbers/columns
+3) `extract-readme --table N` → prints YAML by default
 4) add `--apply` (push) or `--create-pr` to write changes
 
 # Core Capabilities
@@ -305,29 +309,7 @@ hf jobs uv run scripts/lighteval_vllm_uv.py \
      --tasks "leaderboard|mmlu|5"
 ```
 
-**lighteval Task Format:**
-Tasks use the format `suite|task|num_fewshot`:
-- `leaderboard|mmlu|5` - MMLU with 5-shot
-- `leaderboard|gsm8k|5` - GSM8K with 5-shot
-- `lighteval|hellaswag|0` - HellaSwag zero-shot
-- `leaderboard|arc_challenge|25` - ARC-Challenge with 25-shot
-
-**Finding Available Tasks:**
-The complete list of available lighteval tasks can be found at:
-https://github.com/huggingface/lighteval/blob/main/examples/tasks/all_tasks.txt
-
-This file contains all supported tasks in the format `suite|task|num_fewshot|0` (the trailing `0` is a version flag and can be ignored). Common suites include:
-- `leaderboard` - Open LLM Leaderboard tasks (MMLU, GSM8K, ARC, HellaSwag, etc.)
-- `lighteval` - Additional lighteval tasks
-- `bigbench` - BigBench tasks
-- `original` - Original benchmark tasks
-
-To use a task from the list, extract the `suite|task|num_fewshot` portion (without the trailing `0`) and pass it to the `--tasks` parameter. For example:
-- From file: `leaderboard|mmlu|0` → Use: `leaderboard|mmlu|0` (or change to `5` for 5-shot)
-- From file: `bigbench|abstract_narrative_understanding|0` → Use: `bigbench|abstract_narrative_understanding|0`
-- From file: `lighteval|wmt14:hi-en|0` → Use: `lighteval|wmt14:hi-en|0`
-
-Multiple tasks can be specified as comma-separated values: `--tasks "leaderboard|mmlu|5,leaderboard|gsm8k|5"`
+**lighteval Task Format:** See `references/vllm-eval-details.md` for task syntax, available tasks list, and examples.
 
 #### Option B: inspect-ai with vLLM Backend
 
@@ -362,14 +344,7 @@ hf jobs uv run scripts/inspect_vllm_uv.py \
      --task mmlu
 ```
 
-**Available inspect-ai Tasks:**
-- `mmlu` - Massive Multitask Language Understanding
-- `gsm8k` - Grade School Math
-- `hellaswag` - Common sense reasoning
-- `arc_challenge` - AI2 Reasoning Challenge
-- `truthfulqa` - TruthfulQA benchmark
-- `winogrande` - Winograd Schema Challenge
-- `humaneval` - Code generation
+**Available inspect-ai Tasks:** See `references/vllm-eval-details.md`.
 
 #### Option C: Python Helper Script
 
@@ -398,127 +373,11 @@ uv run scripts/run_vllm_eval_job.py \
   --backend hf
 ```
 
-**Hardware Recommendations:**
-| Model Size | Recommended Hardware |
-|------------|---------------------|
-| < 3B params | `t4-small` |
-| 3B - 13B | `a10g-small` |
-| 13B - 34B | `a10g-large` |
-| 34B+ | `a100-large` |
+**Hardware Recommendations:** See `references/vllm-eval-details.md`.
 
 ### Commands Reference
 
-**Top-level help and version:**
-```bash
-uv run scripts/evaluation_manager.py --help
-uv run scripts/evaluation_manager.py --version
-```
-
-**Inspect Tables (start here):**
-```bash
-uv run scripts/evaluation_manager.py inspect-tables --repo-id "username/model-name"
-```
-
-**Extract from README:**
-```bash
-uv run scripts/evaluation_manager.py extract-readme \
-  --repo-id "username/model-name" \
-  --table N \
-  [--model-column-index N] \
-  [--model-name-override "Exact Column Header or Model Name"] \
-  [--task-type "text-generation"] \
-  [--dataset-name "Custom Benchmarks"] \
-  [--apply | --create-pr]
-```
-
-**Import from Artificial Analysis:**
-```bash
-AA_API_KEY=... uv run scripts/evaluation_manager.py import-aa \
-  --creator-slug "creator-name" \
-  --model-name "model-slug" \
-  --repo-id "username/model-name" \
-  [--create-pr]
-```
-
-**View / Validate:**
-```bash
-uv run scripts/evaluation_manager.py show --repo-id "username/model-name"
-uv run scripts/evaluation_manager.py validate --repo-id "username/model-name"
-```
-
-**Check Open PRs (ALWAYS run before --create-pr):**
-```bash
-uv run scripts/evaluation_manager.py get-prs --repo-id "username/model-name"
-```
-Lists all open pull requests for the model repository. Shows PR number, title, author, date, and URL.
-
-**Run Evaluation Job (Inference Providers):**
-```bash
-hf jobs uv run scripts/inspect_eval_uv.py \
-  --flavor "cpu-basic|t4-small|..." \
-  --secret HF_TOKEN=$HF_TOKEN \
-  -- --model "model-id" \
-     --task "task-name"
-```
-
-or use the Python helper:
-
-```bash
-uv run scripts/run_eval_job.py \
-  --model "model-id" \
-  --task "task-name" \
-  --hardware "cpu-basic|t4-small|..."
-```
-
-**Run vLLM Evaluation (Custom Models):**
-```bash
-# lighteval with vLLM
-hf jobs uv run scripts/lighteval_vllm_uv.py \
-  --flavor "a10g-small" \
-  --secrets HF_TOKEN=$HF_TOKEN \
-  -- --model "model-id" \
-     --tasks "leaderboard|mmlu|5"
-
-# inspect-ai with vLLM
-hf jobs uv run scripts/inspect_vllm_uv.py \
-  --flavor "a10g-small" \
-  --secrets HF_TOKEN=$HF_TOKEN \
-  -- --model "model-id" \
-     --task "mmlu"
-
-# Helper script (auto hardware selection)
-uv run scripts/run_vllm_eval_job.py \
-  --model "model-id" \
-  --task "leaderboard|mmlu|5" \
-  --framework lighteval
-```
-
-### Model-Index Format
-
-The generated model-index follows this structure:
-
-```yaml
-model-index:
-  - name: Model Name
-    results:
-      - task:
-          type: text-generation
-        dataset:
-          name: Benchmark Dataset
-          type: benchmark_type
-        metrics:
-          - name: MMLU
-            type: mmlu
-            value: 85.2
-          - name: HumanEval
-            type: humaneval
-            value: 72.5
-        source:
-          name: Source Name
-          url: https://source-url.com
-```
-
-WARNING: Do not use markdown formatting in the model name. Use the exact name from the table. Only use urls in the source.url field.
+See `references/commands-reference.md` for full CLI command syntax (inspect-tables, extract-readme, import-aa, show, validate, get-prs, run eval jobs).
 
 ### Error Handling
 - **Table Not Found**: Script will report if no evaluation tables are detected
@@ -559,7 +418,7 @@ When extracting evaluation tables with multiple models (either as columns or row
 - Finds the row in the first column matching the model name
 - Extracts all benchmark scores from that row only
 
-This ensures only the correct model's scores are extracted, never unrelated models or training checkpoints. 
+This ensures only the correct model's scores are extracted, never unrelated models or training checkpoints.
 
 ### Common Patterns
 
@@ -637,22 +496,4 @@ AA_API_KEY=... uv run scripts/evaluation_manager.py import-aa \
 
 ### Integration Examples
 
-**Python Script Integration:**
-```python
-import subprocess
-import os
-
-def update_model_evaluations(repo_id, readme_content):
-    """Update model card with evaluations from README."""
-    result = subprocess.run([
-        "python", "scripts/evaluation_manager.py",
-        "extract-readme",
-        "--repo-id", repo_id,
-        "--create-pr"
-    ], capture_output=True, text=True)
-
-    if result.returncode == 0:
-        print(f"Successfully updated {repo_id}")
-    else:
-        print(f"Error: {result.stderr}")
-```
+See `references/integration-examples.md` for Python script integration patterns.

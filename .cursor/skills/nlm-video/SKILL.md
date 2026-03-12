@@ -2,22 +2,15 @@
 name: nlm-video
 description: >-
   End-to-end pipeline that transforms a local markdown document into professional
-  NotebookLM video explainers. Splits sections, rewrites each into expert-level
-  English and Korean narration, uploads to NotebookLM, generates videos, and
-  downloads MP4 files.
+  NotebookLM video explainers. Splits sections, rewrites into expert-level EN + KO
+  narration, uploads to NotebookLM, generates videos, and downloads MP4 files.
   Use when the user asks to "create NLM video", "NLM 비디오", "비디오 만들어",
-  "비디오 생성", "영상 만들어줘", "동영상 생성", "영상으로 만들어",
-  "문서로 영상", "문서를 비디오로", "마크다운으로 비디오",
-  "이 문서로 영상 만들어", "NLM 동영상", "설명 영상 생성",
-  "NLM video explainer", "generate video from doc", "video from markdown",
-  "make video from document", "expert video explainer",
-  "NotebookLM video", "convert document to video",
-  "turn this into a video", "영어 한국어 비디오", "nlm-video", "/nlm-video",
-  or any request to convert a local document into NotebookLM videos.
-  Do NOT use for ad-hoc studio_create calls on existing notebooks -- use
-  notebooklm-studio. Do NOT use for slide generation from local docs -- use
-  nlm-slides. Do NOT use for local video transcription -- use transcribee.
-  Do NOT use for notebook management or source CRUD -- use notebooklm.
+  "generate video from doc", "convert document to video", or convert a local
+  document into NotebookLM videos.
+  Do NOT use for ad-hoc studio_create on existing notebooks -- use notebooklm-studio.
+  Do NOT use for slides from local docs -- use nlm-slides. Do NOT use for local
+  video transcription -- use transcribee. Do NOT use for notebook CRUD -- use
+  notebooklm.
 metadata:
   author: thaki
   version: 1.1.0

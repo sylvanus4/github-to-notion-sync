@@ -2,16 +2,16 @@
 name: domain-commit
 description: >-
   Run pre-commit hooks, fix lint errors, and create domain-split git commits
-  from uncommitted changes. Use when the user asks to commit local changes,
-  run pre-commit, split commits by domain, clean up the working directory,
-  or says "commit my changes", "domain commit", "split commits".
-  Do NOT use for single-file trivial commits, git push/pull/merge operations,
-  or branch management.
+  from uncommitted changes. Use when the user asks to commit local changes, run
+  pre-commit, split commits by domain, clean up the working directory, or says
+  "commit my changes", "domain commit", "split commits". Do NOT use for
+  single-file trivial commits, git push/pull/merge operations, or branch
+  management. Korean triggers: "커밋", "생성", "수정".
 metadata:
-  author: thaki
-  version: 1.1.0
+  author: "thaki"
+  version: "1.1.0"
+  category: "execution"
 ---
-
 # Domain-Split Commit
 
 Automates the full pre-commit + lint-fix + domain-split commit workflow for this project.
@@ -100,3 +100,11 @@ Result: 3 domain-split commits with pre-commit hooks passing
 - **Never amend** commits that failed pre-commit; create new commits instead
 - **Never commit** `.env`, credentials, or secret files
 - Check `git stash list` and inform the user if stashes exist
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

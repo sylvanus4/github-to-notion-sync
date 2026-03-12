@@ -1,12 +1,16 @@
 ---
 name: kwp-product-management-roadmap-management
-description: Plan and prioritize product roadmaps using frameworks like RICE, MoSCoW, and ICE. Use when creating a roadmap, reprioritizing features, mapping dependencies, choosing between Now/Next/Later
-  or quarterly formats, or presenting roadmap tradeoffs to stakeholders. Do NOT use for tasks outside the product domain.
+description: >-
+  Plan and prioritize product roadmaps using frameworks like RICE, MoSCoW, and
+  ICE. Use when creating a roadmap, reprioritizing features, mapping
+  dependencies, choosing between Now/Next/Later or quarterly formats, or
+  presenting roadmap tradeoffs to stakeholders. Do NOT use for tasks outside the
+  product domain. Korean triggers: "로드맵", "우선순위", "기능 계획".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Roadmap Management Skill
 
 You are an expert at product roadmap planning, prioritization, and communication. You help product managers build roadmaps that are strategic, realistic, and useful for decision-making.
@@ -170,3 +174,30 @@ Common triggers for roadmap changes:
 - Batch roadmap updates at natural cadences (monthly, quarterly) unless something is truly urgent.
 - Distinguish between "roadmap change" (strategic reprioritization) and "scope adjustment" (normal execution refinement).
 - Track how often the roadmap changes. Frequent changes may signal unclear strategy, not good responsiveness.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Creating a roadmap"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -1,7 +1,7 @@
 class InvestmentAnalyzer:
     def __init__(self, discount_rate=0.10):
         self.discount_rate = discount_rate
-    
+
     def calculate_npv(self, cash_flows, initial_investment):
         """
         Calculate Net Present Value for investment decision
@@ -10,22 +10,22 @@ class InvestmentAnalyzer:
         for i, cf in enumerate(cash_flows):
             npv += cf / ((1 + self.discount_rate) ** (i + 1))
         return npv
-    
+
     def calculate_irr(self, cash_flows, initial_investment):
         """
         Calculate Internal Rate of Return
         """
         from scipy.optimize import fsolve
-        
+
         def npv_function(rate):
             return sum([cf / ((1 + rate) ** (i + 1)) for i, cf in enumerate(cash_flows)]) - initial_investment
-        
+
         try:
             irr = fsolve(npv_function, 0.1)[0]
             return irr
         except:
             return None
-    
+
     def payback_period(self, cash_flows, initial_investment):
         """
         Calculate payback period in years
@@ -36,7 +36,7 @@ class InvestmentAnalyzer:
             if cumulative_cf >= initial_investment:
                 return i + 1 - ((cumulative_cf - initial_investment) / cf)
         return None
-    
+
     def investment_analysis_report(self, project_name, initial_investment, annual_cash_flows, project_life):
         """
         Comprehensive investment analysis
@@ -45,10 +45,10 @@ class InvestmentAnalyzer:
         irr = self.calculate_irr(annual_cash_flows, initial_investment)
         payback = self.payback_period(annual_cash_flows, initial_investment)
         roi = (sum(annual_cash_flows) - initial_investment) / initial_investment * 100
-        
+
         # Risk assessment
         risk_score = self.assess_investment_risk(annual_cash_flows, project_life)
-        
+
         return {
             'project_name': project_name,
             'initial_investment': initial_investment,
@@ -59,7 +59,7 @@ class InvestmentAnalyzer:
             'risk_score': risk_score,
             'recommendation': self.get_investment_recommendation(npv, irr, payback, risk_score)
         }
-    
+
     def get_investment_recommendation(self, npv, irr, payback, risk_score):
         """
         Generate investment recommendation based on analysis

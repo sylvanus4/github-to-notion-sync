@@ -1,12 +1,17 @@
 ---
 name: alphaear-sentiment
-description: Analyze financial text sentiment using LLM (default) or FinBERT (optional). Use when the user needs to determine sentiment (positive/negative/neutral) and score of financial text. Do NOT use for news aggregation (use alphaear-news). Do NOT use for trading signal generation (use daily-stock-check). Do NOT use for market prediction (use alphaear-predictor).
+description: >-
+  Analyze financial text sentiment using LLM (default) or FinBERT (optional).
+  Use when the user needs to determine sentiment (positive/negative/neutral) and
+  score of financial text. Do NOT use for news aggregation (use alphaear-news).
+  Do NOT use for trading signal generation (use daily-stock-check). Do NOT use
+  for market prediction (use alphaear-predictor). Korean triggers: "감성", "분석",
+  "체크", "주식".
 metadata:
   version: "1.0.0"
-  category: analysis
-  author: alphaear
+  category: "analysis"
+  author: "alphaear"
 ---
-
 # AlphaEar Sentiment
 
 ## Overview

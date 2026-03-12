@@ -2,20 +2,21 @@
 name: pm-data-analytics
 description: >-
   Orchestrate data analytics workflows for PMs: SQL query generation from
-  natural language, cohort analysis (retention, feature adoption), and A/B
-  test analysis (statistical significance, sample size, recommendations).
-  Based on phuryn/pm-skills. Use when the user asks for "SQL query",
-  "cohort analysis", "A/B test analysis", "retention analysis", "write query",
-  or "analyze test results". Do NOT use for general data exploration (use
+  natural language, cohort analysis (retention, feature adoption), and A/B test
+  analysis (statistical significance, sample size, recommendations). Based on
+  phuryn/pm-skills. Use when the user asks for "SQL query", "cohort analysis",
+  "A/B test analysis", "retention analysis", "write query", or "analyze test
+  results". Do NOT use for general data exploration (use
   kwp-data-data-exploration), statistical methods (use
   kwp-data-statistical-analysis), or dashboard building (use
-  kwp-data-interactive-dashboard-builder).
+  kwp-data-interactive-dashboard-builder). Korean triggers: "데이터", "테스트", "빌드",
+  "분석".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/phuryn/pm-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/phuryn/pm-skills"
+  category: "product"
 ---
-
 # PM Data Analytics
 
 Orchestrate data analytics workflows for product managers using phuryn/pm-skills — SQL query generation from natural language, cohort analysis (retention, feature adoption), and A/B test analysis with statistical rigor.

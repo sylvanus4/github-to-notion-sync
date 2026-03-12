@@ -1,11 +1,18 @@
 ---
 name: service-health-doctor
-description: Diagnose and recover the local development stack — check health of all 24+ microservices, detect port conflicts, analyze error logs, and auto-restart failed services. Use when the user reports service issues, asks to check health, or needs to troubleshoot the dev stack. Do NOT use for starting the full stack from scratch (use local-dev-runner) or reviewing infrastructure configuration (use sre-devops-expert).
+description: >-
+  Diagnose and recover the local development stack — check health of all 24+
+  microservices, detect port conflicts, analyze error logs, and auto-restart
+  failed services. Use when the user reports service issues, asks to check
+  health, or needs to troubleshoot the dev stack. Do NOT use for starting the
+  full stack from scratch (use local-dev-runner) or reviewing infrastructure
+  configuration (use sre-devops-expert). Korean triggers: "리뷰", "분석", "체크",
+  "리포트".
 metadata:
   version: "1.0.0"
-  category: execution
+  category: "execution"
+  author: "thaki"
 ---
-
 # Service Health Doctor
 
 Diagnoses and recovers the local development stack (24 microservices + 5 infrastructure components).

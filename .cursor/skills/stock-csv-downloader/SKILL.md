@@ -1,11 +1,17 @@
 ---
 name: stock-csv-downloader
+description: >-
+  Download historical stock price CSVs from investing.com and import into the
+  database. Use when the user asks to download stock data, fetch stock CSVs,
+  update stock prices from investing.com, or refresh historical price data. Do
+  NOT use for quick weekly price updates from Yahoo Finance (use
+  weekly-stock-update). Do NOT use for stock analysis, trading signals, or Slack
+  posting (use daily-stock-check). Korean triggers: "주식", "체크", "데이터", "데이터베이스".
 metadata:
   version: "1.0"
-  category: generation
-description: Download historical stock price CSVs from investing.com and import into the database. Use when the user asks to download stock data, fetch stock CSVs, update stock prices from investing.com, or refresh historical price data. Do NOT use for quick weekly price updates from Yahoo Finance (use weekly-stock-update). Do NOT use for stock analysis, trading signals, or Slack posting (use daily-stock-check).
+  category: "generation"
+  author: "thaki"
 ---
-
 # Stock CSV Downloader
 
 Download per-ticker historical CSVs from investing.com via Playwright and import them into PostgreSQL using the existing CSV import pipeline.

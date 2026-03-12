@@ -1,12 +1,17 @@
 ---
 name: kwp-sync
-description: Sync Anthropic Knowledge Work Plugins from GitHub to Cursor IDE rules. Use when the user asks to "update KWP rules", "sync knowledge-work-plugins", "refresh KWP", "add a new KWP plugin", or
-  "check for upstream KWP changes". Do NOT use for optimizing existing skills (use skill-optimizer) or creating new skills from scratch (use skill-creator).
+description: >-
+  Sync Anthropic Knowledge Work Plugins from GitHub to Cursor IDE rules. Use
+  when the user asks to "update KWP rules", "sync knowledge-work-plugins",
+  "refresh KWP", "add a new KWP plugin", or "check for upstream KWP changes". Do
+  NOT use for optimizing existing skills (use skill-optimizer) or creating new
+  skills from scratch (use skill-creator). Korean triggers: "동기화", "최적화", "체크",
+  "스킬".
 metadata:
-  version: 1.0.0
-  category: execution
+  version: "1.0.0"
+  category: "execution"
+  author: "anthropic-kwp"
 ---
-
 # KWP Sync
 
 Synchronize [anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins) into Cursor IDE skills (`.cursor/skills/kwp-*/SKILL.md`), commands (`.cursor/commands/kwp-*.md`), and the index rule (`.cursor/rules/kwp-index.mdc`). Supports full sync, incremental updates, and selective plugin import.

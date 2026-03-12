@@ -4,14 +4,15 @@ description: >-
   Generate beautiful, self-contained HTML pages that visually explain systems,
   code changes, plans, and data. Use when the user asks for a diagram,
   architecture overview, diff review, plan review, project recap, comparison
-  table, or any visual explanation. Also use proactively when about to render
-  a complex ASCII table (4+ rows or 3+ columns). Do NOT use for simple
-  text-only responses, static markdown formatting, or non-visual documentation.
+  table, or any visual explanation. Also use proactively when about to render a
+  complex ASCII table (4+ rows or 3+ columns). Do NOT use for simple text-only
+  responses, static markdown formatting, or non-visual documentation. Korean
+  triggers: "리뷰", "생성", "계획", "문서".
 metadata:
-  author: nicobailon (ported by thaki)
+  author: "nicobailon (ported by thaki)"
   version: "0.4.3"
+  category: "execution"
 ---
-
 # Visual Explainer
 
 Generate self-contained HTML files for technical diagrams, visualizations, and data tables. Always open the result in the browser. Never fall back to ASCII art when this skill is loaded.

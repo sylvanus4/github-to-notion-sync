@@ -1,12 +1,16 @@
 ---
 name: kwp-finance-variance-analysis
-description: Decompose financial variances into drivers with narrative explanations and waterfall analysis. Use when analyzing budget vs. actual, period-over-period changes, revenue or expense variances,
-  or preparing variance commentary for leadership. Do NOT use for tasks outside the finance domain.
+description: >-
+  Decompose financial variances into drivers with narrative explanations and
+  waterfall analysis. Use when analyzing budget vs. actual, period-over-period
+  changes, revenue or expense variances, or preparing variance commentary for
+  leadership. Do NOT use for tasks outside the finance domain. Korean triggers:
+  "계획", "출시".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Variance Analysis
 
 **Important**: This skill assists with variance analysis workflows but does not provide financial advice. All analyses should be reviewed by qualified financial professionals before use in reporting.
@@ -278,3 +282,30 @@ Track how variances evolve over the year to identify systematic bias:
 - **Growing unfavorable:** Deteriorating performance or unrealistic targets
 - **Shrinking variance:** Forecast accuracy improving through the year (normal pattern)
 - **Volatile:** Unpredictable business or poor forecasting methodology
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Analyzing budget vs"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

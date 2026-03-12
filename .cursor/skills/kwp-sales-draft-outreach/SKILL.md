@@ -1,12 +1,16 @@
 ---
 name: kwp-sales-draft-outreach
-description: Research a prospect then draft personalized outreach. Uses web research by default, supercharged with enrichment and CRM. Trigger with "draft outreach to [person/company]", "write cold email
-  to [prospect]", "reach out to [name]". Do NOT use for tasks outside the sales domain.
+description: >-
+  Research a prospect then draft personalized outreach. Uses web research by
+  default, supercharged with enrichment and CRM. Trigger with "draft outreach to
+  [person/company]", "write cold email to [prospect]", "reach out to [name]". Do
+  NOT use for tasks outside the sales domain. Korean triggers: "검색", "이메일",
+  "리서치".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Draft Outreach
 
 Research first, then draft. This skill never sends generic outreach - it always researches the prospect first to personalize the message. Works standalone with web search, supercharged when you connect your tools.
@@ -453,3 +457,11 @@ Best,
 ## Email Draft Status
 Draft created - check Gmail
 ```
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

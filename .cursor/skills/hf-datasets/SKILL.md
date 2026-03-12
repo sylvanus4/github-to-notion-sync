@@ -2,13 +2,17 @@
 name: hf-datasets
 description: >-
   Create and manage datasets on HuggingFace Hub — initialize repos, stream row
-  updates, run SQL queries, and transform data. Use when creating financial training
-  datasets (sentiment labels, stock signals), uploading curated data to Hub, or
-  querying existing datasets with SQL. Do NOT use for exploring datasets read-only
-  (use hf-dataset-viewer). Do NOT use for local CSV/DB operations (use weekly-stock-update).
-  Do NOT use for model training (use hf-model-trainer).
+  updates, run SQL queries, and transform data. Use when creating financial
+  training datasets (sentiment labels, stock signals), uploading curated data to
+  Hub, or querying existing datasets with SQL. Do NOT use for exploring datasets
+  read-only (use hf-dataset-viewer). Do NOT use for local CSV/DB operations (use
+  weekly-stock-update). Do NOT use for model training (use hf-model-trainer).
+  Korean triggers: "데이터셋 생성", "HF 데이터셋".
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "ml"
 ---
-
 # Overview
 This skill provides tools to manage datasets on the Hugging Face Hub with a focus on creation, configuration, content management, and SQL-based data manipulation. It is designed to complement the existing Hugging Face MCP server by providing dataset editing and querying capabilities.
 
@@ -209,7 +213,7 @@ uv run scripts/sql_manager.py query \
 For complex queries or joining datasets:
 ```bash
 uv run scripts/sql_manager.py raw --sql "
-  SELECT a.*, b.* 
+  SELECT a.*, b.*
   FROM 'hf://datasets/dataset1@~parquet/default/train/*.parquet' a
   JOIN 'hf://datasets/dataset2@~parquet/default/train/*.parquet' b
   ON a.id = b.id
@@ -219,48 +223,7 @@ uv run scripts/sql_manager.py raw --sql "
 
 ## Python API Usage
 
-```python
-from sql_manager import HFDatasetSQL
-
-sql = HFDatasetSQL()
-
-# Query
-results = sql.query("cais/mmlu", "SELECT * FROM data WHERE subject='nutrition' LIMIT 10")
-
-# Get schema
-schema = sql.describe("cais/mmlu")
-
-# Sample
-samples = sql.sample("cais/mmlu", n=5, seed=42)
-
-# Count
-count = sql.count("cais/mmlu", where="subject='nutrition'")
-
-# Histogram
-dist = sql.histogram("cais/mmlu", "subject")
-
-# Filter and transform
-results = sql.filter_and_transform(
-    "cais/mmlu",
-    select="subject, COUNT(*) as cnt",
-    group_by="subject",
-    order_by="cnt DESC",
-    limit=10
-)
-
-# Push to Hub
-url = sql.push_to_hub(
-    "cais/mmlu",
-    "username/nutrition-subset",
-    sql="SELECT * FROM data WHERE subject='nutrition'",
-    private=True
-)
-
-# Export locally
-sql.export_to_parquet("cais/mmlu", "output.parquet", sql="SELECT * FROM data LIMIT 100")
-
-sql.close()
-```
+See `references/python-api-workflows.md` for HFDatasetSQL usage (query, describe, sample, count, histogram, filter_and_transform, push_to_hub, export).
 
 ## HF Path Format
 
@@ -284,7 +247,7 @@ regexp_replace(col, '\n', '')     -- Regex replace
 regexp_matches(col, 'pattern')    -- Regex match
 LOWER(col), UPPER(col)           -- Case conversion
 
--- Array functions  
+-- Array functions
 choices[0]                        -- Array indexing (0-based)
 array_length(choices)             -- Array length
 unnest(choices)                   -- Expand array to rows
@@ -339,63 +302,7 @@ uv run scripts/dataset_manager.py add_rows \
 
 ### Template-Based Data Structures
 
-**1. Chat Template (`--template chat`)**
-```json
-{
-  "messages": [
-    {"role": "user", "content": "Natural user request"},
-    {"role": "assistant", "content": "Response with tool usage"},
-    {"role": "tool", "content": "Tool response", "tool_call_id": "call_123"}
-  ],
-  "scenario": "Description of use case",
-  "complexity": "simple|intermediate|advanced"
-}
-```
-
-**2. Classification Template (`--template classification`)**
-```json
-{
-  "text": "Input text to be classified",
-  "label": "classification_label",
-  "confidence": 0.95,
-  "metadata": {"domain": "technology", "language": "en"}
-}
-```
-
-**3. QA Template (`--template qa`)**
-```json
-{
-  "question": "What is the question being asked?",
-  "answer": "The complete answer",
-  "context": "Additional context if needed",
-  "answer_type": "factual|explanatory|opinion",
-  "difficulty": "easy|medium|hard"
-}
-```
-
-**4. Completion Template (`--template completion`)**
-```json
-{
-  "prompt": "The beginning text or context",
-  "completion": "The expected continuation",
-  "domain": "code|creative|technical|conversational",
-  "style": "description of writing style"
-}
-```
-
-**5. Tabular Template (`--template tabular`)**
-```json
-{
-  "columns": [
-    {"name": "feature1", "type": "numeric", "description": "First feature"},
-    {"name": "target", "type": "categorical", "description": "Target variable"}
-  ],
-  "data": [
-    {"feature1": 123, "target": "class_a"},
-    {"feature1": 456, "target": "class_b"}
-  ]
-}
-```
+Chat, classification, QA, completion, tabular templates. See `references/template-examples.md` for full JSON schemas.
 
 ### Advanced System Prompt Template
 
@@ -487,62 +394,4 @@ uv run scripts/dataset_manager.py stats --repo_id "your-username/dataset-name"
 
 # Combined Workflow Examples
 
-## Example 1: Create Training Subset from Existing Dataset
-```bash
-# 1. Explore the source dataset
-uv run scripts/sql_manager.py describe --dataset "cais/mmlu"
-uv run scripts/sql_manager.py histogram --dataset "cais/mmlu" --column "subject"
-
-# 2. Query and create subset
-uv run scripts/sql_manager.py query \
-  --dataset "cais/mmlu" \
-  --sql "SELECT * FROM data WHERE subject IN ('nutrition', 'anatomy', 'clinical_knowledge')" \
-  --push-to "username/mmlu-medical-subset" \
-  --private
-```
-
-## Example 2: Transform and Reshape Data
-```bash
-# Transform MMLU to QA format with correct answers extracted
-uv run scripts/sql_manager.py query \
-  --dataset "cais/mmlu" \
-  --sql "SELECT question, choices[answer] as correct_answer, subject FROM data" \
-  --push-to "username/mmlu-qa-format"
-```
-
-## Example 3: Merge Multiple Dataset Splits
-```bash
-# Export multiple splits and combine
-uv run scripts/sql_manager.py export \
-  --dataset "cais/mmlu" \
-  --split "*" \
-  --output "mmlu_all.parquet"
-```
-
-## Example 4: Quality Filtering
-```bash
-# Filter for high-quality examples
-uv run scripts/sql_manager.py query \
-  --dataset "squad" \
-  --sql "SELECT * FROM data WHERE LENGTH(context) > 500 AND LENGTH(question) > 20" \
-  --push-to "username/squad-filtered"
-```
-
-## Example 5: Create Custom Training Dataset
-```bash
-# 1. Query source data
-uv run scripts/sql_manager.py export \
-  --dataset "cais/mmlu" \
-  --sql "SELECT question, subject FROM data WHERE subject='nutrition'" \
-  --output "nutrition_source.jsonl" \
-  --format jsonl
-
-# 2. Process with your pipeline (add answers, format, etc.)
-
-# 3. Push processed data
-uv run scripts/dataset_manager.py init --repo_id "username/nutrition-training"
-uv run scripts/dataset_manager.py add_rows \
-  --repo_id "username/nutrition-training" \
-  --template qa \
-  --rows_json "$(cat processed_data.json)"
-```
+See `references/python-api-workflows.md` for: (1) Create training subset, (2) Transform and reshape, (3) Quality filtering, (4) Create custom training dataset from export → process → add_rows.

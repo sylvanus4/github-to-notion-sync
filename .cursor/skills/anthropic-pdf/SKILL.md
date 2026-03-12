@@ -1,12 +1,19 @@
 ---
 name: anthropic-pdf
-description: Read, create, edit, manipulate PDF files. Includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs, splitting PDFs, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. Use when the user mentions a .pdf file or asks to produce one. Do NOT use for Word documents (use anthropic-docx), spreadsheets (use anthropic-xlsx), or presentations (use anthropic-pptx).
+description: >-
+  Read, create, edit, manipulate PDF files. Includes reading or extracting
+  text/tables from PDFs, combining or merging multiple PDFs, splitting PDFs,
+  rotating pages, adding watermarks, creating new PDFs, filling PDF forms,
+  encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make
+  them searchable. Use when the user mentions a .pdf file or asks to produce
+  one. Do NOT use for Word documents (use anthropic-docx), spreadsheets (use
+  anthropic-xlsx), or presentations (use anthropic-pptx). Korean triggers: "PDF", "PDF 편집", "PDF 생성".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Proprietary. LICENSE.txt has complete terms
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Proprietary. LICENSE.txt has complete terms"
+  category: "document"
 ---
-
 # PDF Processing Guide
 
 ## Overview
@@ -315,3 +322,18 @@ with open("encrypted.pdf", "wb") as output:
 - For JavaScript libraries (pdf-lib), see REFERENCE.md
 - If you need to fill out a PDF form, follow the instructions in FORMS.md
 - For troubleshooting guides, see REFERENCE.md
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to read, create, edit, manipulate pdf files
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

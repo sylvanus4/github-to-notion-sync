@@ -44,7 +44,7 @@ metadata:
 ### Linking Pattern
 Keep a 1-2 line summary inline, then link:
 ```markdown
-For the full service inventory, see [references/service-inventory.md](references/service-inventory.md).
+For the full audit checklist, see [references/audit-checklist.md](references/audit-checklist.md).
 ```
 
 ## 3. Required Sections in SKILL.md Body

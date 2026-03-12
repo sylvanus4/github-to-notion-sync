@@ -1,12 +1,16 @@
 ---
 name: anthropic-webapp-testing
-description: Test web apps with Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs. Do NOT use for Playwright test suite generation (use e2e-testing) or test strategy design (use qa-test-expert).
+description: >-
+  Test web apps with Playwright. Supports verifying frontend functionality,
+  debugging UI behavior, capturing browser screenshots, and viewing browser
+  logs. Do NOT use for Playwright test suite generation (use e2e-testing) or
+  test strategy design (use qa-test-expert). Korean triggers: "웹 테스트", "Playwright 테스트".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Complete terms in LICENSE.txt
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Complete terms in LICENSE.txt"
+  category: "document"
 ---
-
 # Web Application Testing
 
 To test local web applications, write native Python Playwright scripts.
@@ -97,3 +101,11 @@ with sync_playwright() as p:
   - `element_discovery.py` - Discovering buttons, links, and inputs on a page
   - `static_html_automation.py` - Using file:// URLs for local HTML
   - `console_logging.py` - Capturing console logs during automation
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

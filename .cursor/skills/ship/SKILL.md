@@ -2,16 +2,17 @@
 name: ship
 description: >-
   End-to-end pre-merge pipeline that reviews code with 4 parallel agents,
-  auto-fixes findings, verifies with linting, creates domain-split commits,
-  and opens a PR. Use when the user runs /ship, asks to "ship it", "prepare
-  for merge", "create a PR with review", or "commit and PR". Do NOT use for
+  auto-fixes findings, verifies with linting, creates domain-split commits, and
+  opens a PR. Use when the user runs /ship, asks to "ship it", "prepare for
+  merge", "create a PR with review", or "commit and PR". Do NOT use for
   review-only (use /simplify or /deep-review), manual commits (use
-  /domain-commit), or PR management (use /pr-create, /pr-review).
+  /domain-commit), or PR management (use /pr-create, /pr-review). Korean
+  triggers: "출시", "리뷰", "생성", "파이프라인".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Ship — Pre-Merge Pipeline
 
 One command to go from "code is done" to "PR is ready". Runs parallel code review, auto-fixes issues, creates domain-split commits, and opens a PR.

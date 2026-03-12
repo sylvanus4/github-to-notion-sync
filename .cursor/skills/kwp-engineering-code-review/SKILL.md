@@ -1,12 +1,16 @@
 ---
 name: kwp-engineering-code-review
-description: Review code for bugs, security vulnerabilities, performance issues, and maintainability. Trigger with "review this code", "check this PR", "look at this diff", "is this code safe?", or when
-  the user shares code and asks for feedback. Do NOT use for this project's FastAPI/Go service patterns — prefer backend-expert or security-expert skill.
+description: >-
+  Review code for bugs, security vulnerabilities, performance issues, and
+  maintainability. Trigger with "review this code", "check this PR", "look at
+  this diff", "is this code safe?", or when the user shares code and asks for
+  feedback. Do NOT use for this project's FastAPI/Go service patterns — prefer
+  backend-expert or security-expert skill. Korean triggers: "코드 리뷰", "PR 리뷰".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Code Review
 
 Structured code review covering security, performance, correctness, and maintainability. Works on diffs, PRs, files, or pasted code snippets.
@@ -46,3 +50,30 @@ Structured code review covering security, performance, correctness, and maintain
 ## Output Format
 
 Rate each dimension and provide specific, actionable findings with file and line references. Prioritize critical issues first. Always include positive observations alongside issues.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with engineering code review"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

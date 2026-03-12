@@ -1,17 +1,18 @@
 ---
 name: cursor-sync
 description: >-
-  Synchronize .cursor/ assets (commands, skills, rules) from the current project
-  to multiple target projects using rsync with checksum-based diffing. Only new
-  and changed files are copied; target-specific files are preserved. Use when
-  the user runs /cursor-sync, asks to "sync skills", "sync commands across
-  projects", or "push cursor config to other repos". Do NOT use for syncing
-  non-.cursor files, deploying code, or general file copy operations.
+  Synchronize .cursor/ assets (commands, skills, rules) from the current
+  project to multiple target projects using rsync with checksum-based diffing.
+  Only new and changed files are copied; target-specific files are preserved.
+  Use when the user runs /cursor-sync, asks to "sync skills", "sync commands
+  across projects", or "push cursor config to other repos". Do NOT use for
+  syncing non-.cursor files, deploying code, or general file copy operations.
+  Korean triggers: "커서 동기화", "스킬 동기화".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Cursor Sync — Multi-Project .cursor/ Asset Synchronization
 
 Sync `.cursor/{commands,skills,rules}` from this project (source of truth) to target projects. Uses `rsync --checksum` so only new and modified files are transferred; target-specific files remain untouched.

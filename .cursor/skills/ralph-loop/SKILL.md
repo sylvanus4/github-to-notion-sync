@@ -3,20 +3,19 @@ name: ralph-loop
 description: >-
   Set up and run the Ralph Loop — a continuous AI agent loop that completes
   tasks one-by-one from a structured task list, persisting state in text files
-  and git commits so each iteration starts with a fresh context window.
-  Use when the user asks to "run ralph loop", "set up ralph loop",
-  "continuous agent loop", "long-running agent", "AFK coding",
-  "batch task execution", or wants to run an AI agent autonomously
-  for many iterations without context window limits.
-  Do NOT use for single-task execution (just run the task directly),
-  interactive pair-programming sessions (use normal agent mode),
-  or tasks requiring pixel-perfect design review (Ralph Loop excels at
-  functional code, not visual polish).
+  and git commits so each iteration starts with a fresh context window. Use when
+  the user asks to "run ralph loop", "set up ralph loop", "continuous agent
+  loop", "long-running agent", "AFK coding", "batch task execution", or wants to
+  run an AI agent autonomously for many iterations without context window
+  limits. Do NOT use for single-task execution (just run the task directly),
+  interactive pair-programming sessions (use normal agent mode), or tasks
+  requiring pixel-perfect design review (Ralph Loop excels at functional code,
+  not visual polish). Korean triggers: "리뷰", "설계", "커밋".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Ralph Loop
 
 Run an AI coding agent in a continuous loop, completing a structured task list one task per iteration. Each iteration gets a fresh context window; state is persisted in `.agent/` text files and git commits.

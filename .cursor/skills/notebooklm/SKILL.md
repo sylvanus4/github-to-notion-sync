@@ -189,3 +189,14 @@ nlm doctor
 - **notebooklm-studio** -- content generation (audio, video, reports, quizzes, slides, infographics)
 - **notebooklm-research** -- web/Drive research pipelines
 - **nlm-deep-learn** -- accelerated learning pipeline (mental models, debates, deep-understanding quizzes)
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "List notebooks"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness

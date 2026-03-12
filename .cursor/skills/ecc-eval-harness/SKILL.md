@@ -6,10 +6,13 @@ description: >-
   structured scoring. Use when evaluating agent output quality, running A/B
   tests on agent configurations, or measuring regression after changes. Do NOT
   use for LLM prompt evaluation (use evals-skills). Do NOT use for AI report
-  quality scoring (use ai-quality-evaluator).
+  quality scoring (use ai-quality-evaluator). Korean triggers: "에이전트 평가", "eval 프레임워크".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 ---
-
 # Eval Harness Skill
 
 A formal evaluation framework for Claude Code sessions, implementing eval-driven development (EDD) principles.
@@ -273,3 +276,11 @@ Recommended thresholds:
 - `.claude/evals/<feature>.md` definition
 - `.claude/evals/<feature>.log` run history
 - `docs/releases/<version>/eval-summary.md` release snapshot
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

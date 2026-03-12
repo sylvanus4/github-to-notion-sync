@@ -3,18 +3,17 @@ name: slack-agent
 description: >-
   Build and deploy Slack bots/agents using Bolt for JavaScript or Express.
   Guides through project setup, Slack app creation, environment configuration,
-  local testing, and production deployment via an interactive wizard.
-  Deployment target is user's choice: Docker/K8s, serverless, PaaS, or any Node.js host.
-  Use when the user asks to "build a Slack bot", "create a Slack agent",
-  "deploy a Slack app", "slack-agent", or mentions Slack bot development.
-  Do NOT use for general Slack messaging (use kwp-slack-slack-messaging),
-  Slack search (use kwp-slack-slack-search).
+  local testing, and production deployment via an interactive wizard. Deployment
+  target is user's choice: Docker/K8s, serverless, PaaS, or any Node.js host.
+  Use when the user asks to "build a Slack bot", "create a Slack agent", "deploy
+  a Slack app", "slack-agent", or mentions Slack bot development. Do NOT use for
+  general Slack messaging (use kwp-slack-slack-messaging), Slack search (use
+  kwp-slack-slack-search). Korean triggers: "슬랙 봇", "봇 만들기", "슬랙 앱".
 metadata:
-  author: thaki
-  version: 2.0.0
-  category: execution
+  author: "thaki"
+  version: "2.0.0"
+  category: "execution"
 ---
-
 # Slack Agent Development
 
 Build Slack bots and AI agents with the official Slack SDK. Framework-agnostic deployment — run on Docker, Kubernetes, serverless, PaaS, or any Node.js host.

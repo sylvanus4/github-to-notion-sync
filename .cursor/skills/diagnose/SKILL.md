@@ -2,16 +2,17 @@
 name: diagnose
 description: >-
   Run 3 parallel analysis agents (Root Cause, Error Context, Impact) to
-  diagnose bugs, errors, and performance issues, then synthesize findings
-  into a single root cause and apply a fix. Use when the user runs /diagnose,
-  asks to "find the bug", "debug this", "why is this failing", "root cause
-  analysis", or "diagnose the error". Do NOT use for code review (use
-  /simplify or /deep-review), new feature work, or general Q&A.
+  diagnose bugs, errors, and performance issues, then synthesize findings into a
+  single root cause and apply a fix. Use when the user runs /diagnose, asks to
+  "find the bug", "debug this", "why is this failing", "root cause analysis", or
+  "diagnose the error". Do NOT use for code review (use /simplify or
+  /deep-review), new feature work, or general Q&A. Korean triggers: "진단", "리뷰",
+  "디버깅", "수정".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Diagnose — Root Cause Analysis and Fix
 
 When something is broken, run 3 parallel analysis agents to find the root cause from different angles, synthesize a diagnosis, and apply a fix.

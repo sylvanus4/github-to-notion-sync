@@ -1,12 +1,16 @@
 ---
 name: kwp-human-resources-interview-prep
-description: Create structured interview plans with competency-based questions and scorecards. Trigger with "interview plan for", "interview questions for", "how should we interview", "scorecard for", or
-  when the user is preparing to interview candidates. Do NOT use for tasks outside the human domain.
+description: >-
+  Create structured interview plans with competency-based questions and
+  scorecards. Trigger with "interview plan for", "interview questions for", "how
+  should we interview", "scorecard for", or when the user is preparing to
+  interview candidates. Do NOT use for tasks outside the human domain. Korean
+  triggers: "생성", "계획".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Interview Prep
 
 Create structured interview plans to evaluate candidates consistently and fairly.
@@ -50,3 +54,30 @@ Structured format for interviewers to share findings and make a decision.
 ## Output
 
 Produce a complete interview kit: panel assignment (who interviews for what), question bank by competency, scoring rubric, and debrief template.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with human resources interview prep"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

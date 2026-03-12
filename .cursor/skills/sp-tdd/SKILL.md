@@ -1,8 +1,14 @@
 ---
 name: test-driven-development
-description: Use when implementing any feature or bugfix, before writing implementation code
+description: >-
+  Use when implementing any feature or bugfix, before writing implementation
+  code. Korean triggers: "TDD", "테스트 주도", "테스트 먼저 작성". Do NOT use
+  for debugging existing bugs (use sp-debugging).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Test-Driven Development (TDD)
 
 ## Overview

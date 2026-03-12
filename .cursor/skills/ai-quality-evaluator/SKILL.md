@@ -223,3 +223,11 @@ Actions:
 - **Ground truth**: `backend/scripts/weekly_stock_update.py`, `backend/scripts/daily_stock_check.py`
 - **Constants**: `backend/app/core/constants.py`
 - **Related skills**: `today` (generates reports), `alphaear-reporter` (report content), `evals-skills` (LLM evaluation)
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

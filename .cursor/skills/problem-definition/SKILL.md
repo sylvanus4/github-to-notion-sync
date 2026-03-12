@@ -8,12 +8,13 @@ description: >-
   runs /define-problem, asks to "define the problem", "what's the real problem",
   "frame this problem", "problem statement", or "before we solve this". Do NOT
   use for code review (use simplify or deep-review), generating solutions (use
-  diagnose), or project planning (use pm-execution).
+  diagnose), or project planning (use pm-execution). Korean triggers: "리뷰",
+  "테스트", "계획", "진단".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Problem Definition — 5D Framework
 
 Accurate problem definition is the single highest-leverage activity in any project. The 75/25 rule: spend 75% of effort defining the problem (P-code), 25% on the solution (S-code). Most failures trace back to poorly defined problems, not poor solutions.

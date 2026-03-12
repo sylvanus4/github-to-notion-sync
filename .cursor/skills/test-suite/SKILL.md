@@ -8,11 +8,12 @@ description: >-
   review", "check test coverage", "generate missing tests", "run and fix tests",
   or "full test audit". Do NOT use for single-file test writing, manual test
   execution only (use shell), or code review without test focus (use /simplify).
+  Korean triggers: "테스트", "감사", "리뷰", "분석".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Test Suite — Test Full-Lifecycle Orchestrator
 
 Analyze test coverage and quality from 2 perspectives simultaneously, auto-generate missing tests, then execute the suite and fix failures. Covers the entire test lifecycle from audit to green CI.

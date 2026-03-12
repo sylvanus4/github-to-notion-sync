@@ -1,12 +1,16 @@
 ---
 name: kwp-finance-financial-statements
-description: Generate income statements, balance sheets, and cash flow statements with GAAP presentation and period-over-period comparison. Use when preparing financial statements, running flux analysis,
-  or creating P&L reports with variance commentary. Do NOT use for tasks outside the finance domain.
+description: >-
+  Generate income statements, balance sheets, and cash flow statements with
+  GAAP presentation and period-over-period comparison. Use when preparing
+  financial statements, running flux analysis, or creating P&L reports with
+  variance commentary. Do NOT use for tasks outside the finance domain. Korean
+  triggers: "생성", "리포트", "프레젠테이션".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Financial Statements
 
 **Important**: This skill assists with financial statement workflows but does not provide financial advice. All statements should be reviewed by qualified financial professionals before use in reporting or filings.
@@ -263,3 +267,30 @@ For each material variance:
 4. Provide a narrative explanation of the business reason
 5. Assess whether the variance is temporary or represents a trend change
 6. Note any actions required (further investigation, forecast update, process change)
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Preparing financial statements"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

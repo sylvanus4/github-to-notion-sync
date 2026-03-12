@@ -1,12 +1,17 @@
 ---
 name: alphaear-predictor
-description: Market prediction using Kronos time-series model with news-aware adjustments. Use when user needs finance market time-series forecasting, multi-day price predictions, or news-informed forecast adjustments. Do NOT use for technical indicator analysis like SMA/Bollinger (use daily-stock-check). Do NOT use for backtesting strategies (use backtest service).
+description: >-
+  Market prediction using Kronos time-series model with news-aware adjustments.
+  Use when user needs finance market time-series forecasting, multi-day price
+  predictions, or news-informed forecast adjustments. Do NOT use for technical
+  indicator analysis like SMA/Bollinger (use daily-stock-check). Do NOT use for
+  backtesting strategies (use backtest service). Korean triggers: "테스트", "체크",
+  "주식", "시장".
 metadata:
   version: "1.0.0"
-  category: analysis
-  author: alphaear
+  category: "analysis"
+  author: "alphaear"
 ---
-
 # AlphaEar Predictor
 
 ## Overview

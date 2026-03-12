@@ -1,12 +1,16 @@
 ---
 name: kwp-customer-support-escalation
-description: Structure and package support escalations for engineering, product, or leadership with full context, reproduction steps, and business impact. Use when an issue needs to go beyond support, when
-  writing an escalation brief, or when assessing whether an issue warrants escalation. Do NOT use for tasks outside the customer domain.
+description: >-
+  Structure and package support escalations for engineering, product, or
+  leadership with full context, reproduction steps, and business impact. Use
+  when an issue needs to go beyond support, when writing an escalation brief, or
+  when assessing whether an issue warrants escalation. Do NOT use for tasks
+  outside the customer domain. Korean triggers: "출시".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Escalation Skill
 
 You are an expert at determining when and how to escalate support issues. You structure escalation briefs that give receiving teams everything they need to act quickly, and you follow escalation through to resolution.
@@ -183,3 +187,30 @@ When handling escalations:
 5. Maintain ownership of the customer relationship even after escalating the technical issue
 6. Follow up proactively — don't wait for the receiving team to come to you
 7. Document everything — the escalation trail is valuable for pattern detection and process improvement
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "An issue needs to go beyond support"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

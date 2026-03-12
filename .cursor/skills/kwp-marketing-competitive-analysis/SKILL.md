@@ -1,12 +1,16 @@
 ---
 name: kwp-marketing-competitive-analysis
-description: Research competitors and compare positioning, messaging, content strategy, and market presence. Use when analyzing a competitor, building battlecards, identifying content gaps, comparing feature
-  messaging, or preparing competitive positioning recommendations. Do NOT use for tasks outside the marketing domain.
+description: >-
+  Research competitors and compare positioning, messaging, content strategy,
+  and market presence. Use when analyzing a competitor, building battlecards,
+  identifying content gaps, comparing feature messaging, or preparing
+  competitive positioning recommendations. Do NOT use for tasks outside the
+  marketing domain. Korean triggers: "빌드", "검색", "시장", "리서치".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Competitive Analysis Skill
 
 Frameworks and methodologies for researching competitors, comparing positioning, and identifying market opportunities.
@@ -232,3 +236,30 @@ Questions competitors might encourage prospects to ask you, with prepared respon
 - Update immediately after major competitor announcements
 - Incorporate win/loss feedback from sales team
 - Track which objection-handling responses are most effective
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Analyzing a competitor"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

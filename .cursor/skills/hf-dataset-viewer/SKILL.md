@@ -1,14 +1,18 @@
 ---
 name: hf-dataset-viewer
 description: >-
-  Explore and query HuggingFace datasets via the Dataset Viewer REST API — fetch
-  metadata, paginate rows, search text, filter, and download parquet files. Use when
-  exploring public financial datasets, previewing dataset structure before training,
-  or extracting specific rows from large datasets. Do NOT use for dataset creation
-  or editing (use hf-datasets). Do NOT use for local DB queries (use db-expert).
-  Do NOT use for model training (use hf-model-trainer).
+  Explore and query HuggingFace datasets via the Dataset Viewer REST API —
+  fetch metadata, paginate rows, search text, filter, and download parquet
+  files. Use when exploring public financial datasets, previewing dataset
+  structure before training, or extracting specific rows from large datasets. Do
+  NOT use for dataset creation or editing (use hf-datasets). Do NOT use for
+  local DB queries (use db-expert). Do NOT use for model training (use
+  hf-model-trainer). Korean triggers: "데이터셋 탐색", "HF 데이터 조회".
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "ml"
 ---
-
 # Hugging Face Dataset Viewer
 
 Use this skill to execute read-only Dataset Viewer API calls for dataset exploration and extraction.
@@ -125,3 +129,21 @@ npx -y @huggingface/hub upload datasets/<namespace>/<repo> ./local/parquet-folde
 ```
 
 After upload, call `/parquet` to discover `<config>/<split>/<shard>` values for querying with `@~parquet`.
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "Exploring public financial datasets"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Authentication error | Run `hf auth status` or `huggingface-cli login` to re-authenticate |
+| Model/dataset not found | Verify the repo ID and check if it is public or requires access |
+| Quota exceeded | Check HF account limits and upgrade plan if needed |

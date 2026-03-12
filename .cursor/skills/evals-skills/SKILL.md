@@ -7,15 +7,15 @@ description: >-
   interfaces. Based on hamelsmu/evals-skills (50+ company patterns). Use when
   the user asks for "eval audit", "error analysis", "judge prompt", "validate
   evaluator", "synthetic data", "evaluate RAG", "annotation interface", "review
-  traces", "evals", or "LLM evaluation". Do NOT use for general code review
-  (use backend-expert or frontend-expert), ML model training, unit testing
-  (use qa-test-expert), or non-LLM evaluation tasks.
+  traces", "evals", or "LLM evaluation". Do NOT use for general code review (use
+  backend-expert or frontend-expert), ML model training, unit testing (use
+  qa-test-expert), or non-LLM evaluation tasks. Korean triggers: "LLM 평가", "eval 파이프라인".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/hamelsmu/evals-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/hamelsmu/evals-skills"
+  category: "execution"
 ---
-
 # Evals Skills — LLM Evaluation Pipeline Toolkit
 
 Orchestrate LLM product evaluation tasks using 7 specialized sub-skills from [hamelsmu/evals-skills](https://github.com/hamelsmu/evals-skills).

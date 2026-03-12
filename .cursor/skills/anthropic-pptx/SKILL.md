@@ -1,12 +1,20 @@
 ---
 name: anthropic-pptx
-description: Create, read, edit PowerPoint presentations (.pptx). Includes creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from .pptx files; editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Use when user mentions "deck", "slides", "presentation", or references a .pptx filename. Do NOT use for Word documents (use anthropic-docx), spreadsheets (use anthropic-xlsx), or PDFs (use anthropic-pdf).
+description: >-
+  Create, read, edit PowerPoint presentations (.pptx). Includes creating slide
+  decks, pitch decks, or presentations; reading, parsing, or extracting text
+  from .pptx files; editing, modifying, or updating existing presentations;
+  combining or splitting slide files; working with templates, layouts, speaker
+  notes, or comments. Use when user mentions "deck", "slides", "presentation",
+  or references a .pptx filename. Do NOT use for Word documents (use
+  anthropic-docx), spreadsheets (use anthropic-xlsx), or PDFs (use
+  anthropic-pdf). Korean triggers: "프레젠테이션", "슬라이드", "pptx".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Proprietary. LICENSE.txt has complete terms
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Proprietary. LICENSE.txt has complete terms"
+  category: "document"
 ---
-
 # PPTX Skill
 
 ## Quick Reference
@@ -233,3 +241,18 @@ pdftoppm -jpeg -r 150 -f N -l N output.pdf slide-fixed
 - `npm install -g pptxgenjs` - creating from scratch
 - LibreOffice (`soffice`) - PDF conversion (auto-configured for sandboxed environments via `scripts/office/soffice.py`)
 - Poppler (`pdftoppm`) - PDF to images
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to create, read, edit powerpoint presentations (
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

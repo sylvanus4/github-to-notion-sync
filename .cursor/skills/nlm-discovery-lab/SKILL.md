@@ -1,18 +1,15 @@
 ---
 name: nlm-discovery-lab
 description: >-
-  End-to-end pipeline: run PM product discovery frameworks (Opportunity Solution
-  Tree, assumption identification, interview scripts, experiment design),
-  user research (personas, journey maps, segmentation), and data frameworks
-  (metrics dashboard, cohort analysis, A/B test design), compile into expert-level
-  EN + KO discovery documents, upload to NotebookLM with competitive research,
-  and generate 5 interactive learning assets (quiz, audio debate, slides,
-  study guide, data table).
+  End-to-end pipeline: run PM product discovery frameworks (OST, assumptions,
+  interview scripts, experiments), user research (personas, journey maps,
+  segmentation), and data frameworks (metrics, cohort, A/B test), compile into
+  expert-level EN + KO discovery documents, upload to NotebookLM with competitive
+  research, and generate 5 learning assets (quiz, debate podcast, slides, study
+  guide, data table).
   Use when the user asks to "run discovery lab", "product discovery notebook",
-  "discovery research hub", "디스커버리 랩", "발견 실험실", "NLM 디스커버리",
-  "assumption testing notebook", "opportunity solution tree to slides",
-  "discovery findings podcast", "team alignment quiz",
-  or any request to run product discovery analysis and produce NotebookLM outputs.
+  "디스커버리 랩", "assumption testing", or run product discovery and produce
+  NotebookLM outputs.
   Do NOT use for strategic planning without discovery focus -- use nlm-strategy-hub.
   Do NOT use for GTM launch materials -- use nlm-launch-kit.
   Do NOT use for ad-hoc studio_create on existing notebooks -- use notebooklm-studio.

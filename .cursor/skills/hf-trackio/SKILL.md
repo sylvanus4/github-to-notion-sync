@@ -1,14 +1,18 @@
 ---
 name: hf-trackio
 description: >-
-  Track and visualize ML training experiments with Trackio — log metrics via Python
-  API, fire alerts for diagnostics, and retrieve metrics via CLI. Use when monitoring
-  financial model training runs, comparing experiment results, or setting up real-time
-  dashboards on HF Spaces. Do NOT use for model training itself (use hf-model-trainer).
-  Do NOT use for stock price tracking (use weekly-stock-update). Do NOT use for
-  AI report quality metrics (use ai-quality-evaluator).
+  Track and visualize ML training experiments with Trackio — log metrics via
+  Python API, fire alerts for diagnostics, and retrieve metrics via CLI. Use
+  when monitoring financial model training runs, comparing experiment results,
+  or setting up real-time dashboards on HF Spaces. Do NOT use for model training
+  itself (use hf-model-trainer). Do NOT use for stock price tracking (use
+  weekly-stock-update). Do NOT use for AI report quality metrics (use
+  ai-quality-evaluator). Korean triggers: "실험 추적", "학습 모니터링".
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "ml"
 ---
-
 # Trackio - Experiment Tracking for ML Training
 
 Trackio is an experiment tracking library for logging and visualizing ML training metrics. It syncs to Hugging Face Spaces for real-time monitoring dashboards.
@@ -119,3 +123,21 @@ Then poll from a separate terminal/process:
 ```bash
 trackio list alerts --project my-project --json --since "2025-01-01T00:00:00"
 ```
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "Monitoring financial model training runs"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Authentication error | Run `hf auth status` or `huggingface-cli login` to re-authenticate |
+| Model/dataset not found | Verify the repo ID and check if it is public or requires access |
+| Quota exceeded | Check HF account limits and upgrade plan if needed |

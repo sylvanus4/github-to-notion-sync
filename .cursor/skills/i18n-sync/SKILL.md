@@ -1,11 +1,17 @@
 ---
 name: i18n-sync
-description: Synchronize translation keys across all locale files (en, ko, ja, zh-CN), detect missing or extra keys, generate translation drafts via LLM, and sort/deduplicate keys. Use when the user asks to check translations, sync i18n keys, add new translated strings, or audit locale files. Do NOT use for frontend component review (use frontend-expert) or general documentation writing (use technical-writer).
+description: >-
+  Synchronize translation keys across all locale files (en, ko, ja, zh-CN),
+  detect missing or extra keys, generate translation drafts via LLM, and
+  sort/deduplicate keys. Use when the user asks to check translations, sync i18n
+  keys, add new translated strings, or audit locale files. Do NOT use for
+  frontend component review (use frontend-expert) or general documentation
+  writing (use technical-writer). Korean triggers: "동기화", "감사", "리뷰", "생성".
 metadata:
   version: "1.0.0"
-  category: execution
+  category: "execution"
+  author: "thaki"
 ---
-
 # i18n Sync Manager
 
 Manages translation synchronization across 4 locales in `frontend/src/i18n/locales/`.

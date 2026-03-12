@@ -3,14 +3,14 @@ name: gws-calendar
 description: >-
   Manage Google Calendar via the gws CLI -- view agenda, create events, check
   availability, and manage invitations. Use when the user asks to check
-  calendar, schedule meetings, view agenda, create events, or find free time.
-  Do NOT use for email (use gws-gmail), Chat messages (use gws-chat), or task
-  lists (use gws-workflows).
+  calendar, schedule meetings, view agenda, create events, or find free time. Do
+  NOT use for email (use gws-gmail), Chat messages (use gws-chat), or task lists
+  (use gws-workflows). Korean triggers: "캘린더", "일정", "일정 관리".
 metadata:
-  author: googleworkspace/cli (adapted)
-  version: 1.0.0
+  author: "googleworkspace/cli (adapted)"
+  version: "1.0.0"
+  category: "integration"
 ---
-
 # Google Calendar
 
 > **Prerequisites**: `gws` must be installed and authenticated. See `gws-workspace` skill.
@@ -119,3 +119,30 @@ gws calendar freebusy query \
 gws calendar events delete \
   --params '{"calendarId": "primary", "eventId": "EVENT_ID"}' --dry-run
 ```
+
+## Examples
+
+### Example 1: Basic operation
+
+**User says:** "Check calendar"
+
+**Actions:**
+1. Verify `gws` CLI is authenticated (`gws auth status`)
+2. Execute the appropriate `gws` command with required parameters
+3. Confirm the result and report back
+
+### Example 2: Troubleshooting
+
+**User says:** "The command failed with an authentication error"
+
+**Actions:**
+1. Check auth status: `gws auth status`
+2. Re-authenticate if expired: `gws auth login`
+3. Retry the original command
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Authentication error | Run `gws auth status` and re-authenticate if expired |
+| API rate limit | Wait and retry. For bulk operations, add delays between requests |
+| Resource not found | Verify the resource ID/name and check permissions |

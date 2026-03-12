@@ -1,11 +1,17 @@
 ---
 name: backend-expert
-description: Design and review FastAPI microservices, Pydantic models, async patterns, error handling, and observability. Use when the user asks about backend API design, service architecture, error models, or observability setup. Do NOT use for database schema design or migration review (use db-expert), deployment/infrastructure concerns (use sre-devops-expert), or frontend code (use frontend-expert).
+description: >-
+  Design and review FastAPI microservices, Pydantic models, async patterns,
+  error handling, and observability. Use when the user asks about backend API
+  design, service architecture, error models, or observability setup. Do NOT use
+  for database schema design or migration review (use db-expert),
+  deployment/infrastructure concerns (use sre-devops-expert), or frontend code
+  (use frontend-expert). Korean triggers: "백엔드", "리뷰", "배포", "설계".
 metadata:
   version: "1.0.0"
-  category: review
+  category: "review"
+  author: "thaki"
 ---
-
 # Backend Expert
 
 Specialist for the FastAPI + Python 3.11+ microservices platform. The repo has 19 Python services under `services/` plus 1 Go service (`services/call-manager/`). Shared library at `shared/python/` (`agent-assist-common`).

@@ -1,12 +1,16 @@
 ---
 name: kwp-sales-daily-briefing
-description: Start your day with a prioritized sales briefing. Works standalone when you tell me your meetings and priorities, supercharged when you connect your calendar, CRM, and email. Trigger with "morning
-  briefing", "daily brief", "what's on my plate today", "prep my day", or "start my day". Do NOT use for tasks outside the sales domain.
+description: >-
+  Start your day with a prioritized sales briefing. Works standalone when you
+  tell me your meetings and priorities, supercharged when you connect your
+  calendar, CRM, and email. Trigger with "morning briefing", "daily brief",
+  "what's on my plate today", "prep my day", or "start my day". Do NOT use for
+  tasks outside the sales domain. Korean triggers: "이메일", "캘린더".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Daily Sales Briefing
 
 Get a clear view of what matters most today. This skill works with whatever you tell me, and gets richer when you connect your tools.
@@ -265,3 +269,30 @@ Say "wrap up my day" or "end of day summary" after your last meeting:
 - **call-prep** — Deep prep for any specific meeting
 - **call-follow-up** — Process notes after calls
 - **account-research** — Research a company before first meeting
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with sales daily briefing"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

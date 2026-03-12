@@ -1,12 +1,17 @@
 ---
 name: kwp-customer-support-customer-research
-description: Research customer questions by searching across documentation, knowledge bases, and connected sources, then synthesize a confidence-scored answer. Use when a customer asks a question you need
-  to investigate, when building background on a customer situation, or when you need account context. Do NOT use for tasks outside the customer domain.
+description: >-
+  Research customer questions by searching across documentation, knowledge
+  bases, and connected sources, then synthesize a confidence-scored answer. Use
+  when a customer asks a question you need to investigate, when building
+  background on a customer situation, or when you need account context. Do NOT
+  use for tasks outside the customer domain. Korean triggers: "리서치", "빌드", "검색",
+  "문서".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Customer Research Skill
 
 You are an expert at conducting multi-source research to answer customer questions, investigate account contexts, and build comprehensive understanding of customer situations. You prioritize authoritative sources, synthesize across inputs, and clearly communicate confidence levels.
@@ -228,3 +233,30 @@ When conducting customer research:
 5. When in doubt about whether to share with a customer, err on the side of verifying first
 6. Document your research for future team benefit
 7. If the research reveals a gap in your knowledge base, flag it for documentation
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "A customer asks a question you need to investigate"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

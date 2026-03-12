@@ -1,9 +1,17 @@
 ---
 name: kwp-cowork-create-cowork-plugin
-description: > Do NOT use for tasks outside the cowork domain.
+description: >-
+  Guide users through creating a new Claude Cowork plugin from scratch.
+  Five-phase workflow: Discovery → Component Planning → Design → Implementation →
+  Review & Package. Delivers a ready-to-install .plugin file. Covers commands,
+  skills, agents, hooks, and MCP integrations.
+  Use when the user asks to "create a plugin", "build a plugin", "make a new
+  plugin", or "develop a plugin" for Cowork.
+  Do NOT use for tasks outside the cowork domain.
 metadata:
   author: anthropic-kwp
   version: 1.0.0
+  category: workflow
 ---
 
 # Create Cowork Plugin

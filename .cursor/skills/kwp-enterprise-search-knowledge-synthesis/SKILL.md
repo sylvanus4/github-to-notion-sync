@@ -1,12 +1,15 @@
 ---
 name: kwp-enterprise-search-knowledge-synthesis
-description: Combines search results from multiple sources into coherent, deduplicated answers with source attribution. Handles confidence scoring based on freshness and authority, and summarizes large
-  result sets effectively. Do NOT use for tasks outside the enterprise domain.
+description: >-
+  Combines search results from multiple sources into coherent, deduplicated
+  answers with source attribution. Handles confidence scoring based on freshness
+  and authority, and summarizes large result sets effectively. Do NOT use for
+  tasks outside the enterprise domain. Korean triggers: "검색".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Knowledge Synthesis
 
 The last mile of enterprise search. Takes raw results from multiple sources and produces a coherent, trustworthy answer.
@@ -259,3 +262,30 @@ Want me to dig deeper into any specific aspect?
 - Surface conflicts explicitly
 - Attribute all claims to sources
 - Offer to go deeper when result sets are large
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with enterprise search knowledge synthesis"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

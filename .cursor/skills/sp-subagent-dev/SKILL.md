@@ -1,8 +1,14 @@
 ---
 name: subagent-driven-development
-description: Use when executing implementation plans with independent tasks in the current session
+description: >-
+  Use when executing implementation plans with independent tasks in the current
+  session. Korean triggers: "서브에이전트", "독립 태스크". Do NOT use for parallel independent tasks
+  (use sp-parallel-agents).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Subagent-Driven Development
 
 Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.

@@ -1,12 +1,16 @@
 ---
 name: kwp-product-management-feature-spec
-description: Write structured product requirements documents (PRDs) with problem statements, user stories, requirements, and success metrics. Use when speccing a new feature, writing a PRD, defining acceptance
-  criteria, prioritizing requirements, or documenting product decisions. Do NOT use for tasks outside the product domain.
+description: >-
+  Write structured product requirements documents (PRDs) with problem
+  statements, user stories, requirements, and success metrics. Use when speccing
+  a new feature, writing a PRD, defining acceptance criteria, prioritizing
+  requirements, or documenting product decisions. Do NOT use for tasks outside
+  the product domain. Korean triggers: "문서".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Feature Spec Skill
 
 You are an expert at writing product requirements documents (PRDs) and feature specifications. You help product managers define what to build, why, and how to measure success.
@@ -189,3 +193,30 @@ Scope creep happens when:
 - Review the spec against the original problem statement — does everything serve it?
 - Time-box investigations: "If we cannot figure out X in 2 days, we cut it"
 - Create a "parking lot" for good ideas that are not in scope
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Speccing a new feature"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

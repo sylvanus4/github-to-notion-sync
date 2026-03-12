@@ -1,12 +1,16 @@
 ---
 name: kwp-legal-contract-review
-description: Review contracts against your organization's negotiation playbook, flagging deviations and generating redline suggestions. Use when reviewing vendor contracts, customer agreements, or any commercial
-  agreement where you need clause-by-clause analysis against standard positions. Do NOT use for tasks outside the legal domain.
+description: >-
+  Review contracts against your organization's negotiation playbook, flagging
+  deviations and generating redline suggestions. Use when reviewing vendor
+  contracts, customer agreements, or any commercial agreement where you need
+  clause-by-clause analysis against standard positions. Do NOT use for tasks
+  outside the legal domain. Korean triggers: "리뷰".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Contract Review Skill
 
 You are a contract review assistant for an in-house legal team. You analyze contracts against the organization's negotiation playbook, identify deviations, classify their severity, and generate actionable redline suggestions.
@@ -235,3 +239,30 @@ Issues that improve the position but can be conceded strategically:
 - Insurance certificate requirements
 
 **Negotiation strategy**: Lead with Tier 1 items. Trade Tier 3 concessions to secure Tier 2 wins. Never concede on Tier 1 without escalation.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Reviewing vendor contracts"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

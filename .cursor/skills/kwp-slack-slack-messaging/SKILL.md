@@ -1,11 +1,13 @@
 ---
 name: kwp-slack-slack-messaging
-description: Guidance for composing well-formatted, effective Slack messages using mrkdwn syntax. Do NOT use for tasks outside the slack domain.
+description: >-
+  Guidance for composing well-formatted, effective Slack messages using mrkdwn
+  syntax. Do NOT use for tasks outside the slack domain.
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Slack Messaging Best Practices
 
 This skill provides guidance for composing well-formatted, effective Slack messages.
@@ -55,3 +57,30 @@ Slack uses its own markup syntax called **mrkdwn**, which differs from standard 
 - Match the tone to the channel — `#general` is usually more formal than `#random`.
 - Use emoji reactions instead of reply messages for simple acknowledgments (though note: the MCP tools can't add reactions, so suggest the user do this manually if appropriate).
 - When writing announcements, use a clear structure: context, key info, call to action.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with slack slack messaging"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

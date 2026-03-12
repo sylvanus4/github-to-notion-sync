@@ -1,11 +1,17 @@
 ---
 name: mission-control
-description: Orchestrate multi-skill autonomous workflows — decompose high-level goals into sub-tasks, delegate to specialist skills via subagents, aggregate results, and track progress. Use when the user asks for a full review, release prep, quality audit, incident response, or any task spanning multiple domains. Do NOT use for single-domain tasks that map to one specific skill.
+description: >-
+  Orchestrate multi-skill autonomous workflows — decompose high-level goals
+  into sub-tasks, delegate to specialist skills via subagents, aggregate
+  results, and track progress. Use when the user asks for a full review, release
+  prep, quality audit, incident response, or any task spanning multiple domains.
+  Do NOT use for single-domain tasks that map to one specific skill. Korean
+  triggers: "감사", "리뷰", "워크플로우", "릴리즈".
 metadata:
   version: "1.0.0"
-  category: orchestrator
+  category: "orchestrator"
+  author: "thaki"
 ---
-
 # Mission Control — Agent Orchestrator
 
 The meta-skill that coordinates all other skills. Decomposes high-level goals into sub-tasks, delegates to specialist skills via the Task tool, aggregates results, and tracks progress.

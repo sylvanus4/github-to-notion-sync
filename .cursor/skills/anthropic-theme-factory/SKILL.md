@@ -1,12 +1,17 @@
 ---
 name: anthropic-theme-factory
-description: Apply themes to artifacts (slides, docs, reports, HTML landing pages). 10 pre-set themes with colors/fonts; apply to any artifact or generate new themes on-the-fly. Do NOT use for brand guidelines (use anthropic-brand-guidelines) or design system management (use kwp-design-design-system-management).
+description: >-
+  Apply themes to artifacts (slides, docs, reports, HTML landing pages). 10
+  pre-set themes with colors/fonts; apply to any artifact or generate new themes
+  on-the-fly. Do NOT use for brand guidelines (use anthropic-brand-guidelines)
+  or design system management (use kwp-design-design-system-management). Korean
+  triggers: "생성", "설계", "리포트", "슬라이드".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Complete terms in LICENSE.txt
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Complete terms in LICENSE.txt"
+  category: "document"
 ---
-
 # Theme Factory Skill
 
 This skill provides a curated collection of professional font and color themes themes, each with carefully selected color palettes and font pairings. Once a theme is chosen, it can be applied to any artifact.
@@ -59,3 +64,18 @@ After a preferred theme is selected:
 
 ## Create your Own Theme
 To handle cases where none of the existing themes work for an artifact, create a custom theme. Based on provided inputs, generate a new theme similar to the ones above. Give the theme a similar name describing what the font/color combinations represent. Use any basic description provided to choose appropriate colors/fonts. After generating the theme, show it for review and verification. Following that, apply the theme as described above.
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to pply themes to artifacts (slides, docs, reports, html landing pages)
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

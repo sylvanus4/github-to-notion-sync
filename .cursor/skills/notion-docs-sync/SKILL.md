@@ -1,8 +1,11 @@
 ---
 name: notion-docs-sync
-description: Markdown 문서를 Notion에 동기화. .notion-sync.yaml 설정, Notion 동기화 실행 시 적용한다.
+description: Markdown 문서를 Notion에 동기화. .notion-sync.yaml 설정, Notion 동기화 실행 시 적용한다. Do NOT use for creating Notion pages from scratch (use Notion MCP directly).
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Notion 문서 동기화
 
 ## 사전 요구사항
@@ -85,3 +88,18 @@ Notion DB에 최소한 다음 속성이 필요하다:
 ## 문서 작성 규칙
 
 `init.sh` 실행 시 프로젝트에 복사되는 `NOTION-SYNC.md`에 디렉토리 구조, 문서 구조, 헤딩·파일명·본문 작성 규칙, 파일 첨부 방법이 정리되어 있다. 문서 작성 시 해당 가이드를 참조한다.
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "notion docs sync" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

@@ -6,15 +6,15 @@ description: >-
   check, i18n sync, dependency audit, changelog generation, domain-split
   commits, PR summary, and PR creation. Use when the user asks to "prepare
   release", "release pipeline", "full release check", "release commander",
-  "릴리즈", "릴리즈 준비", or wants a comprehensive pre-release validation.
-  Do NOT use for code review only (use deep-review or simplify), commit only
-  (use domain-commit), PR only (use ship), or individual checks (use the
-  specific skill directly).
+  "릴리즈", "릴리즈 준비", or wants a comprehensive pre-release validation. Do NOT use
+  for code review only (use deep-review or simplify), commit only (use
+  domain-commit), PR only (use ship), or individual checks (use the specific
+  skill directly).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Release Commander — Full Release Lifecycle Pipeline
 
 One command to take code from "feature complete" to "release-ready PR" with comprehensive validation. Orchestrates 10 specialized skills across 4 sequential groups.

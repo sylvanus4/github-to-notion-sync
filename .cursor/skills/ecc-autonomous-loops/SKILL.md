@@ -4,12 +4,15 @@ description: >-
   Patterns for autonomous agent loops — sequential pipelines, checkpoint-based
   recovery, and multi-agent DAG orchestration. Use when designing long-running
   AFK agent workflows, building agent loop architectures, or recovering from
-  context window limits. Do NOT use for one-shot task execution. Do NOT use
-  for the existing Ralph Loop (use ralph-loop). Do NOT use for daily pipeline
-  orchestration (use today).
+  context window limits. Do NOT use for one-shot task execution. Do NOT use for
+  the existing Ralph Loop (use ralph-loop). Do NOT use for daily pipeline
+  orchestration (use today). Korean triggers: "자율 루프", "에이전트 루프".
+metadata:
+  author: "ecc"
+  version: "1.0.0"
+  category: "engineering"
 origin: ECC
 ---
-
 # Autonomous Loops Skill
 
 > Compatibility note (v1.8.0): `autonomous-loops` is retained for one release.
@@ -51,26 +54,7 @@ From simplest to most sophisticated:
 
 > If you can't figure out a loop like this, it means you can't even drive the LLM to fix your code in interactive mode.
 
-The `claude -p` flag runs Claude Code non-interactively with a prompt, exits when done. Chain calls to build a pipeline:
-
-```bash
-#!/bin/bash
-# daily-dev.sh — Sequential pipeline for a feature branch
-
-set -e
-
-# Step 1: Implement the feature
-claude -p "Read the spec in docs/auth-spec.md. Implement OAuth2 login in src/auth/. Write tests first (TDD). Do NOT create any new documentation files."
-
-# Step 2: De-sloppify (cleanup pass)
-claude -p "Review all files changed by the previous commit. Remove any unnecessary type tests, overly defensive checks, or testing of language features (e.g., testing that TypeScript generics work). Keep real business logic tests. Run the test suite after cleanup."
-
-# Step 3: Verify
-claude -p "Run the full build, lint, type check, and test suite. Fix any failures. Do not add new features."
-
-# Step 4: Commit
-claude -p "Create a conventional commit for all staged changes. Use 'feat: add OAuth2 login flow' as the message."
-```
+The `claude -p` flag runs Claude Code non-interactively with a prompt, exits when done. Chain calls to build a pipeline. See `references/sequential-pipeline-code.md` for full script examples (daily-dev.sh, model routing, environment context, allowedTools).
 
 ### Key Design Principles
 
@@ -81,34 +65,7 @@ claude -p "Create a conventional commit for all staged changes. Use 'feat: add O
 
 ### Variations
 
-**With model routing:**
-```bash
-# Research with Opus (deep reasoning)
-claude -p --model opus "Analyze the codebase architecture and write a plan for adding caching..."
-
-# Implement with Sonnet (fast, capable)
-claude -p "Implement the caching layer according to the plan in docs/caching-plan.md..."
-
-# Review with Opus (thorough)
-claude -p --model opus "Review all changes for security issues, race conditions, and edge cases..."
-```
-
-**With environment context:**
-```bash
-# Pass context via files, not prompt length
-echo "Focus areas: auth module, API rate limiting" > .claude-context.md
-claude -p "Read .claude-context.md for priorities. Work through them in order."
-rm .claude-context.md
-```
-
-**With `--allowedTools` restrictions:**
-```bash
-# Read-only analysis pass
-claude -p --allowedTools "Read,Grep,Glob" "Audit this codebase for security vulnerabilities..."
-
-# Write-only implementation pass
-claude -p --allowedTools "Read,Write,Edit,Bash" "Implement the fixes from security-audit.md..."
-```
+See `references/sequential-pipeline-code.md` for model routing, environment context, and `--allowedTools` examples.
 
 ---
 
@@ -271,20 +228,7 @@ wait
 
 ### Cross-Iteration Context: SHARED_TASK_NOTES.md
 
-The critical innovation: a `SHARED_TASK_NOTES.md` file persists across iterations:
-
-```markdown
-## Progress
-- [x] Added tests for auth module (iteration 1)
-- [x] Fixed edge case in token refresh (iteration 2)
-- [ ] Still need: rate limiting tests, error boundary tests
-
-## Next Steps
-- Focus on rate limiting module next
-- The mock setup in tests/helpers.ts can be reused
-```
-
-Claude reads this file at iteration start and updates it at iteration end. This bridges the context gap between independent `claude -p` invocations.
+A `SHARED_TASK_NOTES.md` file persists across iterations. Claude reads it at start and updates at end. See `references/continuous-claude-config.md` for template.
 
 ### CI Failure Recovery
 
@@ -296,29 +240,11 @@ When PR checks fail, Continuous Claude automatically:
 
 ### Completion Signal
 
-Claude can signal "I'm done" by outputting a magic phrase:
-
-```bash
-continuous-claude \
-  --prompt "Fix all bugs in the issue tracker" \
-  --completion-signal "CONTINUOUS_CLAUDE_PROJECT_COMPLETE" \
-  --completion-threshold 3  # Stops after 3 consecutive signals
-```
-
-Three consecutive iterations signaling completion stops the loop, preventing wasted runs on finished work.
+Claude can signal "I'm done" with a magic phrase. Three consecutive signals stop the loop. See `references/continuous-claude-config.md`.
 
 ### Key Configuration
 
-| Flag | Purpose |
-|------|---------|
-| `--max-runs N` | Stop after N successful iterations |
-| `--max-cost $X` | Stop after spending $X |
-| `--max-duration 2h` | Stop after time elapsed |
-| `--merge-strategy squash` | squash, merge, or rebase |
-| `--worktree <name>` | Parallel execution via git worktrees |
-| `--disable-commits` | Dry-run mode (no git operations) |
-| `--review-prompt "..."` | Add reviewer pass per iteration |
-| `--ci-retry-max N` | Auto-fix CI failures (default: 1) |
+See `references/continuous-claude-config.md` for flag table, SHARED_TASK_NOTES template, and completion signal.
 
 ---
 
@@ -419,62 +345,7 @@ RFC/PRD Document
 
 ### RFC Decomposition
 
-AI reads the RFC and produces work units:
-
-```typescript
-interface WorkUnit {
-  id: string;              // kebab-case identifier
-  name: string;            // Human-readable name
-  rfcSections: string[];   // Which RFC sections this addresses
-  description: string;     // Detailed description
-  deps: string[];          // Dependencies (other unit IDs)
-  acceptance: string[];    // Concrete acceptance criteria
-  tier: "trivial" | "small" | "medium" | "large";
-}
-```
-
-**Decomposition Rules:**
-- Prefer fewer, cohesive units (minimize merge risk)
-- Minimize cross-unit file overlap (avoid conflicts)
-- Keep tests WITH implementation (never separate "implement X" + "test X")
-- Dependencies only where real code dependency exists
-
-The dependency DAG determines execution order:
-```
-Layer 0: [unit-a, unit-b]     ← no deps, run in parallel
-Layer 1: [unit-c]             ← depends on unit-a
-Layer 2: [unit-d, unit-e]     ← depend on unit-c
-```
-
-### Complexity Tiers
-
-Different tiers get different pipeline depths:
-
-| Tier | Pipeline Stages |
-|------|----------------|
-| **trivial** | implement → test |
-| **small** | implement → test → code-review |
-| **medium** | research → plan → implement → test → PRD-review + code-review → review-fix |
-| **large** | research → plan → implement → test → PRD-review + code-review → review-fix → final-review |
-
-This prevents expensive operations on simple changes while ensuring architectural changes get thorough scrutiny.
-
-### Separate Context Windows (Author-Bias Elimination)
-
-Each stage runs in its own agent process with its own context window:
-
-| Stage | Model | Purpose |
-|-------|-------|---------|
-| Research | Sonnet | Read codebase + RFC, produce context doc |
-| Plan | Opus | Design implementation steps |
-| Implement | Codex | Write code following the plan |
-| Test | Sonnet | Run build + test suite |
-| PRD Review | Sonnet | Spec compliance check |
-| Code Review | Opus | Quality + security check |
-| Review Fix | Codex | Address review issues |
-| Final Review | Opus | Quality gate (large tier only) |
-
-**Critical design:** The reviewer never wrote the code it reviews. This eliminates author bias — the most common source of missed issues in self-review.
+AI reads the RFC and produces work units. See `references/ralphinho-details.md` for WorkUnit interface, decomposition rules, dependency DAG, complexity tiers, and stage model routing.
 
 ### Merge Queue with Eviction
 
@@ -496,17 +367,7 @@ Unit branch
 - Non-overlapping units land speculatively in parallel
 - Overlapping units land one-by-one, rebasing each time
 
-**Eviction Recovery:**
-When evicted, full context is captured (conflicting files, diffs, test output) and fed back to the implementer on the next Ralph pass:
-
-```markdown
-## MERGE CONFLICT — RESOLVE BEFORE NEXT LANDING
-
-Your previous implementation conflicted with another unit that landed first.
-Restructure your changes to avoid the conflicting files/lines below.
-
-{full eviction context with diffs}
-```
+**Eviction Recovery:** Full context is captured and fed back to the implementer. See `references/ralphinho-details.md` for the eviction context template.
 
 ### Data Flow Between Stages
 

@@ -1,0 +1,262 @@
+---
+description: "Reference template for planning large-scale SaaS programs across 16 lifecycle phases. Use when entering Plan Mode for SaaS product planning, startup planning, or new product initiatives."
+alwaysApply: false
+---
+
+# SaaS Lifecycle Planning Template
+
+## When to Use
+
+Activate this template when planning:
+
+- A new SaaS product from scratch
+- A major SaaS pivot or expansion
+- Startup product planning requiring full lifecycle coverage
+- Any initiative that spans ideation through scaling
+
+Adapt the template to your context: skip phases that don't apply, add sub-items for areas that need deeper planning. Not every SaaS product requires all 16 phases sequentially — early-stage products may focus on Phases 1-8, while growth-stage products may start at Phase 9.
+
+## Phase Overview
+
+```
+Idea → Validation → Planning → Design → Development → Infrastructure →
+Testing → Launch → Acquisition → Distribution → Conversion → Revenue →
+Analytics → Retention → Growth → Scaling
+```
+
+---
+
+## Phase 1: Idea
+
+Validate that a real problem exists before building anything.
+
+- [ ] **Problem Discovery** — Identify a painful, frequent, underserved problem. Document who has it, how often, and what they currently do about it.
+- [ ] **Market Research** — Size the addressable market (TAM/SAM/SOM). Identify trends, regulatory factors, and timing considerations.
+- [ ] **Niche Selection** — Pick a specific beachhead segment. Define the ideal customer profile (ICP) narrowly enough to win decisively.
+- [ ] **Competitor Analysis** — Map direct and indirect competitors. Identify gaps in their offerings, pricing blind spots, and underserved segments.
+- [ ] **Opportunity Mapping** — Synthesize findings into a clear opportunity thesis: "For [ICP], who struggle with [problem], our product will [value prop], unlike [alternatives]."
+
+**Gate → Proceed when:** You can articulate the problem, the target customer, and why existing solutions fall short — backed by evidence, not assumptions.
+
+---
+
+## Phase 2: Validation
+
+Prove demand before writing code.
+
+- [ ] **Customer Interviews** — Conduct 15-30 problem interviews. Listen for pain intensity, current workarounds, and willingness to pay.
+- [ ] **Landing Page Test** — Build a single-page site describing the solution. Measure signup/interest conversion rates.
+- [ ] **Waitlist** — Collect email signups with a clear value proposition. Target 100+ signups as a minimum signal.
+- [ ] **Pre-Sales** — Attempt to sell the product before it exists (annual contracts, LOIs, pilot agreements). Money committed > verbal interest.
+- [ ] **Demand Testing** — Run paid ads ($500-2000) targeting the ICP. Measure CPC, CTR, and signup cost to estimate acquisition economics.
+
+**Gate → Proceed when:** You have quantitative evidence of demand (waitlist size, pre-sales revenue, or ad conversion data) — not just qualitative enthusiasm.
+
+---
+
+## Phase 3: Planning
+
+Define what to build and how to build it.
+
+- [ ] **Product Roadmap** — Map the product vision across 3 horizons: MVP (now), V1 (3-6 months), V2 (6-12 months).
+- [ ] **Feature Prioritization** — Score features using RICE, ICE, or MoSCoW. Ruthlessly cut anything that doesn't serve the core use case.
+- [ ] **MVP Scope** — Define the smallest product that delivers the core value proposition. One workflow, done well.
+- [ ] **Tech Stack** — Select technologies based on team expertise, scaling requirements, and ecosystem maturity. Document trade-offs.
+- [ ] **Development Plan** — Break the MVP into 1-2 week sprints with clear deliverables. Identify technical risks and spike them early.
+
+**Gate → Proceed when:** The MVP scope is documented, the tech stack is decided, and the development timeline has buy-in from all builders.
+
+---
+
+## Phase 4: Design
+
+Design the experience before building the interface.
+
+- [ ] **Wireframes** — Low-fidelity sketches of all core screens. Focus on information hierarchy and user flow, not visual polish.
+- [ ] **UI Design** — High-fidelity mockups for the MVP screens. Establish visual language (colors, typography, spacing, component style).
+- [ ] **UX Flows** — Map the end-to-end user journey: signup → onboarding → core action → value moment. Identify drop-off risks.
+- [ ] **Prototype** — Build a clickable prototype for user testing. Validate the flow with 5-10 target users before development.
+- [ ] **Design System** — Define reusable components, tokens, and patterns. Start small (buttons, forms, cards) and expand as needed.
+
+**Gate → Proceed when:** The prototype has been tested with real users, critical UX issues are resolved, and the design system covers MVP components.
+
+---
+
+## Phase 5: Development
+
+Build the product with shipping velocity as the priority.
+
+- [ ] **Frontend** — Implement the UI from the design system. Prioritize the core user flow; polish secondary screens later.
+- [ ] **Backend** — Build the API layer, business logic, and data processing. Design for the current scale, not imagined future scale.
+- [ ] **APIs** — Define and document API contracts (REST or GraphQL). Implement authentication, rate limiting, and versioning from day one.
+- [ ] **Database** — Design the schema for the MVP data model. Plan for migrations. Choose managed databases to reduce ops burden.
+- [ ] **Authentication** — Implement signup, login, password reset, and session management. Use established auth providers (Auth0, Clerk, Supabase Auth) over custom solutions.
+- [ ] **Integrations** — Build only the integrations that are critical for the MVP value proposition. Defer nice-to-have integrations.
+
+**Gate → Proceed when:** The core user flow works end-to-end, the happy path is solid, and major error states are handled.
+
+---
+
+## Phase 6: Infrastructure
+
+Set up the operational foundation.
+
+- [ ] **Cloud Hosting** — Deploy to a managed cloud provider (AWS, GCP, Azure, Vercel, Railway). Optimize for developer velocity, not cost, at this stage.
+- [ ] **DevOps** — Automate deployments. One-command deploys from the main branch. No manual SSH deployments.
+- [ ] **CI/CD** — Set up continuous integration (lint, test, build) and continuous deployment. Every merged PR should auto-deploy.
+- [ ] **Monitoring** — Instrument error tracking (Sentry), uptime monitoring (Betterstack), and basic APM. Know when things break before users tell you.
+- [ ] **Security** — Implement HTTPS, secure headers, input validation, and secrets management. Run a basic security checklist (OWASP Top 10).
+
+**Gate → Proceed when:** Deployments are automated, monitoring alerts are configured, and the security baseline is met.
+
+---
+
+## Phase 7: Testing
+
+Verify quality before exposing the product to users.
+
+- [ ] **Unit Testing** — Cover critical business logic with unit tests. Target the code that handles money, permissions, and data integrity.
+- [ ] **Integration Testing** — Test API endpoints, database operations, and third-party integrations end-to-end.
+- [ ] **Bug Fixing** — Triage and fix all P0/P1 bugs. Document known issues and workarounds for P2/P3 bugs.
+- [ ] **Performance Testing** — Load test critical endpoints. Ensure the product handles 10x the expected launch traffic.
+- [ ] **Beta Testing** — Recruit 10-50 beta users from the waitlist. Collect structured feedback on usability, bugs, and missing features.
+
+**Gate → Proceed when:** No P0/P1 bugs remain, beta user feedback is incorporated, and performance meets SLO targets.
+
+---
+
+## Phase 8: Launch
+
+Get the product into users' hands.
+
+- [ ] **Landing Page** — Finalize the public-facing landing page with clear value prop, social proof (beta testimonials), pricing, and CTA.
+- [ ] **Product Hunt** — Prepare a Product Hunt launch (hunter, tagline, screenshots, maker comment, launch-day community engagement plan).
+- [ ] **Beta Users** — Convert beta testers to paid customers. Offer early-adopter pricing or lifetime deals as incentive.
+- [ ] **Early Adopters** — Identify and personally onboard the first 50-100 paying users. Provide white-glove support.
+- [ ] **Public Release** — Open registration to the public. Announce via email list, social media, and communities.
+
+**Gate → Proceed when:** The product is publicly available, the first paying customers are onboarded, and the billing system works correctly.
+
+---
+
+## Phase 9: Acquisition
+
+Drive targeted traffic to the product.
+
+- [ ] **SEO Wins** — Publish 10-20 long-tail keyword articles targeting problems your ICP searches for. Optimize landing pages for primary keywords.
+- [ ] **Content Marketing** — Create a content engine: blog posts, tutorials, comparison pages, and use-case guides. Aim for consistent weekly publishing.
+- [ ] **Social Media** — Build presence on 1-2 platforms where your ICP lives (Twitter/X, LinkedIn, Reddit). Share insights, not just product updates.
+- [ ] **Cold Email** — Build targeted prospect lists. Send personalized outreach (not spam) to decision-makers at ICP companies.
+- [ ] **Influencer Outreach** — Partner with micro-influencers and thought leaders in your niche for reviews, mentions, or co-created content.
+- [ ] **Affiliate Marketing** — Set up an affiliate program with competitive commissions. Recruit affiliates from your power users and content creators.
+
+**Gate → Proceed when:** At least 2 acquisition channels show repeatable, measurable results with acceptable CAC.
+
+---
+
+## Phase 10: Distribution
+
+Expand reach through platforms and partnerships.
+
+- [ ] **Directories** — List on relevant SaaS directories (G2, Capterra, GetApp, AlternativeTo, SaaSHub). Collect early reviews.
+- [ ] **SaaS Marketplaces** — Publish on platform marketplaces (Shopify App Store, Slack Marketplace, HubSpot Marketplace) if applicable.
+- [ ] **Communities** — Engage authentically in communities where your ICP gathers (Slack groups, Discord servers, forums, subreddits).
+- [ ] **Partnerships** — Identify complementary products for co-marketing, bundle deals, or integration partnerships.
+- [ ] **Integrations** — Build integrations with tools your ICP already uses. Each integration is a distribution channel.
+
+**Gate → Proceed when:** The product is discoverable through multiple channels beyond direct traffic.
+
+---
+
+## Phase 11: Conversion
+
+Turn visitors into paying customers.
+
+- [ ] **Sales Funnel** — Map and optimize the full funnel: visit → signup → activation → conversion → expansion.
+- [ ] **Free Trial** — Design a time-limited trial (7 or 14 days) that guides users to the "aha moment" quickly.
+- [ ] **Freemium Model** — If applicable, define the free tier boundary. The free plan should demonstrate value while creating natural upgrade triggers.
+- [ ] **Pricing Strategy** — Set pricing based on value delivered, not cost. Test 2-3 pricing tiers. Include an enterprise/custom tier.
+- [ ] **Checkout Optimization** — Minimize friction in the payment flow. Support multiple payment methods. Reduce form fields to essentials.
+
+**Gate → Proceed when:** Trial-to-paid conversion rate exceeds 5% (B2B) or 2% (B2C), and pricing is validated with paying customers.
+
+---
+
+## Phase 12: Revenue
+
+Maximize revenue per customer.
+
+- [ ] **Subscriptions** — Implement recurring billing with dunning management (failed payment retries, grace periods, cancellation flows).
+- [ ] **Upsells** — Identify natural expansion triggers (usage limits, team size, advanced features) and present upgrade prompts contextually.
+- [ ] **Add-ons** — Offer complementary paid features (priority support, advanced analytics, white-labeling) as add-ons to any plan.
+- [ ] **Annual Plans** — Incentivize annual commitments with 15-20% discounts. Annual plans improve cash flow and reduce churn.
+- [ ] **Enterprise Deals** — Create an enterprise tier with custom pricing, SLA, dedicated support, SSO, and compliance features (SOC2, GDPR).
+
+**Gate → Proceed when:** MRR is growing month-over-month, net revenue retention is above 100%, and the billing system handles all edge cases.
+
+---
+
+## Phase 13: Analytics
+
+Measure what matters.
+
+- [ ] **User Tracking** — Instrument product analytics (Mixpanel, Amplitude, PostHog) for key user actions. Track the activation metric.
+- [ ] **Funnel Analysis** — Measure drop-off at each stage of the user journey. Identify and fix the biggest leak first.
+- [ ] **Cohort Analysis** — Track retention and engagement by signup cohort. Compare cohorts to measure the impact of product changes.
+- [ ] **KPI Dashboard** — Build a real-time dashboard with core metrics: MRR, churn rate, CAC, LTV, activation rate, NPS.
+- [ ] **A/B Testing** — Establish an experimentation framework. Run tests on pricing, onboarding flows, and feature variations.
+
+**Gate → Proceed when:** Core metrics are tracked and dashboarded, the team reviews metrics weekly, and decisions are data-informed.
+
+---
+
+## Phase 14: Retention
+
+Keep customers engaged and paying.
+
+- [ ] **User Onboarding** — Design a guided onboarding flow that drives users to the "aha moment" within the first session. Measure time-to-value.
+- [ ] **Email Automation** — Set up lifecycle emails: welcome series, activation nudges, usage tips, re-engagement campaigns, and renewal reminders.
+- [ ] **Customer Support** — Establish support channels (in-app chat, email, knowledge base). Set and meet response time SLAs.
+- [ ] **Feature Adoption** — Track feature usage. Proactively educate users about underused features through in-app tooltips and email.
+- [ ] **Churn Reduction** — Implement churn prediction (usage drop-off signals). Create save flows for cancelling users (pause, downgrade, feedback).
+
+**Gate → Proceed when:** Monthly churn is below 5% (B2B) or 7% (B2C), and the onboarding completion rate exceeds 60%.
+
+---
+
+## Phase 15: Growth
+
+Accelerate growth through compounding mechanisms.
+
+- [ ] **Referral Programs** — Launch a referral program with double-sided incentives (referrer and referee both benefit). Track viral coefficient.
+- [ ] **Community Building** — Create a user community (Slack, Discord, forum) for peer support, feature requests, and brand advocacy.
+- [ ] **Product-Led Growth** — Embed growth loops into the product: invite teammates, share outputs publicly, embed widgets, "powered by" badges.
+- [ ] **Viral Loops** — Design features that naturally expose the product to non-users (shared reports, public dashboards, collaboration invites).
+- [ ] **Expansion Strategy** — Plan geographic expansion, vertical expansion (new industries), or horizontal expansion (adjacent use cases).
+
+**Gate → Proceed when:** At least one growth loop is producing measurable organic signups, and the referral program has a positive ROI.
+
+---
+
+## Phase 16: Scaling
+
+Scale the business beyond the founding team.
+
+- [ ] **Automation** — Automate repetitive operations: billing, onboarding, support triage, reporting, and compliance checks.
+- [ ] **Hiring** — Build the team strategically: engineering, customer success, sales, marketing. Hire for the next 6 months of growth, not the next 2 years.
+- [ ] **Systems** — Implement internal systems: CRM, project management, knowledge base, HR. Document processes before they become bottlenecks.
+- [ ] **Global Expansion** — Localize the product (i18n), support multi-currency billing, and comply with regional regulations (GDPR, SOC2).
+- [ ] **Exit Strategy** — Define long-term outcomes: bootstrapped profitability, venture scale, acquisition target, or IPO path. Align operations accordingly.
+
+**Gate → Proceed when:** The business runs without founder involvement in daily operations, and growth is sustainable without heroic effort.
+
+---
+
+## Adapting This Template
+
+1. **Early-stage (pre-revenue):** Focus on Phases 1-8. Skip Phases 12, 15, 16 until product-market fit is established.
+2. **Growth-stage (post-PMF):** Focus on Phases 9-15. Revisit Phases 3-4 for V2 planning.
+3. **Scale-stage:** Focus on Phases 12, 15, 16. Revisit Phase 13 for advanced analytics.
+4. **Pivot:** Restart from Phase 1 with new problem/market assumptions, but carry forward infrastructure and team from Phases 5-6.
+
+When creating a plan for a specific SaaS project, copy the relevant phases into `tasks/todo.md` and customize sub-items for your product context.

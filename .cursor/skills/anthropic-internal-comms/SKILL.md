@@ -1,12 +1,17 @@
 ---
 name: anthropic-internal-comms
-description: "Write internal communications using company formats. Use for 3P updates (Progress, Plans, Problems), company newsletters, FAQ responses, status reports, leadership updates, project updates, incident reports. Do NOT use for external marketing content (use kwp-marketing-content-creation) or stakeholder comms (use kwp-product-management-stakeholder-comms)."
+description: >-
+  Write internal communications using company formats. Use for 3P updates
+  (Progress, Plans, Problems), company newsletters, FAQ responses, status
+  reports, leadership updates, project updates, incident reports. Do NOT use for
+  external marketing content (use kwp-marketing-content-creation) or stakeholder
+  comms (use kwp-product-management-stakeholder-comms). Korean triggers: "사내 공지", "3P 업데이트", "상태 보고".
 metadata:
-  author: anthropic
-  version: 1.0.0
+  author: "anthropic"
+  version: "1.0.0"
   license: "See LICENSE.txt in skill directory"
+  category: "document"
 ---
-
 ## How to use this skill
 
 To write any internal communication:
@@ -23,3 +28,18 @@ If the communication type doesn't match any existing guideline, ask for clarific
 
 ## Keywords
 3P updates, company newsletter, company comms, weekly update, faqs, common questions, updates, internal comms
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to write internal communications using company formats
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

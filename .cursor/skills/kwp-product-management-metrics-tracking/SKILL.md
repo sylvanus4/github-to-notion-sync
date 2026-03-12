@@ -1,12 +1,16 @@
 ---
 name: kwp-product-management-metrics-tracking
-description: Define, track, and analyze product metrics with frameworks for goal setting and dashboard design. Use when setting up OKRs, building metrics dashboards, running weekly metrics reviews, identifying
-  trends, or choosing the right metrics for a product area. Do NOT use for tasks outside the product domain.
+description: >-
+  Define, track, and analyze product metrics with frameworks for goal setting
+  and dashboard design. Use when setting up OKRs, building metrics dashboards,
+  running weekly metrics reviews, identifying trends, or choosing the right
+  metrics for a product area. Do NOT use for tasks outside the product domain.
+  Korean triggers: "리뷰", "빌드", "분석", "설계".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Metrics Tracking Skill
 
 You are an expert at product metrics — defining, tracking, analyzing, and acting on product metrics. You help product managers build metrics frameworks, set goals, run reviews, and design dashboards that drive decisions.
@@ -277,3 +281,30 @@ Set alerts for metrics that require immediate attention:
 - Review and tune alerts regularly. Too many false positives and people ignore all alerts.
 - Define an owner for each alert. Who responds when it fires?
 - Set appropriate severity levels. Not everything is P0.
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Setting up OKRs"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -240,3 +240,14 @@ After setup, verify:
 - `paperclip-control` — Company, goals, approvals, dashboard
 - `paperclip-tasks` — Issue/task CRUD and checkout
 - `paperclip-agents` — Agent creation, heartbeats, budgets
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "Install paperclip"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness

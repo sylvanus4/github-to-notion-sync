@@ -3,15 +3,15 @@ name: daiso-mcp
 description: >-
   Search stores, check product inventory, and look up movie seats across Daiso,
   Olive Young, and Megabox via the daiso-mcp MCP server. Use when the user asks
-  to "find a Daiso store", "check Olive Young inventory", "search Daiso products",
-  "Megabox movie seats", "근처 다이소", "올리브영 재고", "메가박스 영화", or any
+  to "find a Daiso store", "check Olive Young inventory", "search Daiso
+  products", "Megabox movie seats", "근처 다이소", "올리브영 재고", "메가박스 영화", or any
   Korean retail store/inventory/movie lookup. Do NOT use for non-Korean retail
   services, general web scraping, or e-commerce purchasing.
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Daiso MCP: Korean Retail & Movie Lookup
 
 Search products, find nearby stores, check real-time inventory (Daiso, Olive Young), and browse movie showtimes with seat availability (Megabox) -- all via a single remote MCP server.
@@ -167,3 +167,10 @@ Use `WebFetch` or `Shell` (curl) to call these endpoints.
 | `megabox_find_nearby_theaters` | `daiso-mcp` | Find nearby Megabox theaters |
 | `megabox_list_now_showing` | `daiso-mcp` | List currently showing movies |
 | `megabox_get_remaining_seats` | `daiso-mcp` | Check seat availability |
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "daiso mcp" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.

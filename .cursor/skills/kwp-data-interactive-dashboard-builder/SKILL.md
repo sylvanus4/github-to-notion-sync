@@ -1,12 +1,16 @@
 ---
 name: kwp-data-interactive-dashboard-builder
-description: Build self-contained interactive HTML dashboards with Chart.js, dropdown filters, and professional styling. Use when creating dashboards, building interactive reports, or generating shareable
-  HTML files with charts and filters that work without a server. Do NOT use for tasks outside the data domain.
+description: >-
+  Build self-contained interactive HTML dashboards with Chart.js, dropdown
+  filters, and professional styling. Use when creating dashboards, building
+  interactive reports, or generating shareable HTML files with charts and
+  filters that work without a server. Do NOT use for tasks outside the data
+  domain. Korean triggers: "데이터", "빌드", "리포트".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Interactive Dashboard Builder Skill
 
 Patterns and techniques for building self-contained HTML/JS dashboards with Chart.js, filters, interactivity, and professional styling.
@@ -339,3 +343,30 @@ function renderTablePage(data, page, pageSize = 50) {
     // Show pagination controls: "Showing 1-50 of 2,340"
 }
 ```
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Creating dashboards"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

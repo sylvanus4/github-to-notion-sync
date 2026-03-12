@@ -1,12 +1,15 @@
 ---
 name: kwp-apollo-prospect
-description: Full ICP-to-leads pipeline. Describe your ideal customer in plain English and get a ranked table of enriched decision-maker leads with emails and phone numbers. Do NOT use for tasks outside
-  the apollo domain.
+description: >-
+  Full ICP-to-leads pipeline. Describe your ideal customer in plain English and
+  get a ranked table of enriched decision-maker leads with emails and phone
+  numbers. Do NOT use for tasks outside the apollo domain. Korean triggers:
+  "파이프라인", "이메일".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Prospect
 
 Go from an ICP description to a ranked, enriched lead list in one shot. The user describes their ideal customer via "$ARGUMENTS".
@@ -90,3 +93,11 @@ Ask the user:
 3. **Deep-dive a company** — Run `/apollo:company-intel` on any company from the list
 4. **Refine the search** — Adjust filters and re-run
 5. **Export** — Format leads as a CSV-style table for easy copy-paste
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

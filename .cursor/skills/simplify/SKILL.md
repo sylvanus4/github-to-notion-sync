@@ -1,18 +1,19 @@
 ---
 name: simplify
 description: >-
-  Run parallel code review agents to analyze code for reuse opportunities,
-  code quality, tech debt, and performance issues, then auto-fix findings
-  by priority. Supports 3 scoping modes: diff (changed files), today (daily
-  work), and full (entire project). Use when the user runs /simplify, asks
-  to "simplify code", "review and fix changes", "clean up my code", or
-  "review today's work". Do NOT use for single-domain review (use /refactor,
-  /performance, etc. individually), creating new features, or general Q&A.
+  Run parallel code review agents to analyze code for reuse opportunities, code
+  quality, tech debt, and performance issues, then auto-fix findings by
+  priority. Supports 3 scoping modes: diff (changed files), today (daily work),
+  and full (entire project). Use when the user runs /simplify, asks to "simplify
+  code", "review and fix changes", "clean up my code", or "review today's work".
+  Do NOT use for single-domain review (use /refactor, /performance, etc.
+  individually), creating new features, or general Q&A. Korean triggers: "리뷰",
+  "분석", "수정", "성능".
 metadata:
-  author: thaki
-  version: 2.0.0
+  author: "thaki"
+  version: "2.0.0"
+  category: "execution"
 ---
-
 # Simplify — Parallel Code Review & Auto-Fix
 
 Analyze code through 4 parallel review agents, aggregate findings, and auto-fix issues by priority. Supports 3 scoping modes: changed files, daily work, or full project.

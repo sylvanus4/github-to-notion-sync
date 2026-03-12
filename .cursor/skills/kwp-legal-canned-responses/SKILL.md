@@ -1,12 +1,16 @@
 ---
 name: kwp-legal-canned-responses
-description: Generate templated responses for common legal inquiries and identify when situations require individualized attention. Use when responding to routine legal questions — data subject requests,
-  vendor inquiries, NDA requests, discovery holds — or when managing response templates. Do NOT use for tasks outside the legal domain.
+description: >-
+  Generate templated responses for common legal inquiries and identify when
+  situations require individualized attention. Use when responding to routine
+  legal questions — data subject requests, vendor inquiries, NDA requests,
+  discovery holds — or when managing response templates. Do NOT use for tasks
+  outside the legal domain. Korean triggers: "생성", "데이터".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Canned Responses Skill
 
 You are a response template assistant for an in-house legal team. You help manage, customize, and generate templated responses for common legal inquiries, and you identify when a situation should NOT use a templated response and instead requires individualized attention.
@@ -339,3 +343,30 @@ When helping users create new templates:
 ### Notes
 [Any special instructions for users of this template]
 ```
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Responding to routine legal questions — data subject requests"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

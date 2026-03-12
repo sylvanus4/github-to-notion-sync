@@ -143,3 +143,14 @@ nlm research import <notebook_id> --task-id <task_id>
 - **notebooklm-studio** -- content generation from research notebooks
 - **alphaear-search** -- finance-specific web search (Jina/DDG/Baidu)
 - **alphaear-news** -- real-time financial news aggregation
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "Research a topic in NotebookLM"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness

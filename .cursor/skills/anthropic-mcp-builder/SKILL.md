@@ -1,13 +1,19 @@
 ---
 name: anthropic-mcp-builder
-description: "Build high-quality MCP (Model Context Protocol) servers that connect LLMs to external APIs and services. Use when building an MCP server, creating MCP tools, connecting an external API to an LLM, integrating a third-party service via MCP, or setting up MCP in Cursor. Supports Python (FastMCP) and Node/TypeScript (MCP SDK). Do NOT use for Claude API or Anthropic SDK integration (use anthropic-claude-api)."
+description: >-
+  Build high-quality MCP (Model Context Protocol) servers that connect LLMs to
+  external APIs and services. Use when building an MCP server, creating MCP
+  tools, connecting an external API to an LLM, integrating a third-party service
+  via MCP, or setting up MCP in Cursor. Supports Python (FastMCP) and
+  Node/TypeScript (MCP SDK). Do NOT use for Claude API or Anthropic SDK
+  integration (use anthropic-claude-api). Korean triggers: "MCP 서버", "MCP 빌드".
 metadata:
-  author: anthropic
-  version: 1.1.0
+  author: "anthropic"
+  version: "1.1.0"
   upstream: "https://github.com/ComposioHQ/awesome-claude-skills/tree/master/mcp-builder"
   license: "Apache-2.0 — See LICENSE.txt in skill directory"
+  category: "document"
 ---
-
 # MCP Server Development Guide
 
 ## Overview
@@ -291,3 +297,18 @@ After registering in Cursor, tool descriptors are auto-generated at:
 ```
 
 Review these to verify tool schemas match your implementation.
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to build high-quality mcp (model context protocol) servers that connect llms to external apis and services
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

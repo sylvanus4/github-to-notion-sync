@@ -1,12 +1,18 @@
 ---
 name: alphaear-reporter
-description: Plan, write, and edit professional financial reports; generate finance chart configurations. Use when condensing finance analysis into a structured output, assembling signals into reports, or producing Executive Summary + Risk Factors + References. Do NOT use for daily trading signals (use daily-stock-check). Do NOT use for ADRs or technical documentation (use technical-writer). Do NOT use for logic chain diagrams (use alphaear-logic-visualizer).
+description: >-
+  Plan, write, and edit professional financial reports; generate finance chart
+  configurations. Use when condensing finance analysis into a structured output,
+  assembling signals into reports, or producing Executive Summary + Risk Factors
+  + References. Do NOT use for daily trading signals (use daily-stock-check). Do
+  NOT use for ADRs or technical documentation (use technical-writer). Do NOT use
+  for logic chain diagrams (use alphaear-logic-visualizer). Korean triggers:
+  "생성", "체크", "계획", "리포트".
 metadata:
   version: "1.0.0"
-  category: generation
-  author: alphaear
+  category: "generation"
+  author: "alphaear"
 ---
-
 # AlphaEar Reporter
 
 ## Overview

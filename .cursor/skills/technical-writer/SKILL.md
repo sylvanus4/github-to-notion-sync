@@ -1,11 +1,17 @@
 ---
 name: technical-writer
-description: Author Architecture Decision Records (ADRs), API documentation, operational guides, and changelogs. Use when the user asks to document a design decision, write an ADR, generate a changelog, or create operational documentation. Do NOT use for PR summaries or release notes (use pr-review-captain) or prompt engineering (use prompt-transformer).
+description: >-
+  Author Architecture Decision Records (ADRs), API documentation, operational
+  guides, and changelogs. Use when the user asks to document a design decision,
+  write an ADR, generate a changelog, or create operational documentation. Do
+  NOT use for PR summaries or release notes (use pr-review-captain) or prompt
+  engineering (use prompt-transformer). Korean triggers: "리뷰", "생성", "설계",
+  "릴리즈".
 metadata:
   version: "1.0.0"
-  category: generation
+  category: "generation"
+  author: "thaki"
 ---
-
 # Technical Writer
 
 Produce clear, structured documentation for the realtime-agent-copilot platform. Documentation lives at `docs/`.

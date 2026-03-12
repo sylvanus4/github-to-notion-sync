@@ -3,20 +3,20 @@ name: pm-product-discovery
 description: >-
   Orchestrate product discovery workflows: ideation, assumption testing,
   Opportunity Solution Trees, customer interview synthesis, feature
-  prioritization, and experiment design. Based on Teresa Torres and Marty
-  Cagan frameworks (phuryn/pm-skills). Use when the user asks for
-  "brainstorm ideas", "identify assumptions", "opportunity solution tree",
-  "interview script", "prioritize features", "analyze feature requests",
-  "brainstorm experiments", or "summarize interview". Do NOT use for
-  general user research synthesis (use kwp-product-management-user-research-synthesis),
-  marketing campaign planning (use kwp-marketing-campaign-planning), or
-  product strategy/vision (use pm-product-strategy).
+  prioritization, and experiment design. Based on Teresa Torres and Marty Cagan
+  frameworks (phuryn/pm-skills). Use when the user asks for "brainstorm ideas",
+  "identify assumptions", "opportunity solution tree", "interview script",
+  "prioritize features", "analyze feature requests", "brainstorm experiments",
+  or "summarize interview". Do NOT use for general user research synthesis (use
+  kwp-product-management-user-research-synthesis), marketing campaign planning
+  (use kwp-marketing-campaign-planning), or product strategy/vision (use
+  pm-product-strategy). Korean triggers: "테스트", "분석", "설계", "검색".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/phuryn/pm-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/phuryn/pm-skills"
+  category: "product"
 ---
-
 # PM Product Discovery
 
 Orchestrate product discovery workflows from ideation through validation using Teresa Torres and Marty Cagan frameworks.

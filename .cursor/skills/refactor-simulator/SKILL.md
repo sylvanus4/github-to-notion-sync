@@ -5,16 +5,16 @@ description: >-
   call sites, import chains, type dependencies, and test coverage for the
   affected area. Produces a "what-if" impact report with risk scores — without
   touching any code. Use when the user asks about "blast radius", "impact
-  analysis", "refactor simulator", "what if I change", "what if I rename",
-  "what if I move", "리팩토링 시뮬레이션", "영향 분석", "before refactoring",
-  or wants to understand the consequences of a proposed change before executing it.
-  Do NOT use for executing refactors (use simplify or generalPurpose), code
-  review of existing code (use deep-review), or debugging (use diagnose).
+  analysis", "refactor simulator", "what if I change", "what if I rename", "what
+  if I move", "리팩토링 시뮬레이션", "영향 분석", "before refactoring", or wants to
+  understand the consequences of a proposed change before executing it. Do NOT
+  use for executing refactors (use simplify or generalPurpose), code review of
+  existing code (use deep-review), or debugging (use diagnose).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Refactor Simulator — Pre-Change Blast Radius Analysis
 
 Predict the impact of a code change before you make it. Maps dependencies, counts call sites, checks test coverage, and produces a risk-scored impact report — all without modifying a single file.

@@ -1,12 +1,16 @@
 ---
 name: anthropic-claude-api
-description: Build apps with the Claude API or Anthropic SDK. Use when code imports anthropic/@anthropic-ai/sdk/claude_agent_sdk, or user asks to use Claude API, Anthropic SDKs, or Agent SDK. Do NOT use for MCP server development (use anthropic-mcp-builder).
+description: >-
+  Build apps with the Claude API or Anthropic SDK. Use when code imports
+  anthropic/@anthropic-ai/sdk/claude_agent_sdk, or user asks to use Claude API,
+  Anthropic SDKs, or Agent SDK. Do NOT use for MCP server development (use
+  anthropic-mcp-builder). Korean triggers: "Claude API", "Anthropic SDK".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Complete terms in LICENSE.txt
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Complete terms in LICENSE.txt"
+  category: "document"
 ---
-
 # Building LLM-Powered Applications with Claude
 
 This skill helps you build LLM-powered applications with Claude. Choose the right surface based on your needs, detect the project language, then read the relevant language-specific documentation.
@@ -244,3 +248,18 @@ Live documentation URLs are in `shared/live-sources.md`.
 - **Don't reimplement SDK functionality:** The SDK provides high-level helpers — use them instead of building from scratch. Specifically: use `stream.finalMessage()` instead of wrapping `.on()` events in `new Promise()`; use typed exception classes (`Anthropic.RateLimitError`, etc.) instead of string-matching error messages; use SDK types (`Anthropic.MessageParam`, `Anthropic.Tool`, `Anthropic.Message`, etc.) instead of redefining equivalent interfaces.
 - **Don't define custom types for SDK data structures:** The SDK exports types for all API objects. Use `Anthropic.MessageParam` for messages, `Anthropic.Tool` for tool definitions, `Anthropic.ToolUseBlock` / `Anthropic.ToolResultBlockParam` for tool results, `Anthropic.Message` for responses. Defining your own `interface ChatMessage { role: string; content: unknown }` duplicates what the SDK already provides and loses type safety.
 - **Report and document output:** For tasks that produce reports, documents, or visualizations, the code execution sandbox has `python-docx`, `python-pptx`, `matplotlib`, `pillow`, and `pypdf` pre-installed. Claude can generate formatted files (DOCX, PDF, charts) and return them via the Files API — consider this for "report" or "document" type requests instead of plain stdout text.
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to build apps with the claude api or anthropic sdk
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

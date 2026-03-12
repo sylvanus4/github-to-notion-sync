@@ -54,11 +54,11 @@ HARDWARE_RECOMMENDATIONS = {
 def estimate_hardware(model_id: str) -> str:
     """
     Estimate appropriate hardware based on model ID naming conventions.
-    
+
     Returns a hardware flavor recommendation.
     """
     model_lower = model_id.lower()
-    
+
     # Check for explicit size indicators in model name
     if any(x in model_lower for x in ["70b", "72b", "65b"]):
         return "a100-large"
@@ -68,7 +68,7 @@ def estimate_hardware(model_id: str) -> str:
         return "a10g-small"
     elif any(x in model_lower for x in ["3b", "2b", "1b", "0.5b", "small", "mini"]):
         return "t4-small"
-    
+
     # Default to medium hardware
     return "a10g-small"
 
@@ -328,4 +328,3 @@ Task formats:
 
 if __name__ == "__main__":
     main()
-

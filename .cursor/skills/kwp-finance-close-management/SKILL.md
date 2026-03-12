@@ -1,12 +1,15 @@
 ---
 name: kwp-finance-close-management
-description: Manage the month-end close process with task sequencing, dependencies, and status tracking. Use when planning the close calendar, tracking close progress, identifying blockers, or sequencing
-  close activities by day. Do NOT use for tasks outside the finance domain.
+description: >-
+  Manage the month-end close process with task sequencing, dependencies, and
+  status tracking. Use when planning the close calendar, tracking close
+  progress, identifying blockers, or sequencing close activities by day. Do NOT
+  use for tasks outside the finance domain. Korean triggers: "계획", "캘린더".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Close Management
 
 **Important**: This skill assists with close management workflows but does not provide financial advice. All close activities should be reviewed by qualified financial professionals.
@@ -222,3 +225,30 @@ After each close, ask:
 3. What blockers did we encounter and how can we prevent them?
 4. Were there any surprises in the financial results we should have caught earlier?
 5. What can we automate or streamline for next month?
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Planning the close calendar"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

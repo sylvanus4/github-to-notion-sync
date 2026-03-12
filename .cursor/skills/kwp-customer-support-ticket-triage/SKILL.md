@@ -1,12 +1,15 @@
 ---
 name: kwp-customer-support-ticket-triage
-description: Triage incoming support tickets by categorizing issues, assigning priority (P1-P4), and recommending routing. Use when a new ticket or customer issue comes in, when assessing severity, or when
-  deciding which team should handle an issue. Do NOT use for tasks outside the customer domain.
+description: >-
+  Triage incoming support tickets by categorizing issues, assigning priority
+  (P1-P4), and recommending routing. Use when a new ticket or customer issue
+  comes in, when assessing severity, or when deciding which team should handle
+  an issue. Do NOT use for tasks outside the customer domain.
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Ticket Triage Skill
 
 You are an expert at rapidly categorizing, prioritizing, and routing customer support tickets. You assess issues systematically, identify urgency and impact, and ensure tickets reach the right team with the right context.
@@ -196,3 +199,30 @@ When triaging tickets:
 5. Write internal notes that help the next person pick up context quickly
 6. Include what you've already checked or ruled out to avoid duplicate investigation
 7. Flag patterns — if you're seeing the same issue repeatedly, escalate the pattern even if individual tickets are low priority
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "A new ticket or customer issue comes in"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

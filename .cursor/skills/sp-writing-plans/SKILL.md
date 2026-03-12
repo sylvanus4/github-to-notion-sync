@@ -1,8 +1,13 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: >-
+  Use when you have a spec or requirements for a multi-step task, before
+  touching code. Do NOT use for executing plans (use sp-executing-plans).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Writing Plans
 
 ## Overview
@@ -114,3 +119,18 @@ After saving the plan, offer execution choice:
 **If Parallel Session chosen:**
 - Guide them to open new session in worktree
 - **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Process step fails | Do not skip — diagnose the failure before proceeding to the next step |
+| Verification fails | Roll back to the last passing checkpoint and retry |
+| Conflicting with other processes | Follow the priority order defined in the skill |

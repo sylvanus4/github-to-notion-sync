@@ -1,13 +1,17 @@
 ---
 name: kwp-sales-call-prep
-description: Prepare for a sales call with account context, attendee research, and suggested agenda. Works standalone with user input and web research, supercharged when you connect your CRM, email, chat,
-  or transcripts. Trigger with "prep me for my call with [company]", "I'm meeting with [company] prep me", "call prep [company]", or "get me ready for [meeting]". Do NOT use for tasks outside the sales
-  domain.
+description: >-
+  Prepare for a sales call with account context, attendee research, and
+  suggested agenda. Works standalone with user input and web research,
+  supercharged when you connect your CRM, email, chat, or transcripts. Trigger
+  with "prep me for my call with [company]", "I'm meeting with [company] prep
+  me", "call prep [company]", or "get me ready for [meeting]". Do NOT use for
+  tasks outside the sales domain. Korean triggers: "콜 준비", "미팅 준비", "영업 준비".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Call Prep
 
 Get fully prepared for any sales call in minutes. This skill works with whatever context you provide, and gets significantly better when you connect your sales tools.
@@ -261,3 +265,30 @@ Run **call-follow-up** to:
 - **account-research** — Deep dive on a company before first contact
 - **call-follow-up** — Process call notes and execute post-call workflow
 - **draft-outreach** — Write personalized outreach after research
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with sales call prep"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

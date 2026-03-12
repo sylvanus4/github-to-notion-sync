@@ -3,16 +3,16 @@ name: eod-ship
 description: >-
   End-of-day shipping pipeline: cursor-sync assets across projects, then
   release-ship the current project and 5 managed projects, posting a
-  consolidated summary to Slack. Use when the user runs /eod-ship, asks to
-  "wrap up for the day", "end of day ship", "하루 마무리", "퇴근 전 커밋",
-  or "EOD push all projects". Do NOT use for syncing .cursor/ assets only
-  (use cursor-sync), shipping a single repo (use release-ship), or daily
-  standup/scrum automation (use daily-scrum).
+  consolidated summary to Slack. Use when the user runs /eod-ship, asks to "wrap
+  up for the day", "end of day ship", "하루 마무리", "퇴근 전 커밋", or "EOD push all
+  projects". Do NOT use for syncing .cursor/ assets only (use cursor-sync),
+  shipping a single repo (use release-ship), or daily standup/scrum automation
+  (use daily-scrum).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # EOD Ship — End-of-Day Multi-Project Shipping Pipeline
 
 Chain cursor-sync and release-ship across all managed projects in a single flow. Syncs `.cursor/` assets first, ships uncommitted changes in the current project and 5 managed repos, then posts a consolidated report to Slack.

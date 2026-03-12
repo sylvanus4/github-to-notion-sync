@@ -1,11 +1,19 @@
 ---
 name: weekly-stock-update
+description: >-
+  Fetch the last week of stock prices from Yahoo Finance and upsert into
+  PostgreSQL for all tracked tickers. Optionally sync quarterly financial
+  statements (--fundamentals). Use when the user asks to update recent stock
+  data, refresh weekly prices, sync latest prices to DB, sync financial
+  statements, or run a quick stock update. Do NOT use for historical backfill or
+  gap-fill from investing.com (use stock-csv-downloader). Do NOT use for stock
+  analysis, trading signals, or Slack posting (use daily-stock-check). Korean
+  triggers: "주식", "테스트", "체크", "동기화".
 metadata:
   version: "1.0.0"
-  category: execution
-description: Fetch the last week of stock prices from Yahoo Finance and upsert into PostgreSQL for all tracked tickers. Optionally sync quarterly financial statements (--fundamentals). Use when the user asks to update recent stock data, refresh weekly prices, sync latest prices to DB, sync financial statements, or run a quick stock update. Do NOT use for historical backfill or gap-fill from investing.com (use stock-csv-downloader). Do NOT use for stock analysis, trading signals, or Slack posting (use daily-stock-check).
+  category: "execution"
+  author: "thaki"
 ---
-
 # Weekly Stock Update
 
 Fetch recent stock prices from Yahoo Finance (yfinance) and batch upsert them into PostgreSQL. Covers all configured tickers with a single lightweight script — no browser automation required. With `--fundamentals`, also syncs quarterly financial statements (income, balance sheet, cash flow) and computed metrics (P/E, ROE, FCF yield, etc.).

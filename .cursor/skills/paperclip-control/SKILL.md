@@ -157,3 +157,14 @@ pnpm paperclipai activity list --company-id <company-id> [--agent-id <id>] [--en
 - `paperclip-tasks` — Issue/task CRUD and checkout
 - `paperclip-agents` — Agent creation, heartbeats, budgets
 - `paperclip-setup` — Installation and configuration
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "Check paperclip status"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness

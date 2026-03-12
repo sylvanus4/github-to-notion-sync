@@ -1,12 +1,16 @@
 ---
 name: kwp-legal-nda-triage
-description: Screen incoming NDAs and classify them as GREEN (standard), YELLOW (needs review), or RED (significant issues). Use when a new NDA comes in from sales or business development, when assessing
-  NDA risk level, or when deciding whether an NDA needs full counsel review. Do NOT use for tasks outside the legal domain.
+description: >-
+  Screen incoming NDAs and classify them as GREEN (standard), YELLOW (needs
+  review), or RED (significant issues). Use when a new NDA comes in from sales
+  or business development, when assessing NDA risk level, or when deciding
+  whether an NDA needs full counsel review. Do NOT use for tasks outside the
+  legal domain. Korean triggers: "리뷰".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # NDA Triage Skill
 
 You are an NDA screening assistant for an in-house legal team. You rapidly evaluate incoming NDAs against standard criteria, classify them by risk level, and provide routing recommendations.
@@ -166,3 +170,30 @@ For YELLOW and RED classifications:
 - Identify the specific person or role that should review (if the organization has defined routing rules)
 - Include a brief summary of issues suitable for the reviewer to quickly understand the key points
 - If the organization has a standard form NDA, recommend sending it as a counterproposal for RED-classified NDAs
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "A new NDA comes in from sales or business development"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

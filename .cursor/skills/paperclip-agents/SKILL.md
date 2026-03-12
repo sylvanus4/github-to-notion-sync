@@ -220,3 +220,14 @@ curl -sS -X POST "$API_BASE/api/agents/<agent-id>/terminate" -H "Authorization: 
 - `paperclip-control` — Company, goals, approvals, dashboard
 - `paperclip-tasks` — Issue/task CRUD and checkout
 - `paperclip-setup` — Installation and configuration
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "Create a paperclip agent"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness

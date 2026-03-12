@@ -1,12 +1,15 @@
 ---
 name: kwp-common-room-weekly-prep-brief
-description: Generate a comprehensive weekly briefing for all external calls in the next 7 days. Triggers on 'weekly prep brief', 'prepare my week', 'what calls do I have this week', 'Monday prep', or any
-  weekly planning request. Do NOT use for tasks outside the common-room domain.
+description: >-
+  Generate a comprehensive weekly briefing for all external calls in the next 7
+  days. Triggers on 'weekly prep brief', 'prepare my week', 'what calls do I
+  have this week', 'Monday prep', or any weekly planning request. Do NOT use for
+  tasks outside the common-room domain. Korean triggers: "생성", "계획".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Weekly Prep Brief
 
 Generate a single comprehensive weekly briefing that covers every external customer or prospect call in the next 7 days, with per-meeting account and contact research from Common Room.
@@ -128,3 +131,30 @@ Do not generate a full meeting prep section (company snapshot, signal highlights
 ## Reference Files
 
 - **`references/briefing-guide.md`** — guidelines for structuring briefings, prioritization logic, and how to handle edge cases (cancelled meetings, new accounts with no data, etc.)
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with common room weekly prep brief"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

@@ -124,10 +124,11 @@ For detailed search queries and instructions per agent, see
 Aggregate all candidates from the 4 agents into a unified list.
 Deduplicate by arXiv ID or by title similarity (>90% overlap = same paper).
 
-Score each candidate across 5 weighted dimensions: institution match (30%),
-citation count (20%), GitHub traction (20%), Twitter/community buzz (15%),
-and recency (15%). Select top 5 after enforcing institution diversity and
-subtopic coverage rules.
+Discard any candidate published more than `--recency-months` ago (default: 9
+months). Then score remaining candidates across 5 weighted dimensions:
+institution match (30%), citation count (20%), GitHub traction (20%),
+Twitter/community buzz (15%), and recency (15%). Select top 5 after enforcing
+institution diversity and subtopic coverage rules.
 
 For the detailed scoring rubric, thresholds, and selection rules, see
 [references/scoring-rubric.md](references/scoring-rubric.md).
@@ -252,7 +253,7 @@ and under 4000 characters.
 | `--channel <name>` | Target Slack channel name | `deep-research` |
 | `--top N` | Number of papers to discover | 5 |
 | `--institutions "..."` | Comma-separated institution filter | `google,mit,stanford,nvidia` |
-| `--recency-months N` | Max age of papers in months | 18 |
+| `--recency-months N` | Max age of papers in months (older papers are skipped) | 9 |
 
 ## Output Convention
 
@@ -292,7 +293,7 @@ Find 10 papers, expanding the institution filter to include Meta and Microsoft.
 /related-papers-scout paper.md --channel "press" --recency-months 6
 ```
 
-Only consider papers from the last 6 months and post to `#press`.
+Only consider papers from the last 6 months (stricter than default 9) and post to `#press`.
 
 ## Skills Composed
 

@@ -1,12 +1,14 @@
 ---
 name: kwp-apollo-sequence-load
-description: Find leads matching criteria and bulk-add them to an Apollo outreach sequence. Handles enrichment, contact creation, deduplication, and enrollment in one flow. Do NOT use for tasks outside
-  the apollo domain.
+description: >-
+  Find leads matching criteria and bulk-add them to an Apollo outreach
+  sequence. Handles enrichment, contact creation, deduplication, and enrollment
+  in one flow. Do NOT use for tasks outside the apollo domain.
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Sequence Load
 
 Find, enrich, and load contacts into an outreach sequence — end to end. The user provides targeting criteria and a sequence name via "$ARGUMENTS".
@@ -120,3 +122,11 @@ Ask the user:
 2. **Review sequence** — Show sequence details and all enrolled contacts
 3. **Remove a contact** — Use `mcp__claude_ai_Apollo_MCP__apollo_emailer_campaigns_remove_or_stop_contact_ids` to remove specific contacts
 4. **Pause a contact** — Re-add with `status: "paused"` and an `auto_unpause_at` date
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

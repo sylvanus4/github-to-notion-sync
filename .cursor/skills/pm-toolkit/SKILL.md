@@ -4,16 +4,16 @@ description: >-
   PM utility skills: resume review against PM best practices, NDA drafting,
   privacy policy generation, and grammar/flow checking. Based on
   phuryn/pm-skills. Use when the user asks for "review resume", "draft NDA",
-  "privacy policy", "grammar check", "proofread", or "PM resume review".
-  Do NOT use for legal contract review (use kwp-legal-contract-review),
-  general documentation (use technical-writer), or marketing content (use
-  kwp-marketing-content-creation).
+  "privacy policy", "grammar check", "proofread", or "PM resume review". Do NOT
+  use for legal contract review (use kwp-legal-contract-review), general
+  documentation (use technical-writer), or marketing content (use
+  kwp-marketing-content-creation). Korean triggers: "리뷰", "체크", "시장", "문서".
 metadata:
-  author: thaki
-  version: 1.0.0
-  upstream: https://github.com/phuryn/pm-skills
+  author: "thaki"
+  version: "1.0.0"
+  upstream: "https://github.com/phuryn/pm-skills"
+  category: "product"
 ---
-
 # PM Toolkit
 
 PM utility skills for resume review, NDA drafting, privacy policy generation, and grammar/flow checking. Each sub-skill has a reference file with full instructions.

@@ -1,12 +1,17 @@
 ---
 name: kwp-bio-research-single-cell-rna-qc
-description: Performs quality control on single-cell RNA-seq data (.h5ad or .h5 files) using scverse best practices with MAD-based filtering and comprehensive visualizations. Use when users request QC analysis,
-  filtering low-quality cells, assessing data quality, or following scverse/scanpy best practices for single-cell analysis. Do NOT use for tasks outside the bio domain.
+description: >-
+  Performs quality control on single-cell RNA-seq data (.h5ad or .h5 files)
+  using scverse best practices with MAD-based filtering and comprehensive
+  visualizations. Use when users request QC analysis, filtering low-quality
+  cells, assessing data quality, or following scverse/scanpy best practices for
+  single-cell analysis. Do NOT use for tasks outside the bio domain. Korean
+  triggers: "리서치", "스캔", "데이터".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Single-Cell RNA-seq Quality Control
 
 Automated QC workflow for single-cell RNA-seq data following scverse best practices.
@@ -177,3 +182,30 @@ Typical downstream analysis steps:
 - Normalization (log-normalize, scran)
 - Feature selection and dimensionality reduction
 - Clustering and cell type annotation
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Users request QC analysis"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

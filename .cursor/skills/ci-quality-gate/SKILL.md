@@ -1,11 +1,17 @@
 ---
 name: ci-quality-gate
-description: Run the full CI pipeline locally (secret scan, Python lint/test, Go lint/test, frontend lint/test/build, schema check) and produce a pass/fail report. Use when the user asks to run CI locally, check quality before pushing, or validate all checks pass. Do NOT use for individual dependency audits (use dependency-auditor) or test strategy design (use qa-test-expert).
+description: >-
+  Run the full CI pipeline locally (secret scan, Python lint/test, Go
+  lint/test, frontend lint/test/build, schema check) and produce a pass/fail
+  report. Use when the user asks to run CI locally, check quality before
+  pushing, or validate all checks pass. Do NOT use for individual dependency
+  audits (use dependency-auditor) or test strategy design (use qa-test-expert).
+  Korean triggers: "감사", "테스트", "빌드", "설계".
 metadata:
   version: "1.0.0"
-  category: execution
+  category: "execution"
+  author: "thaki"
 ---
-
 # CI Quality Gate
 
 Reproduces the GitHub Actions CI pipeline (`.github/workflows/ci.yml`) on the local machine and aggregates results into a single pass/fail report.

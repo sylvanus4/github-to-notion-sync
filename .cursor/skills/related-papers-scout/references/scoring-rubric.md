@@ -8,7 +8,7 @@
 | **Citation count** | 20% | Normalize: 100+ citations = 1.0, 50-99 = 0.7, 10-49 = 0.4, <10 = 0.1 (for recent papers <6mo, halve threshold) |
 | **GitHub traction** | 20% | 1.0 if repo with 500+ stars; 0.7 if 100-499 stars or listed on Papers With Code; 0.3 if has repo but <100 stars; 0.0 if no repo |
 | **Twitter/community buzz** | 15% | 1.0 if multiple Twitter threads or blog posts; 0.5 if at least one mention; 0.0 if none found |
-| **Recency** | 15% | 1.0 if published within 6 months; 0.7 if 6-12 months; 0.4 if 12-18 months; 0.1 if older |
+| **Recency** | 15% | Papers older than `--recency-months` (default 9) are discarded before scoring. Among remaining: 1.0 if published within 3 months; 0.7 if 3-6 months; 0.4 if 6-9 months |
 
 Calculate `total_score = sum(weight * score)` for each candidate.
 

@@ -1,14 +1,22 @@
 ---
 name: kwp-brand-voice-brand-voice-enforcement
-description: This skill applies brand guidelines to content creation. It should be used when the user asks to "write an email", "draft a proposal", "create a pitch deck", "write a LinkedIn post", "draft
-  a presentation", "write a Slack message", "draft sales content", or any content creation request where brand voice should be applied. Also triggers on "on-brand", "brand voice", "enforce voice", "apply
-  brand guidelines", "brand-aligned content", "write in our voice", "use our brand tone", "make this sound like us", "rewrite this in our tone", or "this doesn't sound on-brand". Not for generating guidelines
-  from scratch (use guideline-generation) or discovering brand materials (use discover-brand). Do NOT use for tasks outside the brand-voice domain.
+description: >-
+  This skill applies brand guidelines to content creation. It should be used
+  when the user asks to "write an email", "draft a proposal", "create a pitch
+  deck", "write a LinkedIn post", "draft a presentation", "write a Slack
+  message", "draft sales content", or any content creation request where brand
+  voice should be applied. Also triggers on "on-brand", "brand voice", "enforce
+  voice", "apply brand guidelines", "brand-aligned content", "write in our
+  voice", "use our brand tone", "make this sound like us", "rewrite this in our
+  tone", or "this doesn't sound on-brand". Not for generating guidelines from
+  scratch (use guideline-generation) or discovering brand materials (use
+  discover-brand). Do NOT use for tasks outside the brand-voice domain. Korean
+  triggers: "생성", "이메일", "프레젠테이션", "스킬".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Brand Voice Enforcement
 
 Apply existing brand guidelines to all sales and marketing content generation. Load the user's brand guidelines, apply voice constants and tone flexes to the content request, validate output, and explain brand choices.
@@ -102,3 +110,30 @@ Open questions are unresolved brand positioning decisions flagged during guideli
 
 - **`references/voice-constant-tone-flexes.md`** — The "voice constant, tone flexes" mental model, "We Are / We Are Not" table structure, and tone-by-context matrix explanation
 - **`references/before-after-examples.md`** — Before/after content examples per content type showing enforcement in practice
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with brand voice brand voice enforcement"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

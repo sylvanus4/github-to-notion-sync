@@ -1,12 +1,18 @@
 ---
 name: alphaear-signal-tracker
-description: Tracks finance investment signal evolution — determines if signals are Strengthened, Weakened, or Falsified based on new market info. Use when monitoring finance signals, re-evaluating theses after news/price moves, or updating signal confidence and intensity. Do NOT use for one-time stock price checks (use daily-stock-check). Do NOT use for generating reports (use alphaear-reporter). Do NOT use for sentiment scoring (use alphaear-sentiment).
+description: >-
+  Tracks finance investment signal evolution — determines if signals are
+  Strengthened, Weakened, or Falsified based on new market info. Use when
+  monitoring finance signals, re-evaluating theses after news/price moves, or
+  updating signal confidence and intensity. Do NOT use for one-time stock price
+  checks (use daily-stock-check). Do NOT use for generating reports (use
+  alphaear-reporter). Do NOT use for sentiment scoring (use alphaear-sentiment).
+  Korean triggers: "체크", "리포트", "모니터링", "주식".
 metadata:
   version: "1.0.0"
-  category: analysis
-  author: alphaear
+  category: "analysis"
+  author: "alphaear"
 ---
-
 # AlphaEar Signal Tracker
 
 ## Overview

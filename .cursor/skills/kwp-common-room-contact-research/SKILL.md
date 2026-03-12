@@ -1,12 +1,15 @@
 ---
 name: kwp-common-room-contact-research
-description: Research a specific person using Common Room data. Triggers on 'who is [name]', 'look up [email]', 'research [contact]', 'is [name] a warm lead', or any contact-level question. Do NOT use for
-  tasks outside the common-room domain.
+description: >-
+  Research a specific person using Common Room data. Triggers on 'who is
+  [name]', 'look up [email]', 'research [contact]', 'is [name] a warm lead', or
+  any contact-level question. Do NOT use for tasks outside the common-room
+  domain. Korean triggers: "리서치", "검색", "이메일", "데이터".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Contact Research
 
 Retrieve a comprehensive contact profile from Common Room. Supports lookup by email, social handle, or name + company. Returns enriched data including activity history, Spark, scores, website visits, and CRM fields.
@@ -131,3 +134,30 @@ Do not generate conversation starters, persona inferences, or engagement assessm
 ## Reference Files
 
 - **`references/contact-signals-guide.md`** — full field descriptions, Spark persona guide, and conversation starter principles
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with common room contact research"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

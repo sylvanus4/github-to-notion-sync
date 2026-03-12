@@ -1,12 +1,16 @@
 ---
 name: kwp-data-statistical-analysis
-description: Apply statistical methods including descriptive stats, trend analysis, outlier detection, and hypothesis testing. Use when analyzing distributions, testing for significance, detecting anomalies,
-  computing correlations, or interpreting statistical results. Do NOT use for tasks outside the data domain.
+description: >-
+  Apply statistical methods including descriptive stats, trend analysis,
+  outlier detection, and hypothesis testing. Use when analyzing distributions,
+  testing for significance, detecting anomalies, computing correlations, or
+  interpreting statistical results. Do NOT use for tasks outside the data
+  domain. Korean triggers: "데이터", "테스트".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Statistical Analysis Skill
 
 Descriptive statistics, trend analysis, outlier detection, hypothesis testing, and guidance on when to be cautious about statistical claims.
@@ -246,3 +250,30 @@ Be wary of false precision:
 - "Churn will be 4.73% next quarter" implies more certainty than is warranted
 - Prefer ranges: "We expect churn between 4-6% based on historical patterns"
 - Round appropriately: "About 5%" is often more honest than "4.73%"
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Analyzing distributions"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

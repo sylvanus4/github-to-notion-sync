@@ -4,21 +4,15 @@ description: >-
   Generate content from Google NotebookLM notebooks -- audio podcasts, video
   explainers, reports, quizzes, flashcards, mind maps, slide decks, infographics,
   and data tables. Download artifacts and export to Google Docs/Sheets.
-  Use when the user asks to "create a podcast", "generate audio overview",
-  "make a video", "create flashcards", "generate a report", "make a slide deck",
-  "create an infographic", "generate mind map", "create data table",
-  "generate quiz", "download artifact", "export to Google Docs",
-  "revise slides", "check generation status", "studio content",
-  "팟캐스트 생성", "오디오 생성", "비디오 생성", "플래시카드 만들기",
-  "슬라이드 생성", "인포그래픽 생성", "마인드맵", "퀴즈 생성",
-  "리포트 생성", "아티팩트 다운로드", "NLM studio", "NLM 콘텐츠 생성",
-  "NotebookLM 콘텐츠", "NotebookLM podcast", "NLM 팟캐스트",
+  Use when the user asks to "create a podcast", "make a video", "create flashcards",
+  "generate a report", "make a slide deck", "generate mind map", "generate quiz",
+  "download artifact", "export to Google Docs", "NLM studio", "팟캐스트 생성",
   or any NotebookLM content generation request.
-  Do NOT use for notebook/source/note CRUD or querying -- use notebooklm.
-  Do NOT use for web/Drive research pipelines -- use notebooklm-research.
-  Do NOT use for end-to-end slide pipelines from local docs -- use nlm-slides.
-  Do NOT use for end-to-end video pipelines from local docs -- use nlm-video.
-  Do NOT use for local audio/video transcription -- use transcribee.
+  Do NOT use for notebook/source/note CRUD -- use notebooklm. Do NOT use for
+  web/Drive research -- use notebooklm-research. Do NOT use for end-to-end slide
+  pipelines from local docs -- use nlm-slides. Do NOT use for end-to-end video
+  pipelines from local docs -- use nlm-video. Do NOT use for local transcription --
+  use transcribee.
 metadata:
   author: thaki
   version: 1.0.0
@@ -163,3 +157,14 @@ nlm slides revise <notebook_id> <artifact_id> --instructions "..."
 - **nlm-deep-learn** -- accelerated learning pipeline using studio artifacts for study materials
 - **today** -- daily stock analysis pipeline (produces .docx reports for podcast conversion)
 - **anthropic-docx** -- Word document generation
+
+## Examples
+
+### Example 1: Standard usage
+
+**User says:** "Create a podcast"
+
+**Actions:**
+1. Gather necessary context from the project and user
+2. Execute the skill workflow as documented above
+3. Deliver results and verify correctness

@@ -1,23 +1,24 @@
 ---
 name: agent-browser
 description: >-
-  Headless browser automation via the agent-browser CLI (v0.16.3). Navigates pages,
-  fills forms, clicks elements, takes screenshots, extracts data, diffs page states,
-  records video, profiles performance, and manages sessions -- all from the terminal.
-  Use when the user asks to "automate a browser task", "test a web page", "scrape data",
-  "take a screenshot of a site", "fill out a form", "login to a website", "compare two pages",
-  "visual diff", "record browser session", "profile page performance", "native mode browser",
-  "stream browser", "iOS mobile testing", "auth vault", "cloud browser", or any task
-  requiring programmatic browser interaction via CLI.
-  Do NOT use for interactive MCP-based browser sessions (use cursor-ide-browser MCP instead),
-  Playwright test suites (use webapp-testing skill), or general web fetching without browser
-  rendering (use WebFetch).
+  Headless browser automation via the agent-browser CLI (v0.16.3). Navigates
+  pages, fills forms, clicks elements, takes screenshots, extracts data, diffs
+  page states, records video, profiles performance, and manages sessions -- all
+  from the terminal. Use when the user asks to "automate a browser task", "test
+  a web page", "scrape data", "take a screenshot of a site", "fill out a form",
+  "login to a website", "compare two pages", "visual diff", "record browser
+  session", "profile page performance", "native mode browser", "stream browser",
+  "iOS mobile testing", "auth vault", "cloud browser", or any task requiring
+  programmatic browser interaction via CLI. Do NOT use for interactive MCP-based
+  browser sessions (use cursor-ide-browser MCP instead), Playwright test suites
+  (use webapp-testing skill), or general web fetching without browser rendering
+  (use WebFetch). Korean triggers: "브라우저", "테스트", "성능", "스크래핑".
 metadata:
-  author: thaki
-  version: 2.0.0
-  upstream: vercel-labs/agent-browser@0.16.3
+  author: "thaki"
+  version: "2.0.0"
+  upstream: "vercel-labs/agent-browser@0.16.3"
+  category: "execution"
 ---
-
 # Agent Browser — CLI Browser Automation for AI Agents
 
 Automate headless Chromium via the `agent-browser` CLI. Uses a snapshot-ref interaction pattern: navigate to a page, snapshot the accessibility tree to get element refs (`@e1`, `@e2`), then interact using those refs.

@@ -1,12 +1,17 @@
 ---
 name: alphaear-search
-description: Perform finance-specific web searches (Jina/DDG/Baidu) and local RAG search. Use when the user needs finance info from the web, local document store (daily_news DB), or multi-engine aggregation. Do NOT use for general web research (use parallel-web-search). Do NOT use for stock price data (use alphaear-stock or weekly-stock-update). Do NOT use for news aggregation (use alphaear-news).
+description: >-
+  Perform finance-specific web searches (Jina/DDG/Baidu) and local RAG search.
+  Use when the user needs finance info from the web, local document store
+  (daily_news DB), or multi-engine aggregation. Do NOT use for general web
+  research (use parallel-web-search). Do NOT use for stock price data (use
+  alphaear-stock or weekly-stock-update). Do NOT use for news aggregation (use
+  alphaear-news). Korean triggers: "검색", "주식", "뉴스", "문서".
 metadata:
   version: "1.0.0"
-  category: data-collection
-  author: alphaear
+  category: "data-collection"
+  author: "alphaear"
 ---
-
 # AlphaEar Search
 
 ## Overview

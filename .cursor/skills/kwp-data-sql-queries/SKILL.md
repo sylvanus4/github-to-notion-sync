@@ -1,12 +1,16 @@
 ---
 name: kwp-data-sql-queries
-description: Write correct, performant SQL across all major data warehouse dialects (Snowflake, BigQuery, Databricks, PostgreSQL, etc.). Use when writing queries, optimizing slow SQL, translating between
-  dialects, or building complex analytical queries with CTEs, window functions, or aggregations. Do NOT use for tasks outside the data domain.
+description: >-
+  Write correct, performant SQL across all major data warehouse dialects
+  (Snowflake, BigQuery, Databricks, PostgreSQL, etc.). Use when writing queries,
+  optimizing slow SQL, translating between dialects, or building complex
+  analytical queries with CTEs, window functions, or aggregations. Do NOT use
+  for tasks outside the data domain. Korean triggers: "데이터", "빌드".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # SQL Queries Skill
 
 Write correct, performant, readable SQL across all major data warehouse dialects.
@@ -429,3 +433,23 @@ When a query fails:
 4. **Division by zero**: Use `NULLIF(denominator, 0)` or dialect-specific safe division
 5. **Ambiguous columns**: Always qualify column names with table alias in JOINs
 6. **Group by errors**: All non-aggregated columns must be in GROUP BY (except in BigQuery which allows grouping by alias)
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "Writing queries"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps

@@ -1,8 +1,15 @@
 ---
 name: finishing-a-development-branch
-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup
+description: >-
+  Use when implementation is complete, all tests pass, and you need to decide
+  how to integrate the work - guides completion of development work by
+  presenting structured options for merge, PR, or cleanup. Korean triggers:
+  "브랜치 완료", "작업 마무리". Do NOT use for code review (use sp-request-review).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Finishing a Development Branch
 
 ## Overview
@@ -198,3 +205,10 @@ git worktree remove <worktree-path>
 
 **Pairs with:**
 - **using-git-worktrees** - Cleans up worktree created by that skill
+
+## Examples
+
+### Example 1: Standard workflow
+**User says:** Request that triggers this skill
+**Actions:** Follow the prescribed process steps in order. Verify each checkpoint before proceeding.
+**Result:** Completed workflow with all verification criteria met.

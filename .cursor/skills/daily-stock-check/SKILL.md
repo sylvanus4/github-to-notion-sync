@@ -1,11 +1,18 @@
 ---
 name: daily-stock-check
-description: Analyze stocks from Turtle Trading (MA + Donchian) and Bollinger Bands perspectives, then post a buy/sell/neutral summary to Slack. Use when the user asks to run a daily stock check, analyze stock signals, or post trading analysis to Slack. Do NOT use for downloading historical stock CSVs or refreshing price data (use stock-csv-downloader). Do NOT use for updating recent stock prices in the database (use weekly-stock-update).
+description: >-
+  Analyze stocks from Turtle Trading (MA + Donchian) and Bollinger Bands
+  perspectives, then post a buy/sell/neutral summary to Slack. Use when the user
+  asks to run a daily stock check, analyze stock signals, or post trading
+  analysis to Slack. Do NOT use for downloading historical stock CSVs or
+  refreshing price data (use stock-csv-downloader). Do NOT use for updating
+  recent stock prices in the database (use weekly-stock-update). Korean
+  triggers: "주식", "체크", "분석", "데이터".
 metadata:
   version: "1.0.0"
-  category: generation
+  category: "generation"
+  author: "thaki"
 ---
-
 # Daily Stock Check
 
 Analyze all stocks in `data/latest/` using Turtle Trading and Bollinger Bands methodologies, then post a formatted summary to `#h-daily-stock-check` on Slack.

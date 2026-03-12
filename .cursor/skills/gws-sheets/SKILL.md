@@ -2,15 +2,15 @@
 name: gws-sheets
 description: >-
   Manage Google Sheets via the gws CLI -- read cell ranges, append rows, and
-  create spreadsheets. Use when the user asks to read spreadsheet data, write
-  to sheets, append rows, or create new spreadsheets. Do NOT use for Google
-  Docs (use gws-docs), Drive file management (use gws-drive), or CSV files
-  on disk (handle locally).
+  create spreadsheets. Use when the user asks to read spreadsheet data, write to
+  sheets, append rows, or create new spreadsheets. Do NOT use for Google Docs
+  (use gws-docs), Drive file management (use gws-drive), or CSV files on disk
+  (handle locally). Korean triggers: "구글 시트", "스프레드시트".
 metadata:
-  author: googleworkspace/cli (adapted)
-  version: 1.0.0
+  author: "googleworkspace/cli (adapted)"
+  version: "1.0.0"
+  category: "integration"
 ---
-
 # Google Sheets
 
 > **Prerequisites**: `gws` must be installed and authenticated. See `gws-workspace` skill.
@@ -99,3 +99,30 @@ gws sheets spreadsheets values batchGet \
 gws sheets spreadsheets values clear \
   --params '{"spreadsheetId": "ID", "range": "Sheet1!A1:D10"}' --dry-run
 ```
+
+## Examples
+
+### Example 1: Basic operation
+
+**User says:** "Read spreadsheet data"
+
+**Actions:**
+1. Verify `gws` CLI is authenticated (`gws auth status`)
+2. Execute the appropriate `gws` command with required parameters
+3. Confirm the result and report back
+
+### Example 2: Troubleshooting
+
+**User says:** "The command failed with an authentication error"
+
+**Actions:**
+1. Check auth status: `gws auth status`
+2. Re-authenticate if expired: `gws auth login`
+3. Retry the original command
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Authentication error | Run `gws auth status` and re-authenticate if expired |
+| API rate limit | Wait and retry. For bulk operations, add delays between requests |
+| Resource not found | Verify the resource ID/name and check permissions |

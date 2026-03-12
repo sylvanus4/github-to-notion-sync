@@ -1,8 +1,14 @@
 ---
 name: using-git-worktrees
-description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification
+description: >-
+  Use when starting feature work that needs isolation from current workspace or
+  before executing implementation plans - creates isolated git worktrees with
+  smart directory selection and safety verification. Korean triggers: "워크트리", "기능 분리". Do NOT use for regular git operations (use domain-commit).
+metadata:
+  author: "superpowers"
+  version: "1.0.0"
+  category: "process"
 ---
-
 # Using Git Worktrees
 
 ## Overview

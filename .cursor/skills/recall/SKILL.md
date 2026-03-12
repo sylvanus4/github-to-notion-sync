@@ -3,19 +3,18 @@ name: recall
 description: >-
   Restore cross-session context from the project's long-term memory store.
   Searches extracted session transcripts, decisions, patterns, and glossary
-  using BM25, semantic, or hybrid search. Use when the user says "recall",
-  "what did we work on", "load context about", "remember when we",
-  "prime context", "yesterday's session", "restore context", "이전 작업",
-  "맥락 복원", "recall topic", "recall yesterday", "what was the decision about",
-  "이전에 뭐 했지", "컨텍스트 복원", "지난 세션", or needs to resume prior work.
-  Do NOT use for general web search (use WebSearch), code search in the current
-  codebase (use Grep/SemanticSearch), or creating new memory entries (update
-  MEMORY.md directly).
+  using BM25, semantic, or hybrid search. Use when the user says "recall", "what
+  did we work on", "load context about", "remember when we", "prime context",
+  "yesterday's session", "restore context", "이전 작업", "맥락 복원", "recall topic",
+  "recall yesterday", "what was the decision about", "이전에 뭐 했지", "컨텍스트 복원", "지난
+  세션", or needs to resume prior work. Do NOT use for general web search (use
+  WebSearch), code search in the current codebase (use Grep/SemanticSearch), or
+  creating new memory entries (update MEMORY.md directly).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Recall: Long-Term Memory Search
 
 Restore context from prior sessions, decisions, and patterns stored in the project's `memory/` directory.
@@ -127,3 +126,18 @@ The `--incremental` flag only processes transcripts not yet in `memory/.cache/pr
 - **Session start**: Use `/recall` with a relevant topic to prime context before work begins
 - **Session end**: The done-checklist rule triggers extraction automatically
 - **Context handoff**: When splitting a long conversation, use `/recall` in the new session to restore state
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "recall" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

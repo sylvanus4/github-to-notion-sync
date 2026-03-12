@@ -7,13 +7,13 @@ description: >-
   context + related docs), and Weekly Digest (weekly calendar + email overview).
   Use when the user asks for "morning sweep", "morning briefing", "daily
   briefing", "meeting prep", "weekly digest", "weekly summary", "start my day",
-  "prep my meeting", "what's on my plate", or "아침 브리핑", "미팅 준비",
-  "주간 요약". Do NOT use for single-service operations (use gwcli directly).
+  "prep my meeting", "what's on my plate", or "아침 브리핑", "미팅 준비", "주간 요약". Do NOT
+  use for single-service operations (use gwcli directly).
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # AI Chief of Staff -- Personal Assistant
 
 A personal AI assistant inspired by Jim Prosser's Claude Code "Chief of Staff" system. Combines Gmail, Calendar, and Drive data into structured, actionable briefings using `gwcli` (google-workspace-cli).

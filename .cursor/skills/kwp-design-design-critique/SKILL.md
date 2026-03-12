@@ -1,12 +1,17 @@
 ---
 name: kwp-design-design-critique
-description: Evaluate designs for usability, visual hierarchy, consistency, and adherence to design principles. Trigger with "what do you think of this design", "give me feedback on", "critique this", "review
-  this mockup", or when the user shares a design and asks for opinions. Do NOT use for this project's 14-dimension design audit — prefer design-architect skill.
+description: >-
+  Evaluate designs for usability, visual hierarchy, consistency, and adherence
+  to design principles. Trigger with "what do you think of this design", "give
+  me feedback on", "critique this", "review this mockup", or when the user
+  shares a design and asks for opinions. Do NOT use for this project's
+  14-dimension design audit — prefer design-architect skill. Korean triggers:
+  "설계", "감사", "리뷰", "스킬".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Design Critique
 
 Provide structured, actionable design feedback.
@@ -48,3 +53,30 @@ Provide structured, actionable design feedback.
 - **Suggest alternatives**: Don't just identify problems, propose solutions
 - **Acknowledge what works**: Good feedback includes positive observations
 - **Match the stage**: Early exploration gets different feedback than final polish
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with design design critique"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

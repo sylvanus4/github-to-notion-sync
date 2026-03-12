@@ -8,12 +8,12 @@ description: >-
   website", "clean up this webpage", "defuddle", or when feeding web content to
   an LLM with minimal noise. Do NOT use for general web search (use WebSearch),
   API endpoint calls, browser automation (use agent-browser), or fetching
-  structured JSON data from APIs.
+  structured JSON data from APIs. Korean triggers: "검색", "데이터", "API", "자동화".
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Defuddle — Web Page to Clean Markdown
 
 Extract the main content from any web page as clean markdown via the Defuddle API. Strips ads, sidebars, headers, footers, and navigation clutter.

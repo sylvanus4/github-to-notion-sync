@@ -1,11 +1,17 @@
 ---
 name: anthropic-doc-coauthoring
-description: Structured co-authoring workflow for documents. Use when user wants to write documentation, proposals, technical specs, decision docs, or similar structured content. This workflow helps users efficiently transfer context, refine content through iteration, and verify the doc works for readers. Do NOT use for Word document generation (use anthropic-docx) or PR/release notes (use pr-review-captain).
+description: >-
+  Structured co-authoring workflow for documents. Use when user wants to write
+  documentation, proposals, technical specs, decision docs, or similar
+  structured content. This workflow helps users efficiently transfer context,
+  refine content through iteration, and verify the doc works for readers. Do NOT
+  use for Word document generation (use anthropic-docx) or PR/release notes (use
+  pr-review-captain). Korean triggers: "문서 공동 작성", "스펙 작성".
 metadata:
-  author: anthropic
-  version: 1.0.0
+  author: "anthropic"
+  version: "1.0.0"
+  category: "document"
 ---
-
 # Doc Co-Authoring Workflow
 
 This skill provides a structured workflow for guiding users through collaborative document creation. Act as an active guide, walking users through three stages: Context Gathering, Refinement & Structure, and Reader Testing.
@@ -376,3 +382,18 @@ Announce document completion. Provide a few final tips:
 - Don't rush through stages
 - Each iteration should make meaningful improvements
 - The goal is a document that actually works for readers
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to structured co-authoring workflow for documents
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

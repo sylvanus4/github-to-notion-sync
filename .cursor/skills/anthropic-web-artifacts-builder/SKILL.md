@@ -1,12 +1,16 @@
 ---
 name: anthropic-web-artifacts-builder
-description: Build complex HTML artifacts with React, Tailwind, shadcn/ui. Use for complex artifacts requiring state management, routing, or shadcn/ui components. Do NOT use for frontend code review (use frontend-expert), UX audits (use ux-expert), or simple static HTML (use anthropic-frontend-design).
+description: >-
+  Build complex HTML artifacts with React, Tailwind, shadcn/ui. Use for complex
+  artifacts requiring state management, routing, or shadcn/ui components. Do NOT
+  use for frontend code review (use frontend-expert), UX audits (use ux-expert),
+  or simple static HTML (use anthropic-frontend-design). Korean triggers: "웹 아티팩트", "React 컴포넌트", "shadcn".
 metadata:
-  author: anthropic
-  version: 1.0.0
-  license: Complete terms in LICENSE.txt
+  author: "anthropic"
+  version: "1.0.0"
+  license: "Complete terms in LICENSE.txt"
+  category: "document"
 ---
-
 # Web Artifacts Builder
 
 To build powerful frontend claude.ai artifacts, follow these steps:
@@ -75,3 +79,18 @@ To test/visualize the artifact, use available tools (including other Skills or b
 ## Reference
 
 - **shadcn/ui components**: https://ui.shadcn.com/docs/components
+
+## Examples
+
+### Example 1: Create artifact
+**User says:** Request to build complex html artifacts with react, tailwind, shadcn/ui
+**Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
+**Result:** Professional-quality output file in the specified format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |

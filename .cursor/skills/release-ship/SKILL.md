@@ -2,18 +2,17 @@
 name: release-ship
 description: >-
   Lightweight shipping pipeline: domain-split commits, git push, and PR
-  creation/update in one flow. Use when the user asks to "release-ship",
-  "commit and push", "commit and PR", "push and create PR", "커밋하고 PR",
-  "커밋하고 푸시", "ship without review", or wants to go from uncommitted
-  changes to an open PR without code review. Do NOT use for review-included
-  shipping (use ship), full release validation pipeline (use release-commander),
-  domain-split commits only without push/PR (use domain-commit), or
-  single-file trivial commits.
+  creation/update in one flow. Use when the user asks to "release-ship", "commit
+  and push", "commit and PR", "push and create PR", "커밋하고 PR", "커밋하고 푸시", "ship
+  without review", or wants to go from uncommitted changes to an open PR without
+  code review. Do NOT use for review-included shipping (use ship), full release
+  validation pipeline (use release-commander), domain-split commits only without
+  push/PR (use domain-commit), or single-file trivial commits.
 metadata:
-  author: thaki
-  version: 1.0.0
+  author: "thaki"
+  version: "1.0.0"
+  category: "execution"
 ---
-
 # Release Ship — Commit, Push, Issue, PR, and Merge Pipeline
 
 Lightweight pipeline to go from uncommitted changes to a merged PR. Chains domain-split commits, push, issue creation with project linking, PR creation, and auto-merge without code review overhead.

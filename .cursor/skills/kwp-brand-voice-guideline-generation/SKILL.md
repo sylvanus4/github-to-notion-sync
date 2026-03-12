@@ -1,14 +1,20 @@
 ---
 name: kwp-brand-voice-guideline-generation
-description: This skill generates, creates, or builds brand voice guidelines from source materials. It should be used when the user asks to "generate brand guidelines", "create a style guide", "extract
-  brand voice", "create guidelines from calls", "consolidate brand materials", "analyze my sales calls for brand voice", "build a brand playbook from documents", "synthesize a voice and tone guide", or
-  uploads brand documents, transcripts, or meeting recordings for brand analysis. Also triggers when the user has a discovery report and wants to convert it into actionable guidelines. Do NOT use for tasks
-  outside the brand-voice domain.
+description: >-
+  This skill generates, creates, or builds brand voice guidelines from source
+  materials. It should be used when the user asks to "generate brand
+  guidelines", "create a style guide", "extract brand voice", "create guidelines
+  from calls", "consolidate brand materials", "analyze my sales calls for brand
+  voice", "build a brand playbook from documents", "synthesize a voice and tone
+  guide", or uploads brand documents, transcripts, or meeting recordings for
+  brand analysis. Also triggers when the user has a discovery report and wants
+  to convert it into actionable guidelines. Do NOT use for tasks outside the
+  brand-voice domain. Korean triggers: "빌드", "분석", "생성", "리포트".
 metadata:
-  author: anthropic-kwp
-  version: 1.0.0
+  author: "anthropic-kwp"
+  version: "1.0.0"
+  category: "workflow"
 ---
-
 # Guideline Generation
 
 Generate comprehensive, LLM-ready brand voice guidelines from any combination of sources — brand documents, sales call transcripts, discovery reports, or direct user input. Transform raw materials into structured, enforceable guidelines with confidence scoring and open questions.
@@ -137,3 +143,30 @@ Enforce these privacy constraints throughout the entire generation workflow, not
 
 - **`references/guideline-template.md`** — Complete output template with all sections, field definitions, and formatting guidance
 - **`references/confidence-scoring.md`** — Confidence scoring methodology, thresholds, and examples
+
+## Examples
+
+### Example 1: Typical request
+
+**User says:** "I need help with brand voice guideline generation"
+
+**Actions:**
+1. Ask clarifying questions to understand context and constraints
+2. Apply the domain methodology step by step
+3. Deliver structured output with actionable recommendations
+
+### Example 2: Follow-up refinement
+
+**User says:** "Can you go deeper on the second point?"
+
+**Actions:**
+1. Re-read the relevant section of the methodology
+2. Provide detailed analysis with supporting rationale
+3. Suggest concrete next steps
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Missing required context | Ask user for specific inputs before proceeding |
+| Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
+| Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |

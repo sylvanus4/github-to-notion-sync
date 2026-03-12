@@ -1,12 +1,17 @@
 ---
 name: alphaear-news
-description: Fetch real-time financial news from 10+ sources (Weibo, Zhihu, WallstreetCN, Hacker News, etc.) and Polymarket prediction market data. Use when the user needs hot finance news, unified trend reports from multiple sources, or Polymarket finance prediction data. Do NOT use for stock price data (use weekly-stock-update or alphaear-stock). Do NOT use for sentiment scoring (use alphaear-sentiment).
+description: >-
+  Fetch real-time financial news from 10+ sources (Weibo, Zhihu, WallstreetCN,
+  Hacker News, etc.) and Polymarket prediction market data. Use when the user
+  needs hot finance news, unified trend reports from multiple sources, or
+  Polymarket finance prediction data. Do NOT use for stock price data (use
+  weekly-stock-update or alphaear-stock). Do NOT use for sentiment scoring (use
+  alphaear-sentiment). Korean triggers: "뉴스", "리포트", "주식", "시장".
 metadata:
   version: "1.0.0"
-  category: data-collection
-  author: alphaear
+  category: "data-collection"
+  author: "alphaear"
 ---
-
 # AlphaEar News
 
 ## Overview

@@ -1,16 +1,17 @@
 ---
 name: docs-tutor-setup
-description: >
-  Transform the project's docs/ markdown files into an Obsidian StudyVault with structured
-  concept notes, practice questions, dashboards, and interlinking. Use when the user asks to
-  "generate a study vault", "create study notes from docs", "docs-tutor-setup", or wants to
-  learn the platform documentation systematically. Do NOT use for interactive quizzing (use
-  docs-tutor) or for general documentation writing (use technical-writer).
+description: >-
+  Transform the project's docs/ markdown files into an Obsidian StudyVault with
+  structured concept notes, practice questions, dashboards, and interlinking.
+  Use when the user asks to "generate a study vault", "create study notes from
+  docs", "docs-tutor-setup", or wants to learn the platform documentation
+  systematically. Do NOT use for interactive quizzing (use docs-tutor) or for
+  general documentation writing (use technical-writer). Korean triggers: "학습 노트", "StudyVault 생성".
 metadata:
   version: "1.0.0"
-  category: learning
+  category: "learning"
+  author: "thaki"
 ---
-
 # Docs Tutor Setup — Markdown Docs to Obsidian StudyVault
 
 ## Scope
@@ -202,3 +203,18 @@ Report completion with:
 - **Tags/keywords**: ALWAYS English kebab-case
 - **Dashboard labels**: Korean (정답 보기, 핵심 패턴, 패턴 요약)
 - **Fold callout labels**: Korean (정답 보기, 클릭하여 보기)
+
+## Examples
+
+### Example 1: Standard usage
+**User says:** "docs tutor setup" or request matching the skill triggers
+**Actions:** Execute the skill workflow as specified. Verify output quality.
+**Result:** Task completed with expected output format.
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|-----------|
+| Unexpected input format | Validate input before processing; ask user for clarification |
+| External service unavailable | Retry with exponential backoff; report failure if persistent |
+| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |
