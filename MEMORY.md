@@ -46,6 +46,19 @@
 - Slack: summary + 2 threads (뉴스 다이제스트 + AI/GPU Cloud 인사이트) posted to #효정-할일
 - Drive: 생성 문서 없음, 건너뛰기
 
+## [task] Google Daily (2026-03-13)
+
+- Calendar: 10 events (면접 1 - PM 박종철, 미팅 3 - Research 스크럼/DeepResearch 회고/Sprint Retro, 외부미팅 1 - 라이너 김하영 팀장 저녁, 기타 5)
+- 집중 가능: 09:00~10:00, 12:30~14:00, 16:30~18:00 (약 4.5시간)
+- Gmail: 13 emails triaged (spam: 0, notifications: 6 moved to Low Priority, colleague: 5, news: 1 Bespin News 37건, reply-needed: 0, sent: 2 skip)
+- Notification categories moved to Label_9: Notion, RunPod, NotebookLM, Google Security, Cursor, Calendar accept
+- Colleague emails: 전승훈 CTO x3 (Meeting 참석요청/Agent Cloud 로드맵+Financial Model/nvidia Nemotron3), 상면규 (B200 VPN 완료), 정훈 (Thaki Suite 배포 공지)
+- News themes: 엔비디아 Nemotron3 Super 에이전트 모델, Nvidia $2B Nebius 투자, 젠슨 황 인프라 수조 달러, AMD 리사 수 방한, Databricks Genie Code+Quotient AI, 에이전트 카드/결제, AI 앱 구독 유지율 21%, Kai $125M 보안 에이전트
+- ThakiCloud 인사이트: Nemotron3 블랙웰 최적화 추론 차별화, Neocloud 파트너십 포지셔닝, B2B 인프라 과금 모델 유리, 에이전트 평가/보안 레이어 통합 필수, GPU 인프라 장기 성장 구간 진입
+- Action items: Financial Model 자료 준비 여부 확인 (전승훈 CTO → 윤성노 요청건)
+- Slack: summary + 7 threads (팀원 메일 5 + 뉴스 다이제스트 + AI/GPU Cloud 인사이트) posted to #효정-할일
+- Drive: 생성 문서 없음, 건너뛰기
+
 ## [issue] continual-learning 스킬 AGENTS.md 문제 (2026-03-10)
 
 - `continual-learning` 스킬(cursor-public 플러그인)은 Claude Code 컨벤션인 `AGENTS.md`를 생성함
