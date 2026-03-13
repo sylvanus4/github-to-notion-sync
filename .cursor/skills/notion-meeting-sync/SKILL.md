@@ -2,26 +2,28 @@
 name: notion-meeting-sync
 description: >-
   Sync meeting notes from a Notion database, analyze with PM skills, generate
-  comprehensive Korean summaries with detailed action items, and produce a
-  PowerPoint deck. Use when the user asks to "sync meetings from Notion",
-  "notion meeting sync", "회의록 동기화", "회의 요약", "노션 회의록", "meeting digest",
-  "meeting to PPTX", "meeting summary from Notion", "노션 회의 요약", or any request
-  to pull Notion meeting data, analyze it, and produce summaries or
-  presentations. Do NOT use for summarizing a meeting transcript without Notion
-  source (use pm-execution summarize-meeting). Do NOT use for syncing markdown
-  docs to Notion (use notion-docs-sync). Do NOT use for GitHub-to-Notion project
-  sync (use the project's sync scripts). Do NOT use for ad-hoc PPTX creation
-  without Notion source (use anthropic-pptx).
+  comprehensive Korean summaries with detailed action items, produce a
+  PowerPoint deck, and post the final digest to Slack. Use when the user asks
+  to "sync meetings from Notion", "notion meeting sync", "회의록 동기화",
+  "회의 요약", "노션 회의록", "meeting digest", "meeting to PPTX",
+  "meeting summary from Notion", "노션 회의 요약", or any request to pull Notion
+  meeting data, analyze it, and produce summaries or presentations. Do NOT use
+  for summarizing a meeting transcript without Notion source (use pm-execution
+  summarize-meeting). Do NOT use for syncing markdown docs to Notion (use
+  notion-docs-sync). Do NOT use for GitHub-to-Notion project sync (use the
+  project's sync scripts). Do NOT use for ad-hoc PPTX creation without Notion
+  source (use anthropic-pptx).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # Notion Meeting Sync
 
 Pull meeting notes from a Notion database, analyze them with PM skills,
-generate comprehensive Korean summaries with detailed action items, and
-produce a PowerPoint presentation — all in a single sequential pipeline.
+generate comprehensive Korean summaries with detailed action items,
+produce a PowerPoint presentation, and post the final digest to Slack
+— all in a single sequential pipeline.
 
 ## Configuration
 
@@ -32,7 +34,9 @@ produce a PowerPoint presentation — all in a single sequential pipeline.
 | Output Directory | `output/meetings/` |
 | Sync State File | `output/meetings/.sync-state.json` |
 | Language | Korean |
-| MCP Server | `plugin-notion-workspace-notion` |
+| MCP Server (Notion) | `plugin-notion-workspace-notion` |
+| MCP Server (Slack) | `plugin-slack-slack` |
+| Slack Channel | `#ai-platform-chapter-기획` (ID: `C0AL6D32Z7W`) |
 
 ## Scoping Modes
 
@@ -51,9 +55,10 @@ Phase 2: Meeting Analysis → Analyze with PM sub-skills
 Phase 3: Summary          → Generate comprehensive Korean summary
 Phase 4: Action Items     → Extract and document detailed action items
 Phase 5: PPTX Generation  → Create PowerPoint presentation
+Phase 6: Slack Post       → Post summary & action items to Slack (no file uploads)
 ```
 
-**Pattern**: Sequential (Phase 1 → 2 → 3 → 4 → 5).
+**Pattern**: Sequential (Phase 1 → 2 → 3 → 4 → 5 → 6).
 When multiple meetings are fetched, Phase 2 runs parallel subagents
 (one per meeting, max 4 concurrent).
 
@@ -394,6 +399,119 @@ Save to `output/meetings/{date}/meeting-summary.pptx`
 
 ---
 
+## Phase 6: Slack Post
+
+Post the meeting digest to `#ai-platform-chapter-기획` using the Slack MCP.
+PPTX files are NOT uploaded — only text-based summaries are posted.
+
+### 6.1 Main Message
+
+Send the first message to channel `C0AL6D32Z7W` with a high-level digest:
+
+```
+CallMcpTool(
+  server="plugin-slack-slack",
+  toolName="slack_send_message",
+  arguments={
+    "channel_id": "C0AL6D32Z7W",
+    "message": "<constructed message>"
+  }
+)
+```
+
+**Message format** (adapt content from `summary.md`):
+
+```markdown
+📋 *회의 요약 보고서* — {date}
+
+*동기화 범위*: {scope} | *분석된 회의 수*: {count}
+
+---
+
+*📌 회의 목록*
+{for each meeting}
+• *{title}* — {date/time}, 참석: {participants}
+{end for}
+
+---
+
+*🔑 주요 결정 사항*
+{numbered list of key decisions}
+
+---
+
+*⚠️ 미해결 이슈*
+{numbered list of open issues, if any}
+
+> 상세 내용은 쓰레드를 확인해 주세요.
+```
+
+Keep this message under 4000 characters. If the summary is too long,
+truncate discussion details and refer to the thread.
+
+### 6.2 Thread: Detailed Discussion Points
+
+Reply in-thread (`thread_ts` = main message timestamp) with the detailed
+discussion points from `summary.md` Section 2 ("핵심 논의 사항"):
+
+```markdown
+💬 *핵심 논의 사항*
+
+*[주제 1]*
+• 논의 내용: ...
+• 결론: ...
+
+*[주제 2]*
+• 논의 내용: ...
+• 결론: ...
+```
+
+Split into multiple thread messages if content exceeds 4000 characters.
+
+### 6.3 Thread: Action Items
+
+Reply in-thread with the action items from `action-items.md`:
+
+```markdown
+✅ *액션 아이템* ({total_count}건)
+
+*🔴 긴급*
+• `AI-001` {action} — 담당: {owner}, 기한: {due_date}
+• `AI-002` ...
+
+*🟡 보통*
+• `AI-003` {action} — 담당: {owner}, 기한: {due_date}
+
+*🟢 낮음*
+• `AI-004` ...
+```
+
+### 6.4 Thread: Next Steps
+
+Reply in-thread with the next steps from `summary.md` Section 6:
+
+```markdown
+🚀 *다음 단계*
+1. {next step 1}
+2. {next step 2}
+3. ...
+```
+
+### 6.5 Slack Post Rules
+
+1. **No file uploads**: Do NOT upload PPTX, markdown files, or any
+   attachments. All content is posted as formatted Slack messages.
+2. **Thread structure**: Main message + 3 thread replies (discussion,
+   action items, next steps). This keeps the channel clean.
+3. **Character limit**: Each Slack message must be under 5000 characters.
+   Split into multiple messages if needed.
+4. **Formatting**: Use Slack mrkdwn syntax (`*bold*`, `_italic_`,
+   `` `code` ``, `~strikethrough~`, `>` for quotes).
+5. **Cross-meeting synthesis**: If multiple meetings were analyzed,
+   add a synthesis thread reply between discussion and action items.
+
+---
+
 ## Output Structure
 
 ```
@@ -425,8 +543,10 @@ Actions:
 4. Generate `output/meetings/2026-03-10/summary.md` (Korean)
 5. Generate `output/meetings/2026-03-10/action-items.md` with 12 action items
 6. Create `output/meetings/2026-03-10/meeting-summary.pptx` (10 slides)
+7. Post digest to `#ai-platform-chapter-기획`: main message + 3 thread replies
 
 Result: Complete meeting digest package in `output/meetings/2026-03-10/`
+and Slack thread in `#ai-platform-chapter-기획`
 
 ### Example 2: Latest meeting only
 
@@ -436,8 +556,9 @@ Actions:
 1. Query Notion DB → fetch only the most recently edited meeting
 2. Single meeting analysis (no parallel subagents needed)
 3. Generate summary, action items, and PPTX for that one meeting
+4. Post digest to `#ai-platform-chapter-기획`
 
-Result: Focused output for the single latest meeting
+Result: Focused output for the single latest meeting, posted to Slack
 
 ### Example 3: Full re-sync
 
@@ -447,8 +568,10 @@ Actions:
 1. Ignore `.sync-state.json` → treat all DB pages as new
 2. Re-fetch and re-analyze all meetings
 3. Generate comprehensive cross-meeting synthesis
+4. Post full digest with cross-meeting insights to `#ai-platform-chapter-기획`
 
-Result: Complete refresh of all meeting data with cross-meeting insights
+Result: Complete refresh of all meeting data with cross-meeting insights,
+posted to Slack
 
 ---
 
@@ -460,8 +583,11 @@ Result: Complete refresh of all meeting data with cross-meeting insights
 | Notion API rate limited | Wait and retry with exponential backoff |
 | Database ID not found | Verify database ID, prompt user to check Notion integration permissions |
 | Empty meeting content | Skip the meeting, log warning, continue with others |
-| PPTX generation fails | Fall back to summary.md + action-items.md as deliverables |
+| PPTX generation fails | Fall back to summary.md + action-items.md as deliverables; Slack post still proceeds |
 | No new meetings to sync | Report "No new meetings found since last sync" and exit |
+| Slack message too long | Split into multiple thread replies, each under 5000 chars |
+| Slack MCP fails | Save all outputs locally, report Slack posting failure, do not block pipeline |
+| Slack channel not found | Verify channel ID `C0AL6D32Z7W`, search by name `ai-platform-chapter-기획` |
 
 ## Integration Notes
 
@@ -471,3 +597,7 @@ Result: Complete refresh of all meeting data with cross-meeting insights
 - Each run produces a date-stamped output folder
 - The skill is designed to be idempotent — running it twice on the same
   data produces the same output
+- Slack posting is the final phase — local file generation always completes
+  first, so partial Slack failures do not lose data
+- PPTX files are generated locally but NOT uploaded to Slack; only
+  text-based summaries and action items are posted as Slack messages

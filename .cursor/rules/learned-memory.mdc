@@ -25,12 +25,12 @@ alwaysApply: true
 - ThakiCloud AI Platform (ai-platform-webui): K8s-based AI/ML platform with GPU orchestration, inference, fine-tuning
 - Tech stack: Go (Fiber) backend, React 19 frontend, PostgreSQL, NATS JetStream, Valkey, Keycloak, ArgoCD, Kueue, GPU Operator, Traefik
 - Monitoring: VictoriaMetrics / VictoriaLogs; Lightweight K8s: k0s for standalone deployment; HPC: Slurm-on-K8s (SchedMD Slinky); GPU: H100/B200 tested
-- Doc structure: TDD under `docs/technical-due-diligence/`, VC pitch under `docs/vc-pitch/`, KSA proposal under `docs/ksa-proposal/`, platform overview under `docs/platform-overview/`; Korean translations use `.ko.md` suffix
+- Doc structure: TDD under `docs/technical-due-diligence/`, VC pitch under `docs/vc-pitch/`, KSA proposal under `docs/ksa-proposal/`, platform overview under `docs/platform-overview/`, financial model under `docs/financial-model/`, KPIs under `docs/kpi/`, presentations under `docs/presentations/`; Korean translations use `.ko.md` suffix
 - Repos: ThakiCloud/tkai-deploy, ThakiCloud/ai-platform-webui, ThakiCloud/tkai-agents; EOD managed repos: github-to-notion-sync, ai-template, ai-model-event-stock-analytics, research
 - Security: Thaki Suite (IAM, ABAC, STS, VXLAN) vs AI Platform (RBAC, Keycloak JWT, namespace isolation); CP communication via NATS Pub/Sub
 - `paper-review` skill: 8-phase pipeline (Ingest → Review → PM Analysis → DOCX → PPTX → NLM Slides → Notion → Slack); `related-papers-scout`: 5 hot papers from top institutions
-- Paper/scout Slack channel: `#deep-research` (ID: `C0A6X68LTN1`); EOD Ship Report: `#효정-할일` (ID: `C0AA8NT4T8T`) — report must be in Korean
-- Paper review outputs: `outputs/papers/{id}-{perspective}-{DATE}.md`, `.docx`, `outputs/presentations/{id}-presentation-{DATE}.pptx`; Notion parent: `3209eddc34e6801b8921f55d85153730`
+- Paper review outputs: `outputs/papers/{id}-{perspective}-{DATE}.md`, `.docx`, `outputs/presentations/{id}-presentation-{DATE}.pptx`; Notion parent: `3209eddc34e6801b8921f55d85153730`; Paper/scout Slack: `#deep-research` (`C0A6X68LTN1`); EOD Ship: `#효정-할일` (`C0AA8NT4T8T`) — report in Korean
+- B2B = air-gapped local inference (Thaki distilled models only, no external API egress); B2C = external API enabled (BYOK routing); Thaki model family (Thaki-8B/14B/32B, distilled from Kimi K2.5 teacher via Qwen3 base) — always use "Thaki-*" names in docs, never upstream model names (Qwen)
 - Notion: no pipe tables (use bulleted lists or HTML); Node.js DOCX/PPTX scripts need `NODE_PATH=$(npm root -g)`; NotebookLM MCP requires absolute paths
 - Slack file upload: 3-step flow (`getUploadURLExternal` → POST file → `completeUploadExternal`); Google Workspace CLI: `gws` (alias for @googleworkspace/cli), not `gwcli`
 - The git-push-pull `tmp` branch rule applies ONLY to `ai-platform-webui`; Phase 3 subagents must use the Write tool to persist their markdown outputs
