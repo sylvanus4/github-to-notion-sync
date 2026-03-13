@@ -1,3 +1,8 @@
+---
+name: growth-loops
+description: "Identify growth loops (flywheels) for sustainable traction. Evaluates five loop types — viral, usage, collaboration, user-generated, referral. Use when designing growth mechanisms, building product-led traction, or understanding how growth loops work."
+---
+
 # Growth Loops
 
 ## Overview
@@ -111,3 +116,11 @@ Based on growth loops research by Ognjen Bošković. Focuses on compounding user
 - Collaboration loops create strongest retention and LTV
 - Measure loop health weekly during optimization phase
 - Combine loops for multiplicative effect once operating at scale
+
+---
+
+### Further Reading
+
+- [Product-Led Growth 101, Part 1/2](https://www.productcompass.pm/p/product-led-growth-101-12)
+- [OpenAI's Product Leader Shares 3-Layer Distribution Framework To Win Mind & Market Share in the AI World](https://www.productcompass.pm/p/distribution-framework-ai-products)
+- [How to Design a Value Proposition Customers Can't Resist?](https://www.productcompass.pm/p/how-to-design-value-proposition-template)

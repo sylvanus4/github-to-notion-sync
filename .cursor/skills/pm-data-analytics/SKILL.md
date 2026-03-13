@@ -9,8 +9,9 @@ description: >-
   results". Do NOT use for general data exploration (use
   kwp-data-data-exploration), statistical methods (use
   kwp-data-statistical-analysis), or dashboard building (use
-  kwp-data-interactive-dashboard-builder). Korean triggers: "데이터", "테스트", "빌드",
-  "분석".
+  kwp-data-interactive-dashboard-builder). Korean triggers: "SQL 쿼리", "코호트 분석",
+  "A/B 테스트 분석", "리텐션 곡선", "통계적 유의성", "데이터 분석", "쿼리 생성",
+  "샘플 크기", "실험 결과".
 metadata:
   author: "thaki"
   version: "1.0.0"

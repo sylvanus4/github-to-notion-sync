@@ -10,7 +10,7 @@ description: >-
   or "summarize interview". Do NOT use for general user research synthesis (use
   kwp-product-management-user-research-synthesis), marketing campaign planning
   (use kwp-marketing-campaign-planning), or product strategy/vision (use
-  pm-product-strategy). Korean triggers: "테스트", "분석", "설계", "검색".
+  pm-product-strategy). Korean triggers: "아이디에이션", "브레인스토밍", "가정 테스트", "디스커버리", "인터뷰 스크립트", "기능 요청 분석", "OST", "실험 설계", "기회 발견", "프로덕트 디스커버리", "가정 우선순위", "기능 우선순위".
 metadata:
   author: "thaki"
   version: "1.0.0"

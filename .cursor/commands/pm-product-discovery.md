@@ -1,3 +1,8 @@
+---
+description: PM product discovery workflows — ideation, assumption testing, OST, interview synthesis, feature prioritization, experiment design
+argument-hint: "<product or feature to discover>"
+---
+
 ## PM Product Discovery
 
 Product discovery workflows: ideation, assumption testing, OST, customer interviews, feature prioritization, and experiment design. Based on Teresa Torres and Marty Cagan frameworks.

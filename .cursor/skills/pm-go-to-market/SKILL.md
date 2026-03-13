@@ -8,7 +8,9 @@ description: >-
   "beachhead segment", "growth loops", "GTM motions", "battlecard", or "launch
   plan". Do NOT use for product discovery (use pm-product-discovery), marketing
   content creation (use kwp-marketing-content-creation), or sales outreach (use
-  kwp-sales-draft-outreach). Korean triggers: "시장", "계획", "워크플로우", "스킬".
+  kwp-sales-draft-outreach). Korean triggers: "GTM 전략", "출시 계획", "교두보 세그먼트",
+  "ICP", "성장 루프", "배틀카드", "경쟁 배틀카드", "비치헤드", "PLG", "바이럴 루프",
+  "채널 전략".
 metadata:
   author: "thaki"
   version: "1.0.0"

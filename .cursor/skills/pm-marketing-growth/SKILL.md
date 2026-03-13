@@ -7,8 +7,8 @@ description: >-
   ideas", "positioning", "value proposition statements", "North Star metric",
   "product name ideas", or "growth metrics". Do NOT use for marketing campaign
   planning (use kwp-marketing-campaign-planning), brand voice (use
-  kwp-marketing-brand-voice), or GTM strategy (use pm-go-to-market). Korean
-  triggers: "계획", "워크플로우", "시장", "스킬".
+  kwp-marketing-brand-voice), or GTM strategy (use pm-go-to-market). Korean triggers: "마케팅 아이디어", "포지셔닝", "가치 제안 문구",
+  "North Star 메트릭", "제품 이름", "노스스타", "마케팅 캠페인", "브랜딩", "네이밍".
 metadata:
   author: "thaki"
   version: "1.0.0"

@@ -9,8 +9,7 @@ description: >-
   stories", "pre-mortem", "test scenarios", "prioritization", "outcome roadmap",
   "meeting summary", or "dummy dataset". Do NOT use for product discovery (use
   pm-product-discovery), product strategy (use pm-product-strategy), or general
-  feature spec (use kwp-product-management-feature-spec). Korean triggers:
-  "테스트", "계획", "워크플로우", "릴리즈".
+  feature spec (use kwp-product-management-feature-spec). Korean triggers: "PRD 작성", "OKR", "스프린트 계획", "회고", "릴리스 노트", "이해관계자 맵", "유저 스토리", "잡 스토리", "테스트 시나리오", "프리모템", "아웃컴 로드맵", "우선순위 프레임워크", "더미 데이터".
 metadata:
   author: "thaki"
   version: "1.0.0"

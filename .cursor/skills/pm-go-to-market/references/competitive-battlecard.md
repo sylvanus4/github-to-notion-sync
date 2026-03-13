@@ -1,3 +1,8 @@
+---
+name: competitive-battlecard
+description: "Creates sales-ready competitive battlecards against specific competitors — positioning, feature comparison, objection handling, win/loss patterns. Use when preparing sales teams, creating competitive assets, or answering 'why not competitor X?'"
+---
+
 # Competitive Battlecard
 
 Create a concise, sales-ready battlecard for use against a specific competitor.
@@ -62,3 +67,9 @@ You are creating a competitive battlecard for the user-provided competitor or pr
 3. **Keep it scannable**: Sales reps need to reference this during calls. Use tables, bold text, and short bullets.
 
 Save as markdown. Format for easy printing or sharing in Notion/Confluence.
+
+---
+
+### Further Reading
+
+- [How to Design a Value Proposition Customers Can't Resist?](https://www.productcompass.pm/p/how-to-design-value-proposition-template)

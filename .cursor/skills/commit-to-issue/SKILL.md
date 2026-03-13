@@ -20,11 +20,9 @@ Turns git commit history into tracked GitHub issues with full project board inte
 ## Prerequisites
 
 - `gh` CLI authenticated with access to the target repository and ThakiCloud org
-- GitHub issue creation guide must be fetched before creating issues (user rule):
-
-```bash
-curl -L -s "https://r.jina.ai/https://thakicloud.notion.site/GitHub-2549eddc34e6808ebbede86dc44e968f" | head -100
-```
+- For issue templates, see [references/issue-templates.md](references/issue-templates.md)
+- For project field IDs and GraphQL, see [references/project-config.md](references/project-config.md)
+- For Epic/sub-issue management, see [references/epic-sub-issues.md](references/epic-sub-issues.md)
 
 ## Workflow
 
@@ -150,4 +148,4 @@ Solution: Re-query the project fields to get the current sprint iteration ID. Se
 - **Never push to upstream** unless the user explicitly requests it
 - **Never create issues** without user confirmation of the issue plan
 - **Always set assignee** to `@me`
-- **Fetch the Notion guide** before issue creation (mandatory per user rule)
+- **Reference local guides** in the `references/` directory for issue templates, project config, and Epic patterns

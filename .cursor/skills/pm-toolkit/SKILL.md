@@ -7,7 +7,8 @@ description: >-
   "privacy policy", "grammar check", "proofread", or "PM resume review". Do NOT
   use for legal contract review (use kwp-legal-contract-review), general
   documentation (use technical-writer), or marketing content (use
-  kwp-marketing-content-creation). Korean triggers: "리뷰", "체크", "시장", "문서".
+  kwp-marketing-content-creation). Korean triggers: "이력서 검토", "PM 이력서",
+  "NDA 초안", "개인정보처리방침", "문법 교정", "교정", "이력서 맞춤화", "컴플라이언스".
 metadata:
   author: "thaki"
   version: "1.0.0"

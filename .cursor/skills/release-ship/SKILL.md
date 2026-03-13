@@ -97,15 +97,7 @@ If `--no-issue` flag is set, skip to Step 5 (PR).
 
 This step converts the domain-split commits from Step 2 into tracked GitHub issues on ThakiCloud Project #5. It follows patterns from the [commit-to-issue](../commit-to-issue/SKILL.md) skill. For project field IDs, option IDs, and GraphQL queries, see [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md).
 
-#### 4a. Fetch Notion issue guide
-
-**IMPORTANT**: Before creating issues, fetch the Notion guide per project rules:
-
-```bash
-curl -L -s "https://r.jina.ai/https://thakicloud.notion.site/GitHub-2549eddc34e6808ebbede86dc44e968f" | head -100
-```
-
-#### 4b. Analyze commits from Step 2
+#### 4a. Analyze commits from Step 2
 
 Collect only the commits created in Step 2 (not all branch history):
 
@@ -115,7 +107,7 @@ git log --oneline -N  # where N = number of commits created in Step 2
 
 Each domain-split commit maps 1:1 to one issue.
 
-#### 4c. Create issues
+#### 4b. Create issues
 
 For each commit:
 
@@ -140,7 +132,7 @@ EOF
 
 Collect all created issue URLs and numbers for Step 5 (PR body).
 
-#### 4d. Add issues to Project #5 and set fields
+#### 4c. Add issues to Project #5 and set fields
 
 For each created issue:
 
@@ -172,7 +164,7 @@ Determine target branch (override with `--base`):
 
 If `--no-pr` flag is set, skip to Step 7 (Report).
 
-**IMPORTANT**: Before any GitHub PR/issue operation, fetch the relevant Notion guide first per project rules. Use `curl -L -s "https://r.jina.ai/https://thakicloud.notion.site/GitHub-PR-2549eddc34e6801d9804da9c590acabf"` to retrieve the PR guide.
+For PR body and title format, see [references/pr-template.md](references/pr-template.md).
 
 #### 5a. If PR already exists
 
@@ -303,7 +295,7 @@ User runs `/release-ship` on `tmp` in `ai-platform-webui`.
 1. `git status` finds 6 changed files across `.cursor/skills/`, `.cursor/commands/`, `docs/`
 2. 3 domain-split commits created
 3. Push to `origin/tmp`
-4. Fetch Notion issue guide → create 3 issues from commits → add to Project #5 with fields (Done, P2, S, current sprint, 0.5 SP each)
+4. Create 3 issues from commits → add to Project #5 with fields (Done, P2, S, current sprint, 0.5 SP each)
 5. PR and merge skipped (webui: tmp-only mode)
 6. Report with commit list, issue URLs — no PR/merge sections
 
@@ -375,7 +367,7 @@ User runs `/release-ship --no-issue` to ship without creating issues.
 - **Never commit** `.env`, credentials, or secret files
 - **Only push to origin**, never upstream
 - **Never create issues** without user confirmation of the issue plan
-- **Always fetch Notion guide** before issue or PR creation
+- **Reference local guides**: [commit-to-issue/references/](../commit-to-issue/references/) for issue config, [references/pr-template.md](references/pr-template.md) for PR format
 - **Never merge** without a successfully created PR in the same pipeline run
 - **ai-platform-webui**: Never create PRs or merge to other branches — `tmp` is the only working branch
 - **ai-platform-webui**: Never delete `tmp` branch (it is reused permanently)

@@ -1,3 +1,8 @@
+---
+description: PM utility workflows — resume review, NDA drafting, privacy policy generation, grammar/flow checking
+argument-hint: "<text or document to process>"
+---
+
 ## PM Toolkit
 
 PM utility workflows: resume review, NDA drafting, privacy policy generation, and grammar/flow checking.

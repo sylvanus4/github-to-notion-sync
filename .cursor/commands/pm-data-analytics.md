@@ -1,3 +1,8 @@
+---
+description: PM data analytics workflows — SQL query generation, cohort analysis, and A/B test analysis
+argument-hint: "<analysis request or data context>"
+---
+
 ## PM Data Analytics
 
 Data analytics workflows for PMs: SQL query generation, cohort analysis, and A/B test analysis.

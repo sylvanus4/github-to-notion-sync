@@ -1,3 +1,8 @@
+---
+description: PM execution workflows — PRDs, OKRs, roadmaps, sprint planning, retrospectives, release notes, user stories, pre-mortems
+argument-hint: "<product or feature to plan>"
+---
+
 ## PM Execution
 
 Product execution workflows: PRDs, OKRs, roadmaps, sprint planning, retrospectives, release notes, stakeholder mapping, user stories, pre-mortems, test scenarios, and prioritization frameworks.

@@ -1,3 +1,8 @@
+---
+description: PM marketing and growth workflows — marketing ideas, positioning, value proposition statements, North Star metrics, product naming
+argument-hint: "<product or marketing challenge>"
+---
+
 ## PM Marketing and Growth
 
 Product marketing and growth workflows: marketing ideas, positioning, value proposition statements, North Star metrics, and product naming.

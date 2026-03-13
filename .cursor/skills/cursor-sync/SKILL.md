@@ -48,17 +48,20 @@ Arguments can be combined freely. `--targets` and `--repo` are mutually exclusiv
 4. If `--repo` is provided (in `org/repo` format), look up the matching row in the `Repo` column of sync-targets.md and resolve to the corresponding local path. If no match is found, list all registered repos and abort
 5. Determine the source `.cursor/` directory (workspace root)
 
-### Step 2: Validate Targets
+### Step 2: Validate Targets (multi-path fallback)
 
-For each target project, verify the directory exists:
+Each target has two candidate paths (회사/집). For each target, try both paths in order and use the first one that exists:
 
 ```bash
-[ -d "TARGET_PATH" ] && echo "OK" || echo "MISSING: TARGET_PATH"
+for CANDIDATE in "PATH_WORK" "PATH_HOME"; do
+  [ -d "$CANDIDATE" ] && TARGET="$CANDIDATE" && break
+done
+[ -z "$TARGET" ] && echo "SKIP: neither path exists for <alias>"
 ```
 
-If a target is missing, warn the user and skip it. Continue with remaining targets.
+If neither path exists, warn the user and skip the target. Continue with remaining targets.
 
-Ensure `.cursor/` exists in each target (create if missing):
+Ensure `.cursor/` exists in each resolved target (create if missing):
 
 ```bash
 mkdir -p TARGET_PATH/.cursor/{commands,skills,rules}

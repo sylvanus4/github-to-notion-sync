@@ -1,3 +1,8 @@
+---
+description: PM market research workflows — user personas, segmentation, customer journey mapping, competitive analysis, market sizing
+argument-hint: "<product or market to research>"
+---
+
 ## PM Market Research
 
 Market research workflows: user personas, market segmentation, customer journey mapping, competitive analysis, sentiment analysis, and market sizing (TAM/SAM/SOM).

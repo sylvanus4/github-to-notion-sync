@@ -1,3 +1,8 @@
+---
+name: ideal-customer-profile
+description: "Identifies the Ideal Customer Profile (ICP) from research data, including demographics, behaviors, JTBD, and needs. Use when defining ICP, analyzing PMF survey data, or identifying your best-fit customers."
+---
+
 # Ideal Customer Profile
 
 ## Overview
@@ -151,3 +156,10 @@ Based on Jobs to Be Done theory by Clayton Christensen and customer profiling me
 - Use ICP to evaluate all new sales opportunities
 - Share ICP across entire organization (marketing, sales, product)
 - Remember: ICP should drive focus, not exclude all others
+
+---
+
+### Further Reading
+
+- [5 GTM Principles You Should Know as a PM](https://www.productcompass.pm/p/5-gtm-principles-with-frameworks-templates)
+- [How to Design a Value Proposition Customers Can't Resist?](https://www.productcompass.pm/p/how-to-design-value-proposition-template)

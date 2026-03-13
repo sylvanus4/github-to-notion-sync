@@ -1,0 +1,133 @@
+---
+name: role-pm
+description: >
+  Analyze a given topic from the Product Manager perspective — PRD implications, sprint impact,
+  user story generation, OKR alignment, roadmap changes, and stakeholder communication.
+  Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
+  Composes pm-execution, kwp-product-management-feature-spec, pm-product-discovery, and
+  kwp-product-management-roadmap-management.
+  Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
+  "PM perspective", "PM 관점", "기획자 분석", "product impact".
+  Do NOT use for writing a full PRD (use pm-execution), sprint planning execution
+  (use agency-sprint-prioritizer), or A/B test analysis (use pm-data-analytics).
+  Korean triggers: "PM 관점", "기획자 분석", "제품 영향".
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "role-analysis"
+---
+
+# PM Perspective Analyzer
+
+Analyzes any business topic from the Product Manager's viewpoint, covering product requirements,
+user impact, sprint/roadmap changes, OKR alignment, and stakeholder communication needs.
+
+## Relevance Criteria
+
+Score the topic 1-10 based on overlap with PM concerns:
+
+| Domain | Weight | Keywords |
+|--------|--------|----------|
+| Product requirements | High | feature, PRD, spec, user story, acceptance criteria |
+| User experience | High | user flow, journey, persona, usability, onboarding |
+| Roadmap & planning | High | roadmap, sprint, milestone, priority, backlog |
+| Metrics & OKR | High | KPI, OKR, retention, conversion, engagement |
+| Stakeholder comms | Medium | update, report, alignment, decision, trade-off |
+| Market & competition | Medium | competitor, positioning, market fit, user research |
+| Technical feasibility | Medium | API, integration, migration, performance |
+| Financial & strategy | Low | revenue, cost, investment, valuation |
+| HR & organization | Low | team, hiring, culture |
+
+Score >= 5 → produce full analysis. Score < 5 → return brief relevance note only.
+
+## Analysis Pipeline
+
+When relevant, execute sequentially:
+
+1. **Product Discovery** (via `pm-product-discovery`):
+   - Opportunity Solution Tree for the topic
+   - Assumption identification and testing plan
+   - User impact hypothesis
+
+2. **Requirements Analysis** (via `pm-execution` + `kwp-product-management-feature-spec`):
+   - User stories and job stories (JTBD)
+   - Acceptance criteria
+   - Success metrics definition
+
+3. **Roadmap Impact** (via `kwp-product-management-roadmap-management`):
+   - Now/Next/Later positioning
+   - Dependency mapping
+   - Sprint capacity impact
+
+4. **Stakeholder Summary** (via `kwp-product-management-stakeholder-comms`):
+   - Engineering-facing brief
+   - Executive-facing brief
+   - Customer-facing narrative
+
+## Output Format
+
+```markdown
+# PM 관점 분석: {Topic}
+
+## 관련도: {N}/10
+## 분석 일자: {YYYY-MM-DD}
+
+## 제품 요약 (3-5 bullets)
+- ...
+
+## 사용자 영향 분석
+### 영향받는 페르소나
+### 사용자 여정 변화
+### JTBD 매핑
+
+## 제품 요구사항
+### 사용자 스토리 (상위 5개)
+### 수용 기준 (핵심)
+### 성공 메트릭
+
+## 로드맵 영향
+### Now/Next/Later 배치
+### 의존성
+### 스프린트 용량 영향
+
+## OKR 정렬
+### 관련 Objective
+### Key Result 영향
+### 메트릭 변동 예측
+
+## 리스크 & 트레이드오프
+### 제품 리스크
+### 기술적 제약
+### 우선순위 트레이드오프
+
+## 이해관계자 브리핑
+### 경영진 요약
+### 엔지니어링 핸드오프
+### 고객 커뮤니케이션
+
+## PM 권고
+### 즉시 착수 항목
+### 추가 검증 필요 항목
+### 보류/모니터링 항목
+```
+
+## Error Handling
+
+- If a composed skill is unavailable, skip that pipeline step and note the gap in the output
+- If the topic is ambiguous, request clarification before scoring relevance
+- If relevance score is borderline (4-5), include the score rationale in the output
+- Always produce output in Korean regardless of the input language
+
+## Example
+
+**Input**: "New GPU inference service launch for enterprise customers"
+
+**Relevance Score**: 8/10 (new feature + user impact + roadmap change + metrics)
+
+**Analysis highlights**:
+- Persona: MLOps Engineer, Cluster Admin — new inference workflow needed
+- User Stories: 6 stories covering model deployment, scaling, monitoring
+- Roadmap: Shifts Q2 Now slot, pushes model versioning to Next
+- OKR: Directly impacts O1-KR2 (enterprise feature adoption 50%+)
+- Risk: Scope creep from enterprise customization requests
+- Recommendation: MVP with 3 core stories, pilot with 2 customers in Sprint 25

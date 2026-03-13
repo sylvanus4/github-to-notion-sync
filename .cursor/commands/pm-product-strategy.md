@@ -1,3 +1,8 @@
+---
+description: PM product strategy workflows — vision, Lean Canvas, Business Model Canvas, SWOT, PESTLE, Porter's Five Forces, pricing
+argument-hint: "<product or strategic question>"
+---
+
 ## PM Product Strategy
 
 Product strategy workflows: vision, strategy canvas, value propositions, Lean/Business Model/Startup Canvas, SWOT, PESTLE, Ansoff, Porter's Five Forces, monetization, and pricing.

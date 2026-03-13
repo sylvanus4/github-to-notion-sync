@@ -1,3 +1,8 @@
+---
+description: PM go-to-market workflows — GTM strategy, ICP, beachhead segments, growth loops, battlecards
+argument-hint: "<product or market to target>"
+---
+
 ## PM Go-to-Market
 
 Go-to-market workflows: GTM strategy, ideal customer profiles, beachhead segments, growth loops, GTM motions, and competitive battlecards.

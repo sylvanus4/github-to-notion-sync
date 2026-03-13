@@ -8,15 +8,17 @@
 
 ## Target Registry
 
-| Alias | Repo | Full Path |
-|-------|------|-----------|
-| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` |
-| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` |
-| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` |
-| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` |
+| Alias | Repo | Path (회사) | Path (집) |
+|-------|------|-------------|-----------|
+| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/work/thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` |
+| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/work/thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` |
+| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/work/thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` |
+| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/work/thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` |
 
 The alias is used with `--targets` flag: `/cursor-sync --targets ai-template`.
 The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/ai-template`.
+
+**Path resolution**: Each target has two possible paths (회사/집). At runtime, try each path in order and use the first one that exists. If neither exists, skip the target with a warning.
 
 ## Per-Project Notes
 

@@ -362,8 +362,10 @@ EOF
 
 ## 세부 가이드 (필요시 참조)
 
-더 상세한 내용은 아래 가이드 참조 (curl로 조회):
+더 상세한 내용은 로컬 참조 문서를 확인하세요:
 
-- GitHub PR 자동화: `curl -L -s "https://r.jina.ai/https://thakicloud.notion.site/GitHub-PR-2549eddc34e6801d9804da9c590acabf"`
-- GitHub 이슈 자동화: `curl -L -s "https://r.jina.ai/https://thakicloud.notion.site/GitHub-2549eddc34e6808ebbede86dc44e968f"`
-- GitHub 커밋 자동화: `curl -L -s "https://r.jina.ai/https://thakicloud.notion.site/Github-2639eddc34e6806a8b8bdfc0e4593c02"`
+- 이슈 템플릿: `.cursor/skills/commit-to-issue/references/issue-templates.md`
+- 프로젝트 필드/GraphQL: `.cursor/skills/commit-to-issue/references/project-config.md`
+- Epic/서브이슈 관리: `.cursor/skills/commit-to-issue/references/epic-sub-issues.md`
+- PR 템플릿: `.cursor/skills/release-ship/references/pr-template.md`
+- GraphQL 스크립트: `references/graphql-bash-scripts.md`

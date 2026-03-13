@@ -1,3 +1,8 @@
+---
+name: gtm-strategy
+description: "Creates a GTM strategy covering marketing channels, messaging, success metrics, and launch timeline. Use when planning product launch, creating a GTM plan from scratch, or defining launch strategy for a new market."
+---
+
 # GTM Strategy
 
 ## Overview
@@ -78,3 +83,13 @@ This skill applies Product Compass GTM strategy methodology, focusing on market 
 - Focus on a few channels excellently rather than many channels poorly
 - Establish baseline metrics before launch to measure impact
 - Plan for feedback loops and optimization
+
+---
+
+### Further Reading
+
+- [5 GTM Principles You Should Know as a PM](https://www.productcompass.pm/p/5-gtm-principles-with-frameworks-templates)
+- [OpenAI's Product Leader Shares 3-Layer Distribution Framework To Win Mind & Market Share in the AI World](https://www.productcompass.pm/p/distribution-framework-ai-products)
+- [Product-Led Growth 101, Part 1/2](https://www.productcompass.pm/p/product-led-growth-101-12)
+- [How to Design a Value Proposition Customers Can't Resist?](https://www.productcompass.pm/p/how-to-design-value-proposition-template)
+- [How to Achieve Product-Market Fit? Part I: Market and Value Proposition](https://www.productcompass.pm/p/how-to-achieve-the-product-market)

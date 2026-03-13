@@ -10,7 +10,7 @@ description: >-
   proposition", "Ansoff matrix", or "startup canvas". Do NOT use for product
   discovery/ideation (use pm-product-discovery), competitive analysis only (use
   kwp-product-management-competitive-analysis), or execution/PRD (use
-  pm-execution). Korean triggers: "워크플로우", "스킬", "모델".
+  pm-execution). Korean triggers: "제품 전략", "비전", "린 캔버스", "비즈니스 모델", "SWOT", "PESTLE", "앤소프", "포터", "수익화", "가격 전략", "가치 제안", "스타트업 캔버스", "트레이드오프".
 metadata:
   author: "thaki"
   version: "1.0.0"

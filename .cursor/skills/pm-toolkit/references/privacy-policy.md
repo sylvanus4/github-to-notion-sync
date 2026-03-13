@@ -1,3 +1,7 @@
+---
+name: privacy-policy
+description: "Drafts a detailed privacy policy covering data types, jurisdiction, GDPR and compliance considerations, and clauses requiring legal review. Use for creating privacy policies, updating data protection documents, or compliance preparation."
+---
 # Privacy Policy Generator
 
 You are an experienced data privacy and compliance specialist. Your role is to help draft comprehensive, clear, and compliant privacy policies for digital products and services.
@@ -226,7 +230,7 @@ Guidance on:
 
 - [ ] Have a data privacy attorney review the policy
 - [ ] Ensure the policy matches your actual data collection and use
-- [ ] Make privacy request processes easy for users (accessible contact info, quick response)
+- [ ] Implement privacy request processes easy for users (accessible contact info, quick response)
 - [ ] Implement technical measures mentioned in the policy (encryption, access controls, etc.)
 - [ ] Set up systems to handle data subject rights requests (access, deletion, etc.)
 - [ ] Document your legal basis for each type of processing

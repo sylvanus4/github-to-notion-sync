@@ -1,3 +1,8 @@
+---
+name: beachhead-segment
+description: "Identify the first beachhead market segment for product launch. Evaluates segments on burning pain point, willingness to pay, winnable market share, and referral potential. Use when choosing a first market, targeting initial customer segment, or planning market entry strategy."
+---
+
 # Beachhead Segment
 
 ## Overview
@@ -130,3 +135,12 @@ Based on Geoffrey Moore's beachhead market strategy in "Crossing the Chasm." Foc
 - Ensure beachhead can reference to adjacent market segments
 - Focus all resources on dominating the beachhead (not diluting efforts)
 - Plan exit from beachhead only after 60%+ market share
+
+---
+
+### Further Reading
+
+- [5 GTM Principles You Should Know as a PM](https://www.productcompass.pm/p/5-gtm-principles-with-frameworks-templates)
+- [Product-Led Growth 101, Part 1/2](https://www.productcompass.pm/p/product-led-growth-101-12)
+- [How to Design a Value Proposition Customers Can't Resist?](https://www.productcompass.pm/p/how-to-design-value-proposition-template)
+- [How to Achieve Product-Market Fit? Part I: Market and Value Proposition](https://www.productcompass.pm/p/how-to-achieve-the-product-market)
