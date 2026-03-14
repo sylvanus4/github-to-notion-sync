@@ -1,17 +1,25 @@
 {
   "version": 1,
   "transcripts": {
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-github-to-notion-sync/agent-transcripts/56b13981-cd9a-4ba0-b6c1-7fa0e33aff5d/56b13981-cd9a-4ba0-b6c1-7fa0e33aff5d.jsonl": {
-      "mtimeMs": 1773186623000,
-      "lastProcessedAt": "2026-03-11T00:00:00.000Z"
-    },
     "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-github-to-notion-sync/agent-transcripts/2dae6fc9-86ec-42c0-9fe8-251cd30c1500/2dae6fc9-86ec-42c0-9fe8-251cd30c1500.jsonl": {
-      "mtimeMs": 1773186030000,
-      "lastProcessedAt": "2026-03-11T00:00:00.000Z"
+      "mtimeMs": 1773356064550.3562,
+      "lastProcessedAt": "2026-03-12T22:57:14.000Z"
+    },
+    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-github-to-notion-sync/agent-transcripts/56b13981-cd9a-4ba0-b6c1-7fa0e33aff5d/56b13981-cd9a-4ba0-b6c1-7fa0e33aff5d.jsonl": {
+      "mtimeMs": 1773186795108.678,
+      "lastProcessedAt": "2026-03-12T22:57:14.000Z"
+    },
+    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-github-to-notion-sync/agent-transcripts/6ad2fdc7-a37b-41d1-a45a-75cae905b703/6ad2fdc7-a37b-41d1-a45a-75cae905b703.jsonl": {
+      "mtimeMs": 1773189860947.498,
+      "lastProcessedAt": "2026-03-12T22:57:14.000Z"
     },
     "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-github-to-notion-sync/agent-transcripts/9ae746c9-e14d-4d52-b96e-414f411db2a4/9ae746c9-e14d-4d52-b96e-414f411db2a4.jsonl": {
-      "mtimeMs": 1773182880000,
-      "lastProcessedAt": "2026-03-11T00:00:00.000Z"
+      "mtimeMs": 1773182880490.5374,
+      "lastProcessedAt": "2026-03-12T22:57:14.000Z"
+    },
+    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-github-to-notion-sync/agent-transcripts/b44e909b-6f9d-4dd6-b7da-16907344eb9e/b44e909b-6f9d-4dd6-b7da-16907344eb9e.jsonl": {
+      "mtimeMs": 1773270588248.7031,
+      "lastProcessedAt": "2026-03-12T22:57:14.000Z"
     }
   }
 }
