@@ -28,8 +28,9 @@ alwaysApply: false
 ## E2E
 
 - Framework: Playwright
-- Config: `frontend/playwright.config.ts`
-- Location: `frontend/e2e/`
+- Config: `e2e/playwright.config.ts`
+- Location: `e2e/`
 - Browser: Chromium
-- Base URL: `http://localhost:5173`
+- Base URL: `http://localhost:4501`
+- Backend: `http://localhost:4567`
 - Naming: `*.spec.ts`

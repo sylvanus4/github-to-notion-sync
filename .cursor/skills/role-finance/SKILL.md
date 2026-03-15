@@ -5,7 +5,8 @@ description: >
   ROI analysis, cash flow implications, and audit/compliance requirements.
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
   Composes kwp-finance-variance-analysis, kwp-finance-financial-statements,
-  agency-finance-tracker, and kwp-finance-audit-support.
+  agency-finance-tracker, kwp-finance-audit-support, workflow-miner,
+  semantic-guard, and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "finance perspective", "재무 관점", "재무 분석", "financial impact analysis".
   Do NOT use for financial statement generation (use kwp-finance-financial-statements),
@@ -14,7 +15,7 @@ description: >
   Korean triggers: "재무 관점", "재무 분석", "재무 영향".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -68,6 +69,21 @@ When relevant, execute sequentially:
    - Revenue recognition treatment
    - Disclosure requirements
 
+5. **Financial Workflow Pattern Discovery** (via `workflow-miner`):
+   - Discover financial analysis workflow patterns from interaction history
+   - Identify recurring finance sequences (e.g., forecast → variance → adjust → report)
+   - Recommend automation for repetitive financial reporting tasks
+
+6. **Financial Data Security** (via `semantic-guard`):
+   - Scan financial reports and communications for confidential data exposure
+   - Validate financial data flow for material non-public information (MNPI) leakage
+   - Check outputs for SOX-relevant data handling compliance
+
+7. **Budget Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between budget targets and actual financial outcomes
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track financial forecast accuracy and budget alignment trends
+
 ## Output Format
 
 ```markdown
@@ -111,6 +127,20 @@ When relevant, execute sequentially:
 ### 신규 계약 필요
 ### 라이선스 비용
 ### SLA 재무 영향
+
+## 워크플로우 패턴 분석
+### 발견된 재무 분석 패턴
+### 자동화 기회
+
+## 재무 데이터 보안
+### 기밀 데이터 노출 점검
+### MNPI 유출 검증
+### SOX 데이터 핸들링 컴플라이언스
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 예산 목표-실적 정렬
+### 개선 필요 영역
 
 ## 재무 권고
 ### 즉시 예산 조정 필요

@@ -1,27 +1,27 @@
 ---
 name: role-dispatcher
 description: >
-  Cross-role mission control that dispatches a given topic to all 10 role-perspective analyzer
+  Cross-role mission control that dispatches a given topic to all 12 role-perspective analyzer
   skills in parallel batches, collects results, invokes executive-briefing for CEO synthesis,
   and posts the final report to Slack #효정-할일. Orchestrates role-ceo, role-cto, role-pm,
   role-developer, role-ux-designer, role-security-engineer, role-cso, role-sales, role-hr,
-  role-finance, and executive-briefing.
+  role-finance, role-data-scientist, role-trading-expert, and executive-briefing.
   Use when the user runs /role-dispatch, asks for "cross-role analysis", "직무별 분석",
-  "종합 분석", "multi-perspective analysis", "all roles analyze", "10개 직무 관점",
+  "종합 분석", "multi-perspective analysis", "all roles analyze", "12개 직무 관점",
   or wants comprehensive multi-role analysis of any business topic.
   Do NOT use for single-role analysis (use the specific role-{name} skill),
   general code review (use deep-review), or financial report generation (use today).
   Korean triggers: "직무별 분석", "종합 분석", "크로스롤 분석", "전 직무 관점".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "orchestration"
 ---
 
 # Cross-Role Topic Analysis Dispatcher
 
 Orchestrates a comprehensive multi-perspective analysis of any business topic by dispatching
-to 10 role-specific analyzer skills, filtering by relevance, synthesizing into a CEO executive
+to 12 role-specific analyzer skills, filtering by relevance, synthesizing into a CEO executive
 briefing, and delivering results to Slack.
 
 ## Input Parsing
@@ -75,6 +75,14 @@ Wait for Batch 2 to complete.
 
 Wait for Batch 3 to complete.
 
+**Batch 4** (parallel):
+| # | Skill | Subagent Prompt |
+|---|-------|-----------------|
+| 11 | `role-data-scientist` | (same pattern with role-data-scientist) |
+| 12 | `role-trading-expert` | (same pattern with role-trading-expert) |
+
+Wait for Batch 4 to complete.
+
 ### Subagent Template
 
 For each role subagent, use this prompt template:
@@ -103,7 +111,7 @@ After all batches complete:
 1. Read each role's output file from `outputs/role-analysis/{topic-slug}/`
 2. Parse relevance scores
 3. Separate: relevant roles (score >= 5) and skipped roles (score < 5)
-4. Log participation stats: "{N}/10 roles participated"
+4. Log participation stats: "{N}/12 roles participated"
 
 ### Step 4: Synthesis — Executive Briefing
 
@@ -130,7 +138,7 @@ Post to Slack `#효정-할일` channel (ID: `C0AA8NT4T8T`) using the Slack MCP t
 1. **Main message**: CEO executive briefing summary
    ```
    📋 *CEO 종합 브리핑: {Topic}*
-   📅 {date} | 참여 직무: {N}/10 | 종합 영향도: {level}
+   📅 {date} | 참여 직무: {N}/12 | 종합 영향도: {level}
 
    *핵심 의사결정*: {one-line decision}
 
@@ -159,7 +167,7 @@ Print a completion report:
 ## Cross-Role Analysis Complete
 
 **Topic**: {topic}
-**Participating roles**: {N}/10
+**Participating roles**: {N}/12
 - {role1} ({score}/10): {one-line summary}
 - {role2} ({score}/10): {one-line summary}
 - ...
@@ -199,6 +207,7 @@ Print a completion report:
 2. Batch 1: CEO (9/10), CTO (9/10), PM (8/10), Developer (9/10) — all relevant
 3. Batch 2: UX (7/10), Security (8/10), CSO (9/10), Sales (9/10) — all relevant
 4. Batch 3: HR (5/10), Finance (8/10) — both relevant
-5. Result: 10/10 roles participated
-6. Executive briefing generated with SCQA analysis
-7. Slack: 11 messages (1 main + 10 thread replies + .docx upload)
+5. Batch 4: Data Scientist (8/10), Trading Expert (3/10) — DS relevant, Trading skipped
+6. Result: 11/12 roles participated
+7. Executive briefing generated with SCQA analysis
+8. Slack: 12 messages (1 main + 11 thread replies + .docx upload)

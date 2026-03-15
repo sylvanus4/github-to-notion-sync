@@ -208,6 +208,16 @@ After all Notion pages are created, include the main page URL in the Slack
 thread (Phase 8, Step 8.5). See `nlm-slack-integration.md` for the exact
 Slack message format.
 
+## Archive Registration (Phase 9)
+
+After all distribution phases complete, the pipeline registers the paper
+in the paper-archive index. The Notion page ID created in Phase 7 is
+captured and stored in the archive entry's `notion_page_id` field.
+
+See `../paper-archive/references/integration-hooks.md` for the full
+registration field mapping and error handling.
+
 ## Skills Used
 
 - **plugin-notion-workspace-notion** MCP server (`notion-create-pages` tool)
+- **paper-archive** — Archive index registration (Phase 9)

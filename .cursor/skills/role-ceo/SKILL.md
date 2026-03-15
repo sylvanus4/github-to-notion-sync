@@ -3,8 +3,8 @@ name: role-ceo
 description: >
   Analyze a given topic from the CEO/executive perspective — strategic impact, market positioning,
   stakeholder communication, and investment implications. Scores topic relevance (1-10) and produces
-  a structured Korean analysis document when relevant (>= 5). Composes pm-product-strategy,
-  presentation-strategist, agency-executive-summary-generator, and pm-market-research.
+  a structured Korean analysis document when relevant (>= 5).   Composes pm-product-strategy, presentation-strategist, agency-executive-summary-generator,
+  pm-market-research, workflow-miner, and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "CEO perspective", "CEO 관점", "경영진 분석", "strategic impact analysis".
   Do NOT use for daily morning briefings (use morning-ship), investor deck creation only
@@ -12,7 +12,7 @@ description: >
   Korean triggers: "CEO 관점", "경영진 분석", "전략 영향".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -62,6 +62,16 @@ When relevant, execute sequentially:
    - Internal team communication
    - Customer-facing narrative
 
+5. **Strategic Pattern Analysis** (via `workflow-miner`):
+   - Discover strategic decision-making patterns from interaction history
+   - Identify recurring executive workflow sequences (e.g., market scan → SWOT → decision)
+   - Recommend automation for repetitive strategic analysis tasks
+
+6. **Strategic Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between strategic goals and current execution outcomes
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track strategy-to-execution gap trends and improvement areas
+
 ## Output Format
 
 ```markdown
@@ -91,6 +101,15 @@ When relevant, execute sequentially:
 ### 투자자/이사회
 ### 내부 팀
 ### 고객
+
+## 워크플로우 패턴 분석
+### 발견된 전략 의사결정 패턴
+### 자동화 기회
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 전략-실행 정렬 추적
+### 개선 필요 영역
 
 ## 의사결정 권고
 ### 즉시 조치 필요 사항

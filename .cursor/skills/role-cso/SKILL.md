@@ -4,8 +4,9 @@ description: >
   Analyze a given topic from the CSO (Chief Strategy Officer) perspective — market sizing,
   competitive positioning, GTM strategy, business model impact, and scenario planning.
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
-  Composes pm-market-research, pm-go-to-market, pm-product-strategy, and
-  kwp-marketing-competitive-analysis.
+  Composes pm-market-research, pm-go-to-market, pm-product-strategy,
+  kwp-marketing-competitive-analysis, workflow-miner, skill-composer,
+  and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "CSO perspective", "CSO 관점", "전략 분석", "market strategy impact".
   Do NOT use for full GTM execution (use pm-go-to-market), Lean Canvas only
@@ -13,7 +14,7 @@ description: >
   Korean triggers: "CSO 관점", "전략 분석", "시장 전략 영향".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -68,6 +69,21 @@ When relevant, execute sequentially:
    - Positioning differentiation
    - Messaging strategy adjustments
 
+5. **Strategic Pattern Discovery** (via `workflow-miner`):
+   - Discover strategic planning workflow patterns from interaction history
+   - Identify recurring strategy sequences (e.g., market scan → SWOT → GTM → execute)
+   - Recommend automation for repetitive strategy analysis tasks
+
+6. **Strategy Automation** (via `skill-composer`):
+   - Recommend skill chain compositions for strategic workflow optimization
+   - Map natural language strategy requirements to executable skill chains
+   - Suggest reusable strategy analysis pipeline definitions
+
+7. **Strategy Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between strategic goals and market execution outcomes
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track strategy-to-market-fit alignment trends
+
 ## Output Format
 
 ```markdown
@@ -104,6 +120,16 @@ When relevant, execute sequentially:
 ### Base Case
 ### Bull Case
 ### Bear Case
+
+## 워크플로우 패턴 분석
+### 발견된 전략 분석 패턴
+### 자동화 기회
+### 스킬 체인 구성 권고
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 전략 목표-시장 정렬
+### 개선 필요 영역
 
 ## CSO 권고
 ### 전략적 우선순위

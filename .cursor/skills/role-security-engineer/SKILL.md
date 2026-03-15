@@ -4,8 +4,8 @@ description: >
   Analyze a given topic from the Security Engineer perspective — threat modeling (STRIDE),
   vulnerability assessment (OWASP Top 10), compliance impact, incident readiness, and
   access control implications. Scores topic relevance (1-10) and produces a structured
-  Korean analysis document when relevant (>= 5). Composes security-expert,
-  compliance-governance, dependency-auditor, and kwp-operations-risk-assessment.
+  Korean analysis document when relevant (>= 5).   Composes security-expert, compliance-governance, dependency-auditor,
+  kwp-operations-risk-assessment, workflow-miner, semantic-guard, and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "security perspective", "보안 관점", "보안 엔지니어 분석", "threat analysis".
   Do NOT use for running a full security audit (use security-expert), dependency CVE scanning
@@ -13,7 +13,7 @@ description: >
   Korean triggers: "보안 관점", "보안 엔지니어 분석", "위협 분석".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -67,6 +67,21 @@ When relevant, execute sequentially:
    - Residual risk after mitigations
    - Incident response readiness
 
+5. **Security Pattern Discovery** (via `workflow-miner`):
+   - Discover security review workflow patterns from interaction history
+   - Identify recurring security analysis sequences (e.g., threat model → audit → patch → verify)
+   - Recommend automation for repetitive security validation tasks
+
+6. **Content Security Validation** (via `semantic-guard`):
+   - Runtime semantic validation of generated content and configurations
+   - Prompt injection and adversarial input detection
+   - Sensitive data flow tracking across system boundaries
+
+7. **Compliance Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between security policies and implementation compliance
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track compliance posture improvement trends
+
 ## Output Format
 
 ```markdown
@@ -108,6 +123,20 @@ When relevant, execute sequentially:
 ## 리스크 매트릭스
 | 리스크 | 심각도 | 가능성 | 잔여 리스크 |
 |--------|--------|--------|-------------|
+
+## 워크플로우 패턴 분석
+### 발견된 보안 리뷰 패턴
+### 자동화 기회
+
+## 콘텐츠 보안 검증
+### 시맨틱 검증 결과
+### 프롬프트 인젝션 탐지
+### 민감 데이터 흐름 추적
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 보안 정책-구현 정렬
+### 개선 필요 영역
 
 ## 보안 엔지니어 권고
 ### 필수 보안 조치 (배포 전)

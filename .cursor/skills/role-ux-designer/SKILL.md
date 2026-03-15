@@ -4,8 +4,9 @@ description: >
   Analyze a given topic from the UX Designer perspective — user experience impact, accessibility
   concerns, design system consistency, user research needs, and design handoff requirements.
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
-  Composes ux-expert, kwp-design-user-research, kwp-design-design-critique, kwp-design-accessibility-review,
-  and kwp-design-design-system-management.
+  Composes ux-expert, kwp-design-user-research, kwp-design-design-critique,
+  kwp-design-accessibility-review, kwp-design-design-system-management,
+  workflow-miner, and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "UX perspective", "UX 관점", "디자이너 분석", "user experience impact".
   Do NOT use for conducting a full UX audit (use ux-expert), design system token management
@@ -13,7 +14,7 @@ description: >
   Korean triggers: "UX 관점", "디자이너 분석", "사용자 경험 영향".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -65,6 +66,16 @@ When relevant, execute sequentially:
    - Existing component modifications
    - Token and pattern consistency
 
+5. **UX Workflow Pattern Discovery** (via `workflow-miner`):
+   - Discover UX design workflow patterns from interaction history
+   - Identify recurring design sequences (e.g., research → wireframe → prototype → test → iterate)
+   - Recommend automation for repetitive design review tasks
+
+6. **UX Intent Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between user goals and interface design outcomes
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track UX quality and user satisfaction alignment trends
+
 ## Output Format
 
 ```markdown
@@ -100,6 +111,15 @@ When relevant, execute sequentially:
 ### 와이어프레임 가이드
 ### 반응형 고려사항
 ### 마이크로카피 & 빈 상태
+
+## 워크플로우 패턴 분석
+### 발견된 UX 디자인 패턴
+### 디자인 리뷰 자동화 기회
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 사용자 목표-인터페이스 정렬
+### 개선 필요 영역
 
 ## UX 디자이너 권고
 ### 즉시 디자인 작업

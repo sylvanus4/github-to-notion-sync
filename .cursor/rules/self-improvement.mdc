@@ -83,6 +83,15 @@ After ANY correction from the user, log to `docs/ai/feedback.md` in 3 lines:
 - Sections: `## Learned User Preferences` and `## Learned Workspace Facts` (max 12 bullets each)
 - Plain bullet points only, no metadata annotations
 
+## AutoSkill Evolution
+
+- The `autoskill-evolve` pipeline extracts structured SKILL.md artifacts from transcripts (complementary to learned-memory bullets)
+- Run `/autoskill-evolve --scope recent --dry-run` periodically (weekly recommended) to preview potential skill extractions
+- Pipeline: `autoskill-extractor` → `autoskill-judge` (add/merge/discard) → `autoskill-merger` (for merge decisions)
+- State tracked in `.cursor/hooks/state/autoskill-evolution.json`
+- Relationship to learned-memory: bullets in `learned-memory.mdc` capture atomic preferences; AutoSkill captures structured, versioned skill artifacts with prompts, triggers, and workflows
+- When a learned-memory bullet grows into a multi-step workflow, promote it to a full skill via `/autoskill-extract --hint "the pattern"`
+
 ## Conversation Separation
 
 - Keep conversations focused: "design" conversation, "implement" conversation, "verify" conversation

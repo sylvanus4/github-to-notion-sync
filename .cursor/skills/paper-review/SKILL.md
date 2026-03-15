@@ -69,6 +69,7 @@ Phase 5: Generate PPTX (PowerPoint presentation, anthropic-pptx)
 Phase 6: Generate NLM Slides (NotebookLM slide deck from DOCX)
 Phase 7: Distribute to Notion (main page + sub-pages per perspective)
 Phase 8: Distribute to Slack (NLM slides + Notion link + files in thread)
+Phase 9: Archive Registration (register paper in paper-archive index)
 ```
 
 ---
@@ -371,6 +372,24 @@ Skills used: **Slack MCP** (text messages), **curl** (3-step file upload via `ge
 
 ---
 
+## Phase 9: Archive Registration
+
+Always runs as the final step — cannot be skipped. Best-effort: failures
+do NOT block the pipeline.
+
+Register the reviewed paper in the paper-archive index at
+`outputs/papers/index.json`. Collects all metadata from Phase 1,
+`title_ko` and `one_line_summary` from Phase 2, all artifact paths from
+Phases 2-8, `notion_page_id` from Phase 7, and `nlm_notebook_id` from
+Phase 6. Sets status to `reviewed`.
+
+For the full field mapping and implementation steps, see
+[paper-archive integration hooks](../paper-archive/references/integration-hooks.md).
+
+Skills used: **paper-archive**
+
+---
+
 ## Options
 
 | Option | Description | Default |
@@ -406,6 +425,7 @@ This will:
 6. Generate NotebookLM slide deck from DOCX
 7. Create Notion pages (main + 7 sub-pages) under the default parent
 8. Upload NLM slides PDF to `#deep-research`, post Korean summary + Notion link + DOCX + PPTX in thread
+9. Register the paper in the paper-archive index
 
 ```
 /paper-review /path/to/paper.pdf --skip-pm --skip-slack
@@ -452,6 +472,7 @@ This will create Notion pages under a custom parent page without posting to Slac
 | Notion MCP | 7 | Page creation and content distribution |
 | x-to-slack | 8 | Channel registry pattern |
 | Slack MCP + curl | 8 | Text messages + file uploads |
+| paper-archive | 9 | Archive index registration |
 
 ## Troubleshooting
 
@@ -479,6 +500,7 @@ This will create Notion pages under a custom parent page without posting to Slac
 
 ## Related Skills
 
+- **paper-archive** — Central paper catalog and search hub
 - **nlm-arxiv-slides** — arXiv paper to NotebookLM slide decks
 - **nlm-deep-learn** — Accelerated learning from paper sources
 - **anthropic-pdf** — PDF manipulation

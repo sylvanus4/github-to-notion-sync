@@ -5,7 +5,8 @@ description: >
   change management, training requirements, and people analytics implications.
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
   Composes kwp-human-resources-org-planning, kwp-human-resources-people-analytics,
-  kwp-operations-change-management, and kwp-human-resources-interview-prep.
+  kwp-operations-change-management, kwp-human-resources-interview-prep,
+  workflow-miner, semantic-guard, and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "HR perspective", "HR 관점", "인사 분석", "organizational impact".
   Do NOT use for compensation benchmarking (use kwp-human-resources-compensation-benchmarking),
@@ -14,7 +15,7 @@ description: >
   Korean triggers: "HR 관점", "인사 분석", "조직 영향".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -68,6 +69,21 @@ When relevant, execute sequentially:
    - Competency requirements
    - Interview guide for new positions
 
+5. **HR Process Pattern Discovery** (via `workflow-miner`):
+   - Discover HR workflow patterns from interaction history
+   - Identify recurring HR sequences (e.g., hiring → onboarding → review → retention)
+   - Recommend automation for repetitive people management tasks
+
+6. **PII Protection** (via `semantic-guard`):
+   - Scan HR documents and communications for employee PII exposure
+   - Validate data flow for sensitive employee information
+   - Check outputs for GDPR/labor law compliance in data handling
+
+7. **Organizational Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between organizational goals and workforce outcomes
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track employee engagement and organizational health alignment trends
+
 ## Output Format
 
 ```markdown
@@ -109,6 +125,19 @@ When relevant, execute sequentially:
 ### 규정 변경 필요
 ### 근로계약 영향
 ### 개인정보 (직원 데이터)
+
+## 워크플로우 패턴 분석
+### 발견된 HR 프로세스 패턴
+### 자동화 기회
+
+## 개인정보 보호 검증
+### PII 노출 점검
+### GDPR/노동법 데이터 컴플라이언스
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 조직 목표-인력 성과 정렬
+### 개선 필요 영역
 
 ## HR 권고
 ### 즉시 조치 (사내 공지 등)

@@ -30,7 +30,7 @@ The meta-skill that coordinates all other skills. Decomposes high-level goals in
 
 ## Skill Registry
 
-Currently available skills: `cursor-sync`, `deep-review`, `design-architect`, `diagnose`, `domain-commit`, `ship`, `simplify`, `skill-optimizer`, `test-suite`, `transcribee`, `ui-suite`, `video-compress`, `visual-explainer`, `x-to-slack`, `mission-control`.
+Currently available skills: `cursor-sync`, `deep-review`, `design-architect`, `diagnose`, `domain-commit`, `intent-alignment-tracker`, `semantic-guard`, `ship`, `simplify`, `skill-composer`, `skill-optimizer`, `test-suite`, `transcribee`, `ui-suite`, `video-compress`, `visual-explainer`, `workflow-miner`, `x-to-slack`, `mission-control`.
 
 For the full registry (available + planned skills) and goal-to-skill mapping, see [references/skill-registry.md](references/skill-registry.md).
 

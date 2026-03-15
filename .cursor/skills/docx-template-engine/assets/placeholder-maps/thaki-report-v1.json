@@ -1,0 +1,61 @@
+{
+  "template_id": "thaki-report-v1",
+  "template_file": "assets/templates/thaki-report-v1.docx",
+  "allowed_styles": [
+    "Title", "Heading1", "Heading2", "Heading3",
+    "Normal", "Strong", "ListParagraph", "Hyperlink"
+  ],
+  "slots": {
+    "COVER_TITLE": {
+      "type": "text",
+      "max_chars": 80,
+      "required": true,
+      "description": "Document title on the cover page"
+    },
+    "COVER_SUBTITLE": {
+      "type": "text",
+      "max_chars": 120,
+      "required": true,
+      "description": "Subtitle on the cover page"
+    },
+    "EXEC_SUMMARY": {
+      "type": "text",
+      "max_chars": 2000,
+      "required": true,
+      "description": "Executive summary paragraph"
+    },
+    "SECTION_1_BODY": {
+      "type": "text",
+      "max_chars": 5000,
+      "required": true,
+      "description": "Background section body text"
+    },
+    "SECTION_2_BODY": {
+      "type": "text",
+      "max_chars": 5000,
+      "required": true,
+      "description": "Proposed Solution section body text"
+    },
+    "RISKS_TABLE": {
+      "type": "table",
+      "headers": ["Risk", "Impact", "Mitigation"],
+      "max_rows": 15,
+      "required": true,
+      "description": "Risk assessment table"
+    },
+    "APPENDIX": {
+      "type": "text",
+      "max_chars": 10000,
+      "required": false,
+      "description": "Appendix content"
+    }
+  },
+  "heading_order": ["Title", "Heading1", "Heading2", "Heading3"],
+  "prohibited": [
+    "Do not create styles not in allowed_styles list",
+    "Do not use direct formatting (bold/italic) outside style definitions",
+    "Do not modify table borders from template defaults",
+    "Do not alter headers or footers",
+    "Do not remove section breaks"
+  ]
+}

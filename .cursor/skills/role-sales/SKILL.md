@@ -5,7 +5,7 @@ description: >
   battlecard needs, customer outreach implications, pipeline effects, and demo/asset requirements.
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
   Composes kwp-sales-account-research, kwp-sales-competitive-intelligence,
-  kwp-sales-create-an-asset, and demo-forge.
+  kwp-sales-create-an-asset, demo-forge, workflow-miner, and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "sales perspective", "영업 관점", "영업 분석", "sales enablement impact".
   Do NOT use for drafting outreach emails (use kwp-sales-draft-outreach), call preparation
@@ -13,7 +13,7 @@ description: >
   Korean triggers: "영업 관점", "영업 분석", "세일즈 영향".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -66,6 +66,16 @@ When relevant, execute sequentially:
    - Before/after showcase opportunities
    - Customer-facing demonstration plan
 
+5. **Sales Workflow Pattern Discovery** (via `workflow-miner`):
+   - Discover sales workflow patterns from interaction history
+   - Identify recurring sales sequences (e.g., research → outreach → demo → close)
+   - Recommend automation for repetitive sales enablement tasks
+
+6. **Customer Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between customer needs and sales/product offerings
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track customer satisfaction and deal alignment trends
+
 ## Output Format
 
 ```markdown
@@ -102,6 +112,15 @@ When relevant, execute sequentially:
 ### 가격 변동 여부
 ### 패키징 변경
 ### 할인/프로모션 기회
+
+## 워크플로우 패턴 분석
+### 발견된 영업 워크플로우 패턴
+### 자동화 기회
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 고객 요구-제안 정렬
+### 개선 필요 영역
 
 ## 영업 권고
 ### 즉시 고객 커뮤니케이션

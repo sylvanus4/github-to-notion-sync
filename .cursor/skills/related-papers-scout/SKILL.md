@@ -38,6 +38,7 @@ Phase 3: Filter & Rank      (score candidates, select top 5)
 Phase 4: Deep Dive          (parallel subagents produce structured summaries per paper)
 Phase 5: Report Generation  (consolidated markdown report)
 Phase 6: Slack Distribution  (main message + 5 threaded paper summaries)
+Phase 7: Archive Registration (register discovered papers in paper-archive index)
 ```
 
 ---
@@ -245,6 +246,41 @@ and under 4000 characters.
 
 ---
 
+## Phase 7: Archive Registration
+
+Always runs as the final step — cannot be skipped.
+
+Register all discovered papers and the input paper in the paper-archive
+index at `outputs/papers/index.json`. See
+`../paper-archive/references/integration-hooks.md` for the full field mapping.
+
+### Steps
+
+1. Load `outputs/papers/index.json` (create empty scaffold if missing).
+2. For each of the top-N discovered papers from Phase 4:
+   a. Extract arXiv ID, title, authors, institutions from the deep dive summary.
+   b. Check if this ID already exists in the index — skip if yes.
+   c. Append a new entry with status `discovered`, setting `discovered_from`
+      to the input paper's ID.
+   d. Add a `related` relationship from the input paper to this discovered paper.
+3. Check if the input paper exists in the index:
+   - If yes: update its `related_papers` array with newly discovered IDs.
+     Add `artifacts.related_report` path.
+   - If no: register the input paper with status `discovered` and the
+     available metadata from Phase 1.
+4. Save `index.json` with updated `updated_at` timestamp.
+5. Append summaries to `memory/sessions/paper-archive-{DATE}.md` for the
+   recall system.
+
+### Error Handling
+
+If archive registration fails, log a warning but do NOT fail the overall
+pipeline. The report and Slack outputs from Phases 5-6 are unaffected.
+
+Skills used: **paper-archive**
+
+---
+
 ## Options
 
 | Option | Description | Default |
@@ -276,6 +312,7 @@ This will:
 4. Deep-dive into the top 5 with structured Korean summaries
 5. Save a consolidated report to `outputs/papers/`
 6. Post a main summary + 5 threaded paper summaries to `#deep-research`
+7. Register all 5 discovered papers + input paper in the paper-archive index
 
 ```
 /related-papers-scout /path/to/paper.pdf --skip-slack
@@ -304,6 +341,7 @@ Only consider papers from the last 6 months (stricter than default 9) and post t
 | parallel-web-search | 2 | Bulk search for related papers (if `parallel-cli` available) |
 | Slack MCP | 6 | Channel resolution + threaded message posting |
 | x-to-slack | 6 | Channel registry pattern (reused, not invoked) |
+| paper-archive | 7 | Archive index registration for discovered papers |
 
 ## Troubleshooting
 
@@ -319,6 +357,7 @@ Only consider papers from the last 6 months (stricter than default 9) and post t
 
 ## Related Skills
 
+- **paper-archive** — Central paper catalog and search hub
 - **paper-review** — Full paper review pipeline (review + PM analysis + DOCX + PPTX + NLM)
 - **nlm-arxiv-slides** — arXiv paper to NotebookLM slide decks
 - **alphaear-search** — Finance-specific web search

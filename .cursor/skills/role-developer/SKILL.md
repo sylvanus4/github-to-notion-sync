@@ -4,7 +4,8 @@ description: >
   Analyze a given topic from the Developer perspective — implementation complexity, code impact,
   testing requirements, documentation needs, and CI/CD implications.
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
-  Composes deep-review, test-suite, diagnose, technical-writer, and refactor-simulator.
+  Composes deep-review, test-suite, diagnose, technical-writer, refactor-simulator,
+  workflow-miner, skill-composer, semantic-guard, and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "developer perspective", "개발자 관점", "구현 영향 분석", "implementation impact".
   Do NOT use for hands-on code review (use deep-review), bug diagnosis (use diagnose),
@@ -12,7 +13,7 @@ description: >
   Korean triggers: "개발자 관점", "구현 영향", "코드 영향 분석".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -64,6 +65,26 @@ When relevant, execute sequentially:
    - ADR if architectural decision involved
    - Changelog entries
 
+5. **Dev Workflow Pattern Discovery** (via `workflow-miner`):
+   - Discover development workflow patterns from interaction history
+   - Identify recurring dev sequences (e.g., branch → implement → test → review → merge)
+   - Recommend automation for repetitive development tasks
+
+6. **Dev Automation Assessment** (via `skill-composer`):
+   - Recommend skill chain compositions for development workflow optimization
+   - Map natural language implementation requirements to executable skill chains
+   - Suggest reusable dev pipeline definitions (test → lint → deploy)
+
+7. **Code Security Validation** (via `semantic-guard`):
+   - Scan code changes for hardcoded secrets and credentials
+   - Validate input handling for injection vulnerabilities
+   - Check API responses for PII exposure risks
+
+8. **Implementation Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between implementation goals and delivered outcomes
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track code quality and velocity alignment trends
+
 ## Output Format
 
 ```markdown
@@ -104,6 +125,21 @@ When relevant, execute sequentially:
 ### 기술적 리스크
 ### 외부 의존성
 ### 블로커
+
+## 워크플로우 패턴 분석
+### 발견된 개발 워크플로우 패턴
+### 자동화 기회
+### 스킬 체인 구성 권고
+
+## 코드 보안 검증
+### 시크릿/크리덴셜 점검
+### 입력 검증 취약점
+### PII 노출 리스크
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 구현 목표-결과 정렬
+### 개선 필요 영역
 
 ## 개발자 권고
 ### 구현 접근법

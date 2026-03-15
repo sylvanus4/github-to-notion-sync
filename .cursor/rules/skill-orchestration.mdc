@@ -32,6 +32,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 **Execution skills** (modify code/state):
 - `local-dev-runner` — Start/stop dev stack
 - `e2e-testing` — Playwright E2E tests
+- `e2e-overhaul` — Comprehensive E2E test overhaul pipeline (run → triage → fix → extend → verify)
 - `ci-quality-gate` — Local CI pipeline (secret scan, lint, test, build)
 - `service-health-doctor` — Diagnose and recover services
 - `dependency-auditor` — Audit and update dependencies
@@ -134,6 +135,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/release-ship` | domain-commit, release-ship | Sequential |
 | `/eod-ship` | cursor-sync, release-ship | Sequential (sync → ship current → ship 5 projects → Slack notify) |
 | `/ship` | deep-review, simplify, domain-commit, ship | Parallel (review) → Eval-Opt (fix+verify) → Sequential (commit+PR) |
+| `/e2e-overhaul` | e2e-testing, diagnose, qa-test-expert, browser-use | Sequential (config→run→triage) → Parallel (4 fix agents) → Sequential (extend→verify→report) |
 | `/incident-response` | service-health-doctor, backend-expert, db-expert, technical-writer | Sequential (time-critical) |
 | `/incident-to-improvement` | diagnose, domain-commit, qa-test-expert, technical-writer, sre-devops-expert | Parallel (triage) → Sequential (fix) → Parallel (prevent) |
 | `/dependency-sweep` | dependency-auditor, ci-quality-gate, domain-commit | Sequential |

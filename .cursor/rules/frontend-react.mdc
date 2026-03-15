@@ -38,7 +38,7 @@ frontend/e2e/   # Playwright E2E tests
 ## Dev Commands
 
 ```bash
-cd frontend && pnpm install && pnpm dev   # http://localhost:5173
+cd frontend && pnpm install && pnpm dev   # http://localhost:4501
 pnpm build
 pnpm test:e2e
 ```

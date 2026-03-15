@@ -159,7 +159,7 @@ cd backend
 python scripts/stock_screener.py --all --json > ../outputs/screener-$(date +%Y-%m-%d).json
 ```
 
-Applies 7 screening filters:
+Runs by default with AI sentiment scoring (70% technical + 30% sentiment). Use `--no-sentiment` to skip sentiment. Applies 7 screening filters:
 1. P/E ratio (0–50): eliminates overvalued / no-earnings stocks
 2. RSI sweet spot (30–70): avoids overbought/oversold extremes
 3. Volume spike (>1.5x 20-day avg): detects institutional flow
@@ -168,14 +168,7 @@ Applies 7 screening filters:
 6. Free Cash Flow yield (>0%): value filter from fundamental data
 7. Earnings proximity (within 14 days): flags upcoming catalysts
 
-**Step 3.5b — AI sentiment (optional, include with `--sentiment`):**
-
-```bash
-cd backend
-python scripts/stock_screener.py --all --sentiment --json > ../outputs/screener-$(date +%Y-%m-%d).json
-```
-
-For each stock passing technical filters, fetches recent news headlines via yfinance and scores sentiment using Claude Haiku. Composite score: 70% technical + 30% sentiment.
+**Step 3.5b — Skip sentiment (optional):** Use `--no-sentiment` if you want to run without AI sentiment. The default run includes sentiment.
 
 **Step 3.5c — Report screener summary:**
 
@@ -410,8 +403,60 @@ Cause: PostgreSQL not running or `DATABASE_URL` misconfigured.
 
 Solution: Check `docker compose up -d db` or verify `DATABASE_URL` in `.env`.
 
+## Tab Automation Pipeline (API-Driven)
+
+The `today` skill also drives a fully automated pipeline via the `PipelineOrchestrator` backend service. Each stage maps to one of the 12 tab automation skills. The orchestrator handles dependency ordering, retries, and parallel execution.
+
+### Dependency Graph
+
+```
+Phase 1 — Data Collection (parallel):
+  tab-stock-sync        → POST /stock-prices/fetch-latest
+  tab-event-detect      → POST /events/detect
+  tab-fundamental-sync  → POST /financial-statements/sync
+  tab-hot-stock-discovery → POST /admin/discover-hot-stocks
+
+Phase 2 — Computation (depends on data_sync):
+  tab-technical-analysis → POST /technical-analysis/batch-compute
+  tab-turtle-refresh     → POST /turtle/indicators/daily-refresh
+  tab-bollinger-refresh  → POST /bollinger-bands/daily-refresh
+  tab-dualma-refresh     → scripts/daily_stock_check.py --source db
+  tab-screening          → POST /admin/screen-stocks (depends on fundamental_sync too)
+  tab-market-breadth     → POST /market-breadth/refresh
+  tab-sentiment          → POST /sentiment/batch-analyze (depends on news_fetch)
+  tab-dualma-backtest    → POST /dualma/backtest (depends on dualma_refresh + hot_stock_discovery)
+
+Phase 3 — Analysis (depends on computation):
+  tab-ai-news-corr       → AI model news correlation (depends on event_detection + data_sync)
+  tab-analysis-run       → POST /analysis/run + POST /reports/generate + GET /patterns
+  tab-llm-agents         → POST /llm-agents/run + POST /llm-agents/macro/refresh
+  tab-genai-features     → POST /genai-features/generate
+
+Phase 4 — Reporting (depends on analysis):
+  report_generation      → POST /reports/generate (depends on ai_news_correlation)
+  pattern_refresh        → GET /patterns
+  slack_notification     → Slack #h-report posting
+```
+
+### Running the Full Pipeline via API
+
+```bash
+curl -X POST http://localhost:4567/api/v1/pipeline/run-daily
+```
+
+This triggers `PipelineOrchestrator.run()` which executes all 20 stages with proper dependency ordering and retry logic.
+
+### Running Individual Tab Skills
+
+Each tab skill can be run independently via its trigger command (see Phase 6 commands):
+- `/tab-stock-sync` — sync stock prices only
+- `/tab-event-detect` — detect events only
+- `/tab-screening` — run stock screener only
+- etc.
+
 ## Integration
 
+- **Pipeline Orchestrator**: `backend/app/services/pipeline_orchestrator.py` (20-stage DAG with retries)
 - **DB status script**: `backend/scripts/weekly_stock_update.py`
 - **CSV import script**: `backend/scripts/import_csv.py`
 - **Fundamental data collector**: `backend/scripts/financial_data_collector.py` (yfinance → financial_statements table)
@@ -434,4 +479,5 @@ Solution: Check `docker compose up -d db` or verify `DATABASE_URL` in `.env`.
 - **Tracked tickers**: `backend/app/core/constants.py` (`DEFAULT_STOCKS`, `TICKER_CATEGORY_MAP`)
 - **Slack channel**: `#h-report` (optional)
 - **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`
+- **Tab skills**: `tab-stock-sync`, `tab-event-detect`, `tab-fundamental-sync`, `tab-hot-stock-discovery`, `tab-technical-analysis`, `tab-turtle-refresh`, `tab-bollinger-refresh`, `tab-dualma-refresh`, `tab-screening`, `tab-llm-agents`, `tab-genai-features`, `tab-analysis-run`
 - **GitHub Actions**: `.github/workflows/daily-today.yml` (independent pipeline, uses its own API keys via GitHub Secrets)

@@ -4,8 +4,9 @@ description: >
   Analyze a given topic from the Product Manager perspective — PRD implications, sprint impact,
   user story generation, OKR alignment, roadmap changes, and stakeholder communication.
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
-  Composes pm-execution, kwp-product-management-feature-spec, pm-product-discovery, and
-  kwp-product-management-roadmap-management.
+  Composes pm-execution, kwp-product-management-feature-spec, pm-product-discovery,
+  kwp-product-management-roadmap-management, workflow-miner, skill-composer,
+  and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "PM perspective", "PM 관점", "기획자 분석", "product impact".
   Do NOT use for writing a full PRD (use pm-execution), sprint planning execution
@@ -13,7 +14,7 @@ description: >
   Korean triggers: "PM 관점", "기획자 분석", "제품 영향".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -64,6 +65,21 @@ When relevant, execute sequentially:
    - Executive-facing brief
    - Customer-facing narrative
 
+5. **Product Workflow Pattern Discovery** (via `workflow-miner`):
+   - Discover product management workflow patterns from interaction history
+   - Identify recurring PM sequences (e.g., discovery → spec → sprint → retro)
+   - Recommend automation for repetitive product planning tasks
+
+6. **Process Automation** (via `skill-composer`):
+   - Recommend skill chain compositions for product workflow optimization
+   - Map natural language product requirements to executable skill chains
+   - Suggest reusable PM pipeline definitions
+
+7. **Product-User Intent Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between product goals and user outcomes
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track product-market fit alignment trends
+
 ## Output Format
 
 ```markdown
@@ -104,6 +120,16 @@ When relevant, execute sequentially:
 ### 경영진 요약
 ### 엔지니어링 핸드오프
 ### 고객 커뮤니케이션
+
+## 워크플로우 패턴 분석
+### 발견된 제품 관리 패턴
+### 프로세스 자동화 기회
+### 스킬 체인 구성 권고
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 제품-사용자 정렬 추적
+### 개선 필요 영역
 
 ## PM 권고
 ### 즉시 착수 항목

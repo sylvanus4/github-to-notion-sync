@@ -1,0 +1,64 @@
+# AutoSkill Evolution
+
+## Purpose
+
+Defines when and how the AutoSkill skill evolution pipeline runs, integrating with the existing self-improvement and done-checklist workflows.
+
+## When to Evolve
+
+### Automatic Triggers
+
+- After completing a non-trivial task (3+ file changes), the done-checklist suggests running `/autoskill-evolve --scope recent --dry-run` to preview potential skill extractions
+- The `continual-learning` plugin's session-end hook can optionally trigger extraction for the current session
+
+### Manual Triggers
+
+- `/autoskill-evolve` command (recommended: weekly cadence)
+- `/autoskill-extract --transcript <id>` for specific sessions
+- `/autoskill-status` to review evolution statistics
+
+## Extraction Criteria
+
+### DO Extract (durable, reusable signals)
+
+- User corrections that appear 2+ times across sessions
+- Explicit "always/never" instructions
+- Multi-step workflow specifications
+- Format/style constraints that apply beyond one task
+- Tool usage patterns with specific configurations
+- Architectural decisions and coding conventions
+
+### DO NOT Extract (one-shot, non-portable signals)
+
+- One-shot generic tasks ("write a function", "fix this bug")
+- Case-specific facts, entities, domain claims
+- Assistant-invented patterns not confirmed by the user
+- Trivial preferences with no reuse value
+- Debugging sessions without generalizable patterns
+
+## Quality Gates
+
+- Minimum extraction confidence: 0.6
+- Maximum candidates per transcript: 2
+- Merge conflicts require human review (flagged, not auto-applied)
+- New skills must pass `skill-optimizer` audit at MEDIUM or above
+
+## Integration Points
+
+- **self-improvement.mdc**: AutoSkill evolution is a complementary loop — `self-improvement` captures bullets to `learned-memory.mdc`, while AutoSkill extracts structured SKILL.md artifacts
+- **done-checklist.mdc**: Add optional autoskill dry-run check after task completion
+- **continual-learning plugin**: Transcript indexing feeds the extractor
+
+## State Tracking
+
+Evolution state is maintained in `.cursor/hooks/state/autoskill-evolution.json`. This file tracks:
+- Processed transcript watermark
+- Cumulative statistics (created, merged, discarded)
+- Version history for all evolved skills
+
+## Anti-Patterns
+
+- Do not run evolution on every session — batch processing is more efficient
+- Do not auto-merge without review when confidence < 0.8
+- Do not extract from sessions shorter than 5 user turns
+- Do not create skills that overlap with existing `learned-memory.mdc` bullets — promote bullets to skills instead

@@ -4,7 +4,8 @@ description: >
   Analyze a given topic from the CTO/technical leadership perspective — architecture impact,
   tech debt implications, performance/SLO concerns, security posture, and engineering capacity.
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
-  Composes deep-review, backend-expert, sre-devops-expert, security-expert, and refactor-simulator.
+  Composes deep-review, backend-expert, sre-devops-expert, security-expert, refactor-simulator,
+  workflow-miner, skill-composer, semantic-guard, and intent-alignment-tracker.
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "CTO perspective", "CTO 관점", "기술 리더 분석", "architecture impact".
   Do NOT use for hands-on code review (use deep-review), release pipeline execution
@@ -12,7 +13,7 @@ description: >
   Korean triggers: "CTO 관점", "기술 리더 분석", "아키텍처 영향".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "role-analysis"
 ---
 
@@ -65,6 +66,26 @@ When relevant, execute sequentially:
    - Monitoring and alerting requirements
    - Capacity planning needs
 
+5. **Architecture Pattern Discovery** (via `workflow-miner`):
+   - Discover architecture and engineering workflow patterns from interaction history
+   - Identify recurring technical decision patterns (e.g., design review → prototype → load test)
+   - Recommend automation for repetitive infrastructure and deployment tasks
+
+6. **Automation Assessment** (via `skill-composer`):
+   - Recommend skill chain compositions for technical workflow automation
+   - Map natural language technical requirements to executable skill chains
+   - Suggest reusable engineering pipeline definitions
+
+7. **Security Posture Validation** (via `semantic-guard`):
+   - Scan architecture documents and configs for sensitive data exposure
+   - Validate data flow for PII and credential leakage risks
+   - Check infrastructure-as-code for hardcoded secrets
+
+8. **Technical Alignment** (via `intent-alignment-tracker`):
+   - Measure alignment between technical goals and architecture outcomes
+   - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
+   - Track tech-debt-to-velocity alignment trends
+
 ## Output Format
 
 ```markdown
@@ -105,6 +126,20 @@ When relevant, execute sequentially:
 ### 필요 인력/기간
 ### 기술 스택 준비도
 ### 온보딩/교육 필요성
+
+## 워크플로우 패턴 분석
+### 발견된 아키텍처/엔지니어링 패턴
+### 자동화 기회
+### 스킬 체인 구성 권고
+
+## 보안 콘텐츠 검증
+### 민감 데이터 노출 점검
+### IaC 시크릿 검증
+
+## 의도 정렬 평가
+### IA 점수 (0-100)
+### 기술 목표-성과 정렬
+### 개선 필요 영역
 
 ## 기술 의사결정 권고
 ### 즉시 조치
