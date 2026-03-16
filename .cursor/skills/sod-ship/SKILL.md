@@ -195,48 +195,113 @@ research                         SYNCED    1 commit received
 ai-platform-webui                PARTIAL   12 files committed, push OK, pull conflict in 2 files
 ```
 
-### Phase 5: Slack + Report
-
-#### Step 5a: Slack Notification
+### Phase 5: Slack Notification
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.
 
-Post to `#효정-할일` using the `slack_send_message` MCP tool.
+Post a consolidated summary to `#효정-할일` using the `plugin-slack-slack` MCP server's `slack_send_message` tool. Use **threaded replies** — main summary first, then per-project details in thread.
+
+#### Step 5a: Main Message
+
+Call `CallMcpTool` with:
 
 ```json
 {
-  "channel_id": "C0AA8NT4T8T",
-  "message": "<Slack mrkdwn message>"
+  "server": "plugin-slack-slack",
+  "toolName": "slack_send_message",
+  "arguments": {
+    "channel_id": "C0AA8NT4T8T",
+    "message": "<main summary message>"
+  }
 }
 ```
 
-**Message template** (Slack mrkdwn):
+**Main message template** (standard markdown):
 
 ```
-*🔄 SOD Git 동기화 리포트* (YYYY-MM-DD)
+**🔄 SOD Git 동기화 리포트** (YYYY-MM-DD)
 
-*로컬 → 리모트 (커밋 & 푸시)*
+**로컬 → 리모트 (커밋 & 푸시)**
 - project-a: N개 커밋 생성, 푸시 완료
 - project-b: 변경사항 없음
 
-*리모트 → 로컬 (Pull)*
+**리모트 → 로컬 (Pull)**
 - project-a: N개 커밋 수신
 - project-b: 이미 최신
 
-*결과*
-- SYNCED: N/5, PARTIAL: N/5, FAILED: N/5
+**결과**
+- ✅ SYNCED: N/5 | ⚠️ PARTIAL: N/5 | ❌ FAILED: N/5
+- 총 커밋: 생성 N개, 수신 M개
 ```
 
-Slack mrkdwn rules:
-- `*bold*` (single asterisk only, never `**`)
-- `<url|text>` for links
-- Write all message text in Korean
-- Omit sections with no data
-- Keep message under 5000 chars
+**Save** the returned `message.ts` timestamp from the response — it is needed for threaded replies.
 
-#### Step 5b: Chat Report
+#### Step 5b: Threaded Details
 
-Display the same structure as the Slack message in the chat as a formatted Korean report, using the Phase 4 verification table as the base.
+For each project that had activity (not "변경사항 없음" / "이미 최신"), post a threaded reply with details:
+
+```json
+{
+  "server": "plugin-slack-slack",
+  "toolName": "slack_send_message",
+  "arguments": {
+    "channel_id": "C0AA8NT4T8T",
+    "thread_ts": "<ts from Step 5a>",
+    "message": "<per-project detail>"
+  }
+}
+```
+
+**Thread message template** per project:
+
+```
+**📂 {project-name}** — {SYNCED|PARTIAL|FAILED}
+
+Push: N개 커밋 생성 → 푸시 {완료|실패|스킵}
+Pull: M개 커밋 수신 → {fast-forward|rebase|충돌}
+브랜치: {branch-name}
+{충돌 파일이 있으면: 충돌 파일: file1.md, file2.py (수동 해결 필요)}
+```
+
+Omit thread replies for projects with no activity on either direction (push or pull).
+
+#### Slack Message Rules
+
+- Use `**bold**` (standard markdown, the MCP tool converts automatically)
+- Use standard markdown links `[text](url)` for any links
+- Write all message text in Korean (한국어)
+- Omit sections with no data (e.g., no Push section if `--skip-push`)
+- Keep each message under 5000 chars
+- If all projects are already in sync, post a single message: `**🔄 SOD Git 동기화 리포트** (YYYY-MM-DD)\n\n모든 프로젝트 동기화 완료 — 변경사항 없음 ✅`
+
+### Phase 6: Chat Report
+
+Display the consolidated summary in the chat as a formatted Korean report, using the Phase 4 verification table as the base.
+
+```
+SOD 동기화 리포트
+==================
+날짜: YYYY-MM-DD
+
+로컬 → 리모트:
+  github-to-notion-sync:          변경사항 없음
+  ai-template:                    2개 커밋 생성, 푸시 완료
+  ai-model-event-stock-analytics: 3개 커밋 생성, 푸시 완료
+  research:                       변경사항 없음
+  ai-platform-webui:              5개 커밋 생성, 푸시 완료 (tmp)
+
+리모트 → 로컬:
+  github-to-notion-sync:          3개 커밋 수신
+  ai-template:                    이미 최신
+  ai-model-event-stock-analytics: 1개 커밋 수신
+  research:                       2개 커밋 수신
+  ai-platform-webui:              4개 커밋 수신
+
+결과: SYNCED 5/5, PARTIAL 0/5, FAILED 0/5
+슬랙: #효정-할일 채널에 게시 완료
+
+합계: 10개 커밋 생성, 10개 커밋 수신
+```
 
 ## Examples
 
@@ -248,7 +313,8 @@ User runs `/sod-ship` on a new morning with changes in 2 projects.
 2. Ship local: 2 domain-split commits in analytics project, push both projects
 3. Pull remote: 3 projects receive new commits, 2 already up to date
 4. Verify: 5/5 SYNCED
-5. Slack + Report posted
+5. Slack: main summary posted to #효정-할일, 2 threaded replies for projects with activity
+6. Chat report displayed
 
 ### Example 2: Switching computers (dirty repos everywhere)
 
@@ -258,7 +324,8 @@ User runs `/sod-ship` after switching to a different machine.
 2. Ship local: commit all dirty repos, push all
 3. Pull remote: all 5 receive commits
 4. Verify: 5/5 SYNCED
-5. Slack + Report posted
+5. Slack: main summary + 5 threaded replies
+6. Chat report displayed
 
 ### Example 3: Partial pipeline (skip-push or skip-pull)
 
@@ -272,7 +339,19 @@ User runs `/sod-ship` and one project has a merge conflict.
 2. Ship local: no dirty repos
 3. Pull: research merge conflict on `README.md` — attempt rebase — rebase also fails — abort and report conflict files
 4. Verify: 4/5 SYNCED, 1/5 PARTIAL (research: conflict)
-5. Report shows: `research: PARTIAL — 충돌 파일: README.md (수동 해결 필요)`
+5. Slack: main summary + 1 threaded reply for research (PARTIAL — 충돌 파일 포함)
+6. Chat report displayed
+
+### Example 5: All projects in sync (no activity)
+
+User runs `/sod-ship` and every project is already up to date.
+
+1. Pre-flight: all 5 projects clean, no behind commits
+2. Ship local: nothing to commit or push
+3. Pull remote: all up to date
+4. Verify: 5/5 SYNCED
+5. Slack: single message "모든 프로젝트 동기화 완료 — 변경사항 없음 ✅" (no threaded replies)
+6. Chat report displayed
 
 ## Error Handling
 
@@ -288,6 +367,8 @@ User runs `/sod-ship` and one project has a merge conflict.
 | Stash exists in project | Warn user about existing stashes; do not auto-apply |
 | `gh` CLI not authenticated | Not needed (git-only operations); ignore |
 | No changes in any project | Report "all projects already in sync" |
+| Slack message fails | Report error; still display chat report (Phase 6) |
+| Slack thread_ts not returned | Post details as separate channel message instead of thread |
 
 ## Safety Rules
 

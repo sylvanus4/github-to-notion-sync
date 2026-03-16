@@ -1,0 +1,60 @@
+---
+description: "Post-skill-creation pipeline: run setup-doctor, skill-guide-sync, autoskill-evolve after creating or modifying skills"
+globs: .cursor/skills/**/SKILL.md
+---
+
+# Post-Skill-Creation Pipeline
+
+When a new skill is created or an existing SKILL.md is significantly modified (not a trivial typo fix), run the following 3-step pipeline **after** the skill creation/modification is complete and verified.
+
+## Trigger Conditions
+
+This rule applies when:
+- A new `.cursor/skills/<name>/SKILL.md` file is created
+- An existing SKILL.md is substantially rewritten (new sections, new references, changed workflow)
+
+This rule does NOT apply when:
+- Only fixing a typo or formatting in an existing SKILL.md
+- Modifying reference files without changing SKILL.md
+- Running bulk operations (cursor-sync, skill-optimizer audit across all skills)
+
+## Pipeline
+
+Run these 3 steps sequentially after the skill is created/modified:
+
+### Step 1: Setup Doctor (prerequisites check)
+
+Check if the new/modified skill introduces any new prerequisites (CLI tools, env vars, packages, MCP servers) that are not yet installed.
+
+```
+/setup-doctor --group <relevant-group>
+```
+
+If the skill doesn't map to a specific group, run `--env` to check for any new env var requirements. Report any missing prerequisites to the user.
+
+### Step 2: Skill Guide Sync (documentation update)
+
+Ensure the new/modified skill has a corresponding entry in the skill guides documentation.
+
+```
+/skill-guide-sync --scope <skill-name>
+```
+
+This updates the skill guide index and generates any missing documentation entries.
+
+### Step 3: AutoSkill Evolve (evolution tracking)
+
+Run a dry-run evolution check to see if the new skill overlaps with or should be merged with existing skills.
+
+```
+/autoskill-evolve --dry-run --scope recent
+```
+
+If overlaps are detected, report them to the user for review before proceeding.
+
+## Execution Notes
+
+- Steps 1-3 are advisory — they report findings but do not block the skill creation
+- If the user explicitly says they will handle these later, skip the pipeline
+- For bulk skill operations (e.g., cursor-sync importing 10+ skills), run the pipeline once at the end, not per-skill
+- Keep the pipeline lightweight — use `--dry-run` and scoped modes to minimize overhead

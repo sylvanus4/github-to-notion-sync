@@ -13,7 +13,7 @@ description: >-
   Korean triggers: "타임라인", "트위터 타임라인", "트윗 일괄", "트윗 스크래핑".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "execution"
 ---
 # Twitter Timeline to Slack Pipeline
@@ -62,14 +62,164 @@ For each tweet, the classifier analyzes text content against keyword rules and r
 | Tasks | `#효정-할일` |
 | Default | `#random` |
 
-### Phase 3: Post via x-to-slack
+### Phase 3: Post via x-to-slack (FULL workflow per tweet)
 
-For each unposted tweet:
-1. Fetch enriched data via FxTwitter API
-2. Run WebSearch for context (2-3 queries per tweet)
-3. Post 3-message Slack thread to the classified channel
-4. Update local DB with posting status
-5. Wait 10-15 seconds before next post (rate limiting)
+**CRITICAL**: Each tweet MUST go through the complete x-to-slack workflow. Do NOT shortcut or summarize from raw tweet text alone.
+
+For each unposted tweet (oldest first), execute ALL of the following steps:
+
+#### Step 3a: FxTwitter API Enrichment
+
+Convert the tweet URL by replacing `x.com` with `api.fxtwitter.com`. Use `WebFetch` to retrieve the full JSON response.
+
+Extract from the response:
+- `tweet.text` -- full tweet content
+- `tweet.author.name` + `tweet.author.screen_name` -- author identity
+- `tweet.author.description` -- author bio/context (include in summary)
+- `tweet.likes`, `tweet.retweets`, `tweet.views` -- engagement metrics
+- `tweet.quote` -- quoted tweet (if present, extract its text, author, and key data)
+- `tweet.media` -- attached images or videos
+- `tweet.created_at` -- timestamp
+
+If FxTwitter returns `code !== 200`, log the error and skip this tweet.
+
+#### Step 3b: Web Research (2-3 queries per tweet)
+
+Based on the enriched tweet content:
+1. Identify 2-3 key topics, technologies, people, or entities mentioned
+2. Run `WebSearch` for each to gather:
+   - Background context
+   - Recent developments
+   - Broader implications
+3. Collect relevant URLs for the "참고 링크" section
+
+This step is **mandatory** -- never skip research. Even for simple tweets, at least 2 searches provide valuable context.
+
+#### Step 3c: Topic Classification for Message 3
+
+Classify whether the tweet topic relates to **AI GPU Cloud** based on:
+- Mentions GPU, CUDA, NVIDIA, AMD ROCm, TPU, NPU, or AI accelerators
+- Discusses cloud infrastructure (AWS, GCP, Azure) in an AI/ML context
+- Covers ML training/inference infrastructure, model serving, or AI platform services
+- References GPU cluster management, orchestration (Kubernetes for AI), or MLOps
+- Discusses AI chip market, GPU supply/demand, or cloud GPU pricing
+
+If any criterion matches strongly → use **Message 3A** template.
+If none match → use **Message 3B** template (topic-specific insights with action items).
+
+#### Step 3d: Find Slack Channel
+
+Use the classified channel from Phase 2. Look up the `channel_id` from `outputs/twitter/slack-channels.json`.
+
+If the channel is not in the local registry, search via MCP:
+- Server: `plugin-slack-slack`
+- Tool: `slack_search_channels`
+- Query: the channel name
+
+#### Step 3e: Post 3-Message Slack Thread
+
+All messages use Slack mrkdwn format. Rules:
+- Use `*bold*` (single asterisk), `_italic_` (underscore)
+- Do NOT use `**double asterisks**` or `## headers`
+- Write content in Korean
+- Limit each message to under 4000 characters
+
+**Message 1: Title (Channel Post)**
+
+```
+{1-2 line Korean title summarizing the core insight}
+{original tweet URL}
+>>>
+```
+
+CRITICAL: Capture the `message_ts` from the response for thread replies.
+
+**Message 2: Detailed Summary (Thread Reply)**
+
+Send with `thread_ts` from Message 1.
+
+```
+*Tweet 요약*
+- 작성자: @{screen_name} ({name}) — {author bio/context}
+- 반응: ❤️ {likes} | 🔁 {retweets} | 👀 {views}
+- 작성일: {created_at}
+
+*핵심 내용*
+{Tweet 내용을 한국어로 상세 요약. 원문이 영어인 경우 번역 포함.
+구체적 수치, 기술명, 제품명 등을 빠짐없이 포함.}
+
+{인용 트윗이 있는 경우:}
+*인용 트윗 (@{quote.author.screen_name} — {quote author context})*
+{quote.text를 한국어로 상세 요약. 구체적 수치와 핵심 주장 포함.}
+
+*추가 조사 결과*
+{WebSearch로 수집한 관련 정보를 상세 bullet point로 정리}
+- *{토픽1}*: {배경 설명과 최신 동향}
+- *{토픽2}*: {기술적 의미와 영향}
+- *{토픽3}*: {산업 맥락과 시사점}
+
+*참고 링크*
+- <{url1}|{title1}>
+- <{url2}|{title2}>
+- <{url3}|{title3}>
+```
+
+**Message 3A: AI GPU Cloud related (Thread Reply)**
+
+```
+*AI GPU Cloud 서비스 인사이트*
+
+{이 트윗 주제가 AI GPU Cloud / AI 플랫폼 서비스에 어떤 의미를 가지는지 분석}
+
+*핵심 시사점*
+- {GPU 클라우드 인프라 관점에서의 인사이트}
+- {AI 플랫폼 서비스에 미칠 영향}
+- {팀이 취해야 할 액션 또는 고려사항}
+
+*적용 가능성*
+{구체적으로 우리 서비스에 어떻게 적용하거나 대응할 수 있는지}
+```
+
+**Message 3B: Topic-specific (Thread Reply)**
+
+```
+*{주제} 인사이트*
+
+{이 콘텐츠의 주제와 관련된 핵심 분석}
+
+*핵심 시사점*
+- {해당 분야의 트렌드 및 의미}
+- {기술적/비즈니스적 영향}
+- {주목할 점}
+
+*Action Items*
+- {팀에서 검토하거나 논의할 사항}
+- {추가 조사가 필요한 영역}
+- {적용 또는 대응 방안}
+```
+
+#### Step 3f: Update Local DB
+
+After successful posting, update `tweets.json`:
+- Set `posted_to_slack: true`
+- Set `slack_channel` to the channel name
+- Set `slack_ts` to the `message_ts` from Message 1
+- Set `classified_topic` to the classification result
+
+#### Step 3g: Rate Limiting
+
+Wait 10-15 seconds before processing the next tweet to avoid Slack rate limits.
+
+### Quality Gate
+
+Each posted Slack thread MUST include ALL of the following. If any item is missing, the post is incomplete:
+
+- Author name + handle + bio context (not just @handle)
+- Engagement stats with ❤️/🔁/👀 emoji formatting
+- Quote tweet section with author attribution (if quote exists in FxTwitter data)
+- At least 2 WebSearch results integrated in "추가 조사 결과" with specific findings
+- At least 2 reference links in "참고 링크" section
+- Topic-specific insights in Message 3 (not generic filler)
 
 ### Phase 4: Local Storage
 
@@ -79,44 +229,125 @@ Daily snapshots are archived to `outputs/twitter/{screen_name}/archive/YYYY-MM-D
 
 ## Running the Pipeline
 
+### Execution Flow
+
+```
+Phase 1: node scripts/twitter/run_pipeline.js --fetch-only
+         → tweets.json updated with new tweets
+
+Phase 2: Agent reads tweets.json, classifies each unposted tweet using classify_tweet.js rules
+
+Phase 3: For EACH unposted tweet:
+         → WebFetch FxTwitter API (enrichment)
+         → WebSearch x 2-3 (research)
+         → Slack 3-message thread (posting)
+         → Update tweets.json (status)
+         → Wait 10-15s (rate limit)
+```
+
+### Script Commands
+
 ```bash
 cd scripts/twitter
 
-# Full pipeline: fetch + classify + post
-node run_pipeline.js
-
-# Fetch only (no Slack posting)
+# Fetch tweets from timeline (Phase 1 only)
 node run_pipeline.js --fetch-only
 
-# Post 5 tweets max
-node run_pipeline.js --limit 5
-
-# Dry run (classify but don't post)
+# Fetch + classify without posting (dry run)
 node run_pipeline.js --dry-run
+
+# Full pipeline with limit
+node run_pipeline.js --limit 5
 ```
 
 ## Examples
 
 ### Example 1: First run
 
-User says: "hjguyhan 타임라인 트윗 100개 슬랙에 올려줘"
+User says: "hjguyhan 타임라인 트윗 슬랙에 올려줘"
 
 Actions:
-1. Run `node scripts/twitter/run_pipeline.js`
-2. Fetches ~100 tweets from @hjguyhan
-3. Classifies each tweet → routes to appropriate channel
-4. Posts each via x-to-slack with 12s delay
-5. Saves DB with posting status
+1. Run `node scripts/twitter/run_pipeline.js --fetch-only` to fetch tweets
+2. Read `outputs/twitter/hjguyhan/tweets.json` for unposted tweets
+3. Classify each tweet by topic → determine target channel
+4. For each tweet, execute Phase 3 (full x-to-slack workflow):
+   a. WebFetch FxTwitter API for enriched data
+   b. WebSearch 2-3 queries for context
+   c. Post 3-message Slack thread with full templates
+5. Update tweets.json with posting status after each tweet
+6. Wait 10-15s between tweets
 
-### Example 2: Re-run with dedup
+### Example 2: Expected output quality
+
+For a tweet like `https://x.com/altryne/status/2032223053116260367`:
+
+**Message 1 (channel post):**
+```
+Shopify CEO가 Karpathy의 Autoresearch로 20년 된 Liquid 엔진을 53% 빠르게 만들다 — AI 코딩 에이전트의 실전 성능 최적화 사례
+https://x.com/altryne/status/2032223053116260367
+>>>
+```
+
+**Message 2 (thread reply) — MUST include all sections:**
+```
+*Tweet 요약*
+- 작성자: @altryne (Alex Volkov) — @thursdai_pod 호스트, @wandb AI Evangelist
+- 반응: ❤️ 2,240 | 🔁 106 | 👀 373K
+- 작성일: 2026-03-12
+
+*핵심 내용*
+Alex Volkov이 Shopify CEO Tobi Lütke가 Andrej Karpathy의 Autoresearch 기법을
+사용해 20년 된 프로덕션 템플릿 엔진(Liquid)의 성능을 51% 개선한 사례를 소개.
+"이것이 모든 곳에 적용되면 진정한 foom(폭발적 성장)이 온다"고 평가.
+
+*인용 트윗 (@tobi — Shopify CEO)*
+Liquid 코드베이스에 /autoresearch를 실행한 결과:
+• parse+render 시간 *53% 단축* (7,469 → 3,534μs)
+• 오브젝트 할당 *61% 감소* (62,620 → 24,530)
+• 약 120개 자동 실험 중 93개 커밋 생존, 974개 유닛 테스트 모두 통과
+
+*추가 조사 결과*
+- *Autoresearch란?*: Karpathy가 2026년 3월 초 공개한 프레임워크.
+  AI 에이전트가 자율적으로 코드 수정 → 벤치마크 → 유지/폐기를 반복하는
+  hill-climbing 루프
+- *주요 최적화 기법*: StringScanner를 String#byteindex로 교체(파싱 40% 향상),
+  정수 0-999 사전 계산으로 렌더당 267개 할당 절감
+- *Liquid의 규모*: 560만 개 Shopify 스토어를 구동하는 Ruby 템플릿 엔진.
+  GC가 전체 CPU 시간의 74%를 차지
+
+*참고 링크*
+- <https://github.com/karpathy/autoresearch|Karpathy autoresearch GitHub>
+- <https://simonwillison.net/2026/Mar/13/liquid/|Simon Willison 분석>
+- <https://awesomeagents.ai/news/shopify-ceo-ai-agent-liquid-engine-53-faster/|Awesome Agents 기사>
+```
+
+**Message 3 (thread reply) — topic-specific, NOT generic:**
+```
+*AI 코딩 에이전트 성능 최적화 인사이트*
+
+이 사례는 AI 코딩 에이전트의 활용 패러다임이 "코드 생성"에서 "자율 성능 엔지니어링"으로
+확장되고 있음을 보여줍니다.
+
+*핵심 시사점*
+- *Autoresearch 패턴의 보편화*: "측정 가능한 메트릭 + 자동 실험 루프"라는
+  공식이 많은 도메인에 적용 가능
+- *인간 전문가가 놓친 최적화를 AI가 발견*: 하나하나는 단순하지만 조합 효과가 53%
+- *안전성 검증*: 974개 테스트 전체 통과 — 자동화된 테스트가 에이전트의 안전망
+
+*Action Items*
+- 우리 코드베이스에서 autoresearch 패턴 적용 가능성 탐색
+- 필수 조건 확인: 결정적 평가 메트릭 + 테스트 스위트 + Git 롤백
+- Tobi도 "오버핏 가능성" 언급 — 프로덕션 검증 필수
+```
+
+### Example 3: Re-run with dedup
 
 User says: "twitter-timeline-to-slack 다시 실행해줘"
 
 Actions:
-1. Run pipeline again
-2. Fetches latest tweets → only new ones added (existing IDs skipped)
-3. Only unposted tweets are processed
-4. Previously posted tweets are not re-posted
+1. Run fetch again — only new tweets added (existing IDs skipped)
+2. Only unposted tweets are processed through Phase 3
+3. Previously posted tweets are not re-posted
 
 ## Error Handling
 
@@ -129,8 +360,16 @@ Actions:
 ## Composed Skills
 
 This skill orchestrates:
-- **x-to-slack** -- Core tweet → Slack posting pipeline
+- **x-to-slack** -- Core tweet → Slack posting pipeline (FxTwitter enrichment + WebSearch + 3-message thread). Phase 3 follows its FULL workflow for each tweet.
 - **scrapling** or **agent-browser** -- Fallback for tweet fetching if twittxr fails
+
+## MCP Tool Reference
+
+| Tool | Server | Purpose |
+|---|---|---|
+| `slack_search_channels` | `plugin-slack-slack` | Find channel_id by name |
+| `slack_send_message` | `plugin-slack-slack` | Post messages and thread replies |
+| `slack_read_channel` | `plugin-slack-slack` | Fallback to find message_ts |
 
 ## File Structure
 
@@ -138,7 +377,8 @@ This skill orchestrates:
 scripts/twitter/
   fetch_timeline.js       # Tweet fetcher (twittxr + FxTwitter fallback)
   classify_tweet.js       # Topic classifier with keyword rules
-  run_pipeline.js         # Main orchestration script
+  run_pipeline.js         # Fetch + classify orchestration (Phase 1-2 only)
+  enrich_and_manifest.js  # FxTwitter enrichment + manifest generation
   package.json            # Dependencies
 
 outputs/twitter/

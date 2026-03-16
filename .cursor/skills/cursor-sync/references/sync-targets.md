@@ -46,6 +46,17 @@ The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/
 - Has project-specific skills: `kwp-sync`, `i18n-sync`
 - Has domain-specific rules: `sales.mdc`, `product-management.mdc`, `marketing.mdc`, etc.
 
+## Extra Sync Directories
+
+Beyond `.cursor/{commands,skills,rules}`, additional directories can be synced with per-target path mappings.
+
+| Scope Key | Source Path (this repo) | Target Alias | Target Path | Direction |
+|-----------|------------------------|--------------|-------------|-----------|
+| `skill-guides` | `docs/skill-guides/` | `ai-template` | `skill-guides/` | bidirectional |
+| `skill-guides` | `docs/skill-guides/` | `ai-platform-webui` | `docs/skill-guides/` | bidirectional |
+
+**Bidirectional sync**: push (source → target) first, then pull (target → source). Both directions run without `--delete`, so files unique to either side are preserved.
+
 ## Managing Targets
 
 ### Adding a new target

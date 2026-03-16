@@ -114,16 +114,28 @@ Determine input type and extract structured content.
 
 Extract paper ID from the URL (e.g., `2509.04664` from `https://arxiv.org/abs/2509.04664`).
 
-Run two commands in parallel:
+**Step 1 — AlphaXiv-first fetch (token-efficient structured overview):**
+
+Run three commands in parallel:
 
 ```bash
+curl -sL --max-time 30 "https://alphaxiv.org/overview/{ID}.md"
 curl -L -o /tmp/arxiv-{ID}.pdf "https://arxiv.org/pdf/{ID}"
 curl -s "https://defuddle.md/arxiv.org/abs/{ID}"
 ```
 
-Parse Defuddle output for title, authors, abstract, date.
+**Step 2 — Choose metadata source (priority order):**
 
-Extract full text with pdfplumber:
+1. **AlphaXiv overview** (preferred): If the first curl returns a valid markdown
+   report (non-empty, no 404), parse it for title, authors, abstract, date, and
+   structured analysis content. Save the overview to `/tmp/arxiv-{ID}-alphaxiv.md`.
+2. **Defuddle** (fallback): If AlphaXiv returns 404, use Defuddle output for
+   title, authors, abstract, date.
+
+**Step 3 — Full text extraction (still required for deep review):**
+
+Even when AlphaXiv overview is available, extract full text with pdfplumber for
+sections the overview may not cover (equations, tables, appendices):
 
 ```python
 import pdfplumber
@@ -132,6 +144,13 @@ with pdfplumber.open("/tmp/arxiv-{ID}.pdf") as pdf:
 with open("/tmp/arxiv-{ID}-extracted.md", "w") as f:
     f.write(text)
 ```
+
+**Step 4 — Combine sources for Phase 2:**
+
+When AlphaXiv overview is available, provide BOTH the structured overview AND
+the pdfplumber-extracted text to Phase 2. The overview supplies pre-analyzed
+structure (problem, approach, results, limitations); the raw text provides
+verbatim evidence (figures, tables, equations) for citation.
 
 ### Local PDF Input
 
@@ -155,8 +174,11 @@ Combine into a structured document:
 ## Abstract
 {abstract}
 
+## AlphaXiv Structured Overview
+{alphaxiv overview content, if available — omit this section if 404}
+
 ## Full Paper Content
-{section-segmented extracted text}
+{section-segmented extracted text from pdfplumber}
 ```
 
 Identify section boundaries (Introduction, Related Work, Methods, Experiments,
@@ -456,7 +478,8 @@ This will create Notion pages under a custom parent page without posting to Slac
 
 | Skill | Phase | Purpose |
 |-------|-------|---------|
-| defuddle | 1 | Extract arXiv abstract metadata |
+| alphaxiv-paper-lookup | 1 | Structured arXiv paper overview (token-efficient, primary metadata source) |
+| defuddle | 1 | Extract arXiv abstract metadata (fallback when AlphaXiv unavailable) |
 | anthropic-pdf | 1 | PDF text extraction patterns |
 | pm-product-strategy | 3 | SWOT, lean canvas, value proposition |
 | pm-market-research | 3 | Market sizing, competitive, personas |
@@ -500,6 +523,7 @@ This will create Notion pages under a custom parent page without posting to Slac
 
 ## Related Skills
 
+- **alphaxiv-paper-lookup** — Structured arXiv paper overview (used in Phase 1 for token-efficient ingestion)
 - **paper-archive** — Central paper catalog and search hub
 - **nlm-arxiv-slides** — arXiv paper to NotebookLM slide decks
 - **nlm-deep-learn** — Accelerated learning from paper sources

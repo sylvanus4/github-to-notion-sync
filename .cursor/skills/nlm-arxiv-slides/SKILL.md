@@ -56,31 +56,42 @@ Extract the ID (e.g., `2509.04664`) and construct:
 - PDF URL: `https://arxiv.org/pdf/{ID}`
 - Abstract URL: `https://arxiv.org/abs/{ID}`
 
-### Phase 2: Download PDF + Extract Abstract
+### Phase 2: Download PDF + Fetch Structured Overview
 
-Run two commands in parallel:
+Run three commands in parallel:
 
-**Download PDF:**
+**Fetch AlphaXiv structured overview (token-efficient, preferred metadata source):**
+```bash
+curl -sL --max-time 30 "https://alphaxiv.org/overview/{ID}.md"
+```
+
+**Download PDF (needed as NotebookLM source in Phase 6):**
 ```bash
 curl -L -o /tmp/arxiv-{ID}.pdf "https://arxiv.org/pdf/{ID}"
 ```
 
-**Extract abstract metadata via Defuddle:**
+**Extract abstract metadata via Defuddle (fallback for metadata):**
 ```bash
 curl -s "https://defuddle.md/arxiv.org/abs/{ID}"
 ```
 
-Parse the Defuddle output for:
-- Paper title
-- Authors
-- Abstract text
-- Submission date
+**Choose metadata source (priority order):**
 
-Skills used: **defuddle**
+1. **AlphaXiv overview** (preferred): If valid markdown returned, parse for title,
+   authors, abstract, date, and structured analysis. Save to `/tmp/arxiv-{ID}-alphaxiv.md`.
+2. **Defuddle** (fallback): If AlphaXiv returns 404, use Defuddle output for
+   title, authors, abstract, date.
 
-### Phase 3: Extract Text from PDF
+Skills used: **alphaxiv-paper-lookup**, **defuddle**
 
-Write and run a Python script using `pdfplumber` to extract full text:
+### Phase 3: Extract Text from PDF (conditional)
+
+**If AlphaXiv overview is available**: pdfplumber extraction is optional. The
+structured overview provides sufficient content for the Phase 4 expert rewrite.
+Skip this phase unless you need verbatim equation/table/figure data that the
+overview lacks.
+
+**If AlphaXiv is unavailable (404)**: Run pdfplumber extraction as before:
 
 ```python
 import pdfplumber
@@ -92,20 +103,23 @@ with open("/tmp/arxiv-{ID}-extracted.md", "w") as f:
     f.write(text)
 ```
 
-Combine extracted text with Defuddle metadata into a structured document:
+Combine all available sources into a structured document:
 ```
 # {Paper Title}
 **Authors:** {authors}
 **arXiv:** {ID} | **Date:** {date}
 
 ## Abstract
-{abstract from Defuddle}
+{abstract}
+
+## AlphaXiv Structured Overview
+{alphaxiv overview content, if available — omit this section if 404}
 
 ## Full Paper Content
-{extracted text from PDF}
+{extracted text from PDF, if pdfplumber was run — omit if skipped}
 ```
 
-Skills used: **anthropic-pdf** (patterns)
+Skills used: **anthropic-pdf** (patterns, conditional)
 
 ### Phase 4: Expert Rewrite (EN + KO)
 
@@ -322,8 +336,9 @@ This will run the pipeline without web research and also generate a deep-dive po
 
 | Skill | Phase | Purpose |
 |-------|-------|---------|
-| defuddle | 2 | Extract arXiv abstract page metadata |
-| anthropic-pdf | 3 | PDF text extraction via pdfplumber |
+| alphaxiv-paper-lookup | 2 | Structured arXiv overview (token-efficient, primary metadata source) |
+| defuddle | 2 | Extract arXiv abstract page metadata (fallback when AlphaXiv unavailable) |
+| anthropic-pdf | 3 | PDF text extraction via pdfplumber (conditional, skippable when AlphaXiv available) |
 | nlm-slides | 4 | Expert rewrite + visual hint patterns |
 | notebooklm | 5-6, 8 | Notebook CRUD + source add + query |
 | notebooklm-research | 7 | Web research enrichment |
@@ -344,6 +359,7 @@ This will run the pipeline without web research and also generate a deep-dive po
 
 ## Related Skills
 
+- **alphaxiv-paper-lookup** — Structured arXiv paper overview (used in Phase 2 for token-efficient ingestion)
 - **nlm-slides** — Local markdown to slides pipeline
 - **nlm-deep-learn** — Accelerated learning with quizzes and study artifacts
 - **notebooklm** — Notebook/source CRUD and querying

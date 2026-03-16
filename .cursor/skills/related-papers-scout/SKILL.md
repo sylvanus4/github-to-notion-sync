@@ -51,6 +51,20 @@ Determine input type and extract structured metadata for search queries.
 
 Extract paper ID from the URL (e.g., `2509.04664` from `https://arxiv.org/abs/2509.04664`).
 
+**Step 1 — AlphaXiv-first fetch (preferred, token-efficient):**
+
+```bash
+curl -sL --max-time 30 "https://alphaxiv.org/overview/{ID}.md"
+```
+
+**Step 2 — If AlphaXiv overview is available** (non-empty, no 404):
+
+Use the structured report directly. It contains title, authors, abstract,
+key contributions, methodology, and results — everything needed to build
+the search profile. Skip PDF download and pdfplumber entirely.
+
+**Step 3 — If AlphaXiv returns 404** (fallback to PDF flow):
+
 Run two commands in parallel:
 
 ```bash
@@ -60,7 +74,7 @@ curl -s "https://defuddle.md/arxiv.org/abs/{ID}"
 
 Parse Defuddle output for title, authors, abstract, date, and arXiv categories.
 
-Extract full text with pdfplumber:
+Extract text from the first 5 pages with pdfplumber:
 
 ```python
 import pdfplumber
@@ -70,7 +84,7 @@ with open("/tmp/arxiv-{ID}-extracted.md", "w") as f:
     f.write(text)
 ```
 
-Only extract the first 5 pages — sufficient for title, abstract, intro, and
+Only the first 5 pages are needed — sufficient for title, abstract, intro, and
 related work which contain the key terms needed for search.
 
 ### Local PDF Input
@@ -336,7 +350,8 @@ Only consider papers from the last 6 months (stricter than default 9) and post t
 
 | Skill | Phase | Purpose |
 |-------|-------|---------|
-| defuddle | 1, 4 | Extract arXiv abstract and metadata |
+| alphaxiv-paper-lookup | 1 | Structured arXiv overview (primary source, replaces PDF + pdfplumber) |
+| defuddle | 1, 4 | Extract arXiv abstract and metadata (fallback when AlphaXiv unavailable) |
 | WebSearch | 2, 4 | Multi-source paper discovery and evidence gathering |
 | parallel-web-search | 2 | Bulk search for related papers (if `parallel-cli` available) |
 | Slack MCP | 6 | Channel resolution + threaded message posting |
@@ -357,6 +372,7 @@ Only consider papers from the last 6 months (stricter than default 9) and post t
 
 ## Related Skills
 
+- **alphaxiv-paper-lookup** — Structured arXiv paper overview (used in Phase 1 for token-efficient ingestion)
 - **paper-archive** — Central paper catalog and search hub
 - **paper-review** — Full paper review pipeline (review + PM analysis + DOCX + PPTX + NLM)
 - **nlm-arxiv-slides** — arXiv paper to NotebookLM slide decks

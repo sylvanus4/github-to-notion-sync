@@ -1,0 +1,38 @@
+# MiroFish Escalation Policy
+
+## When to Use MiroFish
+
+MiroFish is a HIGH-COST, HIGH-DEPTH simulation engine. Only escalate to MiroFish when:
+
+1. **Complexity threshold exceeded** — the scenario involves 3+ interacting stakeholder groups
+   with non-linear feedback loops that static analysis cannot capture
+2. **Paper validation** — after paper-review, the user wants to reproduce or extend
+   a multi-agent research finding through live simulation
+3. **Crisis/opinion simulation** — predicting public reaction dynamics over time
+   (no existing skill covers temporal opinion evolution)
+4. **Pre-major-decision** — before significant portfolio changes or business decisions,
+   user explicitly requests "deep simulation" or "swarm prediction"
+
+## Escalation Chain
+
+Before suggesting MiroFish, confirm the user has already tried or considered:
+
+1. `trading-scenario-analyzer` (2-agent static analysis, ~3 min, ~$0.10)
+2. `alphaear-deepear-lite` (multi-domain synthesis, ~10 min, ~$0.50)
+3. `role-dispatcher` (12-role perspective analysis, ~15 min, ~$1)
+
+Only if these are insufficient for the user's needs, suggest MiroFish (~1-3 hours, ~$5-50).
+
+## Integration Patterns
+
+- `paper-review` → MiroFish: "이 논문 결과를 시뮬레이션으로 검증해줘"
+- `alphaear-news` → MiroFish: "이 뉴스 기반으로 시장 반응 시뮬레이션 돌려줘"
+- `trading-scenario-analyzer` → MiroFish: "이 시나리오를 더 깊이 시뮬레이션해줘"
+- MiroFish → `alphaear-reporter`: 시뮬레이션 결과를 정형화된 투자 리포트로 변환
+
+## Cost Awareness
+
+Always warn the user about token consumption before starting a simulation:
+- 10 rounds: ~$1-3
+- 20 rounds: ~$5-15
+- 40+ rounds: ~$20-50+

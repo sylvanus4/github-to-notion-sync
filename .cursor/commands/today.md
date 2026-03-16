@@ -149,9 +149,14 @@ This produces a Korean expert report with per-stock MA/Bollinger/Oscillator anal
 **Step 6c — Post to Slack (skip if `dry-run` or `skip-slack`):**
 
 1. Format the report for Slack using the template in the today skill
-2. Use `slack_search_channels` to find `#h-report` channel ID
-3. Use `slack_send_message` to post the report
-4. If >4000 chars, split into main message + thread reply
+2. Use `slack_search_channels` to find `#h-report` channel ID (known: `C0AKHQWJBLZ`)
+3. Use `slack_send_message` to post the **main message** (date, signal summary, top movers, hot stocks, screener)
+4. Capture the `message_ts` from the main message response
+5. **ALWAYS post a thread reply** using `thread_ts` = the main message's `message_ts`, containing:
+   - `:mag: BUY 종목 상세 ({N}종목 전체)` — grouped by category, each with name, ticker, price, change%, RSI, ADX (강한추세 label), 과매수/과매도 warnings
+   - `:mag: SELL 종목 상세 ({N}종목)` — each with name, price, change%, RSI, RSI zone, MA alignment, ADX, Stochastic
+   - `:warning:` for RSI extremes (80+ 과매수, 30- 과매도)
+   - `:bulb:` actionable insight (과매도 반등, 과매수 조정 등)
 
 ### Step 7: Summary
 

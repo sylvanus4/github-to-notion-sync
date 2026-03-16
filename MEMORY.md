@@ -59,6 +59,18 @@
 - Slack: summary + 7 threads (팀원 메일 5 + 뉴스 다이제스트 + AI/GPU Cloud 인사이트) posted to #효정-할일
 - Drive: 생성 문서 없음, 건너뛰기
 
+## [task] Google Daily (2026-03-16)
+
+- Calendar: 6 events (스프린트 계획회의, 점심, 전사 주간 업무 보고(HIGH, 전승훈 CTO), DeepResearch 정기 회의(전승훈 CTO), 개인 작업 3건)
+- 집중 가능: 09:00~10:00, 10:30~11:30, 16:00~18:30 (약 4.5시간)
+- Gmail: 3 emails triaged (spam: 0, notifications: 3 moved to Low Priority, colleague: 0, news: 0, reply-needed: 0)
+- Notification categories moved to Label_9: NotebookLM, Notion, Google AI Studio
+- Colleague emails: 없음 (일요일)
+- News themes: 없음
+- Action items: Google AI Studio Gemini API 결제 설정 확인 필요
+- Slack: summary posted to #효정-할일 (쓰레드 없음 — 팀원 메일/뉴스 0건)
+- Drive: 생성 문서 없음, 건너뛰기
+
 ## [issue] continual-learning 스킬 AGENTS.md 문제 (2026-03-10)
 
 - `continual-learning` 스킬(cursor-public 플러그인)은 Claude Code 컨벤션인 `AGENTS.md`를 생성함

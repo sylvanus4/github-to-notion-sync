@@ -54,6 +54,13 @@ If found, use the `channel_id` directly — skip the MCP search entirely.
 | `ai-coding-radar` | `C0A7K3TBPK7` | public | AI 코딩 에이전트/도구 동향 |
 | `press` | `C0A7NCP33LG` | public | 언론/미디어/콘텐츠 |
 | `research-pr` | `C0A7FS8UC66` | public | 리서치 PR |
+| `prompt` | `C0A98HXSVMK` | public | 프롬프트 엔지니어링/LLM 기법 |
+| `deep-research` | `C0A6X68LTN1` | private | 딥 리서치/논문 분석 |
+| `idea` | `C0A6U3HE3GS` | public | 아이디어/브레인스토밍 |
+| `random` | `C0A6CLTNARM` | public | 일반/기타 |
+| `효정-할일` | `C0AA8NT4T8T` | private | 개인 태스크/할일 |
+| `효정-주식` | `C0A7V1A09NK` | private | 주식/투자/트레이딩 |
+| `효정-insight` | `C0A8SSPC9RU` | private | 전략 인사이트/분석 |
 
 #### Step 3b: MCP Search (fallback)
 

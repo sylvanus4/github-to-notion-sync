@@ -19,8 +19,9 @@ Sync `.cursor/{commands,skills,rules}` from this project (source of truth) to ta
 
 ## Configuration
 
-- **Source**: The current project's `.cursor/` directory
+- **Source**: The current project's `.cursor/` directory (+ extra directories)
 - **Sync directories**: `commands/`, `skills/`, `rules/`
+- **Extra sync directories**: `docs/skill-guides/` (bidirectional, with per-target path mapping)
 - **Target projects**: See [references/sync-targets.md](references/sync-targets.md)
 
 ## Usage
@@ -32,11 +33,12 @@ Sync `.cursor/{commands,skills,rules}` from this project (source of truth) to ta
 /cursor-sync --dry-run                    # preview only, no file changes
 /cursor-sync --scope commands             # sync only commands/
 /cursor-sync --scope skills,rules         # sync multiple specific dirs
+/cursor-sync --scope skill-guides             # sync only docs/skill-guides/ (bidirectional)
 /cursor-sync --targets ai-template --dry-run --scope commands
 /cursor-sync --repo thakicloud/ai-template --dry-run --scope commands
 ```
 
-Arguments can be combined freely. `--targets` and `--repo` are mutually exclusive — use one or the other, not both. Defaults: all dirs, all targets, execute (not dry-run).
+Arguments can be combined freely. `--targets` and `--repo` are mutually exclusive — use one or the other, not both. Defaults: all dirs (including skill-guides), all targets, execute (not dry-run).
 
 ## Workflow
 
@@ -110,6 +112,29 @@ Flags:
 - `-i` (itemize-changes): show per-file change details
 
 **No `--delete` flag** — files that exist only in the target are never removed.
+
+### Step 4b: Sync Extra Directories (bidirectional)
+
+For directories listed in the "Extra Sync Directories" table in sync-targets.md:
+
+1. Look up the source path and per-target path mapping
+2. **Push** (source → target): `rsync -acvi SOURCE_PATH/ TARGET_PATH/`
+3. **Pull** (target → source): `rsync -acvi TARGET_PATH/ SOURCE_PATH/`
+
+Path mapping example for `skill-guides`:
+- Source: `docs/skill-guides/` (relative to workspace root)
+- Target `ai-template`: `skill-guides/` (relative to target root — different path!)
+- Target `ai-platform-webui`: `docs/skill-guides/` (same path)
+
+```bash
+# Push: source → ai-template
+rsync -acvi SOURCE_ROOT/docs/skill-guides/ TARGET_ROOT/skill-guides/
+
+# Pull: ai-template → source
+rsync -acvi TARGET_ROOT/skill-guides/ SOURCE_ROOT/docs/skill-guides/
+```
+
+Only targets that have a mapping row in the extra directories table are synced. Targets without a mapping are skipped for that scope.
 
 ### Step 5: Report
 

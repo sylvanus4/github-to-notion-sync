@@ -269,13 +269,16 @@ If `ai-quality-evaluator` skill is not available, log a warning and skip the gat
 
 **Step 5c — Post to Slack (optional, skip if `dry-run` or `skip-slack`):**
 
-1. Use `slack_search_channels` MCP tool to find `#h-report` channel ID
-2. If the report exceeds 4000 characters, split into a thread:
-   - Main message: Date + Signal Summary + Top Movers
-   - Thread reply: Full theme analysis and risk notes
-3. Use `slack_send_message` MCP tool to post
+1. Use `slack_search_channels` MCP tool to find `#h-report` channel ID (known: `C0AKHQWJBLZ`)
+2. Post the **main message** with date, signal summary, top movers, hot stocks, and screener summary
+3. Capture the `message_ts` from the response
+4. **ALWAYS post a thread reply** using `thread_ts` = the main message's `message_ts`, containing:
+   - `:mag: BUY 종목 상세 ({N}종목)` — grouped by category (한국 방산/전력/반도체, 미국 인프라/방산, 기타 등), each stock with name, price, change%, RSI, ADX (with 강한추세 label), and any warnings (과매수/과매도)
+   - `:mag: SELL 종목 상세 ({N}종목)` — each stock with name, price, change%, RSI, RSI zone, MA alignment, ADX, Stochastic
+   - `:warning:` notes for RSI extremes (과매수 80+, 과매도 30-)
+   - `:bulb:` actionable insight for notable patterns (과매도 반등 가능, 과매수 조정 가능 등)
 
-**Slack message template:**
+**Slack main message template:**
 
 ```
 :newspaper: *일간 분석 보고서 — {date}*
@@ -300,6 +303,26 @@ If `ai-quality-evaluator` skill is not available, log a warning and skip the gat
 
 :page_facing_up: 상세 보고서: `outputs/reports/daily-{date}.docx`
 _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) + 오실레이터(RSI/MACD/Stoch/ADX) | 본 보고서는 투자 권유가 아닙니다._
+```
+
+**Slack thread reply template (MUST always post):**
+
+```
+:mag: *BUY 종목 상세 ({buy_count}종목 전체)*
+
+{category_group_header} (정배열 집중)
+> {name}({ticker}) {currency}{price} ({change}%) — RSI {rsi}, ADX {adx} {adx_strength}
+...
+
+:warning: {과매수_종목}은 RSI 80+ 과매수 구간으로 단기 조정 가능성 있음
+
+---
+
+:mag: *SELL 종목 상세 ({sell_count}종목)*
+> {name} ${price} ({change}%) — RSI {rsi} {rsi_zone}, {ma_alignment} 배열{, ADX {adx}}
+...
+
+:bulb: {과매도_종목}는 RSI {rsi}로 과매도 구간, 반등 가능성 모니터링 필요
 ```
 
 ## CLI Arguments
