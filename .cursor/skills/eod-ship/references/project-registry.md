@@ -2,13 +2,15 @@
 
 ## Project Table
 
-| Order | Alias | Repo | Full Path | Mode |
-|-------|-------|------|-----------|------|
-| 1 | `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` | full |
-| 2 | `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` | full |
-| 3 | `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` | full |
-| 4 | `research` | `thakicloud/research` | `/Users/hanhyojung/thaki/research` | full |
-| 5 | `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` | tmp-only |
+| Order | Alias | Repo | Path (회사) | Path (집) | Mode |
+|-------|-------|------|-------------|-----------|------|
+| 1 | `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/work/thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` | full |
+| 2 | `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/work/thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` | full |
+| 3 | `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/work/thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` | full |
+| 4 | `research` | `thakicloud/research` | `/Users/hanhyojung/work/thakicloud/research` | `/Users/hanhyojung/thaki/research` | full |
+| 5 | `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/work/thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` | tmp-only |
+
+**Path resolution**: Each project has two possible paths (회사/집). At runtime, try `Path (회사)` first, then `Path (집)`. Use the first path that exists as a directory. If neither exists, skip the project with a warning.
 
 ## Mode Definitions
 

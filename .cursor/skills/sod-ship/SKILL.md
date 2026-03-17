@@ -48,10 +48,12 @@ Scan all managed projects to build a status map before making any changes.
 
 Read project paths from [eod-ship project-registry.md](../eod-ship/references/project-registry.md).
 
+**Path resolution**: Each project has two possible paths (`Path (회사)` and `Path (집)`). For each project, try `Path (회사)` first; if that directory does not exist, try `Path (집)`. Use the first path that exists. If neither exists, mark the project as SKIPPED and continue with others.
+
 For each project in order:
 
 ```bash
-cd PROJECT_PATH
+cd PROJECT_PATH    # resolved path from above
 git status --short
 git log @{u}.. --oneline 2>/dev/null
 git fetch origin

@@ -7,7 +7,8 @@ description: >-
   discover hot stocks from NASDAQ/KOSPI/KOSDAQ 100, screen (P/E, RSI, volume,
   MA crossovers, FCF yield), run SMA 20/55/200 + RSI/MACD/Stochastic/ADX,
   optionally fetch news (alphaear-news) and sentiment (alphaear-sentiment),
-  generate buy/sell report via anthropic-docx, post to Slack #h-report.
+  generate buy/sell report via anthropic-docx, post to Slack #h-report,
+  optionally run setup-doctor pre-flight and twitter-timeline-to-slack post-pipeline.
   Use when the user asks to run a daily pipeline, sync stock data, discover hot
   stocks, screen stocks, or generate a daily report.
   Do NOT use for weekly price updates only (use weekly-stock-update). Do NOT use
@@ -15,13 +16,13 @@ description: >-
   CSV downloads from investing.com (use stock-csv-downloader).
 metadata:
   author: thaki
-  version: "6.0.0"
+  version: "7.0.0"
   category: execution
 ---
 
 # Today — Daily Data Sync, Screening, and Report Pipeline
 
-Orchestrates a multi-phase pipeline: data freshness check, data sync, fundamental data collection (financial statements from yfinance), hot stock discovery, multi-factor stock screening (P/E, RSI, volume spikes, MA crossovers, earnings proximity, FCF yield, AI sentiment), technical analysis (SMA 20/55/200, Bollinger Bands, RSI/MACD/Stochastic/ADX oscillators), optional market context (alphaear-news + alphaear-sentiment), and Korean expert report generation (.docx + optional Slack). Generates per-stock buy/sell recommendations using 3-way signal combination (Turtle + Bollinger + Oscillator) enhanced with fundamental screening scores and AI sentiment. Reuses `weekly-stock-update`, `daily-stock-check`, `financial-data-collector`, `stock-screener`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, and `alphaear-sentiment` skills internally. No API keys are required for Cursor-side execution.
+Orchestrates a multi-phase pipeline: optional setup-doctor pre-flight, data freshness check, data sync, fundamental data collection (financial statements from yfinance), hot stock discovery, multi-factor stock screening (P/E, RSI, volume spikes, MA crossovers, earnings proximity, FCF yield, AI sentiment), technical analysis (SMA 20/55/200, Bollinger Bands, RSI/MACD/Stochastic/ADX oscillators), optional market context (alphaear-news + alphaear-sentiment), Korean expert report generation (.docx + optional Slack), and optional twitter-timeline-to-slack post-pipeline. Generates per-stock buy/sell recommendations using 3-way signal combination (Turtle + Bollinger + Oscillator) enhanced with fundamental screening scores and AI sentiment. Reuses `weekly-stock-update`, `daily-stock-check`, `financial-data-collector`, `stock-screener`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, and `twitter-timeline-to-slack` skills internally. No API keys are required for Cursor-side execution.
 
 ## Prerequisites
 
@@ -35,6 +36,23 @@ Orchestrates a multi-phase pipeline: data freshness check, data sync, fundamenta
 > **Note**: No API keys (Claude, Slack, etc.) are required. API keys are only needed by the separate GitHub Actions pipeline.
 
 ## Workflow
+
+### Phase 0: Setup Doctor Pre-flight (Optional)
+
+Run a quick diagnostic of the `core-platform` capability group to verify all prerequisites are available before starting the pipeline. Skip with `skip-setup-doctor`.
+
+**Step 0a — Run targeted setup check:**
+
+Read the `setup-doctor` skill and run Phase 1-3 checks for `--group core-platform` only. This verifies:
+- PostgreSQL and Redis are running
+- Python backend packages are installed
+- `DATABASE_URL` is set and reachable
+
+**Step 0b — Report and decide:**
+
+- If all checks pass → proceed to Phase 1
+- If critical items fail (DB connection, missing packages) → report the failures and halt
+- If only warnings (optional items missing) → report and proceed
 
 ### Phase 1: Data Freshness Check
 
@@ -325,6 +343,34 @@ _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) +
 :bulb: {과매도_종목}는 RSI {rsi}로 과매도 구간, 반등 가능성 모니터링 필요
 ```
 
+### Phase 6: Twitter Timeline to Slack (Optional)
+
+Fetch the user's latest tweets and post to classified Slack channels. Skip with `skip-twitter`.
+
+**Step 6a — Fetch and classify tweets:**
+
+Read the `twitter-timeline-to-slack` skill. Run the fetch pipeline for the default screen name (`hjguyhan`):
+
+```bash
+cd scripts/twitter && node run_pipeline.js --fetch-only
+```
+
+**Step 6b — Post unposted tweets:**
+
+For each unposted tweet (excluding thread members), execute the full x-to-slack workflow:
+1. FxTwitter API enrichment
+2. WebSearch (2-3 queries per tweet)
+3. 3-message Slack thread (title → detailed summary → topic insights)
+4. Media upload if photo/video exists
+5. Update `tweets.json` with posting status
+6. Rate limit: 10-15s between tweets
+
+**Step 6c — Report:**
+
+Report the number of tweets fetched, classified, and posted with channel distribution.
+
+**Prerequisite:** `TWITTER_COOKIE` must be set in `.env`. If missing, skip Phase 6 and log a warning.
+
 ## CLI Arguments
 
 | Argument | Description | Example |
@@ -341,6 +387,9 @@ _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) +
 | `skip-docx` | Skip .docx report generation (Step 5b) | `/today skip-docx` |
 | `skip-quality-gate` | Skip report quality evaluation (Step 5b½) | `/today skip-quality-gate` |
 | `skip-report` | Run Phase 1+2+3 only, no analysis or report | `/today skip-report` |
+| `skip-setup-doctor` | Skip Phase 0, no pre-flight setup check | `/today skip-setup-doctor` |
+| `skip-twitter` | Skip Phase 6, no Twitter timeline fetch+post | `/today skip-twitter` |
+| `twitter-only` | Run Phase 6 only (twitter-timeline-to-slack) | `/today twitter-only` |
 
 ## Examples
 
@@ -349,14 +398,16 @@ _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) +
 User says: "Run today's pipeline"
 
 Actions:
+0. Run setup-doctor pre-flight check for core-platform dependencies (Phase 0)
 1. Check DB status and CSV freshness (Phase 1)
 2. Import CSV gaps and fetch from Yahoo Finance (Phase 2)
 3. Discover hottest untracked stocks from NASDAQ 100, KOSPI 100, KOSDAQ 100 (Phase 3)
 4. Run Turtle + Bollinger + Oscillator analysis (Phase 4)
 5. Fetch market news context and sentiment scores (Phase 4.5)
 6. Generate themed report content, produce .docx file, and post summary to `#h-report` (Phase 5)
+7. Fetch latest tweets and post to classified Slack channels (Phase 6)
 
-Result: Data synced, hot stocks discovered, multi-indicator analysis complete, .docx report saved to `outputs/reports/daily-{date}.docx`, summary posted to Slack.
+Result: Prerequisites verified, data synced, hot stocks discovered, multi-indicator analysis complete, .docx report saved to `outputs/reports/daily-{date}.docx`, summary posted to Slack, tweets distributed to topic channels.
 
 ### Example 2: Check data freshness only
 
@@ -501,6 +552,6 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **DB models**: `backend/app/models/stock_price.py` (`Ticker`, `StockPrice`), `backend/app/models/llm_agents/models.py` (`FinancialStatement`)
 - **Tracked tickers**: `backend/app/core/constants.py` (`DEFAULT_STOCKS`, `TICKER_CATEGORY_MAP`)
 - **Slack channel**: `#h-report` (optional)
-- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`
+- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`
 - **Tab skills**: `tab-stock-sync`, `tab-event-detect`, `tab-fundamental-sync`, `tab-hot-stock-discovery`, `tab-technical-analysis`, `tab-turtle-refresh`, `tab-bollinger-refresh`, `tab-dualma-refresh`, `tab-screening`, `tab-llm-agents`, `tab-genai-features`, `tab-analysis-run`
 - **GitHub Actions**: `.github/workflows/daily-today.yml` (independent pipeline, uses its own API keys via GitHub Secrets)

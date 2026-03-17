@@ -48,10 +48,12 @@ Arguments can be combined freely. Defaults: pull all, run Google daily, run stoc
 
 Read project paths from [eod-ship project-registry.md](../eod-ship/references/project-registry.md).
 
+**Path resolution**: Each project has two possible paths (`Path (회사)` and `Path (집)`). For each project, try `Path (회사)` first; if that directory does not exist, try `Path (집)`. Use the first path that exists. If neither exists, warn and skip the project.
+
 For each project in order:
 
 ```bash
-cd PROJECT_PATH
+cd PROJECT_PATH    # resolved path from above
 git fetch origin
 ```
 

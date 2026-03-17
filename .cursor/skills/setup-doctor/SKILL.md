@@ -19,7 +19,7 @@ metadata:
 
 # Setup Doctor
 
-Diagnose and fix missing prerequisites across all project skill groups. Organizes checks by **capability group** (14 functional clusters) rather than 400+ individual skills.
+Diagnose and fix missing prerequisites across all project skill groups. Organizes checks by **capability group** (15 functional clusters) rather than 400+ individual skills.
 
 ## Input
 
@@ -50,6 +50,7 @@ The user provides:
 | ci-cd | act, Docker, pre-commit, ruff | ci-quality-gate, domain-commit |
 | github | `gh` CLI (authenticated) | github-workflow-automation, release-ship, ship |
 | mirofish | `uv`, Node ≥18, MiroFish repo, LLM + Zep keys | mirofish, mirofish-financial-sim, mirofish-opinion-sim, mirofish-graph-explorer |
+| auto-research | Python 3.11+, AutoResearchClaw repo, OPENAI_API_KEY | auto-research, auto-research-distribute |
 
 For full details on each group (install commands, env vars, verification), see [references/capability-map.md](references/capability-map.md).
 
@@ -62,7 +63,7 @@ For the complete env var registry, see [references/env-var-registry.md](referenc
 Check each tool via `command -v`:
 
 ```bash
-for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 pip3 npm; do
+for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm researchclaw; do
   command -v "$tool" >/dev/null 2>&1 && echo "PASS $tool" || echo "FAIL $tool"
 done
 ```
@@ -90,7 +91,7 @@ npm list -g --depth=0 2>/dev/null | grep -q "@googleworkspace/cli" && echo "PASS
 1. Check if `.env` file exists in project root
 2. Parse `.env.example` for all variable names
 3. For each variable in `.env.example`, check if it exists and is non-empty in `.env`
-4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`
+4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`
 5. Classify each as: SET (non-empty), EMPTY (exists but blank), MISSING (not in .env)
 
 Present results grouped by capability group.

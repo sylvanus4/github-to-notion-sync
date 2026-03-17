@@ -23,11 +23,13 @@ Fetch a user's latest tweets, classify by topic, and post each to the appropriat
 ## Input
 
 The user provides:
-1. **Twitter screen name** -- e.g. `hjguyhan` or `@hjguyhan`
+1. **Twitter screen name** (optional, default: `hjguyhan`) -- e.g. `someuser` or `@someuser`
 2. **Options** (optional):
    - `--limit N` -- max tweets to post (default: all unposted)
    - `--dry-run` -- classify without posting
    - `--fetch-only` -- fetch and store only, no posting
+
+When invoked without a screen name (e.g. `/twitter-timeline-to-slack` or "트위터 타임라인 슬랙에 올려줘"), default to `hjguyhan`.
 
 ## Prerequisites
 
@@ -36,12 +38,75 @@ The user provides:
 
 ## Workflow
 
+### Phase 0: Cookie Validation
+
+Before fetching tweets, verify that `TWITTER_COOKIE` is set and functional.
+
+#### Step 0a: Check .env
+
+Read the project `.env` file and check if `TWITTER_COOKIE` is present and non-empty.
+
+- If **missing or empty** → jump to Step 0c (Cookie Registration).
+- If **present** → proceed to Step 0b.
+
+#### Step 0b: Test Cookie Validity
+
+Run the fetch script in test mode to verify the cookie works:
+
+```bash
+cd scripts/twitter && node run_pipeline.js --fetch-only --limit 1
+```
+
+If the fetch succeeds → proceed to Phase 1.
+
+If the fetch fails with a cookie-related error (e.g. "401", "403", "Could not authenticate", or empty timeline returned) → inform the user the cookie has expired and jump to Step 0c.
+
+#### Step 0c: Cookie Registration (Interactive)
+
+When the cookie is missing or expired, guide the user through registration:
+
+1. **Notify** the user:
+   ```
+   TWITTER_COOKIE가 설정되지 않았거나 만료되었습니다.
+   브라우저에서 새 쿠키를 가져와야 합니다.
+   ```
+
+2. **Display instructions** — ask the user to provide their cookie value:
+   ```
+   Twitter 쿠키를 가져오는 방법:
+   1. Chrome에서 x.com에 로그인
+   2. F12 → Network 탭 열기
+   3. 페이지를 새로고침 (F5)
+   4. 아무 요청을 클릭 → Headers 탭
+   5. "cookie:" 헤더의 전체 값을 복사
+   
+   복사한 쿠키 값을 붙여넣어 주세요.
+   ```
+
+3. **Receive cookie value** from the user. Once provided:
+   - Validate the format: must contain `auth_token=` and `ct0=` substrings (minimum required cookies for Twitter Syndication API)
+   - If invalid format → ask the user to re-copy with the full cookie header value
+
+4. **Save to .env**:
+   - Read the current `.env` file
+   - If a `TWITTER_COOKIE=` line exists, replace its value with the new cookie
+   - If no `TWITTER_COOKIE=` line exists, append it after the Twitter comment block
+   - Write the updated `.env` file
+
+5. **Verify** by re-running Step 0b. If it succeeds → proceed to Phase 1.
+
 ### Phase 1: Fetch Tweets
 
 Run the fetch script to collect tweets:
 
 ```bash
-cd scripts/twitter && node fetch_timeline.js hjguyhan
+cd scripts/twitter && node run_pipeline.js --fetch-only
+```
+
+The `--user` flag is supported to override the default screen name:
+
+```bash
+cd scripts/twitter && node run_pipeline.js --fetch-only --user someuser
 ```
 
 This uses twittxr (Twitter Syndication API wrapper) to fetch up to 100 tweets. Falls back to FxTwitter API for individual tweet enrichment.
@@ -352,8 +417,11 @@ Phase 3:   For EACH unposted tweet (excluding thread members):
 ```bash
 cd scripts/twitter
 
-# Fetch tweets from timeline (Phase 1 only)
+# Fetch tweets from timeline (Phase 1 only, default: @hjguyhan)
 node run_pipeline.js --fetch-only
+
+# Fetch for a different user
+node run_pipeline.js --fetch-only --user someuser
 
 # Fetch + classify without posting (dry run)
 node run_pipeline.js --dry-run
@@ -501,18 +569,20 @@ GitHub repo: TraderAlice/OpenAlice
 - <https://...|관련 기사>
 ```
 
-### Example 4: Re-run with dedup
+### Example 4: Default invocation (no screen name)
 
-User says: "twitter-timeline-to-slack 다시 실행해줘"
+User says: "/twitter-timeline-to-slack" or "트위터 타임라인 슬랙에 올려줘"
 
 Actions:
-1. Run fetch again — only new tweets added (existing IDs skipped)
-2. Only unposted tweets are processed through Phase 3 (thread members with `skip_reason` are excluded)
-3. Previously posted tweets are not re-posted
+1. Default to `hjguyhan` (no screen name needed)
+2. Phase 0: Check TWITTER_COOKIE in `.env` → if missing/expired, run cookie registration
+3. Run fetch — only new tweets added (existing IDs skipped)
+4. Only unposted tweets are processed through Phase 3 (thread members with `skip_reason` are excluded)
+5. Previously posted tweets are not re-posted
 
 ## Error Handling
 
-- **TWITTER_COOKIE missing**: Error message with instructions to set the cookie
+- **TWITTER_COOKIE missing or expired**: Trigger Phase 0 cookie registration flow — guide user to copy cookie from browser and save to `.env`
 - **twittxr API failure**: Log error, continue with existing tweets in DB
 - **FxTwitter fetch failure**: Use raw tweet data from twittxr as fallback
 - **Slack channel not found**: Skip tweet, log warning

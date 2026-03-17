@@ -18,6 +18,7 @@ Detailed prerequisites for each capability group: CLI tools, packages, env vars,
 12. [ci-cd](#12-ci-cd) — act, pre-commit, ruff
 13. [github](#13-github) — gh CLI
 14. [mirofish](#14-mirofish) — MiroFish swarm simulation engine
+15. [auto-research](#15-auto-research) — AutoResearchClaw pipeline
 
 ---
 
@@ -168,25 +169,25 @@ gws auth status 2>/dev/null
 
 | Type | Item | Install Command |
 |------|------|-----------------|
-| CLI | hf | `pip install huggingface-hub[cli]` |
+| CLI | hf | `curl -LsSf https://hf.co/cli/install.sh \| bash -s` or `pip install -U huggingface_hub[cli]` |
 | CLI | uv | `pip install uv` (for hf-jobs) |
 | ENV | HF_TOKEN | Get from https://huggingface.co/settings/tokens |
 
 **Quick Setup:**
 
 ```bash
-pip install huggingface-hub[cli]
-huggingface-cli login
+curl -LsSf https://hf.co/cli/install.sh | bash -s
+hf auth login
 ```
 
 **Verification:**
 
 ```bash
-command -v huggingface-cli && echo "hf CLI installed" || echo "hf CLI missing"
-huggingface-cli whoami 2>/dev/null
+command -v hf && echo "hf CLI installed" || echo "hf CLI missing"
+hf auth whoami 2>/dev/null
 ```
 
-**Dependent Skills:** hf-cli, hf-jobs, hf-model-trainer, hf-datasets, hf-evaluation, hf-dataset-viewer, hf-trackio
+**Dependent Skills:** hf-hub, hf-models, hf-repos, hf-papers, hf-jobs, hf-model-trainer, hf-datasets, hf-evaluation, hf-dataset-viewer, hf-trackio
 
 ---
 
@@ -410,3 +411,41 @@ curl -s http://localhost:5001/health 2>/dev/null | grep -q "ok" && echo "PASS ba
 ```
 
 **Dependent Skills:** mirofish, mirofish-financial-sim, mirofish-opinion-sim, mirofish-graph-explorer
+
+---
+
+## 15. auto-research
+
+**Purpose:** AutoResearchClaw 23-stage autonomous research pipeline for generating conference-ready papers.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | python3.11 | `brew install python@3.11` |
+| CLI | researchclaw | `cd ~/thaki/AutoResearchClaw && .venv/bin/pip install -e .` |
+| Repo | AutoResearchClaw | `cd ~/thaki && git clone https://github.com/aiming-lab/AutoResearchClaw.git` |
+| Package (Python) | AutoResearchClaw (in venv) | `cd ~/thaki/AutoResearchClaw && /opt/homebrew/bin/python3.11 -m venv .venv && source .venv/bin/activate && pip install -e .` |
+| ENV | OPENAI_API_KEY | Get from https://platform.openai.com/api-keys (reuses llm-apis group) |
+
+**Quick Setup:**
+
+```bash
+cd ~/thaki && git clone https://github.com/aiming-lab/AutoResearchClaw.git
+cd AutoResearchClaw
+/opt/homebrew/bin/python3.11 -m venv .venv && source .venv/bin/activate
+pip install -e .
+cp config.researchclaw.example.yaml config.arc.yaml
+researchclaw --help
+```
+
+**Verification:**
+
+```bash
+[ -d "$HOME/thaki/AutoResearchClaw" ] && echo "PASS repo cloned" || echo "FAIL repo not cloned"
+[ -f "$HOME/thaki/AutoResearchClaw/.venv/bin/researchclaw" ] && echo "PASS researchclaw installed" || echo "FAIL researchclaw missing"
+command -v python3.11 >/dev/null 2>&1 && echo "PASS python3.11" || echo "FAIL python3.11 missing"
+[ -n "$OPENAI_API_KEY" ] && echo "PASS OPENAI_API_KEY set" || echo "FAIL OPENAI_API_KEY missing"
+```
+
+**Dependent Skills:** auto-research, auto-research-distribute

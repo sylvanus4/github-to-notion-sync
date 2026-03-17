@@ -177,7 +177,7 @@ Criteria — if **any** match strongly:
 - References GPU cluster management, Kubernetes for AI, MLOps, HPC
 - Discusses AI chip market, GPU supply/demand, cloud GPU pricing
 
-→ If AI GPU Cloud: use **Message 3A** template  
+→ If AI GPU Cloud: use **Message 3A** template
 → Otherwise: use **Message 3B** template (topic-specific insights + action items)
 
 ### Step 3d: Post 3-Message Slack Thread
@@ -198,7 +198,7 @@ All messages use Slack mrkdwn. Rules:
 >>>
 ```
 
-Use MCP tool `slack_send_message` on server `plugin-slack-slack`.  
+Use MCP tool `slack_send_message` on server `plugin-slack-slack`.
 **CRITICAL**: Capture `message_ts` from the response for thread replies.
 
 **Message 2 — Detailed Summary (thread reply)**
