@@ -71,6 +71,32 @@
 - Slack: summary posted to #효정-할일 (쓰레드 없음 — 팀원 메일/뉴스 0건)
 - Drive: 생성 문서 없음, 건너뛰기
 
+## [task] Google Daily (2026-03-17)
+
+- Calendar: 9 events (외부미팅 2 - ThakiCloud Biweekly/채원철 부사장 저녁, 팀미팅 2 - Research 스크럼/기획 스프린트, 점심, 개인 작업 3건 - AI트렌드/플랫폼QA/Papers, 종일 사무실)
+- 집중 가능: 09:00~10:30 (1.5h), 16:00~18:30 (2.5h)
+- Gmail: 23 emails triaged (spam: 1 원티드 광고, notifications: 19 Low Priority, bespin_news: 1, colleague: 2 - 임장관@samsung/정훈@thakicloud, reply-needed: 1 삼성전자 강사 프로필)
+- Colleague emails: 임장관(삼성전자 Cloud팀 교육 강사 프로필 제출 요청 - 중요), 정훈(다키클라우드 데모 테스트 계정 생성 안내)
+- Mail Delivery failures: conferencingroome@thakicloud.co.kr로 발송 실패 11건 (잘못된 이메일 주소 사용 패턴 발견)
+- News themes: 과기정통부-앤트로픽 MOU, 아마존 세레브라스 AI칩 도입, 바이트댄스 엔비디아칩 말레이시아 확보, 머스크 테라팹 계획, AWS-엔비디아 피지컬AI 스타트업 육성, SKT AI 인프라 설계자 선언, 공공 N2SF 도입
+- ThakiCloud 인사이트: Anthropic MOU→Claude API 연동 기회, 동남아 GPU 파트너십 발굴 시기, 추론 전용 인프라 차별화, Slurm-on-K8s 공공클라우드 레퍼런스 확장 기회
+- Action items: 삼성전자 임장관 강사 프로필 양식 작성 후 회신 필요 (성명/소속/직책/Email/학력/주요경력/연구분야), conferencingroome@thakicloud.co.kr 잘못된 이메일 주소 문제 확인 필요
+- Slack: summary + 4 threads (동료메일 2 + 뉴스 다이제스트 + AI/GPU Cloud 인사이트) posted to #효정-할일
+- Drive: 생성 문서 없음, 건너뛰기
+
+## [task] Google Daily (2026-03-17 화요일)
+
+- Calendar: 7 events (HIGH 2 - ThakiCloud Biweekly 15:00/채원철 부사장 저녁 18:30, MEDIUM 2 - Research 스크럼/기획 스프린트, 점심, 개인 작업 3건 - AI트렌드/플랫폼QA/Papers)
+- 집중 가능: 09:00~10:30, 14:00~15:00
+- Gmail: 22 emails triaged (notifications+NDR: 17 → Low Priority, colleague: 4, bespin_news: 1)
+- Colleague emails: 임장관(삼성전자 벤더등록 RE), 정훈(데모 테스트 계정 8명 생성 안내), 한민정(AI Platform 팀 스크럼 초대), 수원정보보호(삼성 Digital City 방문신청)
+- Mail Delivery NDR: 11건 계속 발생 (conferencingroome@thakicloud.co.kr 문제 미해결)
+- News themes: AI 에이전트 지갑 결제, 아마존 세레브라스 AI칩, 바이트댄스 말레이시아 칩 확보, 과기정통부-앤트로픽 MOU, 멀티클라우드 도입 58%, AWS-엔비디아 피지컬AI, 스노우플레이크 한국 진출
+- ThakiCloud 인사이트: 에이전트 실행경제 부상→AI Platform 기회, 칩 공급망 다변화→대체칩 지원 필요, 멀티클라우드 저조→Thaki Suite 포지셔닝, 정부 AI 협력 다각화→다중LLM 전략 일치
+- Action items: 삼성전자 임장관 벤더등록 서류 회신, 데모 테스트 계정 대상자 MFA 안내 확인, conferencingroome@thakicloud.co.kr 이메일 주소 오류 확인
+- Slack: summary + 4 threads (동료메일 2 + 뉴스 다이제스트 + AI/GPU Cloud 인사이트) posted to #효정-할일
+- Drive: Google Daily - 2026-03-16 폴더 생성, reply-needed + bespin-news DOCX 업로드
+
 ## [issue] continual-learning 스킬 AGENTS.md 문제 (2026-03-10)
 
 - `continual-learning` 스킬(cursor-public 플러그인)은 Claude Code 컨벤션인 `AGENTS.md`를 생성함

@@ -3,12 +3,13 @@ name: meeting-digest
 description: >-
   Analyze any meeting content (Notion page, raw transcript, or local file) with
   multi-perspective PM sub-skills and produce structured Korean summaries with
-  detailed action items. Optionally generates PPTX, Notion pages, and Slack
-  posts. Use when the user asks to "digest a meeting", "meeting digest",
-  "analyze meeting", "summarize meeting from Notion", "회의 분석", "회의 다이제스트",
-  "미팅 요약", "미팅 분석", "회의록 분석", "회의 정리", "meeting analysis",
-  "analyze this transcript", "meeting action items", "회의 액션 아이템",
-  or shares a Notion meeting page URL for analysis.
+  detailed action items. Always uploads results to Notion as two sub-pages
+  (summary + action items) under the default meeting parent page. Optionally
+  generates PPTX and Slack posts. Use when the user asks to "digest a meeting",
+  "meeting digest", "analyze meeting", "summarize meeting from Notion",
+  "회의 분석", "회의 다이제스트", "미팅 요약", "미팅 분석", "회의록 분석",
+  "회의 정리", "meeting analysis", "analyze this transcript", "meeting action
+  items", "회의 액션 아이템", or shares a Notion meeting page URL for analysis.
   Do NOT use for batch-syncing a Notion meeting database (use notion-meeting-sync).
   Do NOT use for basic meeting transcript-to-notes without PM analysis,
   simple meeting notes, "메모만 정리", "간단 정리", or "요약만" requests (use
@@ -17,7 +18,7 @@ description: >-
   Do NOT use for ad-hoc PPTX creation without meeting content (use anthropic-pptx).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "execution"
 ---
 # Meeting Digest
@@ -35,6 +36,8 @@ detection, and produces structured Korean summaries with detailed action items.
 | MCP Server (Notion) | `plugin-notion-workspace-notion` |
 | MCP Server (Slack) | `plugin-slack-slack` |
 | Default Slack Channel | `#ai-platform-chapter-기획` (ID: `C0AL6D32Z7W`) |
+| Default Notion Parent | `3239eddc34e680e8a7a5d5b5eac18b38` (meetings) |
+| Table Conversion Script | `.cursor/skills/md-to-notion/scripts/convert_tables.py` |
 
 ## Input Modes
 
@@ -52,7 +55,7 @@ Phase 1: Ingest       → Fetch/read meeting content, normalize to markdown
 Phase 2: Classify      → Detect meeting type, select PM sub-skills
 Phase 3: PM Analysis   → Run multi-perspective analysis (parallel, max 4 agents)
 Phase 4: Generate      → Structured Korean summary + action items documents
-Phase 5: Deliver       → Save files; optionally PPTX, Slack, Notion page
+Phase 5: Deliver       → Save files + upload to Notion; optionally PPTX, Slack
 ```
 
 **Pattern**: Sequential (Phase 1 → 2 → 3 → 4 → 5).
@@ -262,7 +265,99 @@ Files are always saved to `output/meetings/{date}/`:
 - `summary.md` — Comprehensive Korean summary
 - `action-items.md` — Detailed action items with dashboard
 
-### 5.2 PPTX Generation (--pptx flag)
+### 5.2 Notion Upload (always, unless --no-notion)
+
+Notion upload runs by default after local file save. Use `--no-notion` to
+skip. Use `--notion-parent <id>` to override the default parent page.
+
+**Step 0: Fetch Notion Markdown Spec**
+
+Before processing files, fetch the Notion enhanced markdown specification:
+
+```
+FetchMcpResource(
+  server="plugin-notion-workspace-notion",
+  uri="notion://docs/enhanced-markdown-spec"
+)
+```
+
+Use this spec as reference for Notion-flavored markdown syntax in later steps.
+
+**Step 1: Convert tables for Notion compatibility**
+
+Run the shared `convert_tables.py` script on both output files:
+
+```bash
+python .cursor/skills/md-to-notion/scripts/convert_tables.py \
+  output/meetings/{date}/summary.md \
+  output/meetings/{date}/action-items.md
+```
+
+This converts pipe tables to Notion `<table header-row="true">` HTML blocks,
+extracts H1 titles, and outputs JSON to `/tmp/notion_page_0.json` and
+`/tmp/notion_page_1.json`.
+
+Each JSON file has either `"content"` (single page) or `"split": true` with
+`"parts"` (array of `{subtitle, body}`) for documents exceeding the
+threshold. Meeting digest outputs are typically under 15K chars, so splitting
+is rare. If splitting occurs, create a parent page and sub-pages following
+the split protocol in `.cursor/skills/md-to-notion/SKILL.md` Step 3.
+
+**Step 2: Create two Notion sub-pages**
+
+**MANDATORY**: Use the Read tool to load `/tmp/notion_page_0.json` and
+`/tmp/notion_page_1.json`. Parse each JSON and extract the `content` field
+value. Pass that value **verbatim** as the `content` argument below.
+NEVER manually type, summarize, abbreviate, or replace any portion of the
+content with "see local file" or similar references. The `content` must be
+the COMPLETE output from the JSON file — no omissions.
+
+```
+CallMcpTool(
+  server="plugin-notion-workspace-notion",
+  toolName="notion-create-pages",
+  arguments={
+    "parent": {"page_id": "<parent-id>"},
+    "pages": [
+      {
+        "properties": {"title": "[{YYYY-MM-DD}] {meeting-title} 요약 보고서"},
+        "icon": "📋",
+        "content": "<FULL content from /tmp/notion_page_0.json>"
+      },
+      {
+        "properties": {"title": "[{YYYY-MM-DD}] 액션 아이템 대시보드"},
+        "icon": "✅",
+        "content": "<FULL content from /tmp/notion_page_1.json>"
+      }
+    ]
+  }
+)
+```
+
+**CRITICAL**: The `parent` field must be an object `{"page_id": "..."}`,
+not a bare string. Default parent: `3239eddc34e680e8a7a5d5b5eac18b38`.
+
+**Step 3: Verify upload**
+
+Fetch the parent page to confirm both sub-pages appear:
+
+```
+CallMcpTool(
+  server="plugin-notion-workspace-notion",
+  toolName="notion-fetch",
+  arguments={"id": "<parent-id>"}
+)
+```
+
+Check that both created titles appear in the response. Report any missing
+pages.
+
+**Section-count verification**: Count `##` headings in the uploaded Notion
+summary page and compare with the original `summary.md`. If the Notion page
+has fewer `##` headings (difference > 1), the upload is INCOMPLETE — delete
+and re-upload using the full JSON content.
+
+### 5.3 PPTX Generation (--pptx flag)
 
 When the `--pptx` flag is provided:
 
@@ -284,7 +379,7 @@ When the `--pptx` flag is provided:
 4. Apply "Modern Minimalist" theme (or user preference)
 5. Save to `output/meetings/{date}/meeting-summary.pptx`
 
-### 5.3 Slack Post (--slack flag)
+### 5.4 Slack Post (--slack flag)
 
 When the `--slack` flag is provided:
 
@@ -297,27 +392,6 @@ Each message must stay under 4000 characters. Split if needed.
 Use Slack mrkdwn syntax (`*bold*`, `_italic_`, `` `code` ``).
 
 No file uploads — only text-based summaries are posted.
-
-### 5.4 Notion Page (--notion flag)
-
-When the `--notion` flag is provided:
-
-```
-CallMcpTool(
-  server="plugin-notion-workspace-notion",
-  toolName="notion-create-pages",
-  arguments={
-    "parent": {"page_id": "<parent-id-from-flag>"},
-    "pages": [{
-      "properties": {"title": "회의 요약: {meeting-title} ({date})"},
-      "content": "<summary-markdown-without-title>"
-    }]
-  }
-)
-```
-
-Omit the `parent` field entirely if no parent ID is provided — the page
-will be created as a private workspace-level page.
 
 ---
 
@@ -348,8 +422,10 @@ Actions:
 4. Run 3 parallel agents: summarize-meeting + SWOT analysis + sentiment
 5. Generate `output/meetings/2026-03-13/summary.md` with PM appendix
 6. Generate `output/meetings/2026-03-13/action-items.md` with 9 items
+7. Convert tables via `convert_tables.py`, upload 2 sub-pages to Notion
+8. Verify both pages appear under default parent
 
-Result: Complete meeting digest in `output/meetings/2026-03-13/`
+Result: Complete meeting digest in `output/meetings/2026-03-13/` + Notion pages
 
 ### Example 2: Local file with PPTX and Slack
 
@@ -360,34 +436,37 @@ Actions:
 2. Classify meeting type from content
 3. Run PM analysis pipeline
 4. Generate summary + action items
-5. Create PPTX with themed slides
-6. Post digest to `#ai-platform-chapter-기획` with threaded replies
+5. Upload 2 sub-pages to Notion (default behavior)
+6. Create PPTX with themed slides
+7. Post digest to `#ai-platform-chapter-기획` with threaded replies
 
-Result: Full output package + Slack notification
+Result: Full output package + Notion pages + Slack notification
 
-### Example 3: Raw transcript paste
+### Example 3: Raw transcript paste (no Notion)
 
-User says: `/meeting-digest --raw "Today we discussed the Q3 roadmap..."`
+User says: `/meeting-digest --raw "Today we discussed the Q3 roadmap..." --no-notion`
 
 Actions:
 1. Parse inline text as meeting content
 2. Classify as `operational` (general sync)
 3. Run core summary analysis only
 4. Generate summary + action items
+5. Skip Notion upload (--no-notion)
 
-Result: Lean output without extra PM analysis
+Result: Lean output without PM analysis or Notion upload
 
-### Example 4: Force meeting type
+### Example 4: Force meeting type with custom Notion parent
 
-User says: `/meeting-digest --type discovery https://notion.so/...`
+User says: `/meeting-digest --type discovery --notion-parent abc123... https://notion.so/...`
 
 Actions:
 1. Fetch Notion page
 2. Skip classification, use `discovery` type
 3. Run core summary + assumption identification
 4. Generate output with discovery-focused appendix
+5. Upload to custom Notion parent `abc123...`
 
-Result: Discovery-perspective analysis regardless of content signals
+Result: Discovery-perspective analysis with Notion upload to custom parent
 
 ---
 
@@ -396,12 +475,14 @@ Result: Discovery-perspective analysis regardless of content signals
 | Error | Recovery |
 |-------|----------|
 | Notion MCP not authenticated | Instruct user to authorize the Notion integration |
-| Notion page not found | Verify URL/ID, check permissions |
+| Notion page not found (input) | Verify URL/ID, check permissions |
 | Empty meeting content | Report "Meeting content is empty" and exit |
 | File not found | Report file path error, suggest corrections |
 | Meeting type ambiguous | Default to `operational`, note in output |
 | PM sub-skill reference missing | Skip that analysis, continue with available skills |
+| `convert_tables.py` fails | Fall back to raw markdown upload without table conversion |
+| Notion upload fails | Save files locally, report Notion upload failure, continue with PPTX/Slack |
+| `parent: "Expected object"` | Fix: use `{"page_id": "..."}` format (not a bare string) |
 | PPTX generation fails | Save markdown outputs, report PPTX failure |
 | Slack post fails | Save all files locally, report Slack failure |
-| Notion page creation fails | Save files locally, report Notion failure |
 | Content too short for analysis | Run core summary only, skip contextual PM skills |

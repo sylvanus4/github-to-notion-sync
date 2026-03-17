@@ -142,7 +142,7 @@ cognee-cli config list
 ### OpenAI (default)
 
 ```bash
-LLM_API_KEY="sk-..."
+LLM_API_KEY="sk-..."  # pragma: allowlist secret
 LLM_MODEL="openai/gpt-4o-mini"
 LLM_PROVIDER="openai"
 ```
@@ -151,7 +151,7 @@ LLM_PROVIDER="openai"
 
 ```bash
 pip install cognee[anthropic]
-LLM_API_KEY="sk-ant-..."
+LLM_API_KEY="sk-ant-..."  # pragma: allowlist secret
 LLM_MODEL="anthropic/claude-sonnet-4-20250514"
 LLM_PROVIDER="anthropic"
 ```
@@ -171,7 +171,7 @@ LLM_ENDPOINT="http://localhost:11434"
 LLM_PROVIDER="custom"
 LLM_MODEL="azure/gpt-4o-mini"
 LLM_ENDPOINT="https://your-resource.openai.azure.com/"
-LLM_API_KEY="your-azure-key"
+LLM_API_KEY="your-azure-key"  # pragma: allowlist secret
 LLM_API_VERSION="2024-12-01-preview"
 ```
 
@@ -184,7 +184,7 @@ DB_HOST="localhost"
 DB_PORT="5432"
 DB_NAME="cognee_db"
 DB_USERNAME="postgres"
-DB_PASSWORD="password"
+DB_PASSWORD="password"  # pragma: allowlist secret
 VECTOR_DB_PROVIDER="pgvector"
 ```
 
@@ -195,5 +195,5 @@ pip install cognee[neo4j]
 GRAPH_DATABASE_PROVIDER="neo4j"
 GRAPH_DATABASE_URL="bolt://localhost:7687"
 GRAPH_DATABASE_USERNAME="neo4j"
-GRAPH_DATABASE_PASSWORD="password"
+GRAPH_DATABASE_PASSWORD="password"  # pragma: allowlist secret
 ```

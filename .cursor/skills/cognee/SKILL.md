@@ -38,7 +38,7 @@ uv pip install cognee
 3. **Set environment variables** (minimal):
 
 ```bash
-export LLM_API_KEY="your-openai-api-key"
+export LLM_API_KEY="your-openai-api-key"  # pragma: allowlist secret
 export LLM_MODEL="openai/gpt-4o-mini"
 export LLM_PROVIDER="openai"
 ```

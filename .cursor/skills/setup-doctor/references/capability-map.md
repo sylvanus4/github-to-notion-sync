@@ -35,7 +35,7 @@ Detailed prerequisites for each capability group: CLI tools, packages, env vars,
 | CLI | pip3 | Included with python3 |
 | Package (Python) | fastapi, uvicorn, sqlalchemy, asyncpg, alembic, pandas, numpy, yfinance, pykrx | `pip install -r backend/requirements.txt` |
 | Package (Node) | React, Vite, etc. | `cd frontend && pnpm install` |
-| ENV | DATABASE_URL | `postgresql+asyncpg://postgres:postgres@localhost:5432/stock_analytics` |
+| ENV | DATABASE_URL | `postgresql+asyncpg://postgres:postgres@localhost:5432/stock_analytics` | <!-- pragma: allowlist secret -->
 | ENV | REDIS_URL | `redis://localhost:6379` |
 
 **Quick Setup:**

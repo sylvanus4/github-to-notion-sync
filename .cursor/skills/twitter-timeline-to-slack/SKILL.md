@@ -13,7 +13,7 @@ description: >-
   Korean triggers: "타임라인", "트위터 타임라인", "트윗 일괄", "트윗 스크래핑".
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "2.1.0"
   category: "execution"
 ---
 # Twitter Timeline to Slack Pipeline
@@ -50,23 +50,30 @@ This uses twittxr (Twitter Syndication API wrapper) to fetch up to 100 tweets. F
 
 For each tweet, the classifier analyzes text content against keyword rules and routes to the best Slack channel. See [references/classification-rules.md](references/classification-rules.md) for the full rule set.
 
-| Category | Target Channel |
-|----------|----------------|
-| AI Coding | `#ai-coding-radar` |
-| Prompt Engineering | `#prompt` |
-| Research | `#deep-research` |
-| Press/News | `#press` |
-| Stock/Finance | `#효정-주식` |
-| Ideas | `#idea` |
-| Insights | `#효정-insight` |
-| Tasks | `#효정-할일` |
-| Default | `#random` |
+| Category | Target Channel | Strictness |
+|----------|----------------|------------|
+| AI Coding | `#ai-coding-radar` | Very strict — only Claude Code / Cursor practical tips |
+| Prompt Engineering | `#prompt` | Moderate |
+| Research | `#deep-research` | Moderate — papers, models, benchmarks |
+| Stock/Finance | `#효정-주식` | Moderate — crypto, stocks, macro, prediction markets |
+| Ideas | `#idea` | Moderate — business insights, frameworks, patterns (absorbs business keywords from insight) |
+| Insights | `#효정-insight` | Very strict — pure analysis, learning methods only (축소 운영) |
+| Tasks | `#효정-할일` | Low |
+| Press/News (DEFAULT) | `#press` | Broad — catch-all for everything else |
+
+### Phase 2.5: Thread Deduplication and Context Loading
+
+Before posting, read `outputs/twitter/{screen_name}/tweets.json` and check each unposted tweet's thread metadata:
+
+- **Skip** tweets where `skip_reason === "thread_member"` — these are part of a thread that will be posted via the primary tweet.
+- For tweets where `is_thread === true`, load the `thread` array and `thread_text` field. These contain the full self-reply chain (oldest-first) reconstructed by the pipeline.
+- The `thread_text` field contains the combined text of all tweets in the thread, joined by `\n\n---\n\n`.
 
 ### Phase 3: Post via x-to-slack (FULL workflow per tweet)
 
 **CRITICAL**: Each tweet MUST go through the complete x-to-slack workflow. Do NOT shortcut or summarize from raw tweet text alone.
 
-For each unposted tweet (oldest first), execute ALL of the following steps:
+For each unposted tweet (oldest first, excluding `skip_reason: "thread_member"`), execute ALL of the following steps:
 
 #### Step 3a: FxTwitter API Enrichment
 
@@ -81,19 +88,21 @@ Extract from the response:
 - `tweet.media` -- attached images or videos
 - `tweet.created_at` -- timestamp
 
+**Thread enrichment**: If `is_thread === true` in tweets.json, also fetch the ROOT tweet URL (`thread[0].url` from the DB) via FxTwitter to get the root tweet's engagement stats and author info. Use the root tweet's engagement metrics (likes, retweets, views) as the primary stats since the root typically has higher engagement. Keep the full `thread_text` from the DB as the primary content source.
+
 If FxTwitter returns `code !== 200`, log the error and skip this tweet.
 
 #### Step 3b: Web Research (2-3 queries per tweet)
 
-Based on the enriched tweet content:
-1. Identify 2-3 key topics, technologies, people, or entities mentioned
+Based on the enriched tweet content (use `thread_text` for thread tweets, single `tweet.text` otherwise):
+1. Identify 2-3 key topics, technologies, people, or entities mentioned across the full content
 2. Run `WebSearch` for each to gather:
    - Background context
    - Recent developments
    - Broader implications
 3. Collect relevant URLs for the "참고 링크" section
 
-This step is **mandatory** -- never skip research. Even for simple tweets, at least 2 searches provide valuable context.
+This step is **mandatory** -- never skip research. Even for simple tweets, at least 2 searches provide valuable context. For thread tweets, research should cover topics from ALL tweets in the thread, not just the first one.
 
 #### Step 3c: Topic Classification for Message 3
 
@@ -134,9 +143,36 @@ All messages use Slack mrkdwn format. Rules:
 
 CRITICAL: Capture the `message_ts` from the response for thread replies.
 
+**Media Upload (between Message 1 and Message 2)**
+
+After posting Message 1 and capturing `message_ts`, check for media in the tweet data (from FxTwitter enrichment or `tweets.json`).
+
+1. If `tweet.media.videos` exists and is non-empty:
+   - From `videos[0].formats`, pick the highest-bitrate entry where the URL ends in `.mp4` (exclude m3u8/HLS).
+   - Fallback: use `videos[0].url` directly.
+2. Else if `tweet.media.photos` exists and is non-empty:
+   - Use `photos[0].url`.
+3. Else: skip media upload.
+
+Run the upload script via Shell:
+
+```bash
+cd scripts/twitter && node upload_media_to_slack.js \
+  --url "<media_url>" \
+  --channel "<channel_id>" \
+  --thread-ts "<message_ts>" \
+  --title "<author_screen_name> - media"
+```
+
+If the upload fails, log the error and **continue** with Message 2. Media upload failure must NOT block the rest of the thread.
+
 **Message 2: Detailed Summary (Thread Reply)**
 
 Send with `thread_ts` from Message 1.
+
+Use the **thread variant** when `is_thread === true`, otherwise use the **single tweet variant**.
+
+**Single tweet variant** (`is_thread === false`):
 
 ```
 *Tweet 요약*
@@ -154,6 +190,46 @@ Send with `thread_ts` from Message 1.
 
 *추가 조사 결과*
 {WebSearch로 수집한 관련 정보를 상세 bullet point로 정리}
+- *{토픽1}*: {배경 설명과 최신 동향}
+- *{토픽2}*: {기술적 의미와 영향}
+- *{토픽3}*: {산업 맥락과 시사점}
+
+*참고 링크*
+- <{url1}|{title1}>
+- <{url2}|{title2}>
+- <{url3}|{title3}>
+```
+
+**Thread variant** (`is_thread === true`):
+
+Use the `thread` array from tweets.json to show all tweets in the thread numbered sequentially. Use the ROOT tweet's engagement stats (first tweet in chain typically has higher engagement).
+
+```
+*Tweet 요약*
+- 작성자: @{screen_name} ({name}) — {author bio/context}
+- 반응: ❤️ {root_likes} | 🔁 {root_retweets} | 👀 {root_views} _(루트 트윗 기준)_
+- 작성일: {created_at}
+- 📎 스레드: {N}개 트윗
+
+*스레드 전문*
+1️⃣ {thread[0].text}
+
+2️⃣ {thread[1].text}
+
+{... continue for each tweet in thread ...}
+
+*핵심 내용*
+{스레드 전체 내용을 한국어로 종합 분석. 개별 트윗이 아닌 스레드 전체를
+하나의 서사로 요약. 원문이 영어인 경우 번역 포함.
+구체적 수치, 기술명, 제품명 등을 빠짐없이 포함.}
+
+{인용 트윗이 있는 경우:}
+*인용 트윗 (@{quote.author.screen_name} — {quote author context})*
+{quote.text를 한국어로 상세 요약. 구체적 수치와 핵심 주장 포함.}
+
+*추가 조사 결과*
+{WebSearch로 수집한 관련 정보를 상세 bullet point로 정리.
+스레드 전체 내용을 기반으로 리서치.}
 - *{토픽1}*: {배경 설명과 최신 동향}
 - *{토픽2}*: {기술적 의미와 영향}
 - *{토픽3}*: {산업 맥락과 시사점}
@@ -220,10 +296,28 @@ Each posted Slack thread MUST include ALL of the following. If any item is missi
 - At least 2 WebSearch results integrated in "추가 조사 결과" with specific findings
 - At least 2 reference links in "참고 링크" section
 - Topic-specific insights in Message 3 (not generic filler)
+- Media attachment uploaded when tweet contains photos or videos (first image or first video only)
+
+**Thread-specific quality checks** (when `is_thread === true`):
+
+- Message 2 MUST use the thread variant template with "스레드 전문" section
+- ALL tweets in the thread must be listed numbered (1️⃣, 2️⃣, ...) in the "스레드 전문" section
+- Root tweet engagement stats must be shown (not the reply's stats, since the root typically has higher engagement)
+- "📎 스레드: {N}개 트윗" metadata must be present
+- "핵심 내용" must synthesize the FULL thread as one coherent narrative, not just one tweet
+- Web research must cover topics from across the entire thread, not just the first tweet
+- Tweets with `skip_reason: "thread_member"` must NOT be posted separately
 
 ### Phase 4: Local Storage
 
-Tweets are stored with deduplication at `outputs/twitter/{screen_name}/tweets.json`. Each tweet tracks: `id`, `url`, `text`, `created_at`, `posted_to_slack`, `slack_channel`, `classified_topic`.
+Tweets are stored with deduplication at `outputs/twitter/{screen_name}/tweets.json`. Each tweet tracks: `id`, `url`, `text`, `created_at`, `posted_to_slack`, `slack_channel`, `classified_topic`, `is_thread`, `thread`, `thread_text`, `thread_member_of`, `skip_reason`.
+
+Thread-related fields:
+- `is_thread` (boolean) -- true when tweet is part of a self-reply chain with 2+ tweets
+- `thread` (array|null) -- ordered list of `{id, text, created_at, url}` objects, oldest first
+- `thread_text` (string|null) -- combined text of all thread tweets, joined by `\n\n---\n\n`
+- `thread_member_of` (string|null) -- ID of the primary tweet when this tweet was deduped
+- `skip_reason` (string|null) -- `"thread_member"` when this tweet was skipped due to dedup
 
 Daily snapshots are archived to `outputs/twitter/{screen_name}/archive/YYYY-MM-DD.json`.
 
@@ -232,17 +326,25 @@ Daily snapshots are archived to `outputs/twitter/{screen_name}/archive/YYYY-MM-D
 ### Execution Flow
 
 ```
-Phase 1: node scripts/twitter/run_pipeline.js --fetch-only
-         → tweets.json updated with new tweets
+Phase 1:   node scripts/twitter/run_pipeline.js --fetch-only
+           → tweets.json updated with new tweets
 
-Phase 2: Agent reads tweets.json, classifies each unposted tweet using classify_tweet.js rules
+Phase 2:   run_pipeline.js classifies each unposted tweet using classify_tweet.js rules
+           (uses thread_text for classification when available)
 
-Phase 3: For EACH unposted tweet:
-         → WebFetch FxTwitter API (enrichment)
-         → WebSearch x 2-3 (research)
-         → Slack 3-message thread (posting)
-         → Update tweets.json (status)
-         → Wait 10-15s (rate limit)
+Phase 2.5: run_pipeline.js deduplicates thread members
+           → thread member tweets marked skip_reason: "thread_member"
+           → only primary tweet (longest chain) kept per thread
+
+Phase 3:   For EACH unposted tweet (excluding thread members):
+           → Read thread data from tweets.json (is_thread, thread, thread_text)
+           → WebFetch FxTwitter API (enrichment; fetch root tweet too for threads)
+           → WebSearch x 2-3 (research based on thread_text for threads)
+           → Slack Message 1 (title post)
+           → Media upload if photo/video exists (upload_media_to_slack.js)
+           → Slack Message 2 (thread variant if is_thread) + Message 3 (thread replies)
+           → Update tweets.json (status)
+           → Wait 10-15s (rate limit)
 ```
 
 ### Script Commands
@@ -340,13 +442,72 @@ Liquid 코드베이스에 /autoresearch를 실행한 결과:
 - Tobi도 "오버핏 가능성" 언급 — 프로덕션 검증 필수
 ```
 
-### Example 3: Re-run with dedup
+### Example 3: Thread tweet posting
+
+A user posted a 2-tweet thread. Both tweets appear in the timeline:
+- Root: `https://x.com/quantscience_/status/2032849534397649025` — "This is wild. Someone just open-sourced a 1-person Wall Street AI agent..."
+- Reply: `https://x.com/quantscience_/status/2032849537975357665` — "Get it here: https://github.com/TraderAlice/OpenAlice..."
+
+After `run_pipeline.js`:
+- The reply tweet has `is_thread: true`, `thread: [{root}, {reply}]`, `thread_text: "combined..."`
+- The root tweet is marked `skip_reason: "thread_member"` (deduped — reply has the longer chain)
+- Only the reply tweet appears in the manifest
+
+**Message 1 (channel post):**
+```
+월가 AI 에이전트를 1인 오픈소스로 구현 — 리서치, 퀀트, 트레이딩, 리스크 관리 풀스택
+https://x.com/quantscience_/status/2032849537975357665
+>>>
+```
+
+**Message 2 (thread reply — thread variant):**
+```
+*Tweet 요약*
+- 작성자: @quantscience_ (QuantScience) — 퀀트 트레이딩 & AI 콘텐츠 크리에이터
+- 반응: ❤️ 1,082 | 🔁 158 | 👀 27,906 _(루트 트윗 기준)_
+- 작성일: 2026-03-14
+- 📎 스레드: 2개 트윗
+
+*스레드 전문*
+1️⃣ This is wild.
+
+Someone just open-sourced a 1-person Wall Street AI agent that comes with:
+
+- Research Desk
+- Quant team
+- Trading floor
+- Risk Management
+
+100% open source:
+
+2️⃣ Get it here: https://github.com/TraderAlice/OpenAlice
+
+🚨Still trading manually in 2026?
+
+You're not alone. But the window to change that is closing.
+
+*핵심 내용*
+누군가가 월스트리트 수준의 1인 AI 트레이딩 에이전트를 완전히 오픈소스로 공개했다.
+리서치 데스크, 퀀트 팀, 트레이딩 플로어, 리스크 관리 기능을 모두 갖춘 풀스택 시스템.
+GitHub repo: TraderAlice/OpenAlice
+
+*추가 조사 결과*
+- *OpenAlice 프로젝트*: LLM 기반 자율 트레이딩 에이전트 프레임워크.
+  멀티에이전트 아키텍처로 각 역할(리서치, 퀀트, 트레이딩, 리스크)을 분리
+- *1인 월스트리트 트렌드*: AI로 개인 트레이더가 기관급 인프라를 구축하는 흐름 가속화
+
+*참고 링크*
+- <https://github.com/TraderAlice/OpenAlice|OpenAlice GitHub>
+- <https://...|관련 기사>
+```
+
+### Example 4: Re-run with dedup
 
 User says: "twitter-timeline-to-slack 다시 실행해줘"
 
 Actions:
 1. Run fetch again — only new tweets added (existing IDs skipped)
-2. Only unposted tweets are processed through Phase 3
+2. Only unposted tweets are processed through Phase 3 (thread members with `skip_reason` are excluded)
 3. Previously posted tweets are not re-posted
 
 ## Error Handling
@@ -375,11 +536,12 @@ This skill orchestrates:
 
 ```
 scripts/twitter/
-  fetch_timeline.js       # Tweet fetcher (twittxr + FxTwitter fallback)
-  classify_tweet.js       # Topic classifier with keyword rules
-  run_pipeline.js         # Fetch + classify orchestration (Phase 1-2 only)
-  enrich_and_manifest.js  # FxTwitter enrichment + manifest generation
-  package.json            # Dependencies
+  fetch_timeline.js           # Tweet fetcher (twittxr + FxTwitter fallback)
+  classify_tweet.js           # Topic classifier with keyword rules
+  run_pipeline.js             # Fetch + classify orchestration (Phase 1-2 only)
+  enrich_and_manifest.js      # FxTwitter enrichment + manifest generation
+  upload_media_to_slack.js    # Download media from URL + upload to Slack thread
+  package.json                # Dependencies
 
 outputs/twitter/
   slack-channels.json     # Channel ID registry

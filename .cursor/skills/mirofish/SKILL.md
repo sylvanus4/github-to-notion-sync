@@ -43,7 +43,8 @@ The standard daily workflow auto-generates a seed document from `today` pipeline
 | 2: Persona generation | ~10 min | 26 agents with full bios + behavioral logic |
 | 3: Simulation (20 rounds) | ~35 min | Dual-platform (Twitter + Reddit), ~170 actions |
 | 4: Report generation | ~10 min | LLM synthesizes all agent interactions |
-| **Total** | **~60 min** | |
+| 5: Korean translation | ~3 min | Agent translates report to Korean |
+| **Total** | **~63 min** | |
 
 ### Step-by-Step
 
@@ -147,9 +148,24 @@ curl -X POST http://localhost:5001/api/report/generate/status \
 curl -s http://localhost:5001/api/report/<report_id>
 ```
 
-**Step 6: Save and distribute**
+**Step 6: Translate report to Korean**
 
-Save the report markdown to `outputs/mirofish-report-{date}.md`.
+MiroFish 백엔드의 LLM이 중국어로 리포트를 생성하므로, 최종 리포트를 한국어로 번역한다.
+
+1. Step 5c에서 가져온 리포트 마크다운 원본을 `outputs/mirofish-report-{date}-raw.md`로 저장
+2. 리포트 내용을 섹션별로 한국어로 번역 (아래 규칙 적용):
+   - 고유명사(기업명, 인물명, 티커)는 원문 유지 (e.g., NVIDIA, BlackRock, Powell)
+   - 금융 전문용어는 한국어 + 영문 병기 (e.g., 변동성(Volatility), 수익률(Return))
+   - 에이전트 이름과 역할은 원문 보존하되, 발언 내용은 한국어로 번역
+   - 수치, 날짜, 퍼센트 등 데이터는 그대로 유지
+   - 마크다운 구조(헤딩, 테이블, 리스트)는 원본과 동일하게 보존
+3. 번역된 리포트를 `outputs/mirofish-report-{date}.md`로 저장
+
+> **번역 품질 기준:** 전문 금융 애널리스트 보고서 수준의 한국어. "~했습니다" 체 사용, 구어체 금지.
+
+**Step 7: Save and distribute**
+
+Save the Korean report to `outputs/mirofish-report-{date}.md` (raw Chinese version kept as `-raw.md`).
 Optionally post key predictions to Slack `#h-report` or `#deep-research`.
 
 ### Same-Day Rerun (Skip Persona Generation)
@@ -240,6 +256,10 @@ curl -X POST http://localhost:5001/api/report/generate \
   -d '{"simulation_id": "<simulation_id>"}'
 ```
 
+### Phase 4.5: Korean Translation
+
+리포트 생성 후, Daily Stock Mode Step 6과 동일한 번역 규칙을 적용하여 한국어 리포트를 생성한다. 원본은 `-raw.md`로 보존.
+
 ### Phase 5: Deep Interaction
 
 ```bash
@@ -311,6 +331,7 @@ These are NOT predefined — they are auto-generated from graph entities each ru
 | Persona preparation | 30s | 8-12 min |
 | Simulation progress | 60s | 30-40 min (20 rounds) |
 | Report generation | 60s | 8-12 min |
+| Korean translation | N/A (synchronous) | 2-4 min |
 
 ## Error Handling
 
@@ -328,8 +349,9 @@ These are NOT predefined — they are auto-generated from graph entities each ru
 ## Output Naming Convention
 
 ```
-outputs/mirofish-report-{YYYY-MM-DD}.md     # Daily prediction report
-/tmp/mirofish-seed-{YYYY-MM-DD}.md          # Seed document (ephemeral)
+outputs/mirofish-report-{YYYY-MM-DD}.md       # Korean-translated prediction report (final)
+outputs/mirofish-report-{YYYY-MM-DD}-raw.md   # Original LLM output (Chinese, archived)
+/tmp/mirofish-seed-{YYYY-MM-DD}.md            # Seed document (ephemeral)
 ```
 
 ## Examples

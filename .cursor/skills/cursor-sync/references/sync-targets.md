@@ -8,17 +8,17 @@
 
 ## Target Registry
 
-| Alias | Repo | Path (회사) | Path (집) |
-|-------|------|-------------|-----------|
-| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/work/thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` |
-| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/work/thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` |
-| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/work/thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` |
-| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/work/thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` |
+| Alias | Repo | Full Path | Bidirectional |
+|-------|------|-----------|---------------|
+| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` | **yes** |
+| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` | **yes** |
+| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` | **yes** |
+| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` | **yes** |
 
 The alias is used with `--targets` flag: `/cursor-sync --targets ai-template`.
 The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/ai-template`.
 
-**Path resolution**: Each target has two possible paths (회사/집). At runtime, try each path in order and use the first one that exists. If neither exists, skip the target with a warning.
+**Bidirectional = yes** means the target is also treated as a pull source during `cursor-sync`. Research pulls new/updated assets from ALL targets first (newest-wins via `-u` flag), then pushes the merged result back to all targets. This keeps research as the canonical merge hub: any change in any of the 5 repos eventually reaches every other repo in one `/cursor-sync` run.
 
 ## Per-Project Notes
 
@@ -46,26 +46,22 @@ The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/
 - Has project-specific skills: `kwp-sync`, `i18n-sync`
 - Has domain-specific rules: `sales.mdc`, `product-management.mdc`, `marketing.mdc`, etc.
 
-## Extra Sync Directories
-
-Beyond `.cursor/{commands,skills,rules}`, additional directories can be synced with per-target path mappings.
-
-| Scope Key | Source Path (this repo) | Target Alias | Target Path | Direction |
-|-----------|------------------------|--------------|-------------|-----------|
-| `skill-guides` | `docs/skill-guides/` | `ai-template` | `skill-guides/` | bidirectional |
-| `skill-guides` | `docs/skill-guides/` | `ai-platform-webui` | `docs/skill-guides/` | bidirectional |
-
-**Bidirectional sync**: push (source → target) first, then pull (target → source). Both directions run without `--delete`, so files unique to either side are preserved.
-
 ## Managing Targets
 
 ### Adding a new target
 
 1. Add a row to the Target Registry table above (include the `Repo` column with the `org/repo` identifier)
-2. Ensure the project directory exists with a `.cursor/` subdirectory
-3. Run `/cursor-sync --targets <alias> --dry-run` or `/cursor-sync --repo <org/repo> --dry-run` to preview
+2. Set `Bidirectional` to `yes` if research should also pull from this project, `no` otherwise
+3. Ensure the project directory exists with a `.cursor/` subdirectory
+4. Run `/cursor-sync --targets <alias> --dry-run` or `/cursor-sync --repo <org/repo> --dry-run` to preview
 
 ### Removing a target
 
 1. Remove the row from the Target Registry table
 2. Files already synced to the target remain (no cleanup needed)
+
+### Making a target bidirectional
+
+1. Change the `Bidirectional` column value to `yes`
+2. Research will pull from that project at the start of every `cursor-sync` run
+3. Any skills/rules in the target but not in research will be merged into research before the outbound push

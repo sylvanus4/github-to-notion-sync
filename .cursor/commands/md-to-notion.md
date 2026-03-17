@@ -1,6 +1,6 @@
 ---
 description: Publish local markdown files as structured Notion sub-pages with table conversion and auto-splitting
-argument-hint: "<file-or-folder> --parent <notion-page-id>"
+argument-hint: "<file-or-folder> [--parent <notion-page-id>]"
 ---
 
 ## md-to-notion
@@ -13,8 +13,9 @@ ASCII diagrams in code blocks.
 ### Usage
 
 ```
+/md-to-notion <file.md>
+/md-to-notion <folder/>
 /md-to-notion <file.md> --parent <notion-page-id>
-/md-to-notion <folder/> --parent <notion-page-id>
 /md-to-notion <folder/> --parent <id> --icon 📋
 /md-to-notion <folder/> --parent <id> --skip-meta
 /md-to-notion <folder/> --parent <id> --title-prefix "Sprint2: "
@@ -28,7 +29,7 @@ ASCII diagrams in code blocks.
 | Option | Description |
 |--------|-------------|
 | (positional) | File path or folder path containing `.md` files |
-| `--parent <id>` | **(Required)** Notion parent page ID for sub-pages |
+| `--parent <id>` | Notion parent page ID. Defaults to AI 자동 정리 page (`3239eddc...`) |
 | `--icon <emoji>` | Apply a uniform emoji icon to all created pages |
 | `--skip-meta` | Skip README.md, CHANGELOG.md, LICENSE.md |
 | `--no-table-convert` | Keep pipe tables as-is (skip conversion to `<table>` blocks) |
@@ -50,14 +51,19 @@ Read and follow the `md-to-notion` skill (`.cursor/skills/md-to-notion/SKILL.md`
 
 ### Examples
 
-Upload a single markdown file:
+Upload a single markdown file (uses default parent):
+```
+/md-to-notion output/plans/release-plan.ko.md
+```
+
+Upload with explicit parent:
 ```
 /md-to-notion output/plans/release-plan.ko.md --parent 3239eddc34e680e8a7a5d5b5eac18b38
 ```
 
 Upload an entire folder with icon:
 ```
-/md-to-notion output/meetings/2026-03-14/ --parent 3239eddc34e680e8a7a5d5b5eac18b38 --icon 📋
+/md-to-notion output/meetings/2026-03-14/ --icon 📋
 ```
 
 Auto-split a large document (50KB+):

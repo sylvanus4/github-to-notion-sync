@@ -10,7 +10,7 @@ All environment variables required or used by project skills, organized by capab
 
 | Variable | Priority | Default | Description | Source |
 |----------|----------|---------|-------------|--------|
-| DATABASE_URL | REQ | `postgresql+asyncpg://postgres:postgres@localhost:5432/stock_analytics` | Async PostgreSQL connection string | Local Docker |
+| DATABASE_URL | REQ | `postgresql+asyncpg://postgres:postgres@localhost:5432/stock_analytics` | Async PostgreSQL connection string | Local Docker | <!-- pragma: allowlist secret -->
 | DATABASE_ECHO | OPT | `false` | Log SQL queries | — |
 | REDIS_URL | OPT | `redis://localhost:6379` | Redis cache URL | Local Docker |
 | APP_NAME | OPT | `AI Model Event Stock Analytics` | Application name | — |

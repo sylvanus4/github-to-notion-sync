@@ -30,7 +30,7 @@ document splitting, and ASCII art preservation automatically.
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `<path>` | Yes | File path or folder path containing `.md` files |
-| `--parent <id>` | Yes | Notion parent page ID (32-char hex, with or without hyphens) |
+| `--parent <id>` | No | Notion parent page ID (32-char hex). Defaults to `3239eddc34e680e8a7a5d5b5eac18b38` (AI 자동 정리) |
 | `--icon <emoji>` | No | Uniform emoji icon for all created pages (default: 📄) |
 | `--skip-meta` | No | Skip README.md, CHANGELOG.md, LICENSE.md |
 | `--no-table-convert` | No | Keep pipe tables as-is (skip conversion) |
@@ -173,7 +173,7 @@ sub-pages are present.
 
 | Issue | Resolution |
 |-------|------------|
-| `--parent` not provided | Abort: "Error: --parent <notion-page-id> is required" |
+| `--parent` not provided | Use default: `3239eddc34e680e8a7a5d5b5eac18b38` (AI 자동 정리) |
 | No `.md` files found | Abort: "Error: No markdown files found at {path}" |
 | Path does not exist | Abort: "Error: Path not found: {path}" |
 | `parent: "Expected object, received string"` | Fix: use `{"page_id": "..."}` format |
