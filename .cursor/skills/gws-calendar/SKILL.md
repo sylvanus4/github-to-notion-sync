@@ -4,8 +4,10 @@ description: >-
   Manage Google Calendar via the gws CLI -- view agenda, create events, check
   availability, and manage invitations. Use when the user asks to check
   calendar, schedule meetings, view agenda, create events, or find free time. Do
-  NOT use for email (use gws-gmail), Chat messages (use gws-chat), or task lists
-  (use gws-workflows). Korean triggers: "캘린더", "일정", "일정 관리".
+  NOT use for email (use gws-gmail), Chat messages (use gws-chat), task lists
+  (use gws-workflows), or email/Slack-based meeting scheduling with automatic
+  agenda generation and attendee coordination (use smart-meeting-scheduler).
+  Korean triggers: "캘린더", "일정", "일정 관리".
 metadata:
   author: "googleworkspace/cli (adapted)"
   version: "1.0.0"

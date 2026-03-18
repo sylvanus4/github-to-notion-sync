@@ -5,7 +5,8 @@ description: >-
   messages, manage labels and filters. Use when the user asks to send email,
   check inbox, read mail, triage messages, or manage Gmail. Do NOT use for
   Google Chat messages (use gws-chat), calendar invites (use gws-calendar), or
-  Drive file operations (use gws-drive). Korean triggers: "이메일", "메일 보내기", "받은편지함".
+  Drive file operations (use gws-drive), or AI-drafted reply workflows with
+  approval gates (use email-auto-reply). Korean triggers: "이메일", "메일 보내기", "받은편지함".
 metadata:
   author: "googleworkspace/cli (adapted)"
   version: "1.0.0"
