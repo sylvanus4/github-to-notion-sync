@@ -19,6 +19,12 @@ Detailed prerequisites for each capability group: CLI tools, packages, env vars,
 13. [github](#13-github) — gh CLI
 14. [mirofish](#14-mirofish) — MiroFish swarm simulation engine
 15. [auto-research](#15-auto-research) — AutoResearchClaw pipeline
+16. [cognee](#16-cognee) — Knowledge graph engine
+17. [paperclip](#17-paperclip) — AI agent orchestration platform
+18. [document-generation](#18-document-generation) — DOCX, PPTX, PDF generation
+19. [agent-browser](#19-agent-browser) — CLI browser automation
+20. [security-scanning](#20-security-scanning) — Secret and vulnerability scanning
+21. [scrapling](#21-scrapling) — Web scraping framework
 
 ---
 
@@ -94,16 +100,18 @@ python3 -c "import anthropic; print('anthropic OK')"
 |------|------|-----------------|
 | ENV | SLACK_BOT_TOKEN | Create Slack App at https://api.slack.com/apps → OAuth & Permissions |
 | ENV | SLACK_REPORT_CHANNEL | Channel name (default: `h-report`) |
+| ENV (OPT) | SLACK_SIGNING_SECRET | Required for slack-agent bot development |
+| ENV (OPT) | SLACK_APP_TOKEN | Required for slack-agent Socket Mode (`xapp-...`) |
 | MCP | plugin-slack-slack | Configure in Cursor MCP settings |
 
 **Verification:**
 
 ```bash
 [ -n "$SLACK_BOT_TOKEN" ] && echo "SLACK_BOT_TOKEN set" || echo "SLACK_BOT_TOKEN missing"
-[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-model-event-stock-analytics/mcps/plugin-slack-slack" ] && echo "Slack MCP configured" || echo "Slack MCP missing"
+[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps/plugin-slack-slack" ] && echo "Slack MCP configured" || echo "Slack MCP missing"
 ```
 
-**Dependent Skills:** today, paper-review, related-papers-scout, x-to-slack, eod-ship, morning-ship, role-dispatcher, google-daily
+**Dependent Skills:** today, paper-review, related-papers-scout, x-to-slack, eod-ship, morning-ship, role-dispatcher, google-daily, slack-agent
 
 ---
 
@@ -123,7 +131,7 @@ python3 -c "import anthropic; print('anthropic OK')"
 
 ```bash
 [ -n "$NOTION_TOKEN" ] && echo "NOTION_TOKEN set" || echo "NOTION_TOKEN missing"
-[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-model-event-stock-analytics/mcps/plugin-notion-workspace-notion" ] && echo "Notion MCP configured" || echo "Notion MCP missing"
+[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps/plugin-notion-workspace-notion" ] && echo "Notion MCP configured" || echo "Notion MCP missing"
 ```
 
 **Dependent Skills:** md-to-notion, notion-docs-sync, paper-archive, meeting-digest, notion-meeting-sync
@@ -206,7 +214,7 @@ hf auth whoami 2>/dev/null
 **Verification:**
 
 ```bash
-[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-model-event-stock-analytics/mcps/user-notebooklm-mcp" ] && echo "NotebookLM MCP configured" || echo "NotebookLM MCP missing"
+[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps/user-notebooklm-mcp" ] && echo "NotebookLM MCP configured" || echo "NotebookLM MCP missing"
 ```
 
 **Dependent Skills:** notebooklm, notebooklm-research, notebooklm-studio, nlm-slides, nlm-video, nlm-deep-learn, nlm-arxiv-slides, paper-review
@@ -264,6 +272,8 @@ npx playwright --version 2>/dev/null
 
 **Dependent Skills:** playwright-runner, e2e-testing, e2e-overhaul, stock-csv-downloader, gmail-daily-triage, anthropic-webapp-testing
 
+**Note:** For CLI-based browser automation (as opposed to Playwright test suites), see also the [agent-browser](#19-agent-browser) group.
+
 ---
 
 ## 10. media
@@ -276,12 +286,15 @@ npx playwright --version 2>/dev/null
 |------|------|-----------------|
 | CLI | ffmpeg | `brew install ffmpeg` |
 | CLI | yt-dlp | `brew install yt-dlp` |
+| ENV (OPT) | ELEVEN_LABS_API_KEY | Required for transcribee speaker diarization |
+| ENV (OPT) | ANTHROPIC_API_KEY | Required for transcribee categorization (reuses llm-apis) |
 
 **Verification:**
 
 ```bash
 command -v ffmpeg && echo "ffmpeg installed" || echo "ffmpeg missing"
 command -v yt-dlp && echo "yt-dlp installed" || echo "yt-dlp missing"
+[ -n "$ELEVEN_LABS_API_KEY" ] && echo "ELEVEN_LABS_API_KEY set" || echo "ELEVEN_LABS_API_KEY missing (optional)"
 ```
 
 **Dependent Skills:** transcribee, video-compress
@@ -311,7 +324,7 @@ for var in KIWOOM_APP_KEY FRED_API_KEY JINA_API_KEY; do
 done
 ```
 
-**Dependent Skills:** tab-kiwoom, today (FRED), alphaear-search (Jina), trading-finviz-screener, trading-market-top-detector
+**Dependent Skills:** tab-kiwoom, today (FRED), alphaear-search (Jina), trading-finviz-screener, trading-market-top-detector, trading-theme-detector
 
 ---
 
@@ -449,3 +462,207 @@ command -v python3.11 >/dev/null 2>&1 && echo "PASS python3.11" || echo "FAIL py
 ```
 
 **Dependent Skills:** auto-research, auto-research-distribute
+
+---
+
+## 16. cognee
+
+**Purpose:** Persistent AI memory and knowledge graph engine for document ingestion, entity extraction, and graph-enhanced RAG search.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| Package (Python) | cognee | `pip install cognee` |
+| CLI | cognee (optional) | `pip install cognee` (provides `cognee` CLI) |
+| ENV | LLM_API_KEY | OpenAI or compatible API key |
+| ENV (OPT) | LLM_MODEL | Model name (default: `gpt-4o-mini`) |
+| ENV (OPT) | LLM_PROVIDER | Provider name (default: `openai`) |
+
+**Quick Setup:**
+
+```bash
+pip install cognee
+# Or with extras:
+# pip install 'cognee[postgres,neo4j,anthropic]'
+```
+
+**Verification:**
+
+```bash
+python3 -c "import cognee; print('cognee OK')" 2>/dev/null && echo "PASS cognee" || echo "FAIL cognee"
+[ -n "$LLM_API_KEY" ] && echo "PASS LLM_API_KEY set" || echo "FAIL LLM_API_KEY missing"
+```
+
+**Dependent Skills:** cognee
+
+---
+
+## 17. paperclip
+
+**Purpose:** Paperclip AI agent orchestration platform for hiring, scheduling, and managing autonomous agents.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | pnpm | `npm install -g pnpm` (≥9.15) |
+| CLI | node | `brew install node` (≥20) |
+| CLI | docker | `brew install --cask docker` |
+| System | PostgreSQL 17 or PGlite | Docker: `docker run -p 5432:5432 postgres:17` |
+| ENV | BETTER_AUTH_SECRET | Random secret for auth (`openssl rand -hex 32`) |
+| ENV (OPT) | OPENAI_API_KEY | Reuses llm-apis group |
+| ENV (OPT) | ANTHROPIC_API_KEY | Reuses llm-apis group |
+
+**Quick Setup:**
+
+```bash
+npm install -g pnpm
+cd <paperclip-dir>
+pnpm install
+cp .env.example .env
+# Edit .env with BETTER_AUTH_SECRET and API keys
+pnpm paperclipai doctor
+```
+
+**Verification:**
+
+```bash
+command -v pnpm && echo "PASS pnpm" || echo "FAIL pnpm"
+node -v 2>/dev/null | grep -qE "^v(2[0-9]|[3-9][0-9])" && echo "PASS node >= 20" || echo "FAIL node < 20"
+command -v docker && echo "PASS docker" || echo "FAIL docker"
+[ -n "$BETTER_AUTH_SECRET" ] && echo "PASS BETTER_AUTH_SECRET set" || echo "FAIL BETTER_AUTH_SECRET missing"
+```
+
+**Dependent Skills:** paperclip-setup, paperclip-agents, paperclip-tasks, paperclip-control
+
+---
+
+## 18. document-generation
+
+**Purpose:** Generate professional Word documents, PowerPoint presentations, and PDFs from code.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| Package (Python) | pdfplumber | `pip install pdfplumber` |
+| Package (Python) | defusedxml | `pip install defusedxml` |
+| Package (Python) | lxml | `pip install lxml` |
+| Package (Python) | python-docx | `pip install python-docx` |
+| Package (Python) | pypdf | `pip install pypdf` |
+| Package (Python) | pillow | `pip install pillow` |
+| Package (Node) | docx | `npm install -g docx` |
+| Package (Node) | pptxgenjs | `npm install -g pptxgenjs` |
+| CLI (OPT) | pandoc | `brew install pandoc` |
+
+**Quick Setup:**
+
+```bash
+pip install pdfplumber defusedxml lxml python-docx pypdf pillow
+npm install -g docx pptxgenjs
+brew install pandoc
+```
+
+**Note:** Node scripts that use `docx` or `pptxgenjs` require `NODE_PATH="$(npm root -g)"` to resolve global packages.
+
+**Verification:**
+
+```bash
+for pkg in pdfplumber defusedxml lxml docx pypdf PIL; do
+  python3 -c "import $pkg" 2>/dev/null && echo "PASS $pkg" || echo "FAIL $pkg"
+done
+npm list -g --depth=0 2>/dev/null | grep -q "docx" && echo "PASS docx (npm)" || echo "FAIL docx (npm)"
+npm list -g --depth=0 2>/dev/null | grep -q "pptxgenjs" && echo "PASS pptxgenjs (npm)" || echo "FAIL pptxgenjs (npm)"
+command -v pandoc && echo "PASS pandoc" || echo "FAIL pandoc (optional)"
+```
+
+**Dependent Skills:** paper-review, anthropic-docx, anthropic-pptx, anthropic-pdf, bespin-news-digest, critical-review, related-papers-scout
+
+---
+
+## 19. agent-browser
+
+**Purpose:** CLI-based headless browser automation for navigating pages, filling forms, taking screenshots, and scraping data.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | agent-browser | `npm install -g agent-browser` |
+| Browser binaries | Chromium | `agent-browser install` |
+| ENV (OPT) | BROWSERBASE_API_KEY | For cloud browser sessions (https://browserbase.com) |
+| ENV (OPT) | BROWSERBASE_PROJECT_ID | For cloud browser sessions |
+| ENV (OPT) | BROWSER_USE_API_KEY | For Browser Use cloud (https://browser-use.com) |
+| ENV (OPT) | KERNEL_API_KEY | For Kernel cloud browser |
+
+**Quick Setup:**
+
+```bash
+npm install -g agent-browser
+agent-browser install
+```
+
+**Verification:**
+
+```bash
+command -v agent-browser && echo "PASS agent-browser" || echo "FAIL agent-browser"
+agent-browser --version 2>/dev/null
+```
+
+**Dependent Skills:** agent-browser
+
+---
+
+## 20. security-scanning
+
+**Purpose:** Secret detection and vulnerability scanning in source code.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | gitleaks | `brew install gitleaks` |
+
+**Quick Setup:**
+
+```bash
+brew install gitleaks
+```
+
+**Verification:**
+
+```bash
+command -v gitleaks && echo "PASS gitleaks" || echo "FAIL gitleaks"
+gitleaks version 2>/dev/null
+```
+
+**Dependent Skills:** security-expert, ci-quality-gate
+
+---
+
+## 21. scrapling
+
+**Purpose:** Python web scraping framework with adaptive parsing, anti-bot bypass (Cloudflare Turnstile), and stealth fetching.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| Package (Python) | scrapling | `pip install 'scrapling[all]'` |
+
+**Quick Setup:**
+
+```bash
+pip install 'scrapling[all]'
+# Or minimal: pip install scrapling
+# Or with specific fetchers: pip install 'scrapling[fetchers]'
+```
+
+**Verification:**
+
+```bash
+python3 -c "import scrapling; print('scrapling OK')" 2>/dev/null && echo "PASS scrapling" || echo "FAIL scrapling"
+```
+
+**Dependent Skills:** scrapling

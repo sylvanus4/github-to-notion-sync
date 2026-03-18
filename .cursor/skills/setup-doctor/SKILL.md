@@ -13,13 +13,13 @@ description: >-
   setup guides (use gws-workspace, paperclip-setup, etc. directly).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "infrastructure"
 ---
 
 # Setup Doctor
 
-Diagnose and fix missing prerequisites across all project skill groups. Organizes checks by **capability group** (15 functional clusters) rather than 400+ individual skills.
+Diagnose and fix missing prerequisites across all project skill groups. Organizes checks by **capability group** (21 functional clusters) rather than 400+ individual skills.
 
 ## Input
 
@@ -51,6 +51,12 @@ The user provides:
 | github | `gh` CLI (authenticated) | github-workflow-automation, release-ship, ship |
 | mirofish | `uv`, Node ≥18, MiroFish repo, LLM + Zep keys | mirofish, mirofish-financial-sim, mirofish-opinion-sim, mirofish-graph-explorer |
 | auto-research | Python 3.11+, AutoResearchClaw repo, OPENAI_API_KEY | auto-research, auto-research-distribute |
+| cognee | `cognee` Python pkg, LLM_API_KEY | cognee |
+| paperclip | `pnpm` ≥9.15, Node ≥20, Docker, BETTER_AUTH_SECRET | paperclip-setup, paperclip-agents, paperclip-tasks, paperclip-control |
+| agent-browser | `agent-browser` CLI, Chromium | agent-browser |
+| security-scanning | `gitleaks` CLI | security-expert |
+| document-generation | pdfplumber, python-docx, pypdf, pillow, Node `docx`/`pptxgenjs`, pandoc | paper-review, anthropic-docx, anthropic-pptx, anthropic-pdf, bespin-news-digest |
+| scrapling | `scrapling` Python pkg | scrapling |
 
 For full details on each group (install commands, env vars, verification), see [references/capability-map.md](references/capability-map.md).
 
@@ -63,7 +69,7 @@ For the complete env var registry, see [references/env-var-registry.md](referenc
 Check each tool via `command -v`:
 
 ```bash
-for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm researchclaw; do
+for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser pandoc jq cognee; do
   command -v "$tool" >/dev/null 2>&1 && echo "PASS $tool" || echo "FAIL $tool"
 done
 ```
@@ -75,7 +81,7 @@ Record results in a table: `Tool | Status | Required By | Install Command`.
 **Python packages** — check critical packages via `pip show`:
 
 ```bash
-for pkg in fastapi uvicorn sqlalchemy asyncpg alembic pandas numpy yfinance pykrx openai anthropic playwright feedparser huggingface-hub; do
+for pkg in fastapi uvicorn sqlalchemy asyncpg alembic pandas numpy yfinance pykrx openai anthropic playwright feedparser huggingface-hub pdfplumber defusedxml lxml python-docx pypdf pillow scrapling cognee beautifulsoup4 pyyaml imageio requests; do
   pip show "$pkg" >/dev/null 2>&1 && echo "PASS $pkg" || echo "FAIL $pkg"
 done
 ```
@@ -83,7 +89,9 @@ done
 **Node global packages** — check via `npm list -g --depth=0`:
 
 ```bash
-npm list -g --depth=0 2>/dev/null | grep -q "@googleworkspace/cli" && echo "PASS gws" || echo "FAIL gws"
+for pkg in "@googleworkspace/cli" docx pptxgenjs agent-browser; do
+  npm list -g --depth=0 2>/dev/null | grep -q "$pkg" && echo "PASS $pkg" || echo "FAIL $pkg"
+done
 ```
 
 ### Phase 3: Environment Scan
@@ -91,7 +99,7 @@ npm list -g --depth=0 2>/dev/null | grep -q "@googleworkspace/cli" && echo "PASS
 1. Check if `.env` file exists in project root
 2. Parse `.env.example` for all variable names
 3. For each variable in `.env.example`, check if it exists and is non-empty in `.env`
-4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`
+4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`, `ELEVEN_LABS_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `BETTER_AUTH_SECRET`, `BROWSERBASE_API_KEY`, `FINVIZ_API_KEY`, `FMP_API_KEY`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN`
 5. Classify each as: SET (non-empty), EMPTY (exists but blank), MISSING (not in .env)
 
 Present results grouped by capability group.
@@ -101,8 +109,8 @@ Present results grouped by capability group.
 Check MCP server configs exist under the project's mcps directory:
 
 ```bash
-MCP_DIR="$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-model-event-stock-analytics/mcps"
-for server in user-notebooklm-mcp plugin-notion-workspace-notion plugin-slack-slack cursor-ide-browser user-daiso-mcp user-public-apis; do
+MCP_DIR="$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps"
+for server in user-notebooklm-mcp plugin-notion-workspace-notion plugin-slack-slack cursor-ide-browser user-daiso-mcp user-public-apis user-Context7 user-GitHub user-Figma user-Notion plugin-context7-plugin-context7; do
   [ -d "$MCP_DIR/$server" ] && echo "PASS $server" || echo "FAIL $server"
 done
 ```
@@ -174,11 +182,11 @@ Setup Doctor Report
 ====================
 Date: 2026-03-16
 
-CLI Tools:        11/14 passed
-Python Packages:  12/14 passed
-Node Packages:    0/1 passed
-Environment Vars: 8/15 set
-MCP Servers:      5/6 configured
+CLI Tools:        16/23 passed
+Python Packages:  20/26 passed
+Node Packages:    1/4 passed
+Environment Vars: 10/25 set
+MCP Servers:      9/11 configured
 
 Capability Group Status:
   core-platform:     READY
@@ -195,6 +203,13 @@ Capability Group Status:
   ci-cd:             READY
   github:            READY
   mirofish:          PARTIAL (ZEP_API_KEY missing)
+  auto-research:     READY
+  cognee:            NOT READY (cognee missing, LLM_API_KEY missing)
+  paperclip:         NOT READY (pnpm missing)
+  agent-browser:     NOT READY (agent-browser missing)
+  security-scanning: PARTIAL (gitleaks missing)
+  document-generation: PARTIAL (pdfplumber missing, docx npm missing)
+  scrapling:         NOT READY (scrapling missing)
 
 Missing Items:
   google-workspace  CLI   gws       — Install: npm install -g @googleworkspace/cli

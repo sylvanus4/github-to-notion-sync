@@ -1,22 +1,27 @@
 ---
 name: defuddle
 description: >-
-  Extract clean markdown content from any web page URL using the Defuddle API,
-  stripping ads, sidebars, navigation, and UI noise. Returns markdown with YAML
-  frontmatter (title, author, published, domain, word_count). Use when the user
-  asks to "read this page", "extract content from URL", "get markdown from
-  website", "clean up this webpage", "defuddle", or when feeding web content to
-  an LLM with minimal noise. Do NOT use for general web search (use WebSearch),
-  API endpoint calls, browser automation (use agent-browser), or fetching
-  structured JSON data from APIs. Korean triggers: "검색", "데이터", "API", "자동화".
+  Extract clean markdown content from any web page URL or YouTube video
+  transcript using the Defuddle API. For web pages: strips ads, sidebars,
+  navigation, and UI noise, returning markdown with YAML frontmatter. For
+  YouTube URLs: returns full transcripts with timestamps, chapter markers,
+  and speaker diarization. Use when the user asks to "read this page",
+  "extract content from URL", "get markdown from website", "clean up this
+  webpage", "get YouTube transcript", "extract video transcript", "defuddle",
+  or when feeding web/video content to an LLM with minimal noise. Do NOT use
+  for general web search (use WebSearch), API endpoint calls, browser
+  automation (use agent-browser), or fetching structured JSON data from APIs.
+  Do NOT use for local audio/video files or Instagram/TikTok transcription
+  (use transcribee). Korean triggers: "검색", "데이터", "API", "자동화",
+  "트랜스크립트", "유튜브 자막".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
-# Defuddle — Web Page to Clean Markdown
+# Defuddle — Web Page & YouTube Transcript to Clean Markdown
 
-Extract the main content from any web page as clean markdown via the Defuddle API. Strips ads, sidebars, headers, footers, and navigation clutter.
+Extract the main content from any web page or YouTube video as clean markdown via the Defuddle API. For web pages, strips ads, sidebars, headers, footers, and navigation clutter. For YouTube videos, returns full transcripts with timestamps, chapters, and speaker diarization.
 
 ## Input
 
@@ -98,14 +103,86 @@ curl -s "https://defuddle.md/example.com/page2"
 - **Defuddle + Translation**: Extract English content, translate to Korean
 - **Defuddle + Comparison**: Extract two competing articles, compare key points
 
+## YouTube Transcript Extraction
+
+When given a YouTube URL, Defuddle returns a full transcript instead of a web page extraction. The same API endpoint handles both.
+
+### Supported URL Formats
+
+```bash
+curl -s "https://defuddle.md/youtube.com/watch?v=VIDEO_ID"
+curl -s "https://defuddle.md/youtu.be/VIDEO_ID"
+curl -s "https://defuddle.md/m.youtube.com/watch?v=VIDEO_ID"
+```
+
+### YouTube Output Format
+
+The response includes timestamps, chapter headers, and speaker labels. See `references/youtube-transcript-format.md` for the full format specification.
+
+```markdown
+---
+title: "Video Title"
+author: "Channel Name"
+source: "https://youtube.com/watch?v=VIDEO_ID"
+domain: "youtube.com"
+word_count: 5432
+---
+
+## Chapter Title
+
+**Speaker Name:** [00:00:15] First sentence of the transcript segment...
+
+**Speaker Name:** [00:01:30] Next segment with different speaker...
+
+## Next Chapter
+
+**Speaker Name:** [00:05:45] Content in the next chapter...
+```
+
+### YouTube Workflow
+
+1. Detect that the URL is a YouTube link (youtube.com, youtu.be, m.youtube.com)
+2. Run `curl -s "https://defuddle.md/{youtube_url_without_protocol}"`
+3. Parse the transcript with chapter headers, timestamps, and speaker labels
+4. Deliver based on user intent: display, save, summarize, or post to Slack
+
+### YouTube Error Handling
+
+| Error | Symptom | Action |
+|-------|---------|--------|
+| No transcript available | Response has frontmatter but empty/minimal body | Video may be private, restricted, or lack captions; inform user |
+| Wrong language | Transcript is in unexpected language | YouTube auto-captions depend on the video's audio language |
+| Missing chapters | No `##` chapter headers in output | Video has no chapter markers set by the uploader |
+| Missing diarization | No `**Speaker:**` labels | Single-speaker video or diarization unavailable |
+
+### When to Use Defuddle vs transcribee for YouTube
+
+For a detailed feature-by-feature comparison and pipeline integration recommendations, see [references/transcribee-vs-defuddle.md](references/transcribee-vs-defuddle.md).
+
+| Dimension | defuddle | transcribee |
+|-----------|----------|-------------|
+| Dependencies | None (HTTP API) | yt-dlp, ffmpeg, ElevenLabs API key |
+| Speed | Fast (~seconds) | Slow (download + transcribe) |
+| Cost | Free | ElevenLabs API usage |
+| Diarization | Built-in ("pretty good") | ElevenLabs scribe_v1 (high accuracy, word-level) |
+| Timestamps | Sentence/segment-level | Word-level (with --raw) |
+| Chapters | Extracted from YouTube | Not extracted |
+| Languages | YouTube's auto-captions | Multi-language (ElevenLabs) |
+| Local files | Not supported | Supported (mp3, mp4, etc.) |
+| Instagram/TikTok | Not supported | Supported |
+| Auto-categorization | No | Yes (Claude classification) |
+| **Best for** | Quick YouTube transcript, pipeline integration | High-accuracy diarization, local files, non-YouTube |
+
 ### When to Prefer Defuddle over WebFetch
 
 | Scenario | Use |
 |----------|-----|
 | Page has heavy ads/sidebars/navigation | Defuddle |
 | Need markdown with structured frontmatter | Defuddle |
+| YouTube video transcript extraction | Defuddle |
 | Simple page or API docs | WebFetch is sufficient |
 | Need to interact with page elements | Use agent-browser instead |
+| Local audio/video transcription | Use transcribee instead |
 
 ## Examples
 
@@ -140,6 +217,39 @@ Actions:
 3. Compare key points side-by-side
 
 Result: Structured comparison of both articles' content without UI noise.
+
+### Example 4: Extract YouTube transcript
+
+User says: "Get the transcript from this YouTube video: https://youtube.com/watch?v=abc123"
+
+Actions:
+1. Run `curl -s "https://defuddle.md/youtube.com/watch?v=abc123"`
+2. Parse frontmatter: title, channel name (author), word_count
+3. Display the transcript with timestamps, chapters, and speaker labels
+
+Result: Full transcript with `[HH:MM:SS]` timestamps, `## Chapter` headers, and `**Speaker:**` labels.
+
+### Example 5: YouTube transcript summarization
+
+User says: "Summarize this YouTube video: https://youtu.be/xyz789"
+
+Actions:
+1. Run `curl -s "https://defuddle.md/youtu.be/xyz789"`
+2. Parse frontmatter for metadata (title, channel)
+3. Summarize the extracted transcript, highlighting key points with timestamps
+
+Result: Korean summary with timestamped key takeaways from the video.
+
+### Example 6: YouTube transcript save for research
+
+User says: "Save the transcript from this conference talk for later analysis"
+
+Actions:
+1. Run `curl -s "https://defuddle.md/youtube.com/watch?v=conf456"`
+2. Write the full transcript to a local `.md` file using the Write tool
+3. Report metadata (title, channel, word count, chapter count)
+
+Result: Full transcript saved as markdown with chapters and timestamps preserved.
 
 ## Error Handling
 

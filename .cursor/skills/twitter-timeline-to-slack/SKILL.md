@@ -79,7 +79,7 @@ When the cookie is missing or expired, guide the user through registration:
    3. 페이지를 새로고침 (F5)
    4. 아무 요청을 클릭 → Headers 탭
    5. "cookie:" 헤더의 전체 값을 복사
-   
+
    복사한 쿠키 값을 붙여넣어 주세요.
    ```
 
@@ -137,6 +137,11 @@ Before posting, read `outputs/twitter/{screen_name}/tweets.json` and check each 
 ### Phase 3: Post via x-to-slack (FULL workflow per tweet)
 
 **CRITICAL**: Each tweet MUST go through the complete x-to-slack workflow. Do NOT shortcut or summarize from raw tweet text alone.
+
+The manifest from Phase 2 provides pre-computed fields for each tweet:
+- `has_media` / `media_type` / `media_url` — pre-extracted best media URL from tweets.json
+- `classified_channel` / `classified_topic` — from Phase 2 classification
+- `is_thread` / `thread_text` / `thread_count` — thread metadata
 
 For each unposted tweet (oldest first, excluding `skip_reason: "thread_member"`), execute ALL of the following steps:
 
@@ -208,16 +213,21 @@ All messages use Slack mrkdwn format. Rules:
 
 CRITICAL: Capture the `message_ts` from the response for thread replies.
 
-**Media Upload (between Message 1 and Message 2)**
+**Media Upload (between Message 1 and Message 2) — MANDATORY CHECK**
 
-After posting Message 1 and capturing `message_ts`, check for media in the tweet data (from FxTwitter enrichment or `tweets.json`).
+After posting Message 1 and capturing `message_ts`, you **MUST** check for media. The manifest includes pre-extracted media info for each tweet:
 
-1. If `tweet.media.videos` exists and is non-empty:
-   - From `videos[0].formats`, pick the highest-bitrate entry where the URL ends in `.mp4` (exclude m3u8/HLS).
-   - Fallback: use `videos[0].url` directly.
-2. Else if `tweet.media.photos` exists and is non-empty:
-   - Use `photos[0].url`.
-3. Else: skip media upload.
+- `has_media` (boolean) — whether the tweet contains any media
+- `media_type` — `"video"` or `"photo"`
+- `media_url` — direct download URL (highest-bitrate mp4 for video, original jpg for photo)
+
+**Decision tree:**
+
+1. **If `has_media === true` in the manifest** → use `media_url` directly.
+2. **If manifest `media_url` is null but FxTwitter response has `tweet.media`** → extract manually:
+   - Videos: from `tweet.media.videos[0].formats`, pick the entry with the highest `bitrate` where `container === "mp4"`. Fallback: `tweet.media.videos[0].url`.
+   - Photos: use `tweet.media.photos[0].url`.
+3. **If neither source has media** → skip to Message 2.
 
 Run the upload script via Shell:
 
@@ -230,6 +240,8 @@ cd scripts/twitter && node upload_media_to_slack.js \
 ```
 
 If the upload fails, log the error and **continue** with Message 2. Media upload failure must NOT block the rest of the thread.
+
+**CRITICAL**: Do NOT skip this step. Every tweet with `has_media: true` MUST have a media upload attempt. This is a quality gate requirement.
 
 **Message 2: Detailed Summary (Thread Reply)**
 
@@ -375,7 +387,7 @@ Each posted Slack thread MUST include ALL of the following. If any item is missi
 
 ### Phase 4: Local Storage
 
-Tweets are stored with deduplication at `outputs/twitter/{screen_name}/tweets.json`. Each tweet tracks: `id`, `url`, `text`, `created_at`, `posted_to_slack`, `slack_channel`, `classified_topic`, `is_thread`, `thread`, `thread_text`, `thread_member_of`, `skip_reason`.
+Tweets are stored with deduplication at `outputs/twitter/{screen_name}/tweets.json`. Each tweet tracks: `id`, `url`, `text`, `created_at`, `posted_to_slack`, `slack_channel`, `classified_topic`, `is_thread`, `thread`, `thread_text`, `thread_member_of`, `skip_reason`, `media`.
 
 Thread-related fields:
 - `is_thread` (boolean) -- true when tweet is part of a self-reply chain with 2+ tweets

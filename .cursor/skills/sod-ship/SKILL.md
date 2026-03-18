@@ -33,10 +33,11 @@ Bidirectional git sync for all managed projects: commit dirty repos, push unpush
 /sod-ship --skip-pull              # commit and push only, skip pulling remote
 /sod-ship --targets research       # process specific projects only (comma-separated)
 /sod-ship --no-slack               # skip Slack notification
+/sod-ship --no-canvas              # skip Slack Canvas update (Phase 7b)
 /sod-ship --dry-run                # preview only (show status, no git operations)
 ```
 
-Arguments can be combined freely. Defaults: commit+push+pull all, post to Slack.
+Arguments can be combined freely. Defaults: commit+push+pull all, post to Slack, update canvas.
 
 ## Workflow
 
@@ -305,6 +306,63 @@ SOD 동기화 리포트
 합계: 10개 커밋 생성, 10개 커밋 수신
 ```
 
+### Phase 7: Post-Sync Actions
+
+**Skip if** `--dry-run` is set, or if both `--skip-push` AND `--skip-pull` are set.
+
+#### Step 7a: Skill Guide Sync
+
+Run the `skill-guide-generator` skill in `--readme-only` mode to quickly update
+counts and tables in `docs/skill-guides/README.md` without generating full guide
+sections.
+
+1. Inventory installed skills (glob `.cursor/skills/*/SKILL.md`)
+2. Cross-reference against documented skills in `docs/skill-guides/*.md`
+3. Update README.md counts and tables
+4. Record whether any new undocumented skills were found (`new_skills_found: bool`,
+   `new_skill_names: [...]`)
+
+If no changes were made to README.md and no new skills found, log
+"Skill guides up to date — no changes" and proceed.
+
+#### Step 7b: Publish to Slack Canvas
+
+**Skip if** `--no-canvas` flag is set, or if there are no changes to report
+(all projects were already in sync AND no new skills were found in Step 7a).
+
+Append a dated SOD sync digest to the fixed canvas `F0AN2C7UKCY`:
+
+```json
+{
+  "server": "plugin-slack-slack",
+  "toolName": "slack_update_canvas",
+  "arguments": {
+    "canvas_id": "F0AN2C7UKCY",
+    "action": "append",
+    "content": "<dated-digest>"
+  }
+}
+```
+
+**Digest content template** (Canvas markdown):
+
+```
+## YYYY-MM-DD SOD Sync
+
+**Git 동기화**
+- SYNCED: N/5 프로젝트
+- 커밋: 생성 N개, 수신 M개
+{if PARTIAL or FAILED: - ⚠️ PARTIAL/FAILED: project-name (details)}
+
+{if new skills found:
+**스킬 가이드 업데이트**
+- 신규 문서화 스킬: skill-a, skill-b
+}
+```
+
+Keep each digest entry concise (under 500 chars). The canvas accumulates entries
+over time as a running log of daily SOD activities.
+
 ## Examples
 
 ### Example 1: Full SOD sync (typical start-of-day)
@@ -371,6 +429,8 @@ User runs `/sod-ship` and every project is already up to date.
 | No changes in any project | Report "all projects already in sync" |
 | Slack message fails | Report error; still display chat report (Phase 6) |
 | Slack thread_ts not returned | Post details as separate channel message instead of thread |
+| Canvas update fails | Warn and continue; does not affect sync results |
+| skill-guide-generator not available | Skip Phase 7a; still attempt Phase 7b with git-only digest |
 
 ## Safety Rules
 

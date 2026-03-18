@@ -1,6 +1,6 @@
 ## Defuddle
 
-Extract clean markdown content from any web page, stripping ads, sidebars, and UI noise.
+Extract clean markdown content from any web page or YouTube video transcript, stripping ads, sidebars, and UI noise. For YouTube URLs, returns full transcripts with timestamps, chapters, and speaker diarization.
 
 ### Usage
 
@@ -12,14 +12,17 @@ Extract clean markdown content from any web page, stripping ads, sidebars, and U
 
 | Action | Description |
 |--------|-------------|
-| _(none)_ | Extract and display the markdown content |
+| _(none)_ | Extract and display the markdown content (or transcript for YouTube) |
 | `save <path>` | Extract and save to a local file |
-| `summarize` | Extract and summarize the content |
+| `summarize` | Extract and summarize the content in Korean |
 | `compare <url2>` | Extract two pages and compare key points |
+| `transcript` | (YouTube only) Extract and display the full transcript with timestamps |
 
 ### Execution
 
 Read and follow the `defuddle` skill (`.cursor/skills/defuddle/SKILL.md`) for the full workflow, API details, and error handling.
+
+For standalone YouTube transcript workflows with Slack posting, see the `/youtube-transcript` command.
 
 ### Examples
 
@@ -35,4 +38,13 @@ Read and follow the `defuddle` skill (`.cursor/skills/defuddle/SKILL.md`) for th
 
 # Compare two articles
 /defuddle https://blog.a.com/post compare https://blog.b.com/post
+
+# Extract YouTube transcript
+/defuddle https://youtube.com/watch?v=abc123 transcript
+
+# Save YouTube transcript for research
+/defuddle https://youtu.be/xyz789 save output/transcripts/talk.md
+
+# Summarize a YouTube video in Korean
+/defuddle https://youtube.com/watch?v=abc123 summarize
 ```

@@ -22,6 +22,9 @@ Start-of-day git sync pipeline: commit dirty working directories, push unpushed 
 
 # Skip Slack notification
 /sod-ship --no-slack
+
+# Skip Slack Canvas update (Phase 7b)
+/sod-ship --no-canvas
 ```
 
 ### Workflow
@@ -31,6 +34,7 @@ Start-of-day git sync pipeline: commit dirty working directories, push unpushed 
 3. **Pull Remote** — Pull latest from remote, resolve conflicts via rebase fallback
 4. **Verify Sync** — Confirm all projects are SYNCED / PARTIAL / FAILED
 5. **Slack + Report** — Post summary to `#효정-할일` and display in chat
+6. **Post-Sync** — Run skill-guide-sync (README counts) and append SOD digest to Slack Canvas
 
 ### Execution
 

@@ -103,7 +103,7 @@ research:
 llm:
   provider: "openai-compatible"
   base_url: "https://api.openai.com/v1"
-  api_key_env: "OPENAI_API_KEY"
+  api_key_env: "OPENAI_API_KEY"  # pragma: allowlist secret
   primary_model: "gpt-4o"
   fallback_models: ["gpt-4o-mini"]
 

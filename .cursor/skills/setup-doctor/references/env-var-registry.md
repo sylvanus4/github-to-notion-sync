@@ -37,6 +37,8 @@ All environment variables required or used by project skills, organized by capab
 |----------|----------|---------|-------------|--------|
 | SLACK_BOT_TOKEN | REQ | — | Slack Bot OAuth token (`xoxb-...`) | https://api.slack.com/apps → OAuth |
 | SLACK_REPORT_CHANNEL | OPT | `h-report` | Default Slack channel for reports | — |
+| SLACK_SIGNING_SECRET | OPT | — | Required for slack-agent bot development | Slack App → Basic Info |
+| SLACK_APP_TOKEN | OPT | — | Required for slack-agent Socket Mode (`xapp-...`) | Slack App → Basic Info |
 
 ## notion
 
@@ -73,7 +75,9 @@ No env vars — requires Playwright browser binaries installed via `npx playwrig
 
 ## media
 
-No env vars — requires ffmpeg and yt-dlp CLI tools.
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| ELEVEN_LABS_API_KEY | OPT | — | ElevenLabs API for transcribee speaker diarization | https://elevenlabs.io |
 
 ## trading-apis
 
@@ -137,3 +141,40 @@ No env vars — uses `gh auth login` for authentication.
 | BERT_SENTIMENT_MODEL | OPT | `ProsusAI/finbert` | Sentiment model HF ID |
 | EMBEDDING_MODEL | OPT | `paraphrase-multilingual-MiniLM-L12-v2` | Embedding model for hybrid search |
 | SENTIMENT_MODE | OPT | `auto` | `auto` / `bert` / `llm` |
+
+## cognee
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| LLM_API_KEY | REQ | — | LLM API key for cognee knowledge engine | https://platform.openai.com/api-keys |
+| LLM_MODEL | OPT | `gpt-4o-mini` | LLM model name | — |
+| LLM_PROVIDER | OPT | `openai` | LLM provider (`openai` / `anthropic` / `ollama`) | — |
+
+## paperclip
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| BETTER_AUTH_SECRET | REQ | — | Auth secret for Paperclip (`openssl rand -hex 32`) | Generated locally |
+| API_KEY | OPT | — | API key for Paperclip agent LLM access | — |
+| API_BASE | OPT | — | Base URL for Paperclip LLM endpoint | — |
+
+## agent-browser
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| BROWSERBASE_API_KEY | OPT | — | BrowserBase cloud browser sessions | https://browserbase.com |
+| BROWSERBASE_PROJECT_ID | OPT | — | BrowserBase project identifier | https://browserbase.com |
+| BROWSER_USE_API_KEY | OPT | — | Browser Use cloud API key | https://browser-use.com |
+| KERNEL_API_KEY | OPT | — | Kernel cloud browser API key | — |
+
+## document-generation
+
+No env vars — requires Python packages (pdfplumber, python-docx, pypdf, pillow, defusedxml, lxml) and Node globals (docx, pptxgenjs).
+
+## security-scanning
+
+No env vars — requires `gitleaks` CLI tool.
+
+## scrapling
+
+No env vars — requires `scrapling` Python package.

@@ -14,6 +14,8 @@ metadata:
 ---
 # X-to-Slack: Tweet Intelligence Pipeline
 
+> **Note**: This is the project-level Twitter-only handler (v1.1.0). The canonical universal handler supporting Twitter, GitHub, YouTube (with Defuddle transcript), and articles is at `~/.cursor/skills/x-to-slack/SKILL.md` (v2.2.0). Use the user-level version for non-Twitter URLs.
+
 Process an X (Twitter) URL, gather context through web research, and post a structured 3-message thread to a specified Slack channel.
 
 ## Input
