@@ -137,6 +137,99 @@ Skills should work identically across:
 - Claude.ai (Projects)
 - Claude Code (CLI)
 - Cursor IDE
+- Google ADK (via `load_skill_from_dir()`)
 - API integrations
 
 Avoid IDE-specific commands or paths. Use relative paths for all file references within the skill.
+
+## 10. Content Design Patterns
+
+Five content design patterns complement the infrastructure patterns in Section 5. While infrastructure patterns describe _how skills orchestrate work_, content design patterns describe _how skills structure their internal knowledge and interaction logic_.
+
+### Pattern A: Tool Wrapper
+
+Provides on-demand context for a specific library, API, or coding standard. Instead of hardcoding rules in the system prompt, the skill loads focused reference files when triggered.
+
+**Structure:**
+```
+skill-name/
+  SKILL.md            # Trigger logic + "read references/X when..."
+  references/
+    api-rules.md      # Library-specific constraints
+    coding-guide.md   # Team coding standards
+```
+
+**Key principle:** The `references/` files are the value — SKILL.md is just the loader. Swapping reference files changes the domain expertise without modifying the skill.
+
+### Pattern B: Generator
+
+Separates output templates from style/formatting rules for consistent artifact creation.
+
+**Structure:**
+```
+skill-name/
+  SKILL.md            # Generation workflow
+  assets/
+    templates/        # Output structure templates
+  references/
+    style-guide.md    # Formatting rules, tone, conventions
+```
+
+**Key principle:** Templates define _what_ gets produced; style guides define _how_ it looks. Both are swappable independently.
+
+### Pattern C: Reviewer
+
+Separates "what to check" (swappable review criteria) from "how to check" (review infrastructure).
+
+**Structure:**
+```
+skill-name/
+  SKILL.md            # Review workflow + aggregation logic
+  references/
+    review-checklist.md  # Swappable criteria
+    agent-prompts.md     # Domain-specific reviewer instructions
+```
+
+**Key principle:** Replacing `review-checklist.md` (e.g., Python style to OWASP security) transforms the review domain while reusing the same infrastructure.
+
+### Pattern D: Inversion
+
+Agent interviews the user before producing output. Explicit gate conditions prevent premature generation from incomplete context.
+
+**Implementation:**
+```markdown
+## HARD-GATE
+Do NOT produce any output until ALL of the following are confirmed:
+1. [Required context item 1]
+2. [Required context item 2]
+3. User has approved the approach
+If any requirement is missing, ASK — do not assume.
+```
+
+**Key principle:** The gate forces context completeness. Without it, agents tend to generate from partial information, producing plausible but wrong output.
+
+### Pattern E: Pipeline
+
+Enforces step-by-step execution with checkpoint verification between phases. Each phase loads only the reference files it needs.
+
+**Implementation:**
+```markdown
+### Phase 1: [Name]
+Read `references/phase-1-context.md`. Execute steps. Verify output.
+
+### Phase 1½: Quality Gate
+Before proceeding, verify: [criteria]. If ANY fails, STOP.
+
+### Phase 2: [Name]
+Read `references/phase-2-context.md`. Execute steps.
+```
+
+**Key principle:** Diamond gate conditions between phases prevent step-skipping. Phase-specific reference loading conserves context window tokens.
+
+### Pattern Combinations
+
+Patterns are composable:
+- **Pipeline + Reviewer**: Add a Reviewer checkpoint stage within a Pipeline
+- **Generator + Inversion**: Interview for requirements before generating from templates
+- **Tool Wrapper + Reviewer**: Load domain rules, then review code against them
+- **Pipeline + Inversion**: Interview at pipeline start, checkpoints throughout

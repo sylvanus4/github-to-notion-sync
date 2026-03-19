@@ -71,6 +71,17 @@ Follow the `domain-commit` skill pattern. For domain-to-path mapping and hook re
    - If pre-commit auto-fixes files: re-add and create new commit.
 3. Verify: `git status --short` must be empty.
 
+### Step 2.5: Pre-Push Quality Gate
+
+Before `git push origin HEAD:tmp`, verify:
+- [ ] All pre-commit hooks passed (no bypassed commits via `--no-verify`)
+- [ ] `git status --short` is empty (all changes committed)
+- [ ] All commit messages follow `[TYPE] Summary` format (check via `git log --oneline -N`)
+- [ ] No sensitive files staged (`.env`, `credentials`, `secrets`, `*.key`, `*.pem`)
+- [ ] Total diff is reviewable (`git diff --stat HEAD~N` shows < 500 lines, or split plan exists)
+
+If diff exceeds 500 lines, warn the user and suggest splitting into sequential domain-commit batches with intermediate pushes.
+
 ### Step 3: Push
 
 ```bash

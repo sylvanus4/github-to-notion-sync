@@ -113,6 +113,16 @@ After all batches complete:
 3. Separate: relevant roles (score >= 5) and skipped roles (score < 5)
 4. Log participation stats: "{N}/12 roles participated"
 
+### Step 3.5: Cross-Role Consistency Gate
+
+Before invoking executive-briefing, verify:
+- [ ] At least 3 role analyses completed with score >= 5 (not just 2)
+- [ ] All output files in `outputs/role-analysis/{topic-slug}/` are non-empty and contain the required sections (relevance score, analysis body, recommendations)
+- [ ] No two role analyses contain directly contradicting recommendations without explanation (e.g., CTO says "delay launch" while Sales says "launch immediately" — flag for executive-briefing to address)
+- [ ] Relevance score distribution is reasonable (not all identical scores, which suggests template copying)
+
+If fewer than 3 roles participated, append a "⚠️ Limited Perspective Warning" note to the executive-briefing input indicating which perspectives are missing and why the analysis may be incomplete.
+
 ### Step 4: Synthesis — Executive Briefing
 
 Invoke the `executive-briefing` skill:

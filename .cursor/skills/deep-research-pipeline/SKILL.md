@@ -92,6 +92,17 @@ Store these as `research_context` for Stage 2.
 **If `parallel-cli` is not found**: stop immediately, tell the user to run
 `/parallel-setup`, then retry. Do NOT substitute with manual web search.
 
+## Stage 1.5: Research Quality Gate
+
+Before invoking role-dispatcher, verify the research output:
+- [ ] Research report file `{topic-slug}.md` exists and word count >= 500
+- [ ] At least 3 distinct sources cited (URLs, papers, or named references)
+- [ ] Key findings are extractable (numbered list or structured sections with headings)
+- [ ] No placeholder text remains ("TBD", "TODO", "research needed", "to be added")
+- [ ] `{topic-slug}.json` metadata file exists with valid source entries
+
+If research is thin (< 500 words or < 3 sources), warn the user and offer to re-run with broader search terms or a higher processor tier (`ultra` instead of `pro-fast`). If the report is empty, abort the pipeline.
+
 ## Stage 2: Role Dispatcher
 
 Run `role-dispatcher` with the research findings as enriched context.

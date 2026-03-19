@@ -1,0 +1,63 @@
+# X-to-Slack Thread Template
+
+Three-message thread structure for posting tweet intelligence to Slack.
+
+## Message 1: Title (Channel Post)
+
+```
+{1-2 line Korean title summarizing the core insight of the tweet}
+{original tweet URL (tweet.url)}
+>>>
+```
+
+The `>>>` creates a blockquote visual separator. Capture `message_ts` from the response for thread replies.
+
+## Message 2: Detailed Summary (Thread Reply)
+
+```
+*Tweet 요약*
+- 작성자: @{screen_name} ({name})
+- 반응: ❤️ {likes} | 🔁 {retweets} | 👀 {views}
+- 작성일: {created_at}
+
+*핵심 내용*
+{Tweet 내용을 한국어로 요약 정리. 원문이 영어인 경우 번역 포함.}
+
+{인용 트윗이 있는 경우:}
+*인용 트윗 (@{quote.author.screen_name})*
+{quote.text 요약}
+
+*추가 조사 결과*
+{WebSearch로 수집한 관련 정보를 bullet point로 정리}
+- {관련 배경 정보}
+- {최근 동향}
+- {영향 및 의미}
+
+*참고 링크*
+- {검색에서 발견한 관련 URL들}
+```
+
+## Message 3: AI GPU Cloud Insights (Thread Reply)
+
+```
+*AI GPU Cloud 서비스 인사이트*
+
+{이 트윗 주제가 AI GPU Cloud / AI 플랫폼 서비스에 어떤 의미를 가지는지 분석}
+
+*핵심 시사점*
+- {GPU 클라우드 인프라 관점에서의 인사이트}
+- {AI 플랫폼 서비스에 미칠 영향}
+- {팀이 취해야 할 액션 또는 고려사항}
+
+*적용 가능성*
+{구체적으로 우리 서비스에 어떻게 적용하거나 대응할 수 있는지}
+```
+
+## Formatting Rules
+
+- `*bold*` (single asterisk only, never `**`)
+- `_italic_` (underscore)
+- `<url|text>` for links
+- No `## headers` — use `*bold text*` on its own line
+- Write content in Korean
+- Limit each message to under 4000 characters

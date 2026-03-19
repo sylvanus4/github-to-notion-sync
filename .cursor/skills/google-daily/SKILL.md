@@ -27,8 +27,12 @@ Calendar → Gmail Triage → Drive Upload → Slack Notify (+ threads) → Memo
 |-----|-------|
 | Channel | `#효정-할일` |
 | Channel ID | `C0AA8NT4T8T` |
+| Decision (Personal) | `#효정-의사결정` |
+| Decision (Personal) ID | `C0ANBST3KDE` |
+| Decision (Team) | `#7층-리더방` |
+| Decision (Team) ID | `C0A6Q7007N2` |
 
-All Slack messages go to this channel. Never use DM.
+All Slack messages go to `#효정-할일`. Decision items go to their respective channels. Never use DM.
 
 ## Phase 1 -- Calendar Briefing
 
@@ -79,6 +83,16 @@ gws drive +upload /tmp/reply-needed-YYYY-MM-DD.docx --parent FOLDER_ID
 ```
 
 Save Drive folder URL and file links for Phase 4.
+
+## Phase 3.5 -- Pre-Notification Quality Gate
+
+Before posting to Slack, verify:
+- [ ] Calendar summary exists and covers today's date (or Phase 1 explicitly failed with error logged)
+- [ ] Gmail triage result includes counts (spam, notifications, colleague, news, reply-needed)
+- [ ] Drive uploads (if any) completed without error; file links are captured
+- [ ] `colleague_emails[]` and `news_articles[]` arrays are populated (empty is OK if no such emails exist)
+
+If calendar or Gmail failed, post a partial briefing clearly marking missing sections with `[미완료]`. Do NOT silently omit sections.
 
 ## Phase 4 -- Slack Notify (threaded)
 
@@ -149,6 +163,54 @@ Insight format example:
 - `<url|text>` (links)
 - No `## headers` -- use `*bold text*` on its own line
 - `> quote` for draft replies
+
+## Phase 4.5 -- Decision Extraction
+
+Skip if `skip-decisions` flag is set. After posting the main summary and threads to `#효정-할일`, scan the collected data for decision-worthy items using the `decision-router` skill rules.
+
+**Step 4.5a — Scan colleague emails:**
+
+Review `colleague_emails[]` for decision keywords: 승인, 결정, 예산, 아키텍처, 채용, 제안, 검토 요청, approve, budget, architecture, hire, proposal, review.
+
+- Emails requesting approval, budget, or architectural decisions → scope: **team**, post to `#7층-리더방` (`C0A6Q7007N2`)
+- Emails with explicit questions requiring a personal response → scope: **personal**, post to `#효정-의사결정` (`C0ANBST3KDE`)
+
+**Step 4.5b — Scan reply-needed emails:**
+
+Review `reply_needed[]` for items that require a decision (respond/ignore/delegate). Post to `#효정-의사결정` as personal decisions with MEDIUM urgency.
+
+**Step 4.5c — Scan calendar conflicts:**
+
+If Phase 1 found overlapping events or HIGH-priority meetings requiring prep decisions, post to `#효정-의사결정` as personal decisions with HIGH urgency.
+
+**Step 4.5d — Format and post:**
+
+For each detected decision item, format using the DECISION template from `decision-router`:
+
+```
+*[DECISION]* {urgency_badge} | 출처: google-daily
+
+*{Decision Title}*
+
+*배경*
+{1-3 sentence context}
+
+*판단 필요 사항*
+{What needs to be decided}
+
+*옵션*
+A. {option A} — {brief pro/con}
+B. {option B} — {brief pro/con}
+C. 보류 / 추가 조사 필요
+
+*추천*
+{recommended option with rationale}
+
+*긴급도*: {HIGH / MEDIUM / LOW}
+*원본*: <{slack_thread_link}|Google Daily {date}>
+```
+
+Post each decision as a separate message (not threaded) to the appropriate channel. Include decision posts in the Phase 5 Memory Sync entry.
 
 ## Phase 5 -- Memory Sync
 

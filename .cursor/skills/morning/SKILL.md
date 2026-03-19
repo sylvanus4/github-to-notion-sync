@@ -63,6 +63,15 @@ If Google Daily fails at any sub-phase, log the error and continue to
 Phase 2. The morning briefing (Phase 3) will note which sub-phases
 completed successfully.
 
+## Phase 1.5: Google Daily Completion Gate
+
+Before proceeding to the Today pipeline, verify:
+- [ ] Calendar briefing generated (non-empty event list or "no events today")
+- [ ] Gmail triage completed (counts reported: spam, notifications, colleague, reply-needed)
+- [ ] No Google API authentication failures that halted the entire Phase 1
+
+If Google Daily fails entirely (auth error, CLI not found), proceed to Phase 2 independently and note the failure in the Phase 3 briefing. Partial failures (e.g., calendar OK but Gmail failed) are acceptable — continue and report which sub-phases succeeded.
+
 ## Phase 2: Today Pipeline
 
 Read and execute `.cursor/skills/today/SKILL.md`.

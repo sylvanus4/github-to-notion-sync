@@ -105,6 +105,17 @@ Apply `--title-prefix` to titles after extraction.
 
 If `--dry-run`, print `[N] {title} ({chars} chars) ← {filepath}` and stop.
 
+### Step 2.5: Pre-Publish Validation Gate
+
+Before creating Notion pages, verify for each file:
+- [ ] Title extracted (non-empty H1 heading or valid filename-derived title)
+- [ ] Content is non-empty after table conversion
+- [ ] No files exceed `--split-threshold` without a split plan (check JSON `split` flag)
+- [ ] Pipe tables converted to Notion-compatible `<table>` HTML blocks (verify JSON output has no remaining `|---|` patterns outside code blocks)
+- [ ] ASCII diagrams wrapped in fenced code blocks (preserved, not converted)
+
+If any file fails validation, skip it with a warning message and continue with remaining files. Report skipped files at the end.
+
 ### Step 3: Publish to Notion
 
 **CRITICAL MCP call format** — the `parent` field must be an object, and `title`

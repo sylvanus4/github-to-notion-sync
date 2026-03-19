@@ -164,6 +164,17 @@ These are subcategorized under Category B (Low Priority) but explicitly handled:
 - Detect by sender containing `calendar-notification@google.com` or snippet containing "수락", "거절", "accepted", "declined"
 - Move to Low Priority label
 
+### Phase 2.5: Classification Validation Gate
+
+Before proceeding to filter creation and report, verify classification results:
+- [ ] Every fetched message was assigned exactly one category (A through F, no uncategorized)
+- [ ] Category counts sum to total fetched messages
+- [ ] No company colleague emails (`@thakicloud.co.kr`, `@bespinglobal.com`) were classified as spam (Category A)
+- [ ] Category E (Needs Reply) emails have non-empty summaries and draft replies
+- [ ] Category C (bespin_news) processing produced a non-empty .docx OR an explicit error log
+
+If any company domain email was misclassified as spam, immediately reclassify it as Category D and log a warning. If any message was unclassified, default to Category E (Needs Reply) and flag for manual review.
+
 ### Phase 3: Generate Gmail Filters
 
 Based on the day's triage patterns, create Gmail filters for automation.

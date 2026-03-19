@@ -48,6 +48,10 @@ Generate comprehensive daily stock analysis reports in .docx format combining te
 - Requires PostgreSQL with recent data from breadth, news, and indicator refreshes
 - Requires python-docx for document generation
 
+## Report Structure
+
+See [references/report-template.md](references/report-template.md) for the standard report structure, section order, formatting standards, and data requirements.
+
 ## Output
 
 Korean-language daily analysis .docx report with technical analysis, market environment, and signals.

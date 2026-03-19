@@ -244,16 +244,17 @@ If Phase 3 produced contextual PM analysis (SWOT, assumptions, ICP, etc.),
 append it as an additional section in the summary document under
 `## 부록: PM 분석`.
 
-### Quality Checklist
+### Quality Checklist (HARD-GATE — do NOT proceed to Phase 5 until ALL pass)
 
-Before proceeding to Phase 5, verify:
-- [ ] Every discussion topic is captured
-- [ ] All decisions listed with context
-- [ ] All participants mentioned with roles
-- [ ] No action items missing
-- [ ] Open questions documented
-- [ ] PM analysis appendix included (if applicable)
-- [ ] Language is clear, professional Korean
+- [ ] Every discussion topic captured (topic count in summary >= topic count in transcript)
+- [ ] All decisions listed with context (each decision has: what, who, rationale)
+- [ ] All participants mentioned with roles (participant count matches transcript)
+- [ ] No action items missing (action items have: owner, deadline or "TBD", deliverable)
+- [ ] Open questions documented (at least 1 if meeting had unresolved discussions)
+- [ ] PM analysis appendix included (if meeting type is strategy/product/technical)
+- [ ] Language is clear, professional Korean (no English sentences except proper nouns)
+
+If any item fails, fix the generated documents before proceeding. Do NOT proceed to Phase 5 with incomplete or placeholder content.
 
 ---
 

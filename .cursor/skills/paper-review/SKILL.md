@@ -64,6 +64,7 @@ Read these as needed during execution:
 Phase 1: Ingest Paper (PDF/URL/markdown → structured text)
 Phase 2: Generate Korean Paper Review (core deliverable, always produced)
 Phase 3: Multi-Perspective PM Analysis (parallel subagents, optional)
+Phase 3½: Cross-Perspective Consistency Gate
 Phase 4: Consolidate into DOCX (Word report)
 Phase 5: Generate PPTX (PowerPoint presentation, anthropic-pptx)
 Phase 6: Generate NLM Slides (NotebookLM slide deck from DOCX)
@@ -266,6 +267,18 @@ For each file:
 3. If the file has **fewer than 80 lines**, regenerate with more detail.
 
 Do NOT proceed to Phase 4 until all 6 perspective files pass verification.
+
+---
+
+## Phase 3½: Cross-Perspective Consistency Gate
+
+Before consolidating into DOCX, verify consistency across Phase 2 review and Phase 3 perspective analyses:
+
+- [ ] **No contradictions** — If one perspective recommends adoption while another flags critical risks, note the disagreement explicitly rather than silently including both
+- [ ] **Paper citations consistent** — All perspectives reference the same paper metrics (performance numbers, dataset sizes, cost figures) without conflicting values
+- [ ] **Completeness** — Each perspective file is 80+ lines with specific analysis (not template skeletons)
+
+If contradictions are found, add a "## 관점 간 차이점" (Cross-Perspective Disagreements) section to the review summarizing the conflicts. Do NOT resolve them silently — present both viewpoints.
 
 ---
 

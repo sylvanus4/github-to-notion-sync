@@ -95,6 +95,17 @@ This outputs JSON with:
 - `results[]`: per-stock analysis with turtle, bollinger, overall signals
 - `summary`: count of each signal type
 
+### Step 1.5: Analysis Quality Gate
+
+Before formatting for Slack, verify the analysis output:
+- [ ] Analysis JSON contains `total_stocks >= 1`
+- [ ] Each stock result has both Turtle and Bollinger analysis sections
+- [ ] Data dates are within the last 3 trading days (skip this check on weekends/holidays)
+- [ ] No script errors in stderr output
+- [ ] Summary signal counts (BUY + NEUTRAL + SELL) equal `total_stocks`
+
+If analysis produced partial results (some tickers failed), include a `[부분 분석]` warning banner in the Slack message listing failed tickers. See [assets/templates/slack-message.md](assets/templates/slack-message.md) for the message template.
+
 ### Step 2: Find Slack Channel ID
 
 Use `slack_search_channels` MCP tool to find `#h-daily-stock-check`:

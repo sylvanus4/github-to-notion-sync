@@ -120,6 +120,17 @@ Run the `today` skill (`.cursor/skills/today/SKILL.md`) with `--skip-slack` flag
 7. Report generation (.docx)
 8. Capture output: `{stocks_analyzed, signals[], report_path, screener_results}`
 
+### Phase 3.5: Pre-Notification Quality Gate
+
+Before posting the morning briefing to Slack, verify:
+- [ ] Git sync: all targeted repos pulled successfully (no merge conflicts remaining)
+- [ ] Calendar: briefing contains today's date and event list (or explicit `--skip-google`)
+- [ ] Gmail: triage completed with counts reported (or explicit `--skip-google`)
+- [ ] Stock pipeline: report .docx generated OR explicit skip-reason logged (or `--skip-stock`)
+- [ ] No phase produced an unhandled error
+
+If any critical item fails, post a **degraded briefing** that lists completed phases and flags failures with `[INCOMPLETE]` markers. Do NOT silently omit failed sections.
+
 ### Phase 4: Slack Notification
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.

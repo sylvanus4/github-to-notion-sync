@@ -32,9 +32,17 @@ Design compelling presentation strategy, narrative, and content before a single 
 | Audience psychology experts | PowerPoint template builders |
 | Data storytelling consultants | Chart/graph generators |
 
-## Input
+## HARD-GATE
 
-Gather these from the user before starting. Required fields must be collected; optional fields enhance output quality.
+Do NOT produce any strategy, blueprint, or slide script until ALL of the following are confirmed:
+
+1. **Topic** — The presentation subject
+2. **Audience** — Who will watch (investors, board, engineers, customers)
+3. **Objective** — What the presenter wants the audience to DO after (if not provided, ASK explicitly)
+
+If any requirement is missing, ASK — do not assume. Infer recommended fields from context and state assumptions explicitly.
+
+## Input
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
@@ -46,8 +54,6 @@ Gather these from the user before starting. Required fields must be collected; o
 | **outline** | Optional | Existing draft outline to refine or stress-test |
 | **objections** | Optional | Known audience objections or concerns |
 | **module** | Optional | Specific module(s) to run (1-10 or "all", default: "all") |
-
-If the user omits required fields, ask for them before proceeding. If they omit recommended fields, infer from context and state your assumption explicitly.
 
 ## Workflow
 
