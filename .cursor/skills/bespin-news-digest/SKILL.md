@@ -31,6 +31,8 @@ comprehensive DOCX, and post a Drive-linked summary to `#효정-할일`.
 | `press` | `C0A7NCP33LG` | Per-article threads (news/media) |
 | `효정-할일` | `C0AA8NT4T8T` | Final summary post |
 | `효정-insight` | `C0A8SSPC9RU` | (optional override for high-impact articles) |
+| `효정-의사결정` | `C0ANBST3KDE` | Personal decision items (decision-router) |
+| `7층-리더방` | `C0A6Q7007N2` | Team/CTO decision items (decision-router) |
 
 ## Phase 1 — Gmail Fetch
 
@@ -268,6 +270,20 @@ After posting all 3 messages for an article, wait **12 seconds** before
 processing the next article. If a Slack rate limit error occurs, wait 20 seconds
 and retry once.
 
+### Step 3f: Per-Article Decision Check (skip if `skip-decisions`)
+
+After posting Message 3 for an article, evaluate whether the article's insights
+suggest a team-level or personal decision using `decision-router` rules.
+
+Detection criteria for bespin-news articles:
+- Cloud provider pricing/service change affecting ThakiCloud infrastructure → **team**, HIGH
+- Partnership or vendor opportunity → **team**, MEDIUM
+- Competitive product launch requiring strategic response → **team**, MEDIUM
+- Product feature idea derived from industry trend → **team**, LOW
+
+If a decision is detected, flag the article for Phase 6.5 consolidation. Store:
+`{title, decision_scope, urgency, decision_summary, slack_thread_link}`.
+
 ## Quality Gate
 
 Each posted Slack thread MUST include ALL of the following. If any item is
@@ -366,6 +382,47 @@ Post a final summary to `#효정-할일` (`C0AA8NT4T8T`):
 <{DRIVE_LINK}|bespin-news-{YYYY-MM-DD}.docx>
 
 _각 기사 상세 분석은 #press 채널에서 확인하세요_
+```
+
+## Phase 6.5 — Decision Summary Post (skip if `skip-decisions`)
+
+After Phase 6, collect all articles flagged in Step 3f and post consolidated
+DECISION messages to `#7층-리더방` (`C0A6Q7007N2`).
+
+If no decision items were flagged → skip this phase entirely.
+
+For each flagged decision item, post a separate DECISION message using the
+`decision-router` template:
+
+```
+*[DECISION]* {urgency_badge} | 출처: bespin-news-digest
+
+*{Decision Title}*
+
+*배경*
+{1-3 sentence context from the article insights}
+
+*판단 필요 사항*
+{What the team/CTO needs to decide}
+
+*옵션*
+A. {action option} — {pro/con}
+B. {alternative option} — {pro/con}
+C. 보류 / 추가 조사 필요
+
+*추천*
+{recommended option with rationale}
+
+*긴급도*: {HIGH / MEDIUM / LOW}
+*원본*: <{slack_thread_link}|{article title} (#press)>
+```
+
+If there are 3+ decision items, also post a summary header message first:
+
+```
+*[Bespin 뉴스 의사결정 요약]* ({date})
+오늘 뉴스 다이제스트에서 {N}건의 의사결정 항목이 감지되었습니다.
+각 항목이 아래에 개별 메시지로 게시됩니다.
 ```
 
 ## Error Recovery

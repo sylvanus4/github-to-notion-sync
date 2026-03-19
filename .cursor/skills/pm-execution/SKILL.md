@@ -40,11 +40,24 @@ Product execution skill orchestrator. Routes user requests to 15 sub-skills for 
 | user-stories | User stories, 3 C's, INVEST | [references/user-stories.md](references/user-stories.md) |
 | wwas | Why-What-Acceptance backlog items | [references/wwas.md](references/wwas.md) |
 
+## HARD-GATE (Complex Sub-Skills)
+
+For sub-skills that produce substantial artifacts (create-prd, brainstorm-okrs, sprint-plan, stakeholder-map, outcome-roadmap), do NOT start generating until these are confirmed:
+
+1. **Product/feature scope** — What product, feature, or initiative is this for?
+2. **Stakeholders** — Who are the key stakeholders or decision-makers?
+3. **Constraints** — Any known timeline, resource, or technical constraints?
+
+If the user's request lacks these, ASK before proceeding. Do not fabricate product details.
+
+This gate does NOT apply to lightweight sub-skills: release-notes, retro, summarize-meeting, dummy-dataset, test-scenarios.
+
 ## Workflow
 
-1. **Route**: Match user intent to one sub-skill from the index.
-2. **Read**: Load `references/<sub-skill>.md` and follow its instructions.
-3. **Execute**: Produce output per reference template; save markdown when substantial.
+1. **Gate**: For complex sub-skills, verify HARD-GATE requirements are met.
+2. **Route**: Match user intent to one sub-skill from the index.
+3. **Read**: Load `references/<sub-skill>.md` and follow its instructions.
+4. **Execute**: Produce output per reference template; save markdown when substantial.
 
 ## Examples
 

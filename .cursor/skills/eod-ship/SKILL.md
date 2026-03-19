@@ -96,6 +96,16 @@ git status --short
 
 If a project directory does not exist, warn and skip it. Continue with remaining projects.
 
+### Phase 3½: Pre-Ship Quality Gate
+
+Before posting to Slack, verify shipping integrity:
+
+- [ ] **No unintended files staged** — Check that no `.env`, credentials, or large binary files were committed across any project
+- [ ] **All repos clean** — Every shipped project should have a clean `git status` after release-ship (no leftover unstaged changes)
+- [ ] **Branch consistency** — Current project pushed to correct remote branch (ai-platform-webui uses `tmp`, others use standard)
+
+If any criterion fails, log the issue in the Slack message as a warning. Do NOT suppress the notification — post with warnings.
+
 ### Phase 4: Slack Notification
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.

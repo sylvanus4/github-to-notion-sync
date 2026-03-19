@@ -144,6 +144,17 @@ Combine into: EN document + KO document (separated by `---`).
 
 Skills used: **nlm-slides** (rewrite patterns)
 
+### Phase 4.5: Content Quality Gate
+
+Before creating the NotebookLM notebook, verify the expert rewrite output:
+- [ ] EN document exists and word count >= 300
+- [ ] KO document exists and word count >= 300
+- [ ] Both documents have section headings (at least 3 `##` sections)
+- [ ] `[Visual: ...]` description hints present where figures/charts/equations exist in the original
+- [ ] No raw LaTeX or broken formatting remains (e.g., unescaped `$`, `\begin{}` outside code blocks)
+
+If either document is below quality bar (< 300 words or < 3 sections), re-run the expert rewrite for the deficient sections using the `references/system-prompt.md` prompt.
+
 ### Phase 5: Create NotebookLM Notebook
 
 ```

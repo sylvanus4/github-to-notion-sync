@@ -86,6 +86,17 @@ The response will contain `Channel: #channel-name (ID: C0XXXXXXXX)`. Extract the
 
 If all steps fail to find a channel, ask the user to clarify.
 
+### Step 3.5: Pre-Post Quality Gate
+
+Before posting to Slack, verify all 3 thread messages are ready:
+- [ ] Message 1 (Title): Contains author handle, engagement metrics, and direct tweet URL
+- [ ] Message 2 (Summary): Contains Korean summary, 3+ key insights from web research, source links
+- [ ] Message 3 (AI GPU Cloud): Contains ThakiCloud relevance analysis OR explicit "관련 없음" statement
+- [ ] All messages use Slack mrkdwn (not markdown) — no `**` or `##`
+- [ ] Media attachments prepared via 3-step Slack upload flow if original tweet has images/video
+
+If web research returned no relevant results, note this in Message 2 rather than omitting the section. See [assets/templates/slack-thread.md](assets/templates/slack-thread.md) for the 3-message template structure.
+
 ### Step 4: Post to Slack (3 Messages)
 
 All messages use Slack mrkdwn format. Rules:

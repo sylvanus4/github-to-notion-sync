@@ -105,6 +105,36 @@ find .cursor/skills -name "SKILL.md" -type f | sort
 | curl/fetch step for rules already in the skill | Remove the fetch step |
 | Inline code blocks duplicating a script file | Link to the script instead |
 
+## 7. Content Design Pattern (5 checks)
+
+Classify the skill into one or more of the 5 content design patterns (derived from Google ADK / agentskills.io ecosystem analysis, March 2026). A skill may combine multiple patterns.
+
+- [ ] **Pattern classification**: Skill's primary pattern(s) identifiable as one or more of: Tool Wrapper, Generator, Reviewer, Inversion, Pipeline
+- [ ] **If Tool Wrapper**: Domain/API context loaded on-demand from `references/` rather than hardcoded inline. Context files are focused on a single library or API surface.
+- [ ] **If Generator**: Output templates separated into `assets/templates/` and style guides / formatting rules in `references/`. Template and style concerns are not mixed in SKILL.md body.
+- [ ] **If Reviewer**: Review criteria externalized to a swappable checklist file in `references/` (e.g., `review-checklist.md`). Replacing the checklist file changes the review domain without modifying the skill infrastructure.
+- [ ] **If Inversion**: Explicit gate condition documented (`HARD-GATE`, `AskQuestion`, or equivalent) that prevents output generation until all required context is gathered from the user.
+- [ ] **If Pipeline**: Phases have diamond gate conditions (checkpoint verification before proceeding). Phase-specific reference files are loaded only during their respective phase to conserve context window.
+
+### Pattern Identification Guide
+
+| Pattern | Signal in SKILL.md | Exemplar Skills |
+|---------|-------------------|-----------------|
+| Tool Wrapper | `references/` with API docs, coding guidelines, or library rules loaded on trigger | `backend-expert`, `security-expert`, `frontend-expert` |
+| Generator | `assets/templates/` for output structure, `references/` for style/formatting rules | `docx-template-engine`, `ppt-template-engine`, `alphaear-reporter` |
+| Reviewer | Swappable checklist in `references/`, audit infrastructure in SKILL.md body | `deep-review`, `simplify`, `skill-optimizer` |
+| Inversion | `HARD-GATE`, `AskQuestion`, or "do NOT proceed until" blocks before any output | `sp-brainstorming`, `create-skill`, `anthropic-skill-creator` |
+| Pipeline | Numbered phases with "verify before proceeding" checkpoints, phase-specific reference loading | `today`, `paper-review`, `release-commander` |
+
+### Common Pattern Combinations
+
+| Combination | Use Case | Example |
+|-------------|----------|---------|
+| Pipeline + Reviewer | Complex workflows with built-in quality gates | `release-commander` + quality checkpoint |
+| Generator + Inversion | Interview for requirements before generating artifacts | `anthropic-pptx` + audience/purpose interview |
+| Tool Wrapper + Reviewer | Load domain rules, then review against them | `security-expert` loads OWASP, reviews code |
+| Pipeline + Inversion | Interview at pipeline start, checkpoints throughout | `paper-review` with scope confirmation |
+
 ---
 
 ## Severity Classification

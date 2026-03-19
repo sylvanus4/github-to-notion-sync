@@ -113,6 +113,16 @@ Launch 3 sub-agents:
 - Attempt auto-fix for test failures (retry once)
 - For CVEs, recommend patch updates
 
+### Step 3½: Cross-Group Consistency Gate
+
+Before packaging, verify that Group A and Group B findings are consistent:
+
+- [ ] **No conflicting remediations** — Security fixes don't break tests; dependency updates don't introduce new security findings
+- [ ] **All Critical/High findings addressed** — Every Critical or High finding from Group A has either been fixed, accepted by the user, or has a documented exception
+- [ ] **Coverage not regressed** — Test coverage has not decreased compared to the base branch
+
+If any criterion fails, present the inconsistency to the user before proceeding to Group C.
+
 ### Step 4: Group C — Package
 
 Sequential execution:

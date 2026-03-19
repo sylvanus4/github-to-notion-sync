@@ -28,9 +28,9 @@ Professional financial report generation via a Plan → Write → Edit → Chart
 ## Workflow
 
 1. **Cluster Signals**: Read input signals and use the **Cluster Signals Prompt** in `references/PROMPTS.md` to group them into 3–5 themes.
-2. **Write Sections**: For each cluster, use the **Write Section Prompt** in `references/PROMPTS.md` to generate deep analysis; include `json-chart` blocks where appropriate.
-3. **Final Assembly**: Use the **Final Assembly Prompt** in `references/PROMPTS.md` to compile sections into a report with Executive Summary, Risk Factors, and References.
-4. **Visualization**: Use `scripts/visualizer.py` for chart configs when needed; the Writer prompt typically handles charts via `json-chart` blocks.
+2. **Write Sections**: For each cluster, use the **Write Section Prompt** in `references/PROMPTS.md` to generate deep analysis; follow the section structure in [assets/templates/report-structure.md](assets/templates/report-structure.md); include `json-chart` blocks where appropriate.
+3. **Final Assembly**: Use the **Final Assembly Prompt** in `references/PROMPTS.md` to compile sections into a report following the output structure in [assets/templates/report-structure.md](assets/templates/report-structure.md) — verify section order, quality criteria, and chart configurations match the template.
+4. **Visualization**: Use `scripts/visualizer.py` for chart configs when needed; chart configuration templates are documented in [assets/templates/report-structure.md](assets/templates/report-structure.md).
 
 ## Examples
 

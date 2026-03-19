@@ -343,6 +343,55 @@ _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) +
 :bulb: {과매도_종목}는 RSI {rsi}로 과매도 구간, 반등 가능성 모니터링 필요
 ```
 
+**Step 5d — Trading Decision Extraction (skip if `skip-decisions`):**
+
+After posting to Slack, scan the analysis results for decision-worthy trading signals using the `decision-router` skill rules. All trading decisions go to `#효정-의사결정` (`C0ANBST3KDE`) as personal scope.
+
+Detection criteria:
+- STRONG_BUY signal with composite score >= 8 → post as position entry decision (urgency: HIGH)
+- STRONG_SELL signal with high confidence → post as exit decision (urgency: HIGH)
+- Multiple correlated BUY signals in same sector → post as sector rebalancing decision (urgency: MEDIUM)
+- RSI extreme (> 80 or < 20) with ADX > 25 → post as risk alert decision (urgency: MEDIUM)
+- Screener STRONG BUY stocks not currently in portfolio → post as new position decision (urgency: MEDIUM)
+
+For each detected signal, format using the DECISION template:
+
+```
+*[DECISION]* {urgency_badge} | 출처: today
+
+*{Ticker} {signal_type} 검토*
+
+*배경*
+{Signal details: composite score, RSI, ADX, MA alignment, Bollinger position}
+
+*판단 필요 사항*
+{Position entry/exit/rebalancing decision}
+
+*옵션*
+A. {action option} — {rationale with metrics}
+B. {wait option} — {rationale}
+C. 보류 / 추가 조사 필요
+
+*추천*
+{recommended option with technical rationale}
+
+*긴급도*: {HIGH / MEDIUM / LOW}
+*원본*: outputs/reports/daily-{date}.docx
+```
+
+Post each decision as a separate message (not threaded) to `#효정-의사결정`.
+
+### Phase 5½: Report Quality Gate
+
+Before posting to Slack or proceeding to Phase 6, verify report quality:
+
+- [ ] **Data consistency** — All tickers in the report have matching DB data (no stale or missing prices)
+- [ ] **Signal accuracy** — Buy/sell signals match the underlying indicator calculations (SMA crossovers, RSI thresholds, Bollinger position)
+- [ ] **Report completeness** — All tracked tickers appear in the report; no ticker silently dropped
+- [ ] **Date correctness** — Report date matches the latest trading date in the DB, not today's calendar date
+
+If ANY criterion fails, log the discrepancy in the report's appendix and flag it in the Slack message. Do NOT suppress the report — post it with warnings attached.
+
 ### Phase 6: Twitter Timeline to Slack (Optional)
 
 Fetch the user's latest tweets and post to classified Slack channels. Skip with `skip-twitter`.
@@ -388,6 +437,7 @@ Report the number of tweets fetched, classified, and posted with channel distrib
 | `skip-quality-gate` | Skip report quality evaluation (Step 5b½) | `/today skip-quality-gate` |
 | `skip-report` | Run Phase 1+2+3 only, no analysis or report | `/today skip-report` |
 | `skip-setup-doctor` | Skip Phase 0, no pre-flight setup check | `/today skip-setup-doctor` |
+| `skip-decisions` | Skip Step 5d, no trading decision extraction | `/today skip-decisions` |
 | `skip-twitter` | Skip Phase 6, no Twitter timeline fetch+post | `/today skip-twitter` |
 | `twitter-only` | Run Phase 6 only (twitter-timeline-to-slack) | `/today twitter-only` |
 
@@ -552,6 +602,7 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **DB models**: `backend/app/models/stock_price.py` (`Ticker`, `StockPrice`), `backend/app/models/llm_agents/models.py` (`FinancialStatement`)
 - **Tracked tickers**: `backend/app/core/constants.py` (`DEFAULT_STOCKS`, `TICKER_CATEGORY_MAP`)
 - **Slack channel**: `#h-report` (optional)
-- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`
+- **Slack decision channel**: `#효정-의사결정` (`C0ANBST3KDE`) — personal trading decisions (Step 5d)
+- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`, `decision-router`
 - **Tab skills**: `tab-stock-sync`, `tab-event-detect`, `tab-fundamental-sync`, `tab-hot-stock-discovery`, `tab-technical-analysis`, `tab-turtle-refresh`, `tab-bollinger-refresh`, `tab-dualma-refresh`, `tab-screening`, `tab-llm-agents`, `tab-genai-features`, `tab-analysis-run`
 - **GitHub Actions**: `.github/workflows/daily-today.yml` (independent pipeline, uses its own API keys via GitHub Secrets)

@@ -61,7 +61,7 @@ For each skill, record:
 
 ### Step 2: Audit Each Skill
 
-Read each SKILL.md and evaluate against the checklist in [references/audit-checklist.md](references/audit-checklist.md) across 6 categories:
+Read each SKILL.md and evaluate against the checklist in [references/audit-checklist.md](references/audit-checklist.md) across 7 categories:
 
 1. **Frontmatter** — name, description (WHAT + WHEN + negative triggers), metadata
 2. **Progressive Disclosure** — body under 500 lines, large blocks extracted to references/
@@ -69,6 +69,7 @@ Read each SKILL.md and evaluate against the checklist in [references/audit-check
 4. **Composability** — self-contained, no cross-skill assumptions
 5. **Accuracy** — all referenced files/skills actually exist
 6. **Redundancy** — no duplicated content, no redundant fetches
+7. **Content Design Pattern** — classify as Tool Wrapper / Generator / Reviewer / Inversion / Pipeline; verify pattern-specific structural requirements (see [references/anthropic-best-practices.md](references/anthropic-best-practices.md) Section 10)
 
 For description quality assessment, see [references/frontmatter-patterns.md](references/frontmatter-patterns.md) for good/bad examples and templates.
 
