@@ -1,0 +1,206 @@
+---
+description: FSD 아키텍처 구조, Export/Import 규칙, Query Key 중앙 관리. 프론트엔드 구조적 의사결정 시 참조.
+alwaysApply: true
+---
+
+# FSD Architecture & Module Rules
+
+## 의존성 규칙 (단방향 필수)
+
+```
+shared → entities → features → widgets → pages → app/routes
+```
+
+- 하위 레이어는 상위 레이어 참조 불가
+- 같은 레이어 내 형제 import 금지
+
+```typescript
+// ❌ entities에서 features 참조 금지
+import { useLogin } from '@/features/user';
+
+// ❌ 형제 entity 참조 금지
+import { UserEntity } from '@/entities/user'; // entities/template에서
+```
+
+## Entity 구조
+
+```
+entities/{domain}/
+├── core/
+│   ├── domain/{domain}.domain.ts    # Entity 타입 (camelCase)
+│   └── schema/{domain}.schema.ts    # Zod 스키마 (i18n)
+├── infrastructure/
+│   ├── api/{domain}.adapter.ts      # HTTP 호출
+│   ├── dto/{domain}.dto.ts          # Request/Response (snake_case)
+│   └── model/{domain}.model.ts      # API 모델 (snake_case)
+├── mapper/{domain}.mapper.ts        # snake → camel 변환
+├── types/{domain}.types.ts          # Enum, 필터 타입
+├── constants/{domain}.const.ts      # 상수
+└── index.ts                         # Public API
+```
+
+## Feature 구조
+
+```
+features/{domain}/
+├── service/{domain}.service.ts      # 비즈니스 로직
+├── hooks/
+│   ├── use{Domain}s.ts              # Query Hook (목록)
+│   ├── use{Domain}.ts               # Query Hook (상세)
+│   └── useCreate{Domain}.ts         # Mutation Hook
+├── helper/{domain}.helper.ts        # 유틸 함수
+├── ui/                              # Feature 전용 UI (선택적)
+│   └── {Domain}StatusBadge.tsx
+└── index.ts                         # Public API
+```
+
+## Widget 구조 (UI 타입별 분류)
+
+Widget은 **UI 타입별 폴더로 분류**한 후 컴포넌트를 배치합니다.
+
+```
+widgets/
+├── form/                            # 폼 관련 (Drawer, Modal, Panel)
+├── table/                           # 테이블/목록
+├── card/                            # 카드 형태
+├── modal/                           # 모달/다이얼로그
+├── section/                         # 페이지 섹션
+└── index.ts                         # Public API
+```
+
+## Page 구조
+
+```
+pages/{domain}/
+├── {Domain}Page.tsx                 # 목록 페이지
+├── {Domain}DetailPage.tsx           # 상세 페이지
+├── {Domain}CreatePage.tsx           # 생성 페이지 (선택적)
+└── index.ts                         # Public API
+```
+
+## snake_case → camelCase 변환
+
+API 응답(snake_case)은 Mapper로 Entity(camelCase)로 변환:
+
+```typescript
+// ✅ Mapper 사용
+const response = await TemplateAdapter.getById(ctx, id);
+return TemplateMapper.toEntity(response.data);
+
+// ❌ 직접 사용 금지
+setTemplate(response.data); // snake_case 그대로 사용 ❌
+```
+
+---
+
+## Export/Import 규칙
+
+### `export *` 절대 금지, 명시적 named export 필수
+
+```tsx
+// ✅ CORRECT - 직접 re-export (import 없이)
+export { Button } from './Button';
+export { Input, type InputProps } from './Input';
+
+// ❌ WRONG - Wildcard export
+export * from './Button';
+
+// ❌ WRONG - import 후 re-export
+import { Button } from './Button';
+export { Button };
+```
+
+### Re-export 전용 파일 생성 절대 금지
+
+타입은 반드시 **정의된 원본 위치**에서만 import합니다.
+
+| 타입 종류 | 원본 위치 | import 경로 |
+|-----------|-----------|-------------|
+| HTTP/API 공통 타입 | `shared/libs/http/types/` | `@/shared/libs/http` |
+| Query Key 타입 | `shared/constants/query-key/` | `@/shared/constants/query-key` |
+| Entity 타입 | `entities/{domain}/types/` | `@/entities/{domain}` |
+| Feature 타입 | `features/{domain}/types/` | `@/features/{domain}` |
+
+### Export 체크리스트
+
+| 패턴 | 허용 |
+|------|------|
+| `export { A } from './A'` | ✅ |
+| `export type { T } from './T'` | ✅ |
+| `export * from './A'` | ❌ |
+| `import { A } from './A'; export { A }` | ❌ |
+
+### Minimal Export 원칙
+
+해당 파일에서만 사용되는 타입/인터페이스는 export하지 않습니다.
+
+```tsx
+// ❌ 불필요한 export
+export type SelectedItem = { id: string; label: string };
+
+// ✅ export 없이 정의
+type SelectedItem = { id: string; label: string };
+```
+
+---
+
+## Query Key 중앙 관리 (CRITICAL)
+
+Query Key는 **반드시** `shared/constants/query-key/`에서 관리:
+
+### 공통 타입 (shared/types)
+
+```typescript
+// src/shared/types/filter.type.ts
+export type BaseListFilters = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+```
+
+### Query Key 팩토리
+
+```typescript
+// src/shared/constants/query-key/user.query-key.ts
+import type { BaseListFilters, StatusFilter } from '@/shared/types';
+
+type UserListFilters = BaseListFilters & StatusFilter;
+
+export const userQueryKeys = {
+  all: ['user'] as const,
+  lists: () => [...userQueryKeys.all, 'list'] as const,
+  list: (filters: UserListFilters) => [...userQueryKeys.lists(), filters] as const,
+  details: () => [...userQueryKeys.all, 'detail'] as const,
+  detail: (id: string) => [...userQueryKeys.details(), id] as const,
+};
+```
+
+### Feature에서 사용
+
+```typescript
+import { userQueryKeys } from '@/shared/constants/query-key';
+
+export const useUsers = (filters: UserListFilters) => {
+  return useQuery({
+    queryKey: userQueryKeys.list(filters),
+    queryFn: () => UserService.getList(filters),
+  });
+};
+```
+
+### 금지
+
+```typescript
+// ❌ Feature 내부에서 Query Key 하드코딩
+queryKey: ['user', 'list']; // ❌
+queryKey: ['users']; // ❌
+queryKey: ['user-list']; // ❌
+```
+
+## 참고
+
+- **참고 Entity**: `src/entities/user/`
+- **참고 Feature**: `src/features/dashboard/`

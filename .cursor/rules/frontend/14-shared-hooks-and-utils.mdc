@@ -1,0 +1,188 @@
+---
+description: Shared Hooks/Utils 카탈로그. 커스텀 훅/유틸 사용 또는 신규 기능 구현 시 참조. 기존 유틸 재구현 방지.
+globs:
+  - ai-platform/frontend/src/**/*.tsx
+  - ai-platform/frontend/src/**/*.ts
+alwaysApply: false
+---
+
+# Shared Hooks & Utils 카탈로그
+
+> 신규 기능 구현 전 **반드시** 이 카탈로그를 확인하여 기존 훅/유틸 재구현을 방지.
+
+---
+
+## 1. Shared Hooks
+
+### 컨텍스트 / 스코프
+
+| 훅 | Import | 반환 | 용도 |
+|----|--------|------|------|
+| `useOrganizationProject` | `@/shared/hooks` | `{ userId, projectId, clusterId, isReady, isLoading }` | 모든 API 호출의 org/project/cluster 컨텍스트 |
+
+```typescript
+const { projectId, clusterId, isReady } = useOrganizationProject();
+
+// ✅ isReady 체크 후 API 호출
+const { data } = useQuery({
+  queryKey: xxxQueryKeys.list(projectId),
+  queryFn: () => XxxService.getList(projectId),
+  enabled: isReady,
+});
+```
+
+> **FSD 예외**: `useOrganizationProject`는 `shared/`에 위치하면서 `features/`를 참조합니다.
+> 앱 전역에서 사용되는 핵심 컨텍스트 훅이므로 공식 예외로 인정. 새 훅에서 이 패턴을 복제하지 마세요.
+
+### URL / 탭 동기화
+
+| 훅 | Import | 반환 | 용도 |
+|----|--------|------|------|
+| `useTabSearchParam` | `@/shared/hooks` | `{ activeTab, handleTabChange }` | `?tab=` URL 동기화 (상세 `05-form-and-mutation.mdc` #1 참조) |
+
+### 필터 / 페이지네이션
+
+| 훅 | Import | 반환 | 용도 |
+|----|--------|------|------|
+| `useFilterSearch` | `@thakicloud/shared` | `{ filters, addFilter, removeFilter, clearFilters }` | TDS 필터 (FilterSearchInput 연동) |
+| `useFilterSearchWithPagination` | `@/shared/hooks` | 위 + `{ currentPage, handlePageChange, resetPage, getFilterValue }` | 필터 + 페이지네이션 결합 |
+
+```typescript
+// ✅ 필터 + 페이지네이션 결합 시
+const {
+  filters, currentPage,
+  handleFilterAdd, handleRemoveFilter, handleClearFilters,
+  handlePageChange, getFilterValue,
+} = useFilterSearchWithPagination();
+```
+
+### 클립보드 / UI
+
+| 훅 | Import | 반환 | 용도 |
+|----|--------|------|------|
+| `useCopyToClipboard` | `@/shared/hooks` | `{ copy, status, isCopied }` | 클립보드 복사 (2초 후 자동 리셋) |
+| `useDropdown` | `@/shared/hooks` | 드롭다운 제어 | 커스텀 드롭다운 상태 관리 |
+| `useTheme` | `@/shared/hooks` | 테마 상태 | 다크/라이트 모드 |
+
+### 네비게이션
+
+| 훅 | Import | 반환 | 용도 |
+|----|--------|------|------|
+| `useBreadcrumbs` | `@/shared/hooks` | 브레드크럼 항목 배열 | 경로 기반 브레드크럼 자동 생성 |
+| `useExternalServiceLinks` | `@/shared/hooks` | `ExternalLink[]` | Kubeflow/MLflow 등 외부 서비스 링크 |
+
+### TDS 훅 (`@thakicloud/shared`)
+
+| 훅 | 용도 |
+|----|------|
+| `useOverlay` | 오버레이(모달/드로어) 열기/닫기 |
+| `useClickOutside` | 외부 클릭 감지 |
+| `useDragAndDrop` | 드래그앤드롭 |
+| `useUnsavedChangesGuard` | 미저장 변경 감지 경고 |
+
+---
+
+## 2. Shared Utils
+
+### 날짜/시간 (`@thakicloud/shared`)
+
+| 함수 | 용도 | 예시 출력 |
+|------|------|-----------|
+| `formatDate(timestamp)` | 상대 시간 + 절대 시간 | `3 hours ago` |
+| `formatDateOnly(timestamp)` | 날짜만 | `2024-01-15` |
+| `formatAbsoluteTime(timestamp)` | 절대 시간 | `2024-01-15 14:30:00` |
+| `formatAbsoluteDate(timestamp)` | 절대 날짜 | `2024-01-15` |
+| `formatRelativeTime(timestamp)` | 상대 시간만 | `3 hours ago` |
+| `formatDateToISO(date)` | ISO 문자열 | `2024-01-15T14:30:00Z` |
+
+### 파일/데이터 크기 (`@thakicloud/shared`)
+
+| 함수 | 용도 |
+|------|------|
+| `formatFileSize(bytes)` | 바이트 → 읽기 좋은 형태 |
+| `formatDataSize(bytes)` | 데이터 크기 포맷 |
+
+### 프로젝트 전용 (`@/shared/utils`)
+
+| 함수 | Import | 용도 |
+|------|--------|------|
+| `formatStorageSize(gb)` | `@/shared/utils` | GB → MB/GB/TB 자동 변환 |
+| `formatWaitTime(minutes)` | `@/shared/utils` | 대기시간(분) → 읽기 좋은 형태 |
+| `formatQueueTime(seconds)` | `@/shared/utils` | 큐 대기시간(초) → 읽기 좋은 형태 |
+| `formatLatency(ms)` | `@/shared/utils` | 지연시간(ms) → μs/ms/s |
+| `formatPercent(value, decimals?)` | `@/shared/utils` | 퍼센트 포맷 (`null` → `'-'`) |
+| `formatRatio(value, decimals?)` | `@/shared/utils` | 비율(0~1) → 퍼센트 |
+| `getTestIdProps(testId)` | `@/shared/utils` | `data-testid` props 객체 생성 |
+
+### 차트 (`@thakicloud/shared`)
+
+| 함수 | 용도 |
+|------|------|
+| `formatBytes(bytes)` | 차트 축 바이트 포맷 |
+| `formatBytesFromUnit(value, unit)` | 단위별 바이트 포맷 |
+| `formatChartValueByUnit(value, unit)` | 차트 값 포맷 |
+| `formatPercentage(value)` | 차트 퍼센트 포맷 |
+
+### 문자열 (`@thakicloud/shared`)
+
+```typescript
+import { formatStringCase } from '@thakicloud/shared';
+formatStringCase({ format: 'titlecase', value: 'hello_world' }); // "Hello World"
+```
+
+### className / 기타 (`@thakicloud/shared`)
+
+| 함수 | 용도 |
+|------|------|
+| `cn(...classes)` | className 병합 (clsx + tailwind-merge) |
+| `validateTags(tags)` | 태그 유효성 검증 |
+| `convertFiltersToApiParams(filters)` | 필터 → API 쿼리 파라미터 변환 |
+
+---
+
+## 3. 선택 가이드
+
+### "이미 있을 수 있는" 기능 체크리스트
+
+| 기능이 필요하면 | 먼저 확인 |
+|----------------|----------|
+| org/project ID 가져오기 | `useOrganizationProject` |
+| 탭 URL 동기화 | `useTabSearchParam` |
+| 필터 + 페이지네이션 | `useFilterSearchWithPagination` |
+| 클립보드 복사 | `useCopyToClipboard` 또는 `CopyButton` (TDS) |
+| 날짜 포맷 | `formatDate` / `formatAbsoluteTime` (TDS) |
+| 바이트 크기 포맷 | `formatFileSize` (TDS) |
+| GB 크기 포맷 | `formatStorageSize` (shared/utils) |
+| className 합치기 | `cn()` (TDS) |
+| 모달/드로어 열기 | `useOverlay` (TDS) |
+| 외부 링크 | `useExternalServiceLinks` |
+| 테스트 ID | `getTestIdProps` |
+
+### 새 훅 생성 기준
+
+| 조건 | 위치 |
+|------|------|
+| 2+ 도메인에서 사용 | `shared/hooks/` |
+| 특정 도메인 전용 | `features/{domain}/hooks/` |
+| TDS 컴포넌트와 밀접 | `@thakicloud/shared` (별도 PR) |
+
+---
+
+## 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| `navigator.clipboard.writeText` 직접 호출 | `useCopyToClipboard` |
+| `dayjs().format(...)` 직접 사용 | `formatDate` / `formatAbsoluteTime` 등 |
+| 새 파일에서 `export *` | 명시적 named export |
+| shared 훅에서 features/ import | 공식 예외(`useOrganizationProject`)만 허용 |
+| 이미 존재하는 포맷 함수 재구현 | 위 카탈로그에서 확인 후 사용 |
+
+## 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| useOrganizationProject | `shared/hooks/useOrganizationProject.ts` |
+| useFilterSearchWithPagination | `shared/hooks/useFilterSearchWithPagination.ts` |
+| useTabSearchParam | `shared/hooks/useTabSearchParam.ts` |
+| 포맷 유틸 | `shared/utils/format.utils.ts` |

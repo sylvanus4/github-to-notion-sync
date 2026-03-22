@@ -87,3 +87,12 @@ See `references/judge-prompt.md` for the full adapted judge prompt template.
 - Feeds `merge` decisions to `autoskill-merger`
 - Feeds `add` decisions directly to skill creation flow
 - Invoked by `autoskill-evolve` orchestrator
+
+### SEFO Integration (Trust-Aware Judging)
+
+Enhance judging decisions with SEFO governance data:
+
+1. **Trust-aware scoring**: Before judging, query `GET /api/v1/sefo/tsg/trust` to check if the candidate's source peer has trust history. Factor trust score into the confidence calculation — candidates from low-trust sources get an additional scrutiny pass.
+2. **DAG compatibility check**: Query `GET /api/v1/sefo/sado/graph` to get the current composition graph. Check if adding the candidate would create cycles or violate DAG constraints. If the candidate references skills not in the graph, flag it for manual review.
+3. **Threat scan**: For candidates from federation peers, call `POST /api/v1/sefo/tsg/verify` with the candidate's signature to verify provenance chain integrity. If verification fails, auto-discard the candidate.
+4. **Composition potential**: Use `POST /api/v1/sefo/sado/route` with a synthetic task matching the candidate's description to see if it would be selected by the governance-aware router. High-affinity candidates get a confidence boost.

@@ -1,0 +1,6 @@
+experiment	round	eval1_address_points	eval2_tone	eval3_cta	eval4_no_hallucinate	eval5_command_format	total	score_pct
+baseline	0	PASS	PASS	PASS	FAIL	PASS	4/5	80.0
+exp1_anti_hallucination	1	PASS	PASS	PASS	PASS	PASS	5/5	100.0
+exp2_attachment_url_handling	2	PASS	PASS	PASS	PASS	PASS	5/5	100.0
+exp3_time_sensitivity	3	PASS	PASS	PASS	PASS	PASS	5/5	100.0
+exp4_replyall_guidance	4	PASS	PASS	PASS	PASS	PASS	5/5	100.0

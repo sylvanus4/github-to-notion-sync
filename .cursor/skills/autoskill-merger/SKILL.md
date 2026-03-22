@@ -91,3 +91,13 @@ See `references/merge-prompt.md` for the full adapted merge prompt template.
 - Modifies existing files in `.cursor/skills/`
 - Invoked by `autoskill-evolve` orchestrator
 - Optionally triggers `skill-optimizer` audit after merge
+
+### SEFO Integration (CRDT Merge)
+
+Replace heuristic field-level merging with deterministic CRDT semantics from the FSE module:
+
+1. **Version vector check**: Before merging, retrieve the existing skill's SEFO representation via `GET /api/v1/sefo/skills?search=<skill_name>`. Compare version vectors to determine merge strategy (accept, keep, LWW, or fork).
+2. **CRDT merge via gossip**: If both skills exist in SEFO, POST the candidate as a `GossipMessage` to `POST /api/v1/sefo/fse/gossip` with `skill_name`, `skill_data`, and `version_vector`. The FSE module handles deterministic merge or fork creation.
+3. **Fork resolution**: If the merge results in a fork (conflicting grammar rules), retrieve the fork via `GET /api/v1/sefo/fse/status` and resolve via `POST /api/v1/sefo/fse/forks/{fork_id}/resolve`.
+4. **Sign merged skill**: After successful merge, sign the updated skill via `POST /api/v1/sefo/tsg/sign` to establish provenance chain continuity.
+5. **Fallback**: If the SEFO backend is unavailable, fall back to the existing heuristic merge process. Log a warning for later reconciliation.

@@ -1,0 +1,157 @@
+---
+description: TypeScript 타입 규칙, 코드 패턴, 상태 관리, 접근성, 성능. 모든 프론트엔드 작업에 적용.
+alwaysApply: true
+---
+
+# TypeScript & Code Conventions
+
+## 타입 네이밍
+
+```tsx
+// ✅ I, T 접두사 사용 안 함
+interface CommentCardProps { comment: Comment; onDelete?: () => void }
+type CreateCommentRequest = { content: string; postId: string }
+
+// ❌ 접두사 금지
+interface IImageProps { ... }
+type TComment = { ... }
+```
+
+### API 타입 패턴
+
+```tsx
+type {Action}{Entity}Request = { ... }
+type {Action}{Entity}Response = { ... }
+```
+
+## Entity 타입 계층 (Model / DTO / Domain Entity)
+
+| 파일 | 접미사 | 역할 | 케이스 |
+|------|--------|------|--------|
+| `infrastructure/dto/` | `~ResponseDto` | 단건 응답 | snake_case |
+| `infrastructure/dto/` | `~Dto` | 목록/요청/액션 래퍼 | snake_case |
+| `infrastructure/model/` | `~ApiModel` | 중첩 구조 하위 타입 (선택적) | snake_case |
+| `core/domain/` | `~Entity` | 프론트엔드 도메인 모델 | camelCase |
+
+```typescript
+// ✅ 단순 구조: DTO에서 직접 정의
+export type EndpointResponseDto = { id?: string; name?: string; project_id?: string };
+
+// ✅ 중첩 구조: Model 분리 (node처럼 복잡한 경우만)
+export type NodeGpuResourceApiModel = { key: string; total: number; available: number };
+
+// ✅ Domain Entity: camelCase
+export type EndpointEntity = { id: string; name: string; projectId: string };
+```
+
+## `any` 타입 절대 금지
+
+```tsx
+// ❌ any 금지
+function processData(data: any) { ... }
+
+// ✅ unknown + 타입 가드
+function processData(data: unknown) {
+  if (typeof data === 'string') return data.toUpperCase();
+  if (isUser(data)) return data.name;
+}
+
+// ✅ Generic
+function fetchData<T>(url: string): Promise<T> { ... }
+```
+
+불가피한 경우 주석 필수: `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
+
+## 유니온 타입 & 제네릭
+
+```typescript
+export type WorkloadStatus = 'pending' | 'running' | 'completed' | 'failed';
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+```
+
+---
+
+## 코드 패턴
+
+### 네임스페이스 패턴 (객체 그룹화)
+
+```tsx
+// ✅ 객체로 그룹화
+export const CommentService = {
+  getAll: () => { /* ... */ },
+  getById: (id: string) => { /* ... */ },
+  create: (data: CreateCommentReq) => { /* ... */ },
+};
+
+// ❌ Class + Static 메소드 금지
+class CommentService { static getAll() { ... } }
+```
+
+### 상태 관리
+
+| 상태 유형 | 도구 | 사용 시점 |
+|-----------|------|-----------|
+| 서버 상태 | React Query (TanStack Query) | API 데이터 캐싱 |
+| 전역 클라이언트 상태 | Zustand | 인증, 테마 등 앱 전역 상태 |
+| 로컬 UI 상태 | useState, useReducer | 컴포넌트 내부 상태 |
+
+### 변수 추출 규칙
+
+```tsx
+// ✅ 2줄 이상 반복 시 변수로 추출
+const formattedDate = dayjs(createdAt).format('YYYY-MM-DD HH:mm');
+const isExpired = dayjs().isAfter(dayjs(expiresAt));
+```
+
+### 컴포넌트 분리 원칙
+
+1. 처음에는 한 곳에 가깝게 배치
+2. 반복 패턴 발생 시 분리 (3회 이상 반복 시)
+
+### 조건부 렌더링
+
+```tsx
+// ✅ 단순 조건은 && 연산자
+{isLoading && <LoadingSpinner />}
+
+// ✅ 복잡한 조건은 early return
+if (isLoading) return <LoadingSpinner />;
+if (error) return <ErrorMessage error={error} />;
+if (!data) return null;
+return <DataDisplay data={data} />;
+
+// ❌ 중첩 삼항 연산자 금지
+```
+
+### Props 기본값
+
+```tsx
+// ✅ 구조분해 시 기본값 지정
+function Button({ variant = 'primary', size = 'md', children }: ButtonProps) { ... }
+
+// ❌ defaultProps 사용 금지 (deprecated)
+```
+
+---
+
+## 접근성 (Accessibility)
+
+```tsx
+// ✅ 시맨틱 HTML 사용
+<button type="submit">제출</button>  // ⭕️
+<div onClick={handleClick}>제출</div>  // ❌
+
+// ✅ 레이블과 입력 필드 연결
+<label htmlFor="username">{t('auth.login.username')}</label>
+<input id="username" {...register('username')} />
+```
+
+## 아이콘 규칙
+
+> 아이콘 import 금지/허용 패턴: `03-tds-essentials.mdc` 참조

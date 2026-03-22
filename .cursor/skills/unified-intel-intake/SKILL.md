@@ -1,0 +1,155 @@
+---
+name: unified-intel-intake
+description: >-
+  Single entry point for all intelligence sources — news articles, academic
+  papers, tweets, blog posts, and RSS feeds. Auto-classifies content type
+  and topic, routes to the appropriate processing skill, and posts to the
+  correct Slack channel. Use when the user asks to "process this link",
+  "classify and route content", "unified intel", "인텔 파이프라인",
+  "통합 인텔리전스", "unified-intel-intake", or wants a single pipeline for
+  all external information sources. Do NOT use for processing a single tweet
+  (use x-to-slack), Bespin news only (use bespin-news-digest), or paper
+  review (use paper-review directly).
+metadata:
+  version: "1.0.0"
+  category: "execution"
+  author: "thaki"
+---
+# Unified Intel Intake
+
+Single pipeline that accepts any URL or content source, classifies it, routes to the appropriate processing skill, and delivers to the right Slack channel.
+
+## When to Use
+
+- As part of the daily Intel track in the SOD-to-EOD pipeline
+- When processing a batch of mixed URLs (news, papers, tweets)
+- When setting up RSS feed monitoring for automatic intake
+
+## Content Type Detection
+
+| Pattern | Type | Processing Skill |
+|---------|------|-----------------|
+| `arxiv.org`, `*.pdf` (academic) | Paper | `paper-review` or `alphaxiv-paper-lookup` |
+| `x.com`, `twitter.com` | Tweet | `x-to-slack` |
+| `huggingface.co/papers` | HF Paper | `hf-trending-intelligence` |
+| `github.com` (repo/release) | GitHub | `defuddle` + LLM summary |
+| `youtube.com`, `youtu.be` | Video | `defuddle` (transcript extraction) + LLM analysis |
+| News domains (techcrunch.com, theverge.com, arstechnica.com, wired.com, reuters.com, bloomberg.com, venturebeat.com, zdnet.com, theregister.com, semafor.com), RSS items from news feeds | News Article | `defuddle` + LLM analysis |
+| medium.com, substack.com, dev.to, hashnode.dev, personal domains with blog-like URL paths (`/posts/`, `/blog/`, `/articles/`) | Blog | `defuddle` + LLM analysis |
+| Unknown domain — extract with `defuddle`, then use LLM to classify based on content structure (byline, dateline, article length → News; personal voice, opinion-heavy → Blog) | Auto-detect | `defuddle` + LLM classification + LLM analysis |
+
+## Topic Classification
+
+After content extraction, classify by primary topic. If multiple topics match, use the one with the strongest keyword density. If tied, prefer the more specific topic (e.g., "Security" over "General Tech"):
+
+| Topic | Keywords | Target Channel |
+|-------|----------|---------------|
+| AI/ML Infrastructure | GPU, CUDA, inference, training, cluster | `#deep-research` |
+| Kubernetes/Cloud Native | K8s, Helm, service mesh, CNCF | `#deep-research` |
+| Security | CVE, vulnerability, breach, zero-day | `#security-alerts` |
+| Market/Business | funding, acquisition, IPO, revenue | `#market-intel` |
+| Research/Papers | paper, arxiv, model, benchmark | `#deep-research` |
+| General Tech | framework, library, release, update | `#tech-news` |
+
+## Workflow
+
+### Step 1: Accept Input
+
+Accept one or more content sources:
+- Direct URL(s)
+- RSS feed URL (poll for new items)
+- Gmail message with links (from `gmail-daily-triage`)
+- Slack message with shared link
+
+### Step 2: Extract Content
+
+For each URL, use `defuddle` to extract clean markdown:
+
+```
+defuddle extract <url>
+```
+
+For YouTube URLs, extract transcript. For PDFs, extract text.
+
+### Step 3: Classify
+
+Run LLM classification on extracted content:
+- **Content type**: paper / news / tweet / blog / release / video
+- **Topic**: AI infra / K8s / security / market / research / general
+- **Relevance score**: 1-10 (based on alignment with tracked interests)
+- **Urgency**: immediate / daily / weekly
+
+### Step 4: Route to Processing Skill
+
+Based on classification, invoke the appropriate skill:
+
+| Classification | Action |
+|---------------|--------|
+| Paper, relevance >= 7 | Full `paper-review` pipeline |
+| Paper, relevance 4-6 | Quick `alphaxiv-paper-lookup` summary |
+| Paper, relevance < 4 | Log to `paper-archive`, skip Slack |
+| Tweet | `x-to-slack` full pipeline |
+| News, relevance >= 5 | `defuddle` extract + LLM analysis + Slack thread |
+| News, relevance < 5 | Log only |
+
+### Step 5: Post to Slack
+
+Route processed content to the appropriate Slack channel using the topic classification. Follow the 3-message thread pattern from `x-to-slack`:
+
+1. **Header**: Source, title, relevance score
+2. **Summary**: Key points, implications
+3. **Action items**: What this means for the team
+
+### Step 6: Decision Router
+
+After posting, invoke `decision-router` to check if the content requires a decision:
+- Personal decisions → `#효정-의사결정`
+- Team/CTO decisions → `#7층-리더방`
+
+### Step 7: Aggregate Daily Report
+
+At end of day, produce a digest of all processed intel:
+
+```
+Daily Intel Digest
+==================
+Sources Processed: 23
+  Papers: 5 (2 full reviews, 3 quick summaries)
+  News: 12 (8 relevant, 4 skipped)
+  Tweets: 4
+  Releases: 2
+
+Top Stories:
+1. [Paper] Scaling LLM Inference on K8s — Relevance: 9/10
+2. [News] NVIDIA H200 Production Ramp — Relevance: 8/10
+3. [Tweet] @karpathy on efficient fine-tuning — Relevance: 7/10
+```
+
+## Error Handling
+
+| Error | Action |
+|-------|--------|
+| Unsupported URL format | Log and skip; report "Unsupported URL: <url>" in daily digest; suggest defuddle or x-to-slack for manual processing |
+| Content extraction fails | Retry with defuddle; if still fails, log URL and skip; include in digest as "Failed to extract" |
+| Classification confidence too low | Route to `#tech-news` for manual review; log with low-confidence flag in daily digest |
+| Target channel not found | Fall back to default channel (e.g. `#deep-research`); log channel mapping error for config fix |
+| Duplicate content detected | Skip processing; log and deduplicate against recent intake; do not post to Slack |
+
+## Examples
+
+### Example 1: Batch URL processing
+User says: "Process these links" + list of URLs
+Actions:
+1. Extract content from each URL
+2. Classify type and topic
+3. Route to appropriate skills
+4. Post to correct Slack channels
+Result: All links processed and distributed
+
+### Example 2: RSS monitoring
+User says: "Monitor this RSS feed for relevant items"
+Actions:
+1. Poll RSS feed for new items
+2. Filter by relevance score >= 5
+3. Process relevant items through pipeline
+Result: Continuous monitoring with automatic Slack posting

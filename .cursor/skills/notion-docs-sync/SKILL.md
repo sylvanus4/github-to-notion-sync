@@ -1,11 +1,11 @@
 ---
 name: notion-docs-sync
-description: Markdown 문서를 Notion에 동기화. .notion-sync.yaml 설정, Notion 동기화 실행 시 적용한다. Do NOT use for creating Notion pages from scratch (use Notion MCP directly).
+description: Markdown 문서를 Notion 페이지/DB에 동기화합니다. Notion 동기화, .notion-sync.yaml 설정, 문서를 Notion에 올려줘, Notion 연동, 문서 동기화 요청 시 사용합니다. Do NOT use for 화면 기획서 작성(screen-description), GitHub 이슈/PR 관리(github-workflow-automation).
 metadata:
-  author: "thaki"
-  version: "1.0.0"
-  category: "execution"
+  version: 1.0.0
+  category: execution
 ---
+
 # Notion 문서 동기화
 
 ## 사전 요구사항
@@ -91,15 +91,28 @@ Notion DB에 최소한 다음 속성이 필요하다:
 
 ## Examples
 
-### Example 1: Standard usage
-**User says:** "notion docs sync" or request matching the skill triggers
-**Actions:** Execute the skill workflow as specified. Verify output quality.
-**Result:** Task completed with expected output format.
+### Example 1: 초기 설정 + 전체 동기화
+User says: "이 프로젝트 문서를 Notion에 동기화해줘"
+Actions:
+1. `.notion-sync.yaml` 존재 확인 → 없으면 `init.sh` 실행
+2. 사용자에게 `NOTION_TOKEN`과 Database ID 요청
+3. `.notion-sync.yaml`에 동기화 대상 문서 등록
+4. `node SKILL_DIR/scripts/sync.mjs` 실행
+Result: docs/ 내 Markdown 문서가 Notion DB에 동기화됨
 
-## Error Handling
+### Example 2: 특정 문서만 동기화
+User says: "API 설계 문서만 Notion에 올려줘"
+Actions:
+1. `.notion-sync.yaml`에서 해당 파일 경로 확인 (spec/api-design.md)
+2. `node SKILL_DIR/scripts/sync.mjs .notion-sync.yaml spec/api-design.md` 실행
+Result: 지정한 문서만 Notion에 동기화됨
 
-| Issue | Resolution |
-|-------|-----------|
-| Unexpected input format | Validate input before processing; ask user for clarification |
-| External service unavailable | Retry with exponential backoff; report failure if persistent |
-| Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |
+## Troubleshooting
+
+### sync.mjs 실행 시 MODULE_NOT_FOUND 에러
+Cause: `init.sh`를 실행하지 않아 의존성이 설치되지 않음
+Solution: `SKILL_DIR/scripts/init.sh <target-dir>` 실행 후 재시도
+
+### Notion API 401 Unauthorized
+Cause: `NOTION_TOKEN` 환경변수가 설정되지 않았거나 만료됨
+Solution: Notion Integration 설정에서 토큰 확인 후 `export NOTION_TOKEN=...` 재설정

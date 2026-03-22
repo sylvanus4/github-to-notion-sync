@@ -20,6 +20,15 @@ const BASE_DIR = path.dirname(SYNC_FILE);
 
 const notion = new Client({ auth: NOTION_TOKEN, notionVersion: "2025-09-03" });
 
+function safePath(base, relative) {
+  const resolved = path.resolve(base, relative);
+  const baseResolved = path.resolve(base);
+  if (!resolved.startsWith(baseResolved + path.sep) && resolved !== baseResolved) {
+    throw new Error(`Path traversal detected: ${relative}`);
+  }
+  return resolved;
+}
+
 const REQUIRED_FIELDS = ["title", "Sync ID"];
 const SKIP_KEYS = new Set(["file", "title"]);
 
@@ -211,7 +220,7 @@ async function processAttachments(blocks) {
       if (match) {
         const raw = match[1].trim();
         const expanded = raw.startsWith("~") ? raw.replace("~", os.homedir()) : raw;
-        const absPath = path.isAbsolute(expanded) ? expanded : path.resolve(BASE_DIR, expanded);
+        const absPath = path.isAbsolute(expanded) ? expanded : safePath(BASE_DIR, expanded);
         if (fs.existsSync(absPath)) {
           console.log(`  파일 첨부: ${raw}`);
           const uploadId = await uploadFile(absPath);
@@ -327,7 +336,7 @@ async function appendBlocks(pageId, blocks, useUploadApi = false) {
 }
 
 async function syncEntry(databaseId, entry) {
-  const filePath = path.join(BASE_DIR, entry.file);
+  const filePath = safePath(BASE_DIR, entry.file);
 
   if (!fs.existsSync(filePath)) {
     console.warn(`  파일 없음: ${entry.file} (건너뜀)`);
@@ -361,7 +370,7 @@ async function syncEntry(databaseId, entry) {
 }
 
 async function syncPageEntry(entry) {
-  const filePath = path.join(BASE_DIR, entry.file);
+  const filePath = safePath(BASE_DIR, entry.file);
 
   if (!fs.existsSync(filePath)) {
     console.warn(`  파일 없음: ${entry.file} (건너뜀)`);

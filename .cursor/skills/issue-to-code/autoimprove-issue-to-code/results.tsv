@@ -1,0 +1,6 @@
+experiment	round	eval1_real_files	eval2_resolves_n	eval3_ordered_steps	eval4_error_handling	eval5_branch_name	total	score_pct
+baseline	0	FAIL	PASS	PASS	PASS	PASS	4/5	80.0
+exp1_file_validation	1	PASS	PASS	PASS	PASS	PASS	5/5	100.0
+exp2_duplicate_pr_check	2	PASS	PASS	PASS	PASS	PASS	5/5	100.0
+exp3_test_convention	3	PASS	PASS	PASS	PASS	PASS	5/5	100.0
+exp4_interface_safety	4	PASS	PASS	PASS	PASS	PASS	5/5	100.0

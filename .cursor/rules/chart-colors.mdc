@@ -1,0 +1,105 @@
+---
+description: Chart Color Palette - 차트/그래프에 사용되는 컬러 토큰 가이드
+globs:
+  - "**/*Chart*"
+  - "**/*chart*"
+  - "**/*Graph*"
+  - "**/*graph*"
+  - "**/*Heatmap*"
+  - "**/*Plot*"
+  - "**/*Drift*"
+  - "**/*Waterfall*"
+  - "**/recharts*"
+---
+
+# Chart Color Palette
+
+차트/그래프 컴포넌트에서 색상을 사용할 때 반드시 이 토큰을 따릅니다.
+
+## 토큰 파일 위치
+
+`ai-platform/frontend/src/shared/constants/chart-colors.ts`
+
+## 사용법
+
+```typescript
+import { CHART_PALETTE, CHART_COLORS_ORDERED } from '@/shared/constants';
+
+// 이름으로 접근
+const color = CHART_PALETTE.cyan; // '#22D3EE'
+
+// 인덱스 기반 순서 할당
+const color = CHART_COLORS_ORDERED[index % CHART_COLORS_ORDERED.length];
+```
+
+## 컬러 팔레트 (12색)
+
+| 순서 | 토큰 이름 | HEX | 용도 예시 |
+|------|-----------|---------|-----------|
+| 1 | cyan | #22D3EE | 기본/첫 번째 시리즈 |
+| 2 | green | #4ADE80 | 두 번째 시리즈 |
+| 3 | amber | #FBBF24 | 세 번째 시리즈 |
+| 4 | violet | #A78BFA | 네 번째 시리즈 |
+| 5 | fuchsia | #E879F9 | 다섯 번째 시리즈 |
+| 6 | rose | #FB7185 | 여섯 번째 시리즈 |
+| 7 | slate | #94A3B8 | 일곱 번째 시리즈 |
+| 8 | blue | #60A5FA | 여덟 번째 시리즈 |
+| 9 | pink | #F472B6 | 아홉 번째 시리즈 |
+| 10 | emerald | #34D399 | 열 번째 시리즈 |
+| 11 | sky | #67E8F9 | 열한 번째 시리즈 |
+| 12 | teal | #2DD4BF | 열두 번째 시리즈 |
+
+## 컬러 적용 3단계 규칙
+
+차트에 색상을 적용할 때, 데이터의 **의미**에 따라 3가지 규칙 중 하나를 선택합니다.
+
+### Rule 1. 시맨틱 컬러 — 좋다/나쁘다 판단이 있는 데이터
+
+좋음·나쁨, 정상·이상, 긍정·부정 등 **평가적 의미**가 있을 때 사용합니다.
+
+| 의미 | 컬러 | 토큰 |
+|------|------|------|
+| 좋음 / 정상 / 긍정 | `CHART_PALETTE.green` | #4ADE80 |
+| 나쁨 / 이상 / 부정 | `CHART_PALETTE.rose` | #FB7185 |
+| 경고 / 주의 | `CHART_PALETTE.amber` | #FBBF24 |
+
+```tsx
+// ✅ CalibrationPlot 히스토그램 — gap 기준 좋음/나쁨
+<Cell fill={gap > 0.1 ? CHART_PALETTE.rose : CHART_PALETTE.green} />
+
+// ✅ FeatureImportance — 양수/음수
+fill={value >= 0 ? CHART_PALETTE.green : CHART_PALETTE.rose}
+
+// ❌ 시맨틱 데이터에 cyan/blue 같은 중립색 사용 금지
+<Cell fill={gap > 0.1 ? CHART_PALETTE.rose : CHART_PALETTE.cyan} />
+```
+
+### Rule 2. 중립 컬러 — 단일 시리즈, 판단 없는 데이터
+
+분포, 추세, 수치 시각화 등 **좋고 나쁨 구분이 없는** 단일 데이터를 표시할 때.
+
+| 용도 | 컬러 | 토큰 |
+|------|------|------|
+| 기본 시리즈 | `CHART_PALETTE.cyan` | #22D3EE |
+| 참조선 / 보조 | `CHART_PALETTE.slate` | #94A3B8 |
+
+```tsx
+// ✅ Reliability Diagram — 단일 calibration 라인
+<Line stroke={CHART_PALETTE.cyan} />
+<ReferenceLine stroke={CHART_PALETTE.slate} strokeDasharray="5 5" />
+```
+
+### Rule 3. 다중 시리즈 — N개 항목 비교
+
+모델 비교, ROC 커브 등 **여러 시리즈를 구분**해야 할 때.
+
+```tsx
+const color = CHART_COLORS_ORDERED[index % CHART_COLORS_ORDERED.length];
+```
+
+## 일반 규칙
+
+- 차트 컴포넌트에서 색상 하드코딩 금지. 반드시 `CHART_PALETTE` 또는 `CHART_COLORS_ORDERED` 사용.
+- 12색을 초과하는 시리즈는 `index % 12`로 순환.
+- opacity 조절이 필요하면 hex를 rgba로 변환하여 사용 가능.
+- gradient 정의 시에도 `CHART_PALETTE` 토큰의 hex 값을 사용.

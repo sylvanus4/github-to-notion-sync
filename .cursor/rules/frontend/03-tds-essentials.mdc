@@ -1,0 +1,106 @@
+---
+description: TDS (@thakicloud/shared) 필수 규칙 — 금지 패턴, 필수 패턴, 컴포넌트 Quick Reference, 스타일링. 모든 프론트엔드 작업에 적용.
+alwaysApply: true
+---
+
+# TDS 필수 규칙
+
+> `from '@thakicloud/shared'` | 상세 Props/패턴 → `04-tds-detail-catalog.mdc` 참조
+
+## 금지 (NEVER)
+
+| 금지 항목 | 올바른 사용 |
+|-----------|------------|
+| `style={{ color: '#2563eb' }}` / `className="text-blue-500"` | 디자인 토큰 `var(--semantic-color-primary)` 또는 `Typography color="primary"` |
+| `variant="danger"` | `variant="error"` (Button) |
+| `theme="green"` | `theme="gre"` (Badge) |
+| `helperText` (FormField) | `hint` |
+| `justify="space-between"` (Layout.HStack) | `justify="between"` |
+| `status="active"` (StatusIndicator) | `variant="active"` |
+| `activeTab` (Tabs) | `activeTabId` |
+| `confirmText` / `cancelText` (Overlay) | `confirmUI` / `cancelUI` |
+| `isOpen`, `appeared` 직접 전달 (Overlay) | 스토어가 관리, 자동 주입 |
+| `onClose` (Overlay) | `onCancel` |
+| `selectOnRowClick={true}` + `Table.Tr onClick` 동시 | `selectOnRowClick={false}` 후 onClick |
+| `style={{ padding: '16px' }}` | `Layout.VStack gap="md"` 또는 토큰 |
+| `useToast()` 훅 | `showToast(type, message)` from `@/shared/libs/toast` |
+| `toast.custom(...)` 직접 호출 | `showToast(type, message)` 유틸 함수 사용 |
+| `lucide-react` / `@tabler/icons-react` 직접 import | `@thakicloud/shared` 래핑 아이콘 사용 (`RefreshIcon`, `AddIcon` 등) |
+| 섹션/리스트에서 `<EmptyUI className="border ...">` 직접 사용 | `<EmptyStatePanel>` from `@/shared/ui/empty` |
+
+## 스타일링 규칙
+
+Tailwind 기본 색상이나 하드코딩된 색상 사용 금지. `@thakicloud/shared/tailwind.preset`에 정의된 시맨틱 컬러만 사용.
+
+```tsx
+// ❌ 기본 색상 / Opacity Modifier 금지
+<div className="bg-blue-500" />
+<div className="bg-primary/10" />
+
+// ✅ 시맨틱 컬러 사용
+<div className="bg-primary text-on-primary" />
+<div className="bg-surface border-border text-text-muted" />
+```
+
+## 필수 (ALWAYS)
+
+- Overlay 컴포넌트: `...restProps` spread 필수, `onCancel` 사용
+- 액션 셀: `<Table.Td preventClickPropagation>`
+- className 병합: `cn()` from shared
+- UI 텍스트: `t()` i18n 키 (고유명사 제외)
+- 빈 값: `{value ?? '-'}`
+- 날짜/숫자: 전역 포맷터 (`formatDate`, `formatAbsoluteTime` 등)
+
+## 컴포넌트 Quick Reference
+
+| 카테고리 | 컴포넌트 | 핵심 Props |
+|----------|----------|-----------|
+| CTA | `Button` | variant, appearance, size, isLoading |
+| 입력 | `Input`, `Textarea`, `FormField`(**hint**≠helperText), `Dropdown.Select/Option/ComboBox` | error, size |
+| 선택 | `Checkbox`, `Toggle`, `RadioGroup`, `Range` | checked, onChange, direction |
+| 테이블 | `Table`/`SelectableTable`/`ExpandableTable`, `TcTable` | columns, rows, sort, getRowId |
+| 필터 | `FilterSearchInput`, `FilterSearchResults`, `useFilterSearch` | filterKeys, onFilterAdd |
+| 탭/페이지 | `Tabs`/`Tab`, `TabSelector`, `Pagination` | activeTabId, currentAt |
+| 상태 | `Badge`(blu/red/gry/gre/ylw), `StatusIndicator`, `Tag` | theme, variant |
+| 오버레이 | `Overlay.Template`, `ActionModal`, `ResourceActionModal`, `DeleteResourceModal` | type, actionConfig |
+| 레이아웃 | `Layout.VStack/HStack/Block/Container/Grid/Divider` | gap, align, justify |
+| 페이지 | `CreateLayout`, `FloatingCard`, `DetailPageHeader`, `DetailCard` | title, sections, infoFields |
+| 폼 그룹 | `Fieldset`, `Accordion.Group/.Item`, `Disclosure` | legend, collapsible |
+| 피드백 | `InlineMessage`, `LoadingSpinner`, `ProgressBar`, `EmptyUI` | type, message, value |
+| 빈 상태 | **`EmptyStatePanel`** (`@/shared/ui/empty`) | content, children |
+| 기타 | `ContextMenu`, `Tooltip`, `CopyButton`, `TagInput`, `MultiItemDisplay`, `MonitoringToolbar` | trigger, content |
+| 스타일 | `actionBarStyle`, `listStyles`, `tabStyles`, `cardStyles`, `gridStyles`, `flexStyles` | — |
+| 유틸 | `cn`, `formatDate`/`formatAbsoluteTime`/`formatDateToISO`, `formatFileSize` | — |
+| 훅 | `useOverlay`, `useFilterSearch`, `useClickOutside`, `useDragAndDrop` | — |
+
+## Empty State (빈 상태 UI)
+
+| 컨텍스트 | 사용 컴포넌트 | 비고 |
+|----------|-------------|------|
+| 페이지 섹션 / 카드 리스트 / 탭 패널 | `EmptyStatePanel` from `@/shared/ui/empty` | `border border-border rounded-md` 자동 적용 |
+| `Table` emptyUI prop 내부 | `EmptyUI` from `@thakicloud/shared` | 테이블이 컨테이너 제공 |
+
+```tsx
+import { EmptyStatePanel } from '@/shared/ui/empty';
+<EmptyStatePanel content={{ title: t('empty.title'), description: t('empty.description') }} />
+
+import { EmptyUI } from '@thakicloud/shared';
+<Table emptyUI={<EmptyUI content={{ title: '...', description: '...' }} />} />
+```
+
+## Toast (`showToast` 유틸 함수 사용)
+
+```tsx
+import { showToast } from '@/shared/libs/toast';
+
+showToast('positive', t('toast.success'));
+showToast('negative', `${t('toast.failed')}: ${error.message}`);
+```
+
+- 구현: `src/shared/libs/toast/toast.libs.ts`
+- `toast.custom(...)` 직접 호출 금지, `useToast()` 훅 금지
+
+## 디자인 토큰
+
+`primitive → semantic → component` (우선순위: component > semantic > primitive)
+테마: `<html data-theme="dark">`

@@ -1,0 +1,155 @@
+---
+description: Table/SelectableTable 컴포넌트 반복 패턴. 테이블 구현 시 참조.
+globs:
+  - ai-platform/frontend/src/**/ui/**
+  - ai-platform/frontend/src/**/widgets/**
+alwaysApply: false
+---
+
+# Table Component Patterns
+
+> TDS 테이블 상세 Props: `04-tds-detail-catalog.mdc` 참조, 금지 패턴 요약: `03-tds-essentials.mdc` 참조
+
+## 테이블 종류 선택 기준
+
+| 컴포넌트 | 사용 조건 |
+|----------|-----------|
+| `Table` | 단순 목록, 선택 불필요 |
+| `SelectableTable` | 체크박스 벌크 선택 필요 |
+
+## Column 정의 패턴
+
+### COLUMN_KEYS 상수
+
+```typescript
+const COLUMN_KEYS = {
+  STATUS: 'status',
+  NAME: 'name',
+  TYPE: 'type',
+  ACTIONS: 'actions',
+} as const;
+```
+
+### columns + columnMap
+
+```tsx
+const columns: TableColumn[] = useMemo(
+  () => [
+    { key: COLUMN_KEYS.STATUS, header: t('table.status'), width: 70, align: 'center', sortable: false },
+    { key: COLUMN_KEYS.NAME, header: t('table.name'), sortable: true },
+    { key: COLUMN_KEYS.ACTIONS, header: t('table.action'), width: 72, align: 'center', sortable: false },
+  ],
+  [t],
+);
+
+const columnMap = useMemo(
+  () => Object.fromEntries(columns.map((c) => [c.key, c])) as Record<string, TableColumn>,
+  [columns],
+);
+```
+
+## Status 매핑
+
+도메인 Status → TDS `StatusIndicator` variant 매핑 상수:
+
+```typescript
+import { StatusIndicator } from '@thakicloud/shared';
+
+const STATUS_TO_VARIANT: Record<DomainStatus, string> = {
+  Running: 'active',
+  Pending: 'pending',
+  Failed: 'error',
+  Stopped: 'suspended',
+};
+```
+
+## Row 렌더링
+
+### Table.Tr + Table.Td
+
+```tsx
+<Table.Tr key={entity.id} rowData={rowData}>
+  <Table.Td column={columnMap[COLUMN_KEYS.STATUS]} rowData={rowData}>
+    <Tooltip content={entity.status} direction="top">
+      <StatusIndicator variant={STATUS_TO_VARIANT[entity.status]} />
+    </Tooltip>
+  </Table.Td>
+
+  <Table.Td column={columnMap[COLUMN_KEYS.NAME]} rowData={rowData}>
+    <span className="text-12 font-medium text-text truncate">{entity.name}</span>
+  </Table.Td>
+
+  {/* 액션 셀: preventClickPropagation 필수 */}
+  <Table.Td column={columnMap[COLUMN_KEYS.ACTIONS]} rowData={rowData} preventClickPropagation>
+    <Button variant="error" appearance="outline" size="xs" onClick={() => onDelete(entity)}>
+      {t('actions.delete')}
+    </Button>
+  </Table.Td>
+</Table.Tr>
+```
+
+### rowData 캐스팅
+
+Table 컴포넌트가 `Record<string, unknown>` 요구:
+
+```tsx
+const rowData = entity as unknown as Record<string, unknown>;
+```
+
+## SelectableTable Props
+
+```tsx
+<SelectableTable
+  rows={entities as unknown as Record<string, unknown>[]}
+  columns={columns}
+  selectionType="checkbox"
+  selectedRows={selectedIds ?? []}
+  onRowSelectionChange={onSelectionChange}
+  getRowId={(row) => (row as unknown as DomainEntity).id}
+  isLoading={loading}
+  stickyLastColumn
+  selectOnRowClick={false}
+  emptyUI={emptyUI}
+>
+  {entities.map((entity) => (
+    <Table.Tr key={entity.id} rowData={...}>...</Table.Tr>
+  ))}
+</SelectableTable>
+```
+
+## Empty State (테이블)
+
+테이블 빈 상태는 `EmptyUI` 직접 사용 (테이블이 컨테이너 제공):
+
+```tsx
+const emptyUI = useMemo(
+  () => (
+    <EmptyUI
+      content={{
+        title: t('section.list.empty'),
+        description: t('section.list.emptyDescription'),
+      }}
+    />
+  ),
+  [t],
+);
+
+<Table emptyUI={emptyUI}>...</Table>
+```
+
+## 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| column key 문자열 하드코딩 | `COLUMN_KEYS` 상수 사용 |
+| `columns` 없이 `columnMap`만 사용 | `columns` → `columnMap` 파생 |
+| 액션 셀에 `preventClickPropagation` 누락 | 반드시 추가 |
+| `selectOnRowClick={true}` + `Table.Tr onClick` 동시 | `selectOnRowClick={false}` 후 onClick |
+| `EmptyStatePanel` (테이블 내부) | `EmptyUI` (border 없는 버전) |
+
+## 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| SelectableTable | `widgets/table/devspace/DevSpaceTable.tsx` |
+| Table (드로어 내부) | `features/volume/ui/SnapshotListContent.tsx` |

@@ -1,0 +1,6 @@
+experiment	round	eval1_content_type	eval2_topic	eval3_skill_route	eval4_channel	total	score_pct
+baseline	0	FAIL	PASS	PASS	PASS	3/4	75.0
+exp1_domain_lists	1	PASS	PASS	PASS	PASS	4/4	100.0
+exp2_unknown_domain_fallback	2	PASS	PASS	PASS	PASS	4/4	100.0
+exp3_multitopic_tiebreak	3	PASS	PASS	PASS	PASS	4/4	100.0
+exp4_youtube_detection	4	PASS	PASS	PASS	PASS	4/4	100.0

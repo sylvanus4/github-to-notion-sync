@@ -43,7 +43,7 @@ macOS에 내장된 `/usr/bin/rsync`는 **openrsync** (protocol v29) 이며, GNU 
 
 ## Configuration
 
-- **Hub (source of truth after merge)**: `/Users/hanhyojung/thaki/research/.cursor/`
+- **Hub (source of truth after merge)**: `/Users/hanhyojung/work/thakicloud/research/.cursor/`
 - **Sync directories**: `commands/`, `skills/`, `rules/`
 - **Target projects**: See [references/sync-targets.md](references/sync-targets.md)
 - **Pull sources**: All 4 targets are `Bidirectional = yes`
@@ -179,12 +179,12 @@ Execute targets **one at a time, sequentially** (not in a for loop). Each target
 
 ```bash
 # Target 1
-rsync -ac RESEARCH/.cursor/commands/ /Users/hanhyojung/thaki/github-to-notion-sync/.cursor/commands/
-rsync -ac RESEARCH/.cursor/skills/   /Users/hanhyojung/thaki/github-to-notion-sync/.cursor/skills/
-rsync -ac RESEARCH/.cursor/rules/    /Users/hanhyojung/thaki/github-to-notion-sync/.cursor/rules/
+rsync -ac RESEARCH/.cursor/commands/ /Users/hanhyojung/work/thakicloud/github-to-notion-sync/.cursor/commands/
+rsync -ac RESEARCH/.cursor/skills/   /Users/hanhyojung/work/thakicloud/github-to-notion-sync/.cursor/skills/
+rsync -ac RESEARCH/.cursor/rules/    /Users/hanhyojung/work/thakicloud/github-to-notion-sync/.cursor/rules/
 
 # Target 2
-rsync -ac RESEARCH/.cursor/commands/ /Users/hanhyojung/thaki/ai-platform-webui/.cursor/commands/
+rsync -ac RESEARCH/.cursor/commands/ /Users/hanhyojung/work/thakicloud/ai-platform-webui/.cursor/commands/
 # ... etc
 ```
 
@@ -194,7 +194,7 @@ After all syncs complete, verify all 5 repos have identical file counts:
 
 ```bash
 for repo in research github-to-notion-sync ai-platform-webui ai-model-event-stock-analytics ai-template; do
-  echo "$repo: commands=$(ls /Users/hanhyojung/thaki/$repo/.cursor/commands/ | wc -l) skills=$(ls /Users/hanhyojung/thaki/$repo/.cursor/skills/ | wc -l) rules=$(ls /Users/hanhyojung/thaki/$repo/.cursor/rules/ | wc -l)"
+  echo "$repo: commands=$(ls /Users/hanhyojung/work/thakicloud/$repo/.cursor/commands/ | wc -l) skills=$(ls /Users/hanhyojung/work/thakicloud/$repo/.cursor/skills/ | wc -l) rules=$(ls /Users/hanhyojung/work/thakicloud/$repo/.cursor/rules/ | wc -l)"
 done
 ```
 
@@ -203,7 +203,7 @@ Present the final report:
 ```
 Cursor Sync Report (N-Repo)
 ===========================
-Hub: /Users/hanhyojung/thaki/research/.cursor/
+Hub: /Users/hanhyojung/work/thakicloud/research/.cursor/
 
 Pull Phase:
   [per-target new file counts from Step 0c]
@@ -330,7 +330,7 @@ Agent actions:
 
 ```
 1. 어느 레포에서나 스킬/커맨드/룰을 수정
-2. cd /Users/hanhyojung/thaki/research
+2. cd /Users/hanhyojung/work/thakicloud/research
 3. /cursor-sync
    → 4개 레포에서 변경 사항 pull (newest wins)
    → research 기준으로 4개 레포에 push

@@ -9,5 +9,8 @@
     "@notionhq/client": "^5.9.0",
     "@tryfabric/martian": "^1",
     "js-yaml": "^4"
+  },
+  "overrides": {
+    "katex": "0.16.21"
   }
 }

@@ -10,10 +10,10 @@
 
 | Alias | Repo | Full Path | Bidirectional |
 |-------|------|-----------|---------------|
-| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` | **yes** |
-| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` | **yes** |
-| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` | **yes** |
-| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` | **yes** |
+| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/work/thakicloud/github-to-notion-sync` | **yes** |
+| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/work/thakicloud/ai-platform-webui` | **yes** |
+| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/work/thakicloud/ai-model-event-stock-analytics` | **yes** |
+| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/work/thakicloud/ai-template` | **yes** |
 
 The alias is used with `--targets` flag: `/cursor-sync --targets ai-template`.
 The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/ai-template`.

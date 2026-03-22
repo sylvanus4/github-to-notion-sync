@@ -1,0 +1,253 @@
+---
+description: 프론트엔드 핵심 패턴. Tab URL 동기화, 폼 검증(Zod+RHF), Drawer+Form 복합, Mutation/Toast 라이프사이클 패턴.
+alwaysApply: true
+---
+
+# Form, Mutation & Lifecycle Patterns
+
+## 1. Tab URL Sync
+
+`useTabSearchParam` 훅으로 탭 상태를 URL `?tab=`에 동기화.
+
+| 적용 | 미적용 |
+|------|--------|
+| 목록 페이지 탭 (Volume, Workload 등) | 일시적 UI 탭 (폼 내 단계 전환) |
+| 상세 페이지 탭 (Details/Logs/Terminal) | 드로어·모달 내부 탭 |
+
+```tsx
+import { useTabSearchParam } from '@/shared/hooks';
+
+const VALID_TABS = ['details', 'logs', 'terminal'] as const;
+const DEFAULT_TAB = 'details';
+
+const { activeTab, handleTabChange } = useTabSearchParam(VALID_TABS, DEFAULT_TAB);
+
+<Tabs activeTabId={activeTab} onChange={handleTabChange}>
+  <Tab id="details" label={t('tabs.details')}>...</Tab>
+</Tabs>
+```
+
+```tsx
+// ❌ 직접 useSearchParams + useState로 탭 관리
+// ❌ useState만으로 탭 관리 (URL 동기화 필요한 페이지에서)
+```
+
+## 2. Form Validation (Zod + React Hook Form)
+
+### useFormWithI18n 필수 사용 (CRITICAL)
+
+`react-hook-form`의 `useForm`을 직접 사용하지 않고, 반드시 `useFormWithI18n`을 사용합니다.
+이 훅은 `useForm`과 동일한 시그니처/반환값을 가지며, 언어 전환 시 Zod 스키마 기반 에러 메시지를 자동 재검증합니다.
+
+```typescript
+import { useFormWithI18n } from '@/shared/libs/form';
+
+// ✅ 올바른 사용
+const form = useFormWithI18n<FormValues>({ resolver: zodResolver(schema), ... });
+const { register, handleSubmit } = useFormWithI18n<FormValues>({ ... });
+
+// ❌ 금지 - useForm 직접 사용
+import { useForm } from 'react-hook-form';
+const form = useForm<FormValues>({ ... });
+```
+
+### FSD 레이어 배치
+
+```
+entities/{domain}/core/schema/{domain}-form.schema.ts   ← Zod 스키마 (i18n)
+features/{domain}/hooks/use{Domain}Form.ts               ← useFormWithI18n + zodResolver
+features/{domain}/ui/{Domain}FormContent.tsx              ← Controller 바인딩
+```
+
+### 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| `useForm` from `react-hook-form` 직접 사용 | `useFormWithI18n` from `@/shared/libs/form` |
+| `useState` + 수동 `validate()` | `useFormWithI18n` + `zodResolver` |
+| `formErrors: Record<string, string>` 수동 관리 | `formState.errors` 자동 관리 |
+| `onFormDataChange(prev => ({...prev}))` | `Controller` + `field.onChange` |
+| props로 `formData`/`formErrors` 개별 전달 | props로 `form: UseFormReturn<T>` 전달 |
+| 비 네이티브 입력을 `register`로 연결 | `Controller`로 래핑 |
+
+### 스키마 (Entity Layer)
+
+```typescript
+// entities/{domain}/core/schema/{domain}-form.schema.ts
+export const create{Domain}FormSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z.string().min(1, t('form.validation.nameRequired')),
+    type: z.enum(['typeA', 'typeB'] as const),
+  });
+
+export type {Domain}FormValues = z.infer<ReturnType<typeof create{Domain}FormSchema>>;
+```
+
+### Hook (Feature Layer)
+
+```typescript
+import { useFormWithI18n } from '@/shared/libs/form';
+
+const schema = useMemo(() => create{Domain}FormSchema(t), [t]);
+
+const form = useFormWithI18n<{Domain}FormValues>({
+  resolver: zodResolver(schema),
+  mode: 'onBlur',
+  reValidateMode: 'onChange',
+  defaultValues: DEFAULT_VALUES,
+});
+```
+
+### UI (Controller 바인딩)
+
+```tsx
+<Controller
+  name="fieldName"
+  control={form.control}
+  render={({ field }) => (
+    <FormField error={form.formState.errors.fieldName?.message}>
+      <Dropdown.Select value={field.value} onChange={field.onChange} />
+    </FormField>
+  )}
+/>
+```
+
+### 고급 검증 패턴
+
+```tsx
+// 비밀번호 확인 검증
+export const createSignupFormSchema = (t: (key: string) => string) => {
+  return z.object({ password: z.string().min(8), passwordConfirm: z.string() })
+    .refine((data) => data.password === data.passwordConfirm, {
+      message: t('auth.validation.password.mismatch'),
+      path: ['passwordConfirm'],
+    });
+};
+
+// 조건부 검증
+export const createProfileSchema = (t: (key: string) => string) => {
+  return z.object({ accountType: z.enum(['personal', 'business']), businessName: z.string().optional() })
+    .refine(
+      (data) => data.accountType !== 'business' || (data.businessName && data.businessName.length > 0),
+      { message: t('validation.business.required'), path: ['businessName'] },
+    );
+};
+```
+
+### 비즈니스 검증 (외부 데이터 의존)
+
+```typescript
+const handleSubmit = form.handleSubmit(async (values) => {
+  if (existingItems.find((i) => i.name === values.name)) {
+    form.setError('name', { message: t('validation.alreadyExists') });
+    return;
+  }
+  await mutation.mutateAsync(values);
+});
+```
+
+### 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| 스키마 팩토리 | `entities/volume/core/schema/volume-form.schema.ts` |
+| Form Hook | `features/volume/hooks/useVolumeForm.ts` |
+| Controller UI | `features/volume/ui/ShareCreateContent.tsx` |
+
+## 3. Drawer + Form 복합 패턴
+
+### Props 정의
+
+```typescript
+interface CreateXxxDrawerProps extends Omit<OverlayProps, 'onConfirm' | 'children'> {
+  projectId: string;
+}
+```
+
+### 단일 뷰 Drawer (생성/편집)
+
+```tsx
+export function CreateXxxDrawer({ projectId, onCancel, ...restProps }: CreateXxxDrawerProps) {
+  const { t } = useTranslation('domain');
+  const { form, handleSubmit, isSubmitting } = useXxxForm({ onSuccess: () => onCancel?.() });
+
+  return (
+    <Overlay.Template
+      {...restProps}
+      type="drawer-horizontal"
+      title={t('create.title')}
+      description={t('create.description')}
+      showDim closeOnDimClick size="sm" duration={200}
+      isLoading={isSubmitting}
+      onCancel={onCancel}
+      onConfirm={handleSubmit}
+      cancelUI={t('button.cancel', { ns: 'common' })}
+      confirmUI={t('button.create', { ns: 'common' })}
+    >
+      <XxxFormContent form={form} />
+    </Overlay.Template>
+  );
+}
+```
+
+### 다중 뷰 Drawer (목록 ↔ 생성 ↔ 상세 전환)
+
+뷰 타입을 `useState`로 관리, Drawer 하나에서 Content 교체.
+
+### Form Hook 반환값 표준
+
+```typescript
+return { form, isSubmitting, handleSubmit, resetForm };
+```
+
+### 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| `extends OverlayProps` 직접 상속 | `extends Omit<OverlayProps, 'onConfirm' \| 'children'>` |
+| `isLoading={true}` 하드코딩 | `isLoading={mutation.isPending}` 바인딩 |
+| 중첩 Drawer (Drawer 안에 Drawer) | 단일 Drawer + 뷰 전환 |
+| form state를 Drawer가 직접 관리 | `useXxxForm` 훅으로 위임 |
+
+## 4. Mutation / Error / Toast 패턴
+
+### Mutation Hook 구조
+
+```typescript
+// features/{domain}/hooks/useCreate{Domain}Mutation.ts
+export function useCreateXxxMutation(parentId: string) {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('domain');
+
+  return useMutation({
+    mutationFn: (data: CreateXxxRequestDto) => XxxService.create(parentId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: xxxQueryKeys.list(parentId) });
+      showToast('positive', t('section.toast.created'));
+    },
+    onError: (error: Error) => {
+      showToast('negative', `${t('section.toast.createFailed')}: ${error.message}`);
+    },
+  });
+}
+```
+
+### 금지
+
+> Toast 사용법: `03-tds-essentials.mdc` 참조, 상세 API: `04-tds-detail-catalog.mdc` 참조
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| `useToast()` 훅 | `showToast(type, message)` from `@/shared/libs/toast` |
+| `toast.custom(...)` 직접 호출 | `showToast(type, message)` |
+| `try/catch` 감싸서 수동 에러 처리 | `onError` 콜백에서 처리 |
+| mutation 내부에서 `form.setError` | `handleSubmit` 내부에서 `form.setError` |
+| `window.alert()` / `console.error()` | Toast + InlineMessage |
+
+### 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| 단일 뷰 Drawer | `widgets/form/devspace/CreateDevSpaceDrawer.tsx` |
+| 다중 뷰 Drawer | `features/volume/ui/SnapshotListDrawer.tsx` |
+| Create Mutation | `features/volume/hooks/useCreateSnapshotMutation.ts` |

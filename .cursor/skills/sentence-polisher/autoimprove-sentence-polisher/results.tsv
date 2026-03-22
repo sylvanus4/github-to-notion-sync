@@ -1,0 +1,6 @@
+experiment	round	eval1_konglish	eval2_honorific	eval3_changelog	eval4_grammar	eval5_meaning	total	score_pct
+baseline	0	FAIL	PASS	FAIL	PASS	PASS	3/5	60.0
+exp1_changelog_format	1	FAIL	PASS	PASS	PASS	PASS	4/5	80.0
+exp2_konglish_mandate	2	PASS	PASS	PASS	PASS	PASS	5/5	100.0
+exp3_mixed_example	3	PASS	PASS	PASS	PASS	PASS	5/5	100.0
+exp4_chunking_clarity	4	PASS	PASS	PASS	PASS	PASS	5/5	100.0

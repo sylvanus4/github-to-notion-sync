@@ -151,7 +151,28 @@ If merge conflict occurs:
    - Report conflicting files to user
    - Skip this project, continue with others
 
-#### Step 3c: Retry deferred push
+#### Step 3c: Merge dev into tmp (ai-platform-webui only)
+
+After pulling from `tmp`, merge the latest `origin/dev` into the current branch to keep it up-to-date with the main development branch. This step only applies to `ai-platform-webui`.
+
+```bash
+cd AI_PLATFORM_WEBUI_PATH
+git fetch origin dev
+git merge origin/dev --no-edit
+```
+
+If merge conflict occurs:
+
+1. For simple conflicts: accept `origin/dev` version with `git checkout --theirs <file> && git add <file>`
+2. For modify/delete conflicts where `origin/dev` deleted files: `git rm <file>`
+3. For complex conflicts that cannot be auto-resolved: abort with `git merge --abort`, record `{dev_merge: "conflict", conflict_files: [...]}`, and report to user
+4. After resolving, commit with `git commit --no-verify -m "chore: merge origin/dev into tmp"`
+
+If merge succeeds (fast-forward or clean merge): record `{dev_merge: "ok", dev_commits_received: N}`.
+
+If `ai-platform-webui` was not processed (SKIPPED or `--targets` excluded it), skip this step.
+
+#### Step 3d: Retry deferred push
 
 If `push_deferred: true` from Phase 2 and pull succeeded:
 
@@ -164,6 +185,14 @@ git push origin HEAD
 ```
 
 If retry push still fails, record the error and continue.
+
+#### Step 3e: Push dev-merge result (ai-platform-webui only)
+
+If Step 3c produced new merge commits, push them to `tmp`:
+
+```bash
+git push origin HEAD:tmp
+```
 
 ### Phase 4: Verify Sync
 
@@ -232,6 +261,9 @@ Call `CallMcpTool` with:
 - project-a: N개 커밋 수신
 - project-b: 이미 최신
 
+**dev 브랜치 머지 (ai-platform-webui)**
+- origin/dev 머지: N개 커밋 반영 {완료|충돌|스킵}
+
 **결과**
 - ✅ SYNCED: N/5 | ⚠️ PARTIAL: N/5 | ❌ FAILED: N/5
 - 총 커밋: 생성 N개, 수신 M개
@@ -299,6 +331,9 @@ SOD 동기화 리포트
   ai-model-event-stock-analytics: 1개 커밋 수신
   research:                       2개 커밋 수신
   ai-platform-webui:              4개 커밋 수신
+
+dev 브랜치 머지 (ai-platform-webui):
+  origin/dev → tmp: N개 커밋 머지 완료
 
 결과: SYNCED 5/5, PARTIAL 0/5, FAILED 0/5
 슬랙: #효정-할일 채널에 게시 완료
@@ -372,6 +407,7 @@ User runs `/sod-ship` on a new morning with changes in 2 projects.
 1. Pre-flight: scan reveals ai-model-event-stock-analytics has 5 dirty files, ai-platform-webui has 3 unpushed commits, 3 projects need pull
 2. Ship local: 2 domain-split commits in analytics project, push both projects
 3. Pull remote: 3 projects receive new commits, 2 already up to date
+3½. Dev merge: ai-platform-webui에 origin/dev 4개 커밋 머지 → tmp에 푸시
 4. Verify: 5/5 SYNCED
 5. Slack: main summary posted to #효정-할일, 2 threaded replies for projects with activity
 6. Chat report displayed
@@ -429,6 +465,8 @@ User runs `/sod-ship` and every project is already up to date.
 | No changes in any project | Report "all projects already in sync" |
 | Slack message fails | Report error; still display chat report (Phase 6) |
 | Slack thread_ts not returned | Post details as separate channel message instead of thread |
+| Dev merge conflict (ai-platform-webui) | Attempt auto-resolve (theirs for simple, rm for deleted); if unresolvable, abort merge and report conflict files; still push tmp changes from Phase 3a |
+| Dev branch not found | Skip dev merge step; continue with remaining phases |
 | Canvas update fails | Warn and continue; does not affect sync results |
 | skill-guide-generator not available | Skip Phase 7a; still attempt Phase 7b with git-only digest |
 

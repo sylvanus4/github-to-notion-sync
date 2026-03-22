@@ -1,0 +1,296 @@
+---
+description: 상세 페이지 표준 패턴 (Header, Tabs, Widget 분리, 에러 가드). Detail 페이지 구현 시 참조.
+globs:
+  - ai-platform/frontend/src/pages/**/*DetailPage*
+  - ai-platform/frontend/src/widgets/detail/**
+  - ai-platform/frontend/src/widgets/tab/**
+alwaysApply: false
+---
+
+# Detail Page Patterns
+
+## 1. 표준 구조
+
+```
+┌─────────────────────────────────────────┐
+│ DetailHeader (widgets/detail/{domain})  │
+│  - 리소스 이름, 상태, 설명              │
+│  - 액션 버튼 (Edit, Delete, ...)        │
+│  - 상태 정보 카드 (선택)                │
+├─────────────────────────────────────────┤
+│ Tabs (useTabSearchParam)                │
+│  ┌─ Details ─┬─ Logs ─┬─ Terminal ─┐   │
+│  │           │        │            │   │
+│  │ Tab Widget (widgets/tab/{domain})│   │
+│  │                                  │   │
+│  └──────────────────────────────────┘   │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 2. Page 컴포넌트 (pages layer)
+
+```tsx
+import { useXxxDetailQuery } from '@/features/{domain}';
+import { useTabSearchParam } from '@/shared/hooks';
+import { useParams } from '@/shared/libs/route-adapter';
+import { XxxDetailHeader } from '@/widgets/detail/{domain}';
+import { DetailsTab, LogsTab } from '@/widgets/tab/{domain}';
+import { Layout, LoadingSpinner, Tab, Tabs } from '@thakicloud/shared';
+
+const VALID_TABS = ['details', 'logs'] as const;
+const DEFAULT_TAB = 'details';
+
+export const XxxDetailPage = () => {
+  const { t } = useTranslation('{domain}');
+  const { id } = useParams<{ id: string }>();
+
+  const { activeTab, handleTabChange } = useTabSearchParam(VALID_TABS, DEFAULT_TAB);
+  const { data, isLoading, isError, refetch } = useXxxDetailQuery(id ?? '');
+
+  // ── Guards (13-error-handling.mdc 참조) ──
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <ErrorRetryBlock message={t('detail.notFound')} onRetry={refetch} />
+      </div>
+    );
+  }
+
+  // ── 정상 렌더링 ──
+  return (
+    <Layout.VStack gap="md">
+      <XxxDetailHeader entity={data} />
+
+      <Tabs activeTabId={activeTab} onChange={handleTabChange} size="sm" destroyOnHidden={false}>
+        <Tab id="details" label={t('detail.tabs.details')}>
+          <DetailsTab entity={data} />
+        </Tab>
+        <Tab id="logs" label={t('detail.tabs.logs')}>
+          <LogsTab entityId={data.id} />
+        </Tab>
+      </Tabs>
+    </Layout.VStack>
+  );
+};
+```
+
+### Page 컴포넌트 책임
+
+| 담당 | 미담당 |
+|------|--------|
+| 파라미터 추출 (`useParams`) | 비즈니스 로직 |
+| 데이터 패칭 (`useXxxDetailQuery`) | 직접 UI 렌더링 (위젯에 위임) |
+| 탭 상태 관리 (`useTabSearchParam`) | 액션 핸들러 (Header 위젯에 위임) |
+| 로딩/에러 가드 | API 호출 |
+| 위젯 조립 | Mutation |
+
+---
+
+## 3. Widget 분리 기준
+
+### widgets/detail/{domain}/ — 헤더 영역
+
+| 책임 | 예시 |
+|------|------|
+| 리소스 이름 / 상태 표시 | `Typography.Title` + `StatusIndicator` |
+| 액션 버튼 (상태별 조건 분기) | Edit, Delete, Stop, Restart, Lock |
+| 상태 정보 카드 (grid) | CPU, Memory, Cost 등 |
+| Mutation 호출 + Toast | `useDeleteXxx`, `useOverlay` |
+| 확인 모달 (openOverlay) | `ResourceActionModal`, `DeleteResourceModal` |
+
+```
+widgets/detail/
+├── template/
+│   ├── TemplateDetailHeader.tsx
+│   └── index.ts
+└── workload/
+    ├── WorkloadDetailHeader.tsx
+    └── index.ts
+```
+
+### widgets/tab/{domain}/ — 탭 콘텐츠 영역
+
+| 책임 | 예시 |
+|------|------|
+| 탭 내부 레이아웃 | `DetailCard`, `Layout.Grid`, 차트 |
+| 읽기 전용 정보 표시 | `DetailCard fields=[...]`, `InfoBox` |
+| 탭 전용 데이터 패칭 (필요 시) | `useQuery` (폴링, 별도 엔드포인트) |
+| 탭 전용 상호작용 | 로그 뷰어, 터미널, 모니터링 툴바 |
+
+```
+widgets/tab/
+├── template/
+│   ├── TemplateDetailsTab.tsx
+│   └── index.ts
+└── workload/
+    ├── DetailsTab.tsx
+    ├── LogsTab.tsx
+    ├── TelemetryTab.tsx
+    ├── TerminalTab.tsx
+    └── index.ts
+```
+
+---
+
+## 4. Tab 구성 패턴
+
+### VALID_TABS 상수 + useTabSearchParam
+
+```tsx
+const VALID_TABS = ['details', 'telemetry', 'logs', 'terminal'] as const;
+const DEFAULT_TAB = 'details';
+
+const { activeTab, handleTabChange } = useTabSearchParam(VALID_TABS, DEFAULT_TAB);
+```
+
+### Tabs Props
+
+```tsx
+<Tabs
+  activeTabId={activeTab}
+  onChange={handleTabChange}
+  size="sm"
+  variant="line"
+  destroyOnHidden={false}  // 탭 전환 시 상태 유지 (터미널, 로그 등)
+>
+```
+
+| Props | 값 | 이유 |
+|-------|-----|------|
+| `size` | `"sm"` | 상세 페이지 기본 |
+| `destroyOnHidden` | `false` | 탭 전환 시 상태/스크롤 유지 |
+| `variant` | `"line"` (기본) | 상세 페이지 표준 |
+
+### 일반적인 탭 구성
+
+| 탭 ID | 용도 | 위젯 |
+|--------|------|------|
+| `details` | 기본 정보 (항상 포함) | `DetailsTab` — `DetailCard` + `InfoBox` |
+| `telemetry` / `monitoring` | 모니터링 차트 | `TelemetryTab` — `MonitoringToolbar` + 차트 |
+| `logs` | 로그 뷰어 | `LogsTab` — `EnhancedLogViewer` |
+| `terminal` | 웹 터미널 | `TerminalTab` — xterm |
+| `events` | 이벤트 목록 | `EventsTab` — `Table` |
+
+---
+
+## 5. DetailHeader 내부 패턴
+
+### 액션 버튼 (상태별 조건 분기)
+
+```tsx
+const isTerminal = TERMINAL_STATUSES.includes(entity.status);
+const canEdit = !isTerminal && !entity.isLocked;
+const canDelete = !NON_DELETABLE_STATUSES.includes(entity.status);
+
+<Layout.HStack gap="xs" wrap>
+  {canEdit && (
+    <Button variant="secondary" appearance="outline" size="sm" onClick={handleEdit}>
+      <EditIcon size="xs" />
+      {t('actions.edit')}
+    </Button>
+  )}
+  {canDelete && (
+    <Button variant="secondary" appearance="outline" size="sm" onClick={handleDelete}>
+      <DeleteIcon size="xs" />
+      {t('actions.delete')}
+    </Button>
+  )}
+</Layout.HStack>
+```
+
+### 삭제/파괴 확인 (openOverlay + ResourceActionModal)
+
+```tsx
+const handleDelete = async () => {
+  const confirmed = await openOverlay({
+    component: ResourceActionModal,
+    props: {
+      actionConfig: {
+        title: t('detail.deleteModal.title'),
+        subtitle: t('detail.deleteModal.subtitle'),
+        actionButtonText: t('detail.deleteModal.action'),
+        actionButtonVariant: 'error',
+      },
+      infoItems: [{ label: t('detail.deleteModal.target'), values: [entity.name], variant: 'gray' }],
+    },
+  });
+  if (confirmed) deleteMutation.mutate(entity.id);
+};
+```
+
+### 상태 정보 카드 (grid)
+
+```tsx
+<div className="grid grid-cols-6 gap-2">
+  <StatusInfoCard
+    label={t('detail.info.status')}
+    value={t(`status.${entity.status}`)}
+    accessory={<StatusIndicator variant={mapStatusToVariant(entity.status)} layout="iconOnly" />}
+  />
+  <StatusInfoCard label={t('detail.info.type')} value={entity.type} />
+</div>
+```
+
+---
+
+## 6. DetailsTab 패턴 (읽기 전용 정보)
+
+### DetailCard 사용
+
+```tsx
+import { DetailCard } from '@thakicloud/shared';
+
+const fields: DetailCardField[] = useMemo(
+  () => [
+    { label: t('detail.fields.name'), value: entity.name },
+    { label: t('detail.fields.status'), value: <StatusIndicator variant={...} label={...} /> },
+    { label: t('detail.fields.createdAt'), value: formatAbsoluteTime(entity.createdAt) },
+    { label: t('detail.fields.description'), value: entity.description ?? '-' },
+  ],
+  [entity, t],
+);
+
+<DetailCard title={t('detail.overview')} fields={fields} />
+```
+
+### InfoBox 사용 (복잡한 값)
+
+```tsx
+import { InfoBox } from '@/shared/ui/field';
+
+<InfoBox label={t('detail.fields.endpoint')} value={entity.endpoint} trailing={<CopyButton text={entity.endpoint} />} />
+```
+
+---
+
+## 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| Page에서 직접 액션 핸들러 구현 | `widgets/detail/{domain}` Header 위젯에 위임 |
+| Page에서 직접 DetailCard 렌더링 | `widgets/tab/{domain}` Tab 위젯에 위임 |
+| `useState`로 탭 관리 | `useTabSearchParam` (URL 동기화) |
+| `destroyOnHidden={true}` (터미널/로그 탭) | `destroyOnHidden={false}` (상태 유지) |
+| Header + Tab을 하나의 위젯에 합치기 | `widgets/detail/` + `widgets/tab/` 분리 |
+| 가드 없이 `data` 직접 사용 | `isLoading` → `isError \|\| !data` → 정상 렌더링 순서 |
+
+## 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| Detail Page (다중 탭) | `pages/workload/WorkloadDetailPage.tsx` |
+| Detail Page (단일 탭) | `pages/templates/TemplateDetailPage.tsx` |
+| Detail Header (복잡) | `widgets/detail/workload/WorkloadDetailHeader.tsx` |
+| Detail Header (단순) | `widgets/detail/template/TemplateDetailHeader.tsx` |
+| Details Tab | `widgets/tab/workload/DetailsTab.tsx` |
+| Logs Tab | `widgets/tab/workload/LogsTab.tsx` |

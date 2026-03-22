@@ -1,0 +1,145 @@
+---
+description: i18n 다국어 처리 규칙. useTranslation 훅, 번역 키 추가, 하드코딩 텍스트 교체 시 적용.
+globs:
+  - ai-platform/frontend/src/**/*.tsx
+  - ai-platform/frontend/src/**/*.ts
+alwaysApply: false
+---
+
+# i18n 규칙
+
+## 필수 원칙
+
+- 모든 사용자 대면 텍스트는 `t()` 다국어 처리 필수 (고유명사 제외)
+- 컴포넌트당 `useTranslation`은 **1회만** 호출
+
+## Locale 파일 위치
+
+```
+src/shared/libs/i18n/locales/
+├── en/
+│   ├── common.json       # 전역 공통 텍스트
+│   ├── workloads.json    # 페이지별 네임스페이스
+│   └── ...
+└── ko/
+    ├── common.json
+    ├── workloads.json
+    └── ...
+```
+
+## 네임스페이스 전환: `{ ns }` 옵션 사용
+
+```tsx
+// ❌ WRONG — 콜론 문법
+t('common:cancel');
+
+// ❌ WRONG — 별도 변수 할당
+const { t: tCommon } = useTranslation('common');
+
+// ✅ CORRECT — { ns } 옵션으로 네임스페이스 전환
+const { t } = useTranslation('volume');
+t('button.cancel', { ns: 'common' });
+```
+
+### 인터폴레이션과 함께 사용
+
+```tsx
+t('card.downloads', { count: dataset.fileCount })
+t('button.download', { ns: 'common' })
+```
+
+## common.json vs 도메인 네임스페이스 판단 기준
+
+| 기준 | common.json | 도메인 JSON |
+|------|-------------|-------------|
+| 2개 이상 페이지에서 사용 | ✅ | ❌ |
+| 범용 액션 (Refresh, Delete, Cancel, Save…) | ✅ | ❌ |
+| 페이지 고유 라벨/메시지 | ❌ | ✅ |
+
+## 도메인 JSON 키 구조 표준
+
+`section.category.field` 형식. section이 도메인 내 화면/기능 영역, category가 용도.
+
+```json
+{
+  "snapshot": {
+    "labels": { "snapshotName": "..." },
+    "placeholders": { "snapshotName": "..." },
+    "validation": { "nameRequired": "..." },
+    "table": { "name": "...", "status": "..." },
+    "actions": { "createSnapshot": "...", "restore": "..." },
+    "status": { "ready": "...", "error": "..." },
+    "toast": { "created": "...", "createFailed": "..." },
+    "deleteConfirm": { "title": "...", "description": "..." },
+    "list": { "title": "...", "empty": "..." },
+    "create": { "title": "...", "description": "..." }
+  }
+}
+```
+
+### 키 카테고리 표준
+
+| 카테고리 | 용도 | 예시 |
+|----------|------|------|
+| `labels` | 폼 필드 라벨 | `snapshot.labels.snapshotName` |
+| `placeholders` | 입력 플레이스홀더 | `snapshot.placeholders.snapshotName` |
+| `validation` | Zod 스키마 검증 메시지 | `snapshot.validation.nameRequired` |
+| `table` | 테이블 컬럼 헤더 | `snapshot.table.status` |
+| `actions` | 액션 버튼 텍스트 | `snapshot.actions.restore` |
+| `status` | 상태 표시 텍스트 | `snapshot.status.ready` |
+| `filters` | 필터 라벨 | `snapshot.filters.name` |
+| `toast` | 토스트 메시지 | `snapshot.toast.created` |
+| `deleteConfirm` | 삭제 확인 모달 | `snapshot.deleteConfirm.title` |
+| `list` | 목록 화면 | `snapshot.list.title` |
+| `create` | 생성 화면 | `snapshot.create.title` |
+
+### 금지
+
+```tsx
+// ❌ category가 앞에 오는 패턴
+t('emptyState.noSnapshots.title')     // category.section.field
+t('labels.snapshotName')              // section 누락
+
+// ✅ section이 앞에 오는 패턴
+t('snapshot.list.empty')              // section.category.field
+```
+
+## i18n 워크플로우
+
+1. 컴포넌트에서 하드코딩 문자열 탐색
+2. `useTranslation(namespace)` 호출로 네임스페이스 확인
+3. `en/{namespace}.json` + `ko/{namespace}.json`에 키 추가
+4. 컴포넌트에서 `t()` 적용
+
+## 한국어 번역 가이드
+
+| English | Korean |
+|---------|--------|
+| Refresh | 새로고침 |
+| Delete | 삭제 |
+| Cancel | 취소 |
+| Save | 저장 |
+| Edit | 편집 |
+| Create / Add | 생성 |
+| Running | 실행 중 |
+| Pending | 대기 중 |
+| Failed | 실패 |
+| Loading | 로딩 중 |
+| No data found | 데이터 없음 |
+
+## 체크리스트
+
+- [ ] `en` + `ko` 양쪽 파일 업데이트
+- [ ] 하드코딩 문자열 0개 (다른 네임스페이스는 `{ ns }` 옵션)
+- [ ] `useMemo` 의존성 배열에 `t` 포함 (라벨이 내부에서 계산될 때)
+- [ ] 일관된 키 네이밍 (camelCase, `section.category.field`)
+
+## 트러블슈팅
+
+### t() 키가 화면에 그대로 표시됨
+Cause: JSON 파일에 해당 키가 없거나, 네임스페이스 불일치
+Solution: locale JSON에 키 존재 여부 확인. `useTranslation` 인자와 JSON 파일명 일치 확인
+
+### en/ko 파일 키 불일치
+Cause: 한쪽 locale만 업데이트
+Solution: 항상 en + ko 동시 업데이트

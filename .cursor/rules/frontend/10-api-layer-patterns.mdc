@@ -1,0 +1,268 @@
+---
+description: API 레이어 패턴 (Adapter, Service, HttpClient, 에러 처리). Entity/Feature API 코드 작성 시 참조.
+globs:
+  - ai-platform/frontend/src/entities/**/infrastructure/**
+  - ai-platform/frontend/src/features/**/service/**
+  - ai-platform/frontend/src/features/**/hooks/use*Mutation*
+  - ai-platform/frontend/src/shared/libs/http/**
+alwaysApply: false
+---
+
+# API Layer Patterns
+
+## 레이어 흐름
+
+```
+Component → Feature Hook → Service → Adapter → httpClient → Backend
+                              ↓           ↓
+                           Entity      DTO(snake_case)
+                         (camelCase)
+```
+
+---
+
+## 1. HttpClient 인스턴스
+
+| 인스턴스 | Import | baseURL | 용도 |
+|----------|--------|---------|------|
+| `httpClient` | `@/shared/libs/http` | `ApiConfig.backend + API_PREFIX` | 기본 백엔드 API (대부분의 도메인) |
+| `kueueHttpClient` | `@/shared/libs/http` | `ApiConfig.kueue` | Kueue 스케줄링 서비스 |
+| `controlplaneHttpClient` | `@/shared/libs/http` | `ApiConfig.controlplane` | Control Plane 서비스 |
+
+```typescript
+// ✅ 기본 API
+import { httpClient } from '@/shared/libs/http';
+
+// ✅ Kueue 전용
+import { kueueHttpClient } from '@/shared/libs/http';
+
+// ❌ HttpClient를 직접 생성하지 않음
+import { HttpClient } from '@/shared/libs/http/client';
+const client = new HttpClient({ baseURL: '...' }); // ❌
+```
+
+### 인터셉터 등록 순서 (자동 적용, 수동 등록 금지)
+
+```
+Request:  auth → cluster → logging
+Response: logging
+Error:    logging → auth (401 → 토큰 갱신 → 재시도)
+```
+
+---
+
+## 2. 응답 타입
+
+### ApiResponse (HttpClient 래핑)
+
+```typescript
+import type { ApiResponse } from '@/shared/libs/http';
+
+// httpClient.get/post/... 반환 타입
+type ApiResponse<T> = {
+  data: T;        // 실제 JSON body
+  status: number;
+  statusText: string;
+  ok: boolean;
+  message?: string;
+};
+```
+
+### 백엔드 응답 래퍼
+
+| 래퍼 | 구조 | 사용 시점 |
+|------|------|----------|
+| `ApiDataWrapper<T>` | `{ data: T, meta?: {...} }` | 단건 응답이 `{ data: ... }` 래퍼에 감싸인 경우 |
+| `PaginationDtoWrapper<T>` | `{ data: T[], page, page_size, total }` | 페이지네이션 목록 |
+
+```typescript
+// ✅ 일반 응답 — res.data로 DTO 접근
+const res = await httpClient.get<DevSpaceResponseDto>(url);
+return res.data; // DevSpaceResponseDto
+
+// ✅ ApiDataWrapper 래퍼 — res.data.data로 DTO 접근
+const res = await httpClient.get<ApiDataWrapper<QuotaResponseDto>>(url);
+return res.data.data; // QuotaResponseDto
+
+// ✅ 페이지네이션 — res.data로 목록+메타 접근
+const res = await httpClient.get<PaginationDtoWrapper<VolumeResponseDto>>(url);
+return res.data; // { data: VolumeResponseDto[], page, page_size, total }
+```
+
+---
+
+## 3. Adapter 패턴 (entities layer)
+
+파일: `entities/{domain}/infrastructure/api/{domain}.adapter.ts`
+
+### URL 상수 객체
+
+```typescript
+const URLS = {
+  base: (projectId: string) =>
+    `/projects/${projectId}/volumes`,
+  detail: (projectId: string, id: string) =>
+    `/projects/${projectId}/volumes/${id}`,
+  action: (projectId: string, id: string) =>
+    `/projects/${projectId}/volumes/${id}/snapshots`,
+} as const;
+```
+
+### Adapter 객체
+
+```typescript
+export const VolumeAdapter = {
+  getList: async (projectId: string, params?: GetVolumeListQueryDto) => {
+    const res = await httpClient.get<PaginationDtoWrapper<VolumeResponseDto>>(
+      URLS.base(projectId),
+      { params: { ...params } },
+    );
+    return res.data;
+  },
+
+  getById: async (projectId: string, id: string) => {
+    const res = await httpClient.get<ApiDataWrapper<VolumeResponseDto>>(
+      URLS.detail(projectId, id),
+    );
+    return res.data.data;
+  },
+
+  create: async (projectId: string, data: CreateVolumeRequestDto) => {
+    const res = await httpClient.post<VolumeResponseDto>(
+      URLS.base(projectId),
+      data,
+    );
+    return res.data;
+  },
+
+  delete: async (projectId: string, id: string) => {
+    await httpClient.delete(URLS.detail(projectId, id));
+  },
+};
+```
+
+### 규칙
+
+| 규칙 | 설명 |
+|------|------|
+| DTO만 반환 | Adapter는 snake_case DTO 그대로 반환. camelCase 변환은 Mapper 담당 |
+| URL 상수 분리 | 하드코딩 URL 금지. `URLS` 또는 `{domain}ApiUrls` 객체에 정의 |
+| params spread | 쿼리 파라미터는 `{ params: { ...filters } }` 형태 |
+| 에러 처리 안 함 | Adapter에서 try/catch 금지. 에러는 호출자(Hook)에서 처리 |
+
+### Request DTO 변환 (camelCase → snake_case)
+
+Adapter 파일 내부에 `toRequestDto` 유틸 함수로 변환:
+
+```typescript
+function toRequestDto(request: CreateDevSpaceRequest): CreateDevSpaceRequestDto {
+  return {
+    name: request.name,
+    cluster_id: request.clusterId,
+    cpu_request: request.cpuRequest,
+  };
+}
+```
+
+---
+
+## 4. Service 패턴 (features layer)
+
+파일: `features/{domain}/service/{domain}.service.ts`
+
+```typescript
+export const VolumeService = {
+  async getList(projectId: string, filters?: VolumeListFilters): Promise<VolumeListEntity> {
+    const dto = await VolumeAdapter.getList(projectId, filters);
+    return VolumeMapper.toVolumeListEntity(dto);
+  },
+
+  async getById(projectId: string, id: string): Promise<VolumeEntity> {
+    const dto = await VolumeAdapter.getById(projectId, id);
+    return VolumeMapper.toVolumeEntity(dto);
+  },
+
+  async create(projectId: string, data: CreateVolumeRequestDto): Promise<VolumeEntity> {
+    const dto = await VolumeAdapter.create(projectId, data);
+    return VolumeMapper.toVolumeEntity(dto);
+  },
+};
+```
+
+### 규칙
+
+| 규칙 | 설명 |
+|------|------|
+| Entity 반환 | Service는 항상 camelCase Entity 반환 (Mapper 호출 필수) |
+| Adapter + Mapper 조합 | Service = Adapter(HTTP) + Mapper(변환) |
+| 비즈니스 로직 위치 | 여러 Adapter를 조합하거나 데이터 가공이 필요하면 Service에서 처리 |
+| 에러 처리 안 함 | Service에서 try/catch 금지. 에러는 Hook 레이어에서 처리 |
+
+---
+
+## 5. 특수 요청 패턴
+
+### 파일 업로드 (FormData)
+
+```typescript
+// Adapter에서 postForm 사용
+const res = await httpClient.postForm<UploadResponseDto>(url, formData);
+return res.data;
+```
+
+### SSE 스트리밍
+
+```typescript
+// Adapter에서 postStream 사용 — Response 객체 직접 반환
+const response = await httpClient.postStream(url, requestBody);
+const reader = response.body?.getReader();
+```
+
+### 파일 다운로드
+
+```typescript
+// Adapter에서 getBlob 사용
+const { blob, headers } = await httpClient.getBlob(url);
+// 또는 브라우저 다운로드 트리거
+await httpClient.download(url, 'filename.csv');
+```
+
+---
+
+## 6. 에러 유틸리티
+
+```typescript
+import { ApiError, getApiErrorMessage, isApiError } from '@/shared/libs/http';
+
+// 타입 가드
+if (isApiError(error)) {
+  console.log(error.status); // HTTP 상태코드
+}
+
+// 메시지 추출 (Mutation onError에서 사용)
+const message = getApiErrorMessage(error);
+showToast('negative', `${t('toast.failed')}: ${message}`);
+```
+
+---
+
+## 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| `fetch()` 직접 호출 | `httpClient.get/post/...` |
+| `axios` 사용 | `httpClient` (커스텀 HttpClient) |
+| Adapter에서 `try/catch` | Hook의 `onError`에서 처리 |
+| Adapter에서 Mapper 호출 | Service에서 Mapper 호출 |
+| Service에서 Toast 표시 | Hook의 `onSuccess`/`onError`에서 표시 |
+| URL 문자열 하드코딩 | `URLS` 상수 객체 사용 |
+| 새 HttpClient 인스턴스 생성 | 기존 인스턴스 (`httpClient`, `kueueHttpClient`, `controlplaneHttpClient`) 사용 |
+
+## 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| Adapter (기본) | `entities/devspace/infrastructure/api/devspace.adapter.ts` |
+| Adapter (ApiDataWrapper) | `entities/volume/infrastructure/api/volume.adapter.ts` |
+| Service | `features/devspace/service/devspace.service.ts` |
+| HttpClient 설정 | `shared/libs/http/index.ts` |

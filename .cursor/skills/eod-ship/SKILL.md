@@ -52,6 +52,31 @@ Follow the `cursor-sync` skill (`.cursor/skills/cursor-sync/SKILL.md`).
 3. Execute sync
 4. Capture per-target summary: `{target: {new: N, updated: N}}`
 
+### Phase 1½: Dev Branch Merge (ai-platform-webui only)
+
+Before shipping, merge the latest `origin/dev` into the current `tmp` branch of `ai-platform-webui` to ensure the working branch is up-to-date with the main development branch.
+
+**Skip if** `--targets` is set and does not include `ai-platform-webui`, or if the `ai-platform-webui` directory does not exist.
+
+```bash
+cd AI_PLATFORM_WEBUI_PATH
+git fetch origin dev
+git merge origin/dev --no-edit
+```
+
+If merge conflict occurs:
+
+1. For simple conflicts: accept `origin/dev` version with `git checkout --theirs <file> && git add <file>`
+2. For modify/delete conflicts where `origin/dev` deleted files: `git rm <file>`
+3. For complex conflicts that cannot be auto-resolved: abort with `git merge --abort`, record `{dev_merge: "conflict", conflict_files: [...]}`, and report to user
+4. After resolving, commit with `git commit --no-verify -m "chore: merge origin/dev into tmp"`
+
+If merge succeeds (fast-forward or clean merge): record `{dev_merge: "ok", dev_commits_received: N}`.
+
+If no new commits from `origin/dev` (already up to date): record `{dev_merge: "up_to_date"}`.
+
+Return to original directory after this step.
+
 ### Phase 2: Release Ship (Current Project)
 
 Run the `release-ship` skill on the current working directory.
@@ -127,6 +152,9 @@ Post a consolidated summary to `#효정-할일` using the `slack_send_message` M
 *커서 동기화*
 - N개 타겟 동기화 완료, M개 파일 신규/업데이트
 
+*dev 브랜치 머지 (ai-platform-webui)*
+- origin/dev 머지: N개 커밋 반영 {완료|이미 최신|충돌}
+
 *프로젝트 배포*
 - project-a: N개 커밋, <PR_URL|PR #X> 머지 완료
 - project-b: 변경사항 없음
@@ -159,6 +187,9 @@ EOD 배포 리포트
   동기화 타겟: N/N
   파일: M개 신규, K개 업데이트
 
+dev 브랜치 머지 (ai-platform-webui):
+  origin/dev → tmp: N개 커밋 머지 완료
+
 프로젝트:
   github-to-notion-sync:          3개 커밋, PR #12 머지 완료
   ai-template:                    변경사항 없음
@@ -179,6 +210,7 @@ EOD 배포 리포트
 User runs `/eod-ship` at end of day with changes across 3 projects.
 
 1. cursor-sync: 4 targets synced, 6 files updated
+1½. dev merge: ai-platform-webui에 origin/dev 5개 커밋 머지 완료
 2. Current project (github-to-notion-sync): 2 domain-split commits, PR #15 merged
 3. ai-template: clean, skipped
 4. ai-model-event-stock-analytics: 3 commits, PR #22 merged
@@ -226,6 +258,8 @@ User runs `/eod-ship --dry-run` to preview.
 | No changes in any project | Report "all projects clean" |
 | `gh` CLI not authenticated | Report error; suggest `gh auth login` |
 | Push rejected on a project | Report error with remediation; continue with others |
+| Dev merge conflict (ai-platform-webui) | Attempt auto-resolve (theirs for simple, rm for deleted); if unresolvable, abort merge and report conflict files; continue with shipping |
+| Dev branch not found | Skip dev merge step; continue with shipping |
 
 ## Safety Rules
 

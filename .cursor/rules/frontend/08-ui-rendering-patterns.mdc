@@ -1,0 +1,281 @@
+---
+description: 반복 UI 패턴, UI 조합(StatusOverview/QuotaGauge/InfoBox), 로딩/Skeleton, PageHeader 패턴. UI 구현 시 참조.
+globs:
+  - ai-platform/frontend/src/**/ui/**
+  - ai-platform/frontend/src/**/pages/**
+  - ai-platform/frontend/src/**/widgets/**
+alwaysApply: false
+---
+
+# UI Rendering Patterns
+
+---
+
+## 1. 반복 UI 추상화 (List Rendering)
+
+다음 **3가지 조건 중 2개 이상**을 만족하면 객체 배열 + map으로 추상화:
+
+1. **동일한 구조의 UI가 3개 이상** 반복
+2. **향후 항목 추가/삭제가 예상**
+3. **조건부 렌더링이 필요한 항목** 포함
+
+### 기본 패턴
+
+```tsx
+const infoItems = useMemo(
+  () => [
+    { key: 'baseImage', label: t('labels.baseImage'), value: template.base_image, className: 'col-span-2', truncate: true },
+    { key: 'ports', label: t('labels.ports'), value: template.ports.length > 0 ? template.ports.join(', ') : 'None' },
+  ],
+  [template, t],
+);
+
+return (
+  <div className="grid grid-cols-5 gap-4">
+    {infoItems.map((item) => (
+      <div key={item.key} className={`${item.className} space-y-1`}>
+        <p className="text-12 text-muted">{item.label}</p>
+        <p className={`text-14 ${item.truncate ? 'truncate' : ''}`}>{item.value}</p>
+      </div>
+    ))}
+  </div>
+);
+```
+
+### 조건부 렌더링
+
+```tsx
+const actionButtons = useMemo(
+  () => [
+    { key: 'edit', label: t('edit'), onClick: handleEdit, show: true },
+    { key: 'delete', label: t('delete'), onClick: handleDelete, show: canDelete },
+  ],
+  [t, canDelete],
+);
+
+{actionButtons.filter((btn) => btn.show).map((btn) => (
+  <Button key={btn.key} onClick={btn.onClick}>{btn.label}</Button>
+))}
+```
+
+### 컴포넌트 외부 선언 (리렌더링 방지)
+
+| 상황 | 위치 | 이유 |
+|------|------|------|
+| 정적 객체/상수 | ✅ 컴포넌트 외부 | 불변, 재생성 불필요 |
+| 순수 함수 (props/state 미사용) | ✅ 컴포넌트 외부 | 클로저 불필요 |
+| props/state 의존 함수 | ⚠️ 컴포넌트 내부 + `useCallback` | 의존성 참조 필요 |
+| props/state 의존 데이터 | ⚠️ 컴포넌트 내부 + `useMemo` | 의존성 기반 계산 |
+
+### useMemo 사용 가이드
+
+| 상황 | useMemo |
+|------|---------|
+| props, state, 번역 함수에 의존 | ✅ 필수 |
+| 포맷팅 함수 호출 포함 | ✅ 필수 |
+| 정적인 레이블만 포함 | ❌ 외부 상수 |
+
+---
+
+## 2. Status Overview + Click Filter
+
+상태 카운트 카드를 `StatusOverviewItem[]` 배열로 선언하고 `map`으로 렌더링.
+
+### 필수 Import
+
+```tsx
+import { StatusOverviewCard, type StatusOverviewItem } from '@/shared/ui/overview';
+import { StatusIndicator } from '@thakicloud/shared';
+```
+
+### 패턴 A: StatsBar (부모가 필터 제어)
+
+```tsx
+const statusItems: StatusOverviewItem[] = useMemo(() => [
+  {
+    label: t('status.running'),
+    count: stats.running,
+    status: 'available',
+    icon: <StatusIndicator variant="active" />,
+    className: 'bg-surface-subtle',
+    clickable: Boolean(onStatusClick),
+    onClick: onStatusClick ? () => onStatusClick('running') : undefined,
+  },
+], [stats, t, onStatusClick]);
+
+return (
+  <section className="flex gap-2">
+    {statusItems.map((item) => <StatusOverviewCard key={item.status} {...item} />)}
+  </section>
+);
+```
+
+### 패턴 B: Section 내부 필터 연동
+
+```tsx
+const STATUS_CARD_TO_FILTER_VALUE: Record<keyof StatusCounts, VolumeStatus> = {
+  available: 'AVAILABLE',
+  error: 'ERROR',
+  inUse: 'IN_USE',
+};
+```
+
+참고: `src/features/volume/ui/VolumeSection.tsx`, `src/entities/workload/ui/WorkloadStatsBar.tsx`
+
+### 금지
+
+- `StatusOverviewCard` 개별 반복 나열 → `statusItems.map()` 사용
+- `Record<string, string>` 매핑 → `Record<keyof StatusCounts, DomainStatus>` 타입 매핑
+- 별도 `useState`로 활성 상태 추적 → `filters.find()` SSoT
+
+---
+
+## 3. Quota Gauge (사용량 표시)
+
+```tsx
+import { QuotaGaugeBase } from '@/shared/ui/gauge';
+
+<QuotaGaugeBase
+  label={<span className="text-text-muted font-medium">{t('section.quota.label')}</span>}
+  used={quota.used}
+  total={quota.total}
+  warningThreshold={80}
+  formatValue={formatStorageSize}
+/>
+```
+
+색상: 정상 `bg-text-subtle` / 경고 `bg-warning` (>=80%) / 초과 `bg-error` (>=100%)
+
+참고: `src/shared/ui/gauge/QuotaGaugeBase.tsx`
+
+---
+
+## 4. InfoBox (읽기 전용 정보 표시)
+
+```tsx
+import { InfoBox } from '@/shared/ui/field';
+
+<InfoBox label={t('section.labels.volume')} value={volumeName} />
+<InfoBox label={t('section.labels.path')} value={path} trailing={<CopyButton text={path} />} />
+<InfoBox label={t('section.labels.info')}>
+  <div className="flex gap-2">
+    <Badge theme="blu">{item.type}</Badge>
+    <span>{item.name}</span>
+  </div>
+</InfoBox>
+```
+
+참고: `src/shared/ui/field/InfoBox.tsx`
+
+---
+
+## 5. Loading & Skeleton Patterns
+
+### 컨텍스트별 선택 기준
+
+| 컨텍스트 | 방법 | 컴포넌트 |
+|----------|------|----------|
+| 카드 리스트 / 그리드 | Skeleton 카드 반복 | `XxxCardSkeleton` 커스텀 컴포넌트 |
+| 테이블 | `isLoading` prop | `Table` / `SelectableTable` 자체 처리 |
+| Drawer/Modal 제출 | `isLoading` prop | `Overlay.Template isLoading={mutation.isPending}` |
+| 페이지 전체 | 중앙 스피너 | `LoadingSpinner` |
+| 인라인 (버튼 등) | `isLoading` prop | `Button isLoading={...}` |
+
+### Skeleton 카드 패턴
+
+파일 위치: `features/{domain}/ui/{Domain}CardSkeleton.tsx`
+
+```tsx
+import { Card } from '@/shared/ui/card';
+import { Skeleton } from '@thakicloud/shared';
+
+export function XxxCardSkeleton(): React.JSX.Element {
+  return (
+    <Card variant="static" className="flex flex-col gap-3 p-4 rounded-md border border-border bg-surface">
+      <div className="flex gap-3 items-start">
+        <Skeleton className="h-4 w-4 rounded-full shrink-0" />
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+          <Skeleton className="h-5 w-32 rounded" />
+          <Skeleton className="h-3 w-24 rounded" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+
+### 사용 (리스트에서)
+
+```tsx
+{isLoading
+  ? Array.from({ length: PAGE_SIZE }).map((_, i) => <XxxCardSkeleton key={i} />)
+  : items.map((item) => <XxxCard key={item.id} {...item} />)
+}
+```
+
+### 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| 카드 리스트에 `LoadingSpinner` 사용 | Skeleton 카드 반복 |
+| `isLoading && <Spinner />` (테이블 내부) | `Table isLoading={...}` prop 사용 |
+| Drawer에서 직접 `<LoadingSpinner />` 렌더 | `Overlay.Template isLoading={...}` |
+
+### 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| Skeleton 카드 | `features/volume/ui/VolumeCardSkeleton.tsx` |
+| 테이블 로딩 | `widgets/table/devspace/DevSpaceTable.tsx` |
+| Drawer 로딩 | `features/volume/ui/SnapshotListDrawer.tsx` |
+
+---
+
+## 6. PageHeader (페이지 헤더)
+
+모든 `*Page.tsx` route 컴포넌트에서 일관된 페이지 헤더 구현.
+
+```tsx
+import { PageHeader } from '@/widgets/header/PageHeader';
+```
+
+### 기본 패턴
+
+```tsx
+<PageHeader.Root>
+  <PageHeader.TitleWithSubtitle title={t('pageTitle')} subtitle={t('pageDescription')} />
+  <div className="flex gap-2">
+    <Button variant="secondary" appearance="outline" onClick={handleRefresh}>
+      <RefreshIcon size="xs" />
+      {t('button.refresh', { ns: 'common' })}
+    </Button>
+    <Button variant="primary" onClick={handleCreate}>
+      <AddIcon size="xs" />
+      {t('button.create', { ns: 'common' })}
+    </Button>
+  </div>
+</PageHeader.Root>
+```
+
+### 컴포넌트 구성
+
+| 컴포넌트 | 용도 | Props |
+|----------|------|-------|
+| `PageHeader.Root` | 컨테이너 (flex justify-between) | `className?` |
+| `PageHeader.TitleWithSubtitle` | 제목 + 부제목 | `title`, `subtitle`, `className?` |
+| `PageHeader.Title` | 제목만 (h1) | `children`, `className?` |
+| `PageHeader.Subtitle` | 부제목만 | `children`, `className?` |
+
+### 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| 직접 `<h1>` + flex 레이아웃 구현 | `PageHeader.Root` 사용 |
+| `PageHeader.TitleWithSubtitle`를 Root 없이 사용 | 항상 `PageHeader.Root`로 감싸기 |
+
+### 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| 기본 사용 | `pages/kueue/KueueMainPage.tsx` |
+| 컴포넌트 | `widgets/header/PageHeader.tsx` |

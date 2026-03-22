@@ -1,0 +1,206 @@
+---
+description: 에러 처리 패턴 (ApiError, 페이지 가드, Mutation 에러, ErrorBoundary). 에러 처리 코드 작성 시 참조.
+globs:
+  - ai-platform/frontend/src/**/*.tsx
+  - ai-platform/frontend/src/**/*.ts
+alwaysApply: false
+---
+
+# Error Handling Patterns
+
+## 1. API 에러 체계
+
+### ApiError 클래스
+
+```typescript
+import { ApiError, getApiErrorMessage, isApiError } from '@/shared/libs/http';
+```
+
+| 유틸 | 용도 |
+|------|------|
+| `ApiError` | HttpClient가 throw하는 커스텀 Error (`status`, `statusText`, `data` 포함) |
+| `isApiError(error)` | 타입 가드 (`error instanceof ApiError`) |
+| `getApiErrorMessage(error, fallback?)` | 안전한 메시지 추출 (ApiError/Error/unknown 모두 처리) |
+
+```typescript
+// ✅ 에러 메시지 추출
+const message = getApiErrorMessage(error);
+const message = getApiErrorMessage(error, t('error.default'));
+
+// ✅ 상태코드 분기
+if (isApiError(error) && error.status === 404) {
+  // Not Found 처리
+}
+```
+
+### 인터셉터 자동 처리 (개발자가 직접 처리 불필요)
+
+| 에러 | 자동 처리 | 개발자 추가 처리 |
+|------|----------|----------------|
+| 401 Unauthorized | `authErrorInterceptor` → 토큰 갱신 → 재시도. 실패 시 로그인 리다이렉트 | 불필요 |
+| 403 Forbidden | 없음 | Mutation `onError`에서 Toast |
+| 404 Not Found | 없음 | 페이지 가드 또는 `onError`에서 처리 |
+| 500 Server Error | 없음 | Mutation `onError`에서 Toast |
+
+---
+
+## 2. 페이지 레벨 에러/로딩 가드 (Early Return)
+
+모든 데이터 의존 페이지에서 **early return 패턴** 적용:
+
+```tsx
+export const WorkloadDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const { data, isLoading, error } = useWorkloadDetailQuery(id ?? '');
+
+  // Guard 1: 파라미터 없음
+  if (!id) return null;
+
+  // Guard 2: 로딩
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // Guard 3: 에러 또는 데이터 없음
+  if (error || !data) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4">
+        <Typography.Text color="error">
+          {getApiErrorMessage(error, t('error.loadFailed'))}
+        </Typography.Text>
+        <Button variant="secondary" appearance="outline" onClick={() => navigate(-1)}>
+          {t('button.back', { ns: 'common' })}
+        </Button>
+      </div>
+    );
+  }
+
+  // Guard 통과 — 정상 렌더링 (data는 non-null 보장)
+  return <WorkloadDetail data={data} />;
+};
+```
+
+### 가드 순서 (고정)
+
+```
+1. 필수 파라미터 검증 (id, slug 등)
+2. isLoading → LoadingSpinner
+3. error || !data → 에러 UI
+4. 정상 렌더링
+```
+
+### 가드 후 타입 보장
+
+early return 이후 `data`는 TypeScript에서 non-null로 추론됨. 별도 non-null assertion(`!`) 불필요.
+
+---
+
+## 3. Mutation 에러 처리
+
+### 표준 패턴
+
+```typescript
+import { showToast } from '@/shared/libs/toast';
+import { getApiErrorMessage } from '@/shared/libs/http';
+
+return useMutation({
+  mutationFn: (data) => XxxService.create(projectId, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: xxxQueryKeys.lists() });
+    showToast('positive', t('toast.created'));
+  },
+  onError: (error: Error) => {
+    showToast('negative', `${t('toast.createFailed')}: ${getApiErrorMessage(error)}`);
+  },
+});
+```
+
+### 비즈니스 검증 에러 (form.setError)
+
+서버 응답의 특정 필드 에러를 폼에 반영:
+
+```typescript
+const handleSubmit = form.handleSubmit(async (values) => {
+  try {
+    await mutation.mutateAsync(values);
+  } catch (error) {
+    if (isApiError(error) && error.status === 409) {
+      form.setError('name', { message: t('validation.alreadyExists') });
+      return;
+    }
+    // 그 외 에러는 mutation.onError에서 Toast 처리
+  }
+});
+```
+
+---
+
+## 4. ErrorBoundary
+
+### 위치
+
+```
+App.tsx
+└── ErrorBoundary (최상위 — 치명적 에러 포착)
+    └── TDSOverlayProvider
+        └── Layout
+            └── Suspense (코드 스플리팅 fallback)
+                └── Page 컴포넌트 (early return 가드)
+```
+
+### 규칙
+
+- 최상위 ErrorBoundary는 `@thakicloud/shared`의 `ErrorBoundary` 사용
+- 페이지 레벨 에러는 **ErrorBoundary가 아닌 early return 패턴**으로 처리
+- ErrorBoundary는 예상치 못한 렌더링 에러(JSX 크래시) 용도
+
+---
+
+## 5. Query 에러 상태 활용
+
+```tsx
+const { data, isLoading, error, isError, refetch } = useQuery(...);
+
+// isError + refetch로 재시도 UI 제공
+if (isError) {
+  return (
+    <EmptyStatePanel
+      content={{
+        title: t('error.title'),
+        description: getApiErrorMessage(error),
+      }}
+    >
+      <Button variant="secondary" appearance="outline" onClick={() => refetch()}>
+        {t('button.retry', { ns: 'common' })}
+      </Button>
+    </EmptyStatePanel>
+  );
+}
+```
+
+---
+
+## 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| `try/catch`로 Adapter/Service 감싸기 | Mutation `onError` 콜백 |
+| `window.alert(error)` | `showToast('negative', ...)` |
+| `console.error(error)` (프로덕션) | `getApiErrorMessage` + Toast |
+| 에러 시 빈 화면 (`return null`) | 에러 UI + 돌아가기/재시도 버튼 |
+| `error as any` 캐스팅 | `getApiErrorMessage(error)` 또는 `isApiError` 타입 가드 |
+| 페이지 레벨에서 ErrorBoundary로 에러 처리 | early return 패턴 |
+| Adapter/Service에서 Toast 호출 | Hook `onError`에서 Toast |
+
+## 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| ApiError | `shared/libs/http/errors/api-error.ts` |
+| 인터셉터 (auth) | `shared/libs/http/interceptors/auth.interceptor.ts` |
+| 페이지 가드 | `pages/templates/TemplateDetailPage.tsx` |
+| Mutation 에러 | `features/volume/hooks/queries/useCreateVolumeMutation.ts` |

@@ -1,0 +1,220 @@
+---
+description: 라우트 등록, 네비게이션, 코드 스플리팅 패턴. 새 페이지 추가/라우트 등록 시 참조.
+globs:
+  - ai-platform/frontend/src/app/routes/**
+  - ai-platform/frontend/src/pages/**
+alwaysApply: false
+---
+
+# Route & Navigation Patterns
+
+## 1. route-adapter 통합 API
+
+라우팅은 `@/shared/libs/route-adapter`의 통합 API만 사용. Standalone(TanStack Router) / Remote(Desktop 탭) 모드를 자동 분기.
+
+```typescript
+// ✅ 통합 API import (유일한 방법)
+import { useNavigate, useParams, useSearchParams, useLocation, Link, NavLink, Navigate, redirect } from '@/shared/libs/route-adapter';
+
+// ❌ TanStack Router 직접 import 금지
+import { useNavigate } from '@tanstack/react-router';
+
+// ❌ react-router-dom 직접 import 금지
+import { Link } from 'react-router-dom';
+```
+
+### 네비게이션
+
+```tsx
+const navigate = useNavigate();
+navigate('/workloads');
+navigate(`/workloads/${id}`);
+navigate('/workloads', { query: { tab: 'running' } });
+```
+
+### 파라미터 추출
+
+```tsx
+const { id } = useParams<{ id: string }>();
+const [searchParams, setSearchParams] = useSearchParams();
+const location = useLocation();
+```
+
+### 유틸리티
+
+```tsx
+import { buildPath, buildUrl, buildQuery, parseUrl } from '@/shared/libs/route-adapter';
+```
+
+---
+
+## 2. RouteConfig 구조
+
+```typescript
+import type { RouteConfig } from '@/app/providers/router-provider';
+
+export interface RouteConfig {
+  path: string;
+  component?: ComponentType | RouteComponent;
+  loader?: () => Promise<unknown> | unknown;
+  children?: RouteConfig[];
+}
+```
+
+---
+
+## 3. 라우트 파일 조직
+
+```
+app/routes/
+├── index.ts                    # LayoutRoutes, AdminRoutes, AuthRoutes 통합
+├── main/main.route.ts          # /, /dashboard
+├── hub/hub.route.ts            # /ai-models, /datasets, /packages, /benchmarks
+├── infrastructure/             # /workloads, /my-templates, /volumes, /serverless
+├── ml-studio/                  # /dev-spaces, /text-generation, /tabular
+├── mlops/                      # /pipelines, /monitoring
+├── operations/                 # /cluster-management, /kueue
+├── settings/                   # /settings, /projects, /groups
+├── auth/                       # /login, /signup
+├── admin/                      # /admin/*
+├── error/                      # /404 (catch-all)
+└── remote/                     # Desktop 모드 VirtualRoute 레지스트리
+```
+
+### 도메인 → 카테고리 매핑 기준
+
+| 카테고리 | 도메인 | 기준 |
+|----------|--------|------|
+| hub | ai-models, datasets, packages, benchmarks | 공유 리소스/허브 |
+| infrastructure | workloads, templates, volumes, serverless | 인프라/컴퓨팅 |
+| ml-studio | dev-spaces, text-generation, tabular | ML 개발 도구 |
+| mlops | pipelines, monitoring | ML 운영/파이프라인 |
+| operations | cluster-management, kueue | 클러스터 운영 |
+| settings | settings, projects, groups, users | 설정/관리 |
+
+---
+
+## 4. lazy import 패턴
+
+```typescript
+// ✅ lazy + named export 변환
+{
+  path: '/workloads',
+  component: lazy(() =>
+    import('@/pages/workload').then((m) => ({ default: m.WorkloadsPage })),
+  ),
+},
+
+// ❌ default export 직접 사용 금지
+{
+  path: '/workloads',
+  component: lazy(() => import('@/pages/workload/WorkloadsPage')),
+},
+```
+
+---
+
+## 5. 경로 순서 규칙 (CRITICAL)
+
+TanStack Router는 순서대로 매칭. **구체적 경로를 먼저 정의**:
+
+```typescript
+// ✅ 올바른 순서 (구체적 → 일반적)
+{ path: '/workloads/deploy', component: ... },          // 1. 정적 하위 경로
+{ path: '/workloads/$id/edit', component: ... },        // 2. 파라미터 + 하위
+{ path: '/workloads/$id', component: ... },             // 3. 파라미터
+{ path: '/workloads', component: ... },                 // 4. 루트
+
+// ❌ 잘못된 순서 — $id가 'deploy'를 먹음
+{ path: '/workloads/$id', component: ... },
+{ path: '/workloads/deploy', component: ... },
+```
+
+---
+
+## 6. URL 파라미터 네이밍
+
+| 패턴 | 예시 | 설명 |
+|------|------|------|
+| `$id` | `/workloads/$id` | 리소스 기본 식별자 |
+| `$name` | `/projects/$name` | 이름 기반 식별자 |
+| 복합 파라미터 | `/workloads/terminal/$namespace/$podName` | 네임스페이스 + 파드명 |
+
+```tsx
+// 페이지에서 추출
+const { id } = useParams<{ id: string }>();
+const { namespace, podName } = useParams<{ namespace: string; podName: string }>();
+```
+
+---
+
+## 7. 리다이렉트 패턴
+
+```typescript
+import { redirect } from '@/shared/libs/route-adapter';
+
+// 경로 변경 (레거시 URL 호환)
+{ path: '/pods', loader: () => redirect('/workloads') },
+
+// 루트 → 대시보드
+{ path: '/', loader: () => redirect('/dashboard') },
+```
+
+---
+
+## 8. 라우트 계층 구조
+
+```
+RootRoute (AuthGuardProvider + RootWrapper)
+├── AuthRoutes (레이아웃 없음): /login, /signup
+├── NoLayoutRoutes: 특수 페이지
+└── LayoutRoute (사이드바 + 헤더)
+    ├── LayoutRoutes: 일반 페이지
+    └── AdminRoute
+        └── AdminRoutes: /admin/*
+```
+
+### 새 페이지 등록 절차
+
+1. `pages/{domain}/` 에 Page 컴포넌트 생성
+2. `pages/{domain}/index.ts`에서 named export
+3. 해당 카테고리의 `app/routes/{category}/{category}.route.ts`에 RouteConfig 추가
+4. 경로 순서 규칙 준수 (구체적 → 일반적)
+
+---
+
+## 9. Link 컴포넌트
+
+```tsx
+import { Link } from '@/shared/libs/route-adapter';
+
+// 기본
+<Link to={`/workloads/${id}`}>{name}</Link>
+
+// 테이블 행 내부 — 클릭 이벤트 전파 방지는 Table.Td preventClickPropagation 사용
+<Table.Td preventClickPropagation>
+  <Link to={`/workloads/${id}`}>{name}</Link>
+</Table.Td>
+```
+
+---
+
+## 금지
+
+| 금지 패턴 | 올바른 패턴 |
+|-----------|------------|
+| `@tanstack/react-router` 직접 import | `@/shared/libs/route-adapter` |
+| `react-router-dom` import | `@/shared/libs/route-adapter` |
+| `window.location.href = ...` | `useNavigate()` |
+| default export로 lazy import | named export + `.then(m => ({ default: m.X }))` |
+| 일반 경로를 구체적 경로보다 먼저 정의 | 구체적 → 일반적 순서 |
+| `app/routes/index.ts`에 직접 RouteConfig 추가 | 해당 카테고리 `.route.ts` 파일에 추가 |
+
+## 참조 구현
+
+| 패턴 | 파일 |
+|------|------|
+| 라우트 등록 (CRUD) | `app/routes/infrastructure/infrastructure.route.ts` |
+| 라우트 통합 | `app/routes/index.ts` |
+| route-adapter | `shared/libs/route-adapter/index.ts` |
+| RouterProvider | `app/providers/router-provider/RouterProvider.tsx` |

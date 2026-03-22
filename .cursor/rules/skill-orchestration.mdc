@@ -1,5 +1,5 @@
 ---
-description: "Skill registry (77 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+description: "Skill registry (78 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
 alwaysApply: false
 ---
 
@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (77 project skills + 68 agency agents)
+## Skill Registry (78 project skills + 68 agency agents)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -41,6 +41,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `overlay-layout-patterns` — useOverlay hook-based modal/drawer patterns
 - `notion-docs-sync` — Sync markdown docs to Notion
 - `notion-meeting-sync` — Sync Notion meeting DB → Korean summary + action items + PPTX
+- `md-enhance-publish` — Enhance markdown with diagrams/tables/evidence → Notion upload → Slack summary
 - `cursor-sync` — Sync .cursor/ assets across projects
 - `cursor-automations` — Create and manage Cursor cloud automations
 - `slack-agent` — Build and deploy Slack bots via Bolt/Express
@@ -62,6 +63,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `codebase-archaeologist` — Git history ownership maps, churn hotspots, bus factor
 - `refactor-simulator` — Blast radius analysis before code changes
 - `skill-optimizer` — Audit, evaluate, benchmark agent skills
+- `skill-autoimprove` — Autonomous skill prompt optimization via binary evals and mutation loop (Karpathy's autoresearch method)
 - `evals-skills` — LLM eval pipeline (judge prompts, synthetic data, RAG eval)
 - `related-papers-scout` — Multi-source discovery of hot related papers from elite institutions (Semantic Scholar, arXiv, PapersWithCode, Twitter/GitHub)
 
@@ -152,6 +154,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/demo-forge` | demo-forge | Sequential |
 | `/onboarding-accelerator` | onboarding-accelerator | Parallel (8 skills) → Sequential (assembly) |
 | `/cursor-sync` | cursor-sync | Sequential |
+| `/skill-autoimprove` | skill-autoimprove, skill-optimizer | Sequential (audit) → Eval-Opt (autonomous mutation loop) → Sequential (benchmark verification) |
 | `/plans` | prompt-architect, plans | Sequential → Eval-Opt (user-driven refinement) |
 | `/today` | today (weekly-stock-update, discover-hot-stocks, daily-stock-check, alphaear-news, alphaear-sentiment, alphaear-reporter, anthropic-docx) | Sequential → Eval-Opt (report quality gate) |
 | `/paperclip-status` | paperclip-control | Sequential |

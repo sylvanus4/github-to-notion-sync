@@ -1,0 +1,1082 @@
+---
+description: TDS (@thakicloud/shared) 상세 카탈로그. 컴포넌트 Props, 공용 스타일, 유틸리티, 디자인 토큰. 코드 생성/TDS 컴포넌트 구현 시 참조.
+globs:
+  - ai-platform/frontend/src/**/ui/**
+  - ai-platform/frontend/src/**/widgets/**
+  - ai-platform/frontend/src/**/pages/**
+alwaysApply: false
+---
+
+# TDS 상세 카탈로그
+
+> 필수 규칙은 `03-tds-essentials.mdc`에 정의. 이 파일은 상세 Props와 사용 패턴 참조용.
+> Import: `from '@thakicloud/shared'`
+
+---
+
+## Part 1: 컴포넌트 API
+
+## Button
+
+```tsx
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'success' | 'error' | 'warning' | 'muted';
+  appearance?: 'solid' | 'outline' | 'ghost';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  isLoading?: boolean;
+  fullWidth?: boolean;
+}
+```
+
+| variant     | appearance | 용도                            |
+| ----------- | ---------- | ------------------------------- |
+| `primary`   | `solid`    | 주요 CTA (Save, Submit, Create) |
+| `secondary` | `outline`  | 보조 액션 (Cancel, Back)        |
+| `error`     | `outline`  | 파괴적 액션 (Delete)            |
+| `muted`     | `ghost`    | 미묘한 액션 (Settings icon)     |
+
+```tsx
+<Button variant="primary" size="md" onClick={handleCreate}>{t('common.create')}</Button>
+<Button variant="secondary" appearance="outline" size="sm" disabled={!selectedRows.length}>
+  <DeleteIcon size="xs" />{t('common.delete')}
+</Button>
+<Button variant="primary" isLoading>{t('common.saving')}</Button>
+```
+
+---
+
+## Table / SelectableTable / ExpandableTable
+
+### TableColumn
+
+```tsx
+interface TableColumn {
+  key: string;
+  header?: string;
+  width?: number | string;
+  align?: 'left' | 'center' | 'right';
+  sortable?: boolean;
+  clickable?: boolean;
+  isEllipsis?: boolean;
+}
+```
+
+### Table
+
+```tsx
+interface TableProps<TData> {
+  rows: TData[];
+  columns: TableColumn[];
+  isLoading?: boolean;
+  emptyUI?: React.ReactNode;
+  sort?: string;
+  order?: 'asc' | 'desc';
+  onSortChange?: (sort: string | null, order: 'asc' | 'desc') => void;
+  stickyLastColumn?: boolean;
+  children?: React.ReactNode;
+}
+```
+
+**Table.Tr:** `rowData`, `onClick?`, `isError?`, `disabled?`
+**Table.Td:** `rowData`, `column`, `preventClickPropagation?`, `colSpan?`
+
+### SelectableTable
+
+```tsx
+interface SelectableTableProps<TData> extends Omit<TableProps<TData>, 'children'> {
+  selectionType: 'checkbox' | 'radio';
+  selectedRows?: (string | number)[];
+  onRowSelectionChange?: (ids: (string | number)[]) => void;
+  getRowId: (row: TData, index: number) => string | number;
+  selectOnRowClick?: boolean;
+  isRowDisabled?: (row: TData, index: number) => boolean;
+  children: React.ReactNode;
+}
+```
+
+### ExpandableTable
+
+```tsx
+interface ExpandableTableProps<TData> extends Omit<TableProps<TData>, 'children'> {
+  expandedRowRender: (row: TData) => React.ReactNode;
+  expandRowByClick?: boolean;
+  selectionType?: 'checkbox' | 'radio';
+  selectedRows?: (string | number)[];
+  onRowSelectionChange?: (ids: (string | number)[]) => void;
+  getRowId?: (row: TData, index: number) => string | number;
+}
+```
+
+**패턴:**
+
+```tsx
+<SelectableTable
+  columns={columns}
+  rows={tableRows}
+  selectionType="checkbox"
+  selectedRows={selectedRows}
+  onRowSelectionChange={setSelectedRows}
+  getRowId={(row) => row.id}
+  isLoading={isLoading}
+  sort={sort}
+  order={order}
+  onSortChange={handleSortChange}
+  stickyLastColumn
+  selectOnRowClick={false}
+  emptyUI={<EmptyUI content={{ title: t('empty.title') }} />}
+>
+  {tableRows.map((row) => (
+    <Table.Tr key={row.id} rowData={row} onClick={() => navigate(`/detail/${row.id}`)}>
+      {columns.map((col) => (
+        <Table.Td key={col.key} rowData={row} column={col} preventClickPropagation={col.key === 'action'}>
+          {cellRenderers[col.key]?.(row) ?? row[col.key] ?? '-'}
+        </Table.Td>
+      ))}
+    </Table.Tr>
+  ))}
+</SelectableTable>
+```
+
+---
+
+## TcTable (렌더 프롭 기반)
+
+suite에서 주력 테이블. Table/SelectableTable 대안.
+
+```tsx
+interface TcTableBodyProps<T> {
+  type?: 'none' | 'radio' | 'checkbox';
+  isLoading: boolean;
+  rowData?: T[] | null;
+  columnNames: string[];
+  onSortChange?: OnSortChange;
+  getSelectValue?: (row: T) => string | number;
+  onChange?: (selectedValues: (string | number)[]) => void;
+  expandableUI?: (row: T) => ReactElement;
+  emptyUI?: ReactElement;
+  selectOnRowClick?: boolean;
+  expandOnRowClick?: boolean;
+  getDisabled?: (row: T) => boolean;
+  resizable?: boolean;
+  children: (row: T, helpers: { selectCell: () => ReactNode; expandButton: () => ReactNode }) => ReactElement;
+}
+```
+
+```tsx
+<TcTable.Body
+  isLoading={isLoading}
+  rowData={rows}
+  columnNames={['Name', 'Status', 'Created', '']}
+  type="checkbox"
+  getSelectValue={(r) => r.id}
+  onChange={setSelectedIds}
+  emptyUI={<EmptyUI content={{ title: t('empty.title') }} />}
+>
+  {(row, { selectCell }) => (
+    <TcTable.Tr key={row.id}>
+      <TcTable.Td>{selectCell()}</TcTable.Td>
+      <TcTable.Td sortable>{row.name}</TcTable.Td>
+      <TcTable.Td>{row.status}</TcTable.Td>
+      <TcTable.Td iconColumn>
+        <ContextMenu.Root
+          trigger={({ toggle }) => (
+            <Button variant="muted" appearance="ghost" size="sm" onClick={toggle}>
+              <ActionIcon size="sm" />
+            </Button>
+          )}
+        >
+          <ContextMenu.Item action={() => onEdit(row)}>{t('common.edit')}</ContextMenu.Item>
+          <ContextMenu.Item action={() => onDelete(row)} danger>
+            {t('common.delete')}
+          </ContextMenu.Item>
+        </ContextMenu.Root>
+      </TcTable.Td>
+    </TcTable.Tr>
+  )}
+</TcTable.Body>
+```
+
+---
+
+## Input / Textarea
+
+```tsx
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'onChange'> {
+  error?: boolean;
+  success?: boolean;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  showPasswordToggle?: boolean;
+  filter?: RegExp | ((value: string) => string);
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>, filteredValue: string) => void;
+}
+
+interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
+  error?: boolean;
+  success?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  resize?: 'none' | 'vertical' | 'horizontal' | 'both';
+  autoResize?: boolean;
+  showCharacterCount?: boolean;
+}
+```
+
+---
+
+## FormField
+
+```tsx
+interface FormFieldProps {
+  label: string;
+  required?: boolean;
+  hint?: string; // ⚠️ helperText 아님!
+  error?: string;
+  success?: string;
+  description?: ReactNode;
+  disabled?: boolean;
+  children: ReactElement;
+}
+```
+
+```tsx
+<FormField label={t('form.email')} required error={errors.email?.message} hint={t('form.emailHint')}>
+  <Input type="email" {...register('email')} error={Boolean(errors.email)} />
+</FormField>
+```
+
+---
+
+## Dropdown
+
+```tsx
+interface DropdownSelectProps {
+  value?: string | number;
+  placeholder?: string;
+  disabled?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  isLoading?: boolean;
+  onChange?: (value: string | number) => void;
+  children: React.ReactElement[];
+}
+
+interface DropdownOptionProps {
+  value: string | number;
+  label?: string;
+  disabled?: boolean;
+  children?: React.ReactNode;
+}
+```
+
+`Dropdown.ComboBox` — 검색 가능한 Select
+
+```tsx
+<Dropdown.Select value={selected} onChange={setSelected} placeholder={t('select.placeholder')} size="md">
+  <Dropdown.Option value="opt1">Option 1</Dropdown.Option>
+  <Dropdown.Option value="opt2">Option 2</Dropdown.Option>
+</Dropdown.Select>
+```
+
+---
+
+## Checkbox / Toggle / RadioGroup
+
+```tsx
+<Checkbox checked={isChecked} onChange={(checked) => setChecked(checked)} label="동의" size="md" />
+<Toggle checked={isEnabled} onChange={(e) => setEnabled(e.target.checked)} checkedLabel="ON" uncheckedLabel="OFF" />
+<RadioGroup
+  name="plan"
+  options={[{ value: 'free', label: 'Free' }, { value: 'pro', label: 'Pro' }]}
+  selectedValue={plan}
+  onChange={setPlan}
+  direction="horizontal"
+/>
+```
+
+---
+
+## Tabs / Tab / TabSelector
+
+```tsx
+interface TabsProps {
+  activeTabId?: string;
+  defaultActiveTabId?: string;
+  size?: 'sm' | 'md';
+  variant?: 'line' | 'button';
+  onChange?: (id: string) => void;
+  destroyOnHidden?: boolean;
+  fullWidth?: boolean;
+}
+
+interface TabSelectorProps {
+  options: { id: string; label: React.ReactNode; disabled?: boolean }[];
+  value?: string;
+  defaultValue?: string;
+  onChange?: (id: string) => void;
+  variant?: 'small' | 'medium' | 'pill';
+  layout?: 'horizontal' | 'vertical';
+}
+```
+
+---
+
+## Badge / Tag / StatusIndicator
+
+```tsx
+interface BadgeProps {
+  theme?: 'blu' | 'red' | 'gry' | 'gre' | 'ylw';
+  size?: 'sm' | 'md' | 'lg';
+  type?: 'subtle' | 'solid';
+  layout?: 'text-only' | 'left-icon' | 'right-icon';
+  icon?: ReactElement;
+}
+
+interface StatusIndicatorProps {
+  variant?:
+    | 'active'
+    | 'error'
+    | 'suspended'
+    | 'shelved'
+    | 'shutoff'
+    | 'down'
+    | 'paused'
+    | 'building'
+    | 'inUse'
+    | 'degraded'
+    | 'offline'
+    | 'noMonitor'
+    | 'pending'
+    | 'draft'
+    | 'mounted'
+    | 'deleting';
+  colorScheme?: 'success' | 'danger' | 'warning' | 'muted' | 'info';
+  label?: string;
+  layout?: 'leftIcon' | 'iconOnly';
+  tooltip?: string;
+  customIcon?: ReactNode;
+}
+```
+
+상태 매핑 함수:
+
+```tsx
+const mapStatusToVariant = (status: string): StatusVariant => {
+  switch (status.toLowerCase()) {
+    case 'active':
+    case 'running':
+    case 'succeeded':
+      return 'active';
+    case 'pending':
+      return 'pending';
+    case 'creating':
+    case 'building':
+      return 'building';
+    case 'deleting':
+    case 'terminating':
+      return 'deleting';
+    case 'stopped':
+    case 'suspended':
+      return 'suspended';
+    case 'failed':
+    case 'error':
+      return 'error';
+    default:
+      return 'paused';
+  }
+};
+```
+
+---
+
+## Overlay / useOverlay
+
+```tsx
+interface OverlayOptions {
+  type?: 'modal' | 'drawer-horizontal' | 'drawer-vertical';
+  size?: 'sm' | 'md';
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  footer?: React.ReactElement;
+  confirmUI?: React.ReactNode;
+  cancelUI?: React.ReactNode;
+  rejectOnCancel?: boolean;
+}
+```
+
+**openOverlay:**
+
+```tsx
+const { openOverlay } = useOverlay();
+const result = await openOverlay({
+  component: MyDrawer,
+  props: { itemName: 'test' },
+  options: { type: 'drawer-horizontal', size: 'md' },
+});
+```
+
+**Overlay 컴포넌트 정의 (CRITICAL):**
+
+```tsx
+interface MyDrawerProps extends Omit<OverlayProps, 'onConfirm'> {
+  itemName: string;
+  onConfirm?: (result: SomeResult) => void;
+}
+
+const MyDrawer = ({ itemName, onConfirm, onCancel, ...restProps }: MyDrawerProps) => (
+  <Overlay.Template
+    {...restProps}
+    title="My Drawer"
+    onConfirm={() => onConfirm?.({ success: true })}
+    onCancel={onCancel}
+  >
+    {/* content */}
+  </Overlay.Template>
+);
+```
+
+---
+
+## ActionModal / ResourceActionModal / DeleteResourceModal
+
+```tsx
+interface ActionConfig {
+  title: string;
+  subtitle?: string;
+  actionButtonText: string;
+  actionButtonVariant: 'error' | 'primary' | 'secondary';
+  cancelButtonText?: string;
+}
+
+interface ResourceActionModalProps extends ActionModalProps {
+  content?: {
+    type?: 'success' | 'info' | 'warning' | 'error';
+    message: string;
+  };
+  infoItems?: InfoItem[];
+  showSeparator?: boolean;
+  loadingText?: string;
+}
+
+interface InfoItem {
+  label: string;
+  values: string[];
+  variant?: 'gray' | 'blue';
+  showBullets?: boolean;
+}
+
+interface DeleteResourceModalProps extends Omit<OverlayProps, 'children'> {
+  targets: DeleteResourceTarget[];
+  forceBulk?: boolean;
+  infoItems?: InfoItem[];
+  content?: { type: 'error' | 'warning'; message: string } | null;
+  labels?: DeleteResourceModalLabels;
+  onAction?: () => void | Promise<void>;
+}
+```
+
+**삭제 확인 3단계:**
+
+```tsx
+// 1. 단순 확인
+await openOverlay({ component: ActionModal, props: { actionConfig: { title, actionButtonText, actionButtonVariant: 'error' } } });
+
+// 2. 리소스 상세
+await openOverlay({ component: ResourceActionModal, props: { actionConfig: {…}, infoItems: [{label, values, variant: 'gray'}], content: {type: 'warning', message} } });
+
+// 3. 표준 삭제 (단일/벌크 자동 분기)
+await openOverlay({ component: DeleteResourceModal, props: { targets: items.map(i => ({id: i.id, name: i.name})), labels: {titleSingle, titleBulk} } });
+```
+
+---
+
+## FilterSearchInput / useFilterSearch
+
+```tsx
+interface FilterKey {
+  key: string;
+  label: string;
+  type: 'input' | 'number' | 'select' | 'dateRange';
+  options?: { value: string; label: string }[];
+}
+
+const { filters, appliedFilters, addFilter, removeFilter, clearFilters } =
+  useFilterSearch(onFilterChange?: () => void);
+```
+
+`appliedFilters` → API 쿼리 파라미터, `filters` → UI 표시용
+
+```tsx
+<FilterSearchInput filterKeys={FILTER_KEYS} onFilterAdd={addFilter} selectedFilters={filters} />;
+{
+  filters.length > 0 && (
+    <FilterSearchResults filters={filters} onRemoveFilter={removeFilter} onClearAll={clearFilters} />
+  );
+}
+```
+
+---
+
+## Pagination
+
+```tsx
+interface PaginationProps {
+  totalCount: number;
+  size: number;
+  currentAt: number; // 1-based
+  onPageChange: (page: number) => void;
+}
+```
+
+---
+
+## ContextMenu
+
+```tsx
+interface ContextMenuRootProps {
+  trigger: ({ isOpen, open, close, toggle }) => ReactElement;
+  direction?: Direction;
+  gap?: number;
+  disabled?: boolean;
+}
+```
+
+```tsx
+<ContextMenu.Root
+  direction="bottom-end"
+  trigger={({ toggle }) => (
+    <Button variant="secondary" appearance="ghost" size="sm" onClick={toggle}>
+      <ActionIcon variant="secondary" size="sm" />
+    </Button>
+  )}
+>
+  <ContextMenu.Item action={() => onEdit(row)}>{t('common.edit')}</ContextMenu.Item>
+  <ContextMenu.Item action={() => onDelete(row)} danger>
+    {t('common.delete')}
+  </ContextMenu.Item>
+</ContextMenu.Root>
+```
+
+---
+
+## Typography
+
+```tsx
+<Typography.Title level={1}>Page Title</Typography.Title>  // level 1-4 → h1-h4
+<Typography.Text variant="paragraph">본문</Typography.Text>  // paragraph | detail | caption
+<Typography.Text variant="caption" color="secondary">메타</Typography.Text>
+<Typography.Label>Field Label</Typography.Label>
+// color: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
+```
+
+---
+
+## Layout
+
+```tsx
+<Layout.VStack gap="md" align="stretch">{children}</Layout.VStack>
+<Layout.HStack gap="sm" align="center" justify="between">{children}</Layout.HStack>
+<Layout.Block title="Section" padding="md">{children}</Layout.Block>
+<Layout.Container maxWidth="lg" padding="md">{children}</Layout.Container>
+<Layout.Divider direction="horizontal" />
+<Layout.Grid.Container columns={3} gap="md">
+  <Layout.Grid.Item colSpan={2}>넓은 영역</Layout.Grid.Item>
+</Layout.Grid.Container>
+```
+
+**StackProps:** `gap: 'xs'|'sm'|'md'|'lg'`, `align: 'start'|'center'|'end'|'stretch'`, `justify: 'start'|'center'|'end'|'between'|'around'|'evenly'`, `wrap?: boolean`
+
+---
+
+## CreateLayout / FloatingCard
+
+```tsx
+interface CreateLayoutProps {
+  title?: ReactNode;
+  headerActions?: ReactNode;
+  sidebar?: ReactNode;
+  sidebarWidth?: 'sm' | 'md' | 'lg';
+  contentGap?: 'sm' | 'md' | 'lg';
+}
+
+interface FloatingCardProps {
+  summaryTitle?: string;
+  sections?: FloatingCardSectionGroup[];
+  quotaTitle?: string;
+  quotas?: FloatingCardQuotaItem[];
+  collapsibleSections?: boolean;
+  sectionOpenMode?: 'single' | 'multiple';
+}
+```
+
+```tsx
+<CreateLayout
+  title={t('create.title')}
+  headerActions={
+    <Button variant="primary" type="submit">
+      {t('common.create')}
+    </Button>
+  }
+  sidebar={<FloatingCard summaryTitle="Summary" sections={sections} />}
+  sidebarWidth="md"
+  contentGap="md"
+>
+  <Fieldset legend={t('section.basic')}>…</Fieldset>
+</CreateLayout>
+```
+
+---
+
+## DetailPageHeader / DetailCard
+
+```tsx
+interface DetailPageHeaderProps {
+  title: string;
+  actions?: React.ReactNode;
+  infoFields?: DetailPageHeaderInfoField[];
+  isLoading?: boolean;
+}
+
+interface DetailCardProps {
+  title?: string;
+  fields: DetailCardField[];
+  actions?: React.ReactNode;
+  isLoading?: boolean;
+}
+```
+
+`DetailCardText` — DetailCard 내부 스타일링 텍스트 (Typography.Text 래퍼)
+
+---
+
+## Fieldset / Accordion / Disclosure
+
+```tsx
+interface FieldsetProps {
+  legend: string;
+  description?: ReactNode;
+  variant?: 'default' | 'bordered' | 'elevated';
+  direction?: 'vertical' | 'horizontal';
+}
+
+// Accordion
+<Accordion.Group type="single" defaultValue="item1" collapsible>
+  <Accordion.Item id="item1" header="Section 1">Content</Accordion.Item>
+</Accordion.Group>
+
+// Disclosure
+<Disclosure label={t('advanced.options')} keepMounted>…</Disclosure>
+```
+
+---
+
+## TagInput (Compound)
+
+```tsx
+interface TagInputProps {
+  tags: { key: string; value: string }[];
+  onTagsChange: (tags: Tag[]) => void;
+  onValidationChange?: (result: TagValidationResult) => void;
+  maxTags?: number;
+  labels?: { add?: string; key?: string; value?: string; delete?: string };
+}
+```
+
+```tsx
+<TagInput tags={tags} onTagsChange={setTags} onValidationChange={handleValidation} labels={tagLabels}>
+  <Layout.VStack gap="md">
+    <Layout.HStack justify="between" align="center">
+      <Typography.Text>{t('field.tags')}</Typography.Text>
+      <TagInput.AddButton />
+    </Layout.HStack>
+    <TagInput.Form keyPlaceholder="Key" valuePlaceholder="Value" />
+  </Layout.VStack>
+</TagInput>
+```
+
+---
+
+## 기타 컴포넌트
+
+```tsx
+// Tooltip
+<Tooltip content={t('tooltip.info')} direction="top"><InfoIcon size="sm" /></Tooltip>
+
+// InlineMessage
+<InlineMessage type="warning" message={t('message.warn')} closable />
+
+// LoadingSpinner / ProgressBar
+<LoadingSpinner size="md" color="primary" />
+<ProgressBar value={75} max={100} variant="primary" showValue="percentage" />
+
+// EmptyUI
+<EmptyUI content={{ title: t('empty.title'), description: t('empty.desc') }}>
+  <Button variant="primary">{t('common.create')}</Button>
+</EmptyUI>
+
+// CardList
+<CardList list={items} isLoading={isLoading} emptyUI={<EmptyUI … />} skeletonUI={<Skeleton />}>
+  {(item) => <MyCard key={item.id} data={item} />}
+</CardList>
+
+// MultiItemDisplay
+<MultiItemDisplay items={resource.tags} maxVisible={3} />
+
+// CopyButton
+<CopyButton text={resource.id} />
+
+// MonitoringToolbar
+<MonitoringToolbar timeRange={timeRange} onTimeRangeChange={setTimeRange} customPeriod={customPeriod} onCustomPeriodChange={setCustomPeriod} onRefresh={handleRefresh} showRefreshButton />
+
+// DatePicker
+<DatePicker mode="range" value={dateRange} onChange={setDateRange} />
+
+// Range
+<Range dual min={0} max={100} value={[20, 80]} onChange={setRange} onChangeEnd={handleCommit} />
+
+// Title / RefreshButton
+<Title title={t('page.title')} size="medium" />
+<RefreshButton size="sm" onRefresh={handleRefresh} duration={1000} />
+
+// Icon
+// ✅ 래핑된 아이콘 직접 import (유일한 방법)
+import { PlayIcon, RefreshIcon, AddIcon, DeleteIcon } from '@thakicloud/shared';
+
+<PlayIcon size="sm" variant="primary" />
+<RefreshIcon size="sm" />
+<AddIcon size="sm" />
+
+// ❌ 금지 — lucide-react, @tabler/icons-react 직접 import
+// import { RefreshCw } from 'lucide-react';
+// import { IconHome } from '@tabler/icons-react';
+
+// size: xs=12, sm=16, md=24, lg=28 px
+```
+
+---
+
+## Part 2: Toast 패턴
+
+**`showToast` 유틸 함수를 유일한 토스트 사용 방법으로 사용합니다.**
+
+```tsx
+import { showToast } from '@/shared/libs/toast';
+
+// 성공
+showToast('positive', t('toast.saved'));
+
+// 에러
+showToast('negative', `${t('toast.failed')}: ${error.message}`);
+
+// 커스텀 duration
+showToast('negative', t('toast.error'), { duration: 7000 });
+```
+
+| 파라미터           | 타입                       | 설명                                                  |
+| ------------------ | -------------------------- | ----------------------------------------------------- |
+| `type`             | `'positive' \| 'negative'` | 토스트 유형                                           |
+| `message`          | `string`                   | 표시 메시지                                           |
+| `options.duration` | `number?`                  | 표시 시간 (ms). positive: 3000, negative: 5000 기본값 |
+
+- 구현: `src/shared/libs/toast/toast.libs.ts`
+- `toast.custom(...)` 직접 호출 금지
+- `useToast()` 훅 금지
+- `toast.success()` / `toast.error()` 금지
+
+---
+
+## Part 3: 공용 스타일 객체
+
+## 레이아웃 스타일
+
+```tsx
+import { actionBarStyle, listStyles, tabStyles } from '@thakicloud/shared';
+```
+
+| 객체             | 키                | 설명                       |
+| ---------------- | ----------------- | -------------------------- |
+| `actionBarStyle` | (string)          | 액션 바 flex wrap gap-sm   |
+| `listStyles`     | `.content`        | 리스트 래퍼 flex-col gap-3 |
+|                  | `.tableContainer` | 테이블 영역 flex-col gap-3 |
+| `tabStyles`      | `.container`      | 탭 컨테이너 flex-col gap-3 |
+
+**리스트 페이지 표준:**
+
+```tsx
+<div className={listStyles.content}>
+  <Layout.HStack className={actionBarStyle}>
+    <FilterSearchInput … />
+    <Button variant="primary">{t('common.create')}</Button>
+  </Layout.HStack>
+  <div className={listStyles.tableContainer}>
+    <TcTable.Body … />
+    <Pagination … />
+  </div>
+</div>
+```
+
+## 모니터링 카드 스타일
+
+```tsx
+import { cardStyles, gridStyles, flexStyles } from '@thakicloud/shared';
+```
+
+**cardStyles:** `.base`(패딩없음), `.card`(p-5), `.withPadding`(p-4), `.title`, `.titleSm`
+**gridStyles:** `.cols2`(→1열@1200), `.cols3`(→2→1), `.cols4`(→2), `.cols6`(→3→2)
+**flexStyles:** `.colGap6`, `.rowGap6Wrap`
+
+## 특수 카드 스타일
+
+```tsx
+import {
+  statCardStyles,
+  tableCardStyles,
+  pieChartCardStyles,
+  lineChartCardStyles,
+  skeletonStyles,
+} from '@thakicloud/shared';
+```
+
+## 사용량 색상
+
+```tsx
+import {
+  getPercentageVariant,
+  getUsageChartColor,
+  PERCENTAGE_BADGE_COLORS,
+  USAGE_CHART_COLORS,
+  percentageBadgeStyles,
+} from '@thakicloud/shared';
+```
+
+| 상태    | 기준   | 색상 |
+| ------- | ------ | ---- |
+| success | 0~69%  | 초록 |
+| warning | 70~94% | 주황 |
+| danger  | 95%+   | 빨강 |
+
+## 링크 스타일
+
+```tsx
+import { linkStyles, linkStylesWithFocus } from '@thakicloud/shared';
+<a className={linkStyles()}>링크</a>
+<a className={linkStyles({ variant: 'primary' })}>Primary</a>
+```
+
+---
+
+## Part 4: 유틸리티
+
+```tsx
+// 날짜
+import {
+  formatDate,
+  formatDateOnly,
+  formatDateToISO,
+  formatRelativeTime,
+  formatAbsoluteTime,
+  formatAbsoluteDate,
+  formatAbsoluteDatetime,
+} from '@thakicloud/shared';
+
+// 파일/데이터 크기
+import { formatFileSize, formatDataSize } from '@thakicloud/shared';
+
+// 차트
+import { formatBytes, formatBytesFromUnit, formatChartValueByUnit, formatPercentage } from '@thakicloud/shared';
+
+// 문자열
+import { formatStringCase } from '@thakicloud/shared';
+// { format: 'lowercamelcase'|'snakecase'|'titlecase', value }
+
+// className 병합
+import { cn } from '@thakicloud/shared';
+
+// 태그 검증
+import { validateTags, getTagErrorKey, reindexTouchedTags, MAX_TAG_LENGTH } from '@thakicloud/shared';
+
+// 필터
+import { convertFiltersToApiParams, formatDateRangeDisplay, generateFilterId } from '@thakicloud/shared';
+
+// API
+import {
+  createApiClient,
+  checkIsUnauthorizedError,
+  checkIsNotFoundError,
+  checkIsForbiddenError,
+  normalizeApiBaseUrl,
+} from '@thakicloud/shared';
+
+// 쿼리스트링
+import { parseQueryString, serializeQuery, areQueryRecordsEqual } from '@thakicloud/shared';
+```
+
+---
+
+## Part 5: 디자인 토큰 상세
+
+## Tailwind 프리셋 매핑
+
+**colors:** `primary`, `secondary`, `tertiary`, `surface`, `text`, `success`, `error`, `warning`, `info`, `muted`, `border`, `focus`
+**spacing:** `xs` ~ `block`, 0~32
+**borderRadius:** `none`, `sm`, `base`, `md`, `lg`, `xl`, `full`, `control`, `card`, `modal`
+**boxShadow:** `none`, `sm`, `base`, `md`, `lg`, `xl`, `card`, `card-hover`, `modal`, `dropdown`, `focus`
+**fontSize:** `Xs` ~ `4xl`, `control-sm/md/lg`
+**zIndex:** `base`, `raised`, `dropdown`, `modal`, `tooltip`
+**transitionDuration:** `fast`, `normal`, `slow`, `interactive`, `content`
+**height/minHeight:** `control-sm`, `control-md`, `control-lg`
+**opacity:** `disabled`, `muted`, `hover`, `overlay`
+
+---
+
+## Part 6: 타입 임포트
+
+```tsx
+import type {
+  ComponentVariant,
+  ComponentAppearance,
+  ComponentSize,
+  BadgeTheme,
+  StatusVariant,
+  StatusColorScheme,
+  TableColumn,
+  SortOrder,
+  SortState,
+  FilterKey,
+  FilterKeyWithValue,
+  OverlayProps,
+  TabSelectorOption,
+  FloatingCardSectionGroup,
+  FloatingCardSectionItem,
+  FloatingCardQuotaItem,
+  DetailPageHeaderInfoField,
+  DetailCardField,
+  InfoItem,
+  ResourceActionModalProps,
+  DeleteResourceTarget,
+  DeleteResourceModalLabels,
+  MultiItemDisplayProps,
+  Tag,
+  TagValidationResult,
+  TagInputLabels,
+  CustomPeriod,
+  PercentageVariant,
+  ColumnConfig,
+  Direction,
+  IconComponent,
+  OptionValue,
+} from '@thakicloud/shared';
+```
+
+---
+
+## Part 7: 훅 / Provider
+
+```tsx
+// 훅
+import {
+  useOverlay,
+  useFilterSearch,
+  useClickOutside,
+  useDragAndDrop,
+  useBreadcrumbs,
+  useUnsavedChangesGuard,
+} from '@thakicloud/shared';
+
+// Provider
+import {
+  ThemeProvider,
+  ToastProvider,
+  LocaleProvider,
+  OverlayProvider,
+  TabProvider,
+  CurrentTabIdProvider,
+  NavigationGuardProvider,
+  FrameProvider,
+  RTLProvider,
+  AuthProvider,
+  NotificationHistoryProvider,
+} from '@thakicloud/shared';
+```
+
+---
+
+## Part 8: 페이지 레이아웃 표준
+
+## 리스트 페이지
+
+```tsx
+<div className={listStyles.content}>
+  <Title title={t('page.title')} size="medium" />
+  <Layout.HStack className={actionBarStyle}>
+    <FilterSearchInput filterKeys={FILTER_KEYS} onFilterAdd={addFilter} selectedFilters={filters} />
+    <Button variant="primary">{t('common.create')}</Button>
+  </Layout.HStack>
+  {filters.length > 0 && <FilterSearchResults filters={filters} onRemoveFilter={removeFilter} onClearAll={clearFilters} />}
+  <div className={listStyles.tableContainer}>
+    <Table columns={columns} rows={rows} isLoading={isLoading} emptyUI={<EmptyUI … />} />
+    <Pagination totalCount={totalCount} size={PAGE_SIZE} currentAt={page} onPageChange={setPage} />
+  </div>
+</div>
+```
+
+## 상세 페이지
+
+```tsx
+<Layout.VStack gap="lg">
+  <DetailPageHeader title={resource.name} isLoading={isLoading} actions={…} infoFields={infoFields} />
+  <Tabs activeTabId={activeTab} onChange={setActiveTab} destroyOnHidden={false}>
+    <Tab id="overview" label={t('tabs.overview')}>
+      <DetailCard title="Overview" fields={overviewFields} />
+    </Tab>
+    <Tab id="monitoring" label={t('tabs.monitoring')}>
+      <MonitoringToolbar … />
+      <div className={gridStyles.cols2}>{/* charts */}</div>
+    </Tab>
+  </Tabs>
+</Layout.VStack>
+```
+
+## 생성/편집 페이지
+
+```tsx
+<CreateLayout
+  title={t('create.title')}
+  headerActions={
+    <Button variant="primary" type="submit">
+      {t('common.create')}
+    </Button>
+  }
+  sidebar={<FloatingCard summaryTitle="Summary" sections={sections} />}
+  sidebarWidth="md"
+  contentGap="md"
+>
+  <Fieldset legend={t('section.basic')} variant="bordered">
+    <FormField label={t('form.name')} required error={errors.name?.message}>
+      <Input {...register('name')} error={Boolean(errors.name)} />
+    </FormField>
+  </Fieldset>
+  <Disclosure label={t('advanced.options')} keepMounted>
+    …
+  </Disclosure>
+</CreateLayout>
+```
+
+---
+
+## Part 9: Desktop UI 전용 (참고)
+
+ai-platform에서는 사용하지 않음.
+
+| 컴포넌트                     | 용도            |
+| ---------------------------- | --------------- |
+| `FrameControls`              | 윈도우 컨트롤   |
+| `NavigationControls`         | 뒤로/앞으로     |
+| `TabBar` / `AppHeaderTab`    | Desktop 탭 바   |
+| `Sidebar`                    | 사이드바        |
+| `LangButton`                 | 언어 전환       |
+| `PromptEditor`               | Monaco 에디터   |
+| `FrameProvider` / `useFrame` | 프레임 컨텍스트 |
+
+---
+
+## Part 10: Scrollbar
+
+글로벌 CSS. `--shared-scrollbar-size`, `--shared-scrollbar-thumb-background`, `--shared-scrollbar-thumb-hover-background`, `--shared-scrollbar-track-background`
