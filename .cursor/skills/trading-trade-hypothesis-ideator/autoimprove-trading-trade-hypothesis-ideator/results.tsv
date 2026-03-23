@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	14	25	56%	Baseline: script workflow only; no enforced card schema, kill criteria, numeric evidence, or closing pursue-first for Korean "가설 카드" requests.
+1	25	25	100%	Added "Mandatory Hypothesis-Card Output Shape" — ranked cards with kill criteria, ≥3 numeric fields, pursue/park/kill table, risks, provenance, actionable close; free-text → JSON normalization rule.

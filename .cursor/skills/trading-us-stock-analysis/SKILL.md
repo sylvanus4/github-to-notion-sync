@@ -232,6 +232,18 @@ This skill supports four types of analysis. Determine which type(s) the user nee
 
 **Output Format:** Follow "Comparison Report Structure" in references/report-template.md
 
+## Mandatory Output Contract (Quality Gate)
+
+For **any** substantive answer (basic, fundamental, technical, comparison, or comprehensive):
+
+1. **Section headers** — Use clear `##` / `###` breaks; comprehensive reports follow `references/report-template.md` **and** include explicit sections: `Data Provenance`, `Key Metrics`, `Analysis`, `Conclusion (Actionable)`, `Risks & Invalidation`.
+2. **Numeric grounding** — Cite **≥3** numbers from **this session's** web search or user input (price, P/E, margin %, RSI, target, etc.). Tag estimates as **Estimate** vs **Reported**.
+3. **Actionable conclusion** — `Conclusion (Actionable)` must state **Buy / Hold / Sell / Watch** (or equivalent) **or** a compare-winner with **one** timeframe (e.g., 6-12 months).
+4. **Risk / invalidation** — `Risks & Invalidation` must list ≥1 catalyst or metric that would **invalidate** the thesis.
+5. **No orphan prices** — Do not invent exact prices/dates; if data is missing, say so and avoid precise claims.
+
+Quick one-line price checks still need **source + date** next to the number.
+
 ## Output Guidelines
 
 **General Principles:**

@@ -54,3 +54,25 @@ Agentic workflow to generate Draw.io XML diagrams for financial logic flows. The
 - **XML not rendering**: Validate XML structure; diagrams.net viewer requires plain (non-compressed) XML.
 - **Alternative output**: Use project's `visual-explainer` skill for HTML canvas rendering instead of Draw.io.
 - **Color coding**: Prompt specifies Positive=green (#d5e8d4), Negative=red (#f8cecc), Neutral=grey (#f5f5f5).
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing
+
+| User query pattern | This skill vs other |
+|--------------------|---------------------|
+| Draw.io / diagrams.net XML for finance logic or transmission chain | **This skill** |
+| General architecture / slide charts | `visual-explainer` |
+| Full narrative report | `alphaear-reporter` |
+
+### Data source attribution (required)
+
+In the diagram legend or companion note, state node data origins when applicable: `(노드 근거: InvestmentSignal.transmission_chain)`, `(근거: 사용자 서술)`, `(근거: alphaear-search 요약)` — so viewers know provenance.
+
+### Korean output
+
+Node labels may be Korean or bilingual; accompanying user message in natural Korean explaining the 다이어그램.
+
+### Fallback protocol
+
+Invalid XML / viewer fail → `Draw.io XML 검증 실패 — 재생성` or `visual-explainer HTML 대안 사용` 명시. Unwritable path → 임시 디렉터리 사용 및 경로 안내.

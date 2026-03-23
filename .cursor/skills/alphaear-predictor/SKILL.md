@@ -55,3 +55,26 @@ Uses the Kronos model to generate time-series forecasts (OHLCV K-line points) an
 - **No trained news weights**: If `news_proj_state_dict` missing in `.pt`, model runs in base-only mode.
 - **CUDA/MPS**: Predictor auto-selects device (cuda > mps > cpu).
 - **PostgreSQL integration**: Reference project's stock services for OHLCV; ensure date range covers required `lookback` days.
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing
+
+| User query pattern | This skill vs other |
+|--------------------|---------------------|
+| Multi-day OHLCV forecast / Kronos + 뉴스 반영 | **This skill** |
+| SMA/Bollinger/RSI rules | `daily-stock-check` |
+| Backtest | dedicated backtest service — **not** this skill |
+| Broad multi-domain report | `alphaear-deepear-lite` |
+
+### Data source attribution (required)
+
+State: historical input `(출처: PostgreSQL OHLCV / 프로젝트 DB)`, base forecast `(출처: Kronos 모델, 가중치 경로 명시)`, adjustment `(출처: LLM 뉴스 반영 조정)` or `조정 생략(뉴스 없음)`.
+
+### Korean output
+
+Korean users: explain 구간 예측, 변동성, 전제 조건 in natural Korean; use 시가, 고가, 저가, 종가, 거래량.
+
+### Fallback protocol
+
+Insufficient rows → `lookback 미충족 — 예측 불가`. Model load fail → `Kronos 가중치 로드 실패 — 기술적 예측 생략`. LLM adjustment fail → `뉴스 조정 실패 — Kronos 기본 예측만 제공` 명시.

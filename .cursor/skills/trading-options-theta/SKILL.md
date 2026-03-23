@@ -71,6 +71,20 @@ Fill the user's parameters into the `[ENTER ...]` placeholder at the end of the 
 
 Present the analysis in the format specified by the prompt (trade ticket, regime report, dashboard, etc.). Always append the disclaimer: "This is not financial advice. Options trading involves significant risk of loss."
 
+#### Global Wrapper (Apply to Every Prompt Output)
+
+After executing a prompt file, wrap the result with these **additional** labeled blocks (prepend summary, append risk):
+
+1. `### Executive Summary` — 3–5 bullets: regime (if any), structure name, **≥3 user-supplied numbers** echoed (e.g., SPX 5850, VIX 18, width $X).
+2. `### Trade Structure` — Strikes, widths, credit/debit, max loss/profit — **numeric**; use `[USER INPUT]` placeholders only when data missing (and ask).
+3. `### Action Plan` — Entry, management, exit — **actionable** ordered steps.
+4. `### Risk & Invalidation` — Min **one** of: max loss, stop as % of premium, or “exit if underlying crosses **price**”; tail/gap risk for 0DTE.
+5. `### Data Provenance` — List which figures came from user vs model assumption; **no** invented earnings dates or strikes.
+
+If the user request maps to **covered call** or other long-premium strategies, reply that this skill is **short premium / theta only** and point to `trading-options-strategy-advisor`.
+
+**Closing line:** One sentence — trade **on / modified / pass** for the session.
+
 ## Combo Workflow
 
 When the user asks for a "daily" or "full" workflow, chain prompts in this sequence:

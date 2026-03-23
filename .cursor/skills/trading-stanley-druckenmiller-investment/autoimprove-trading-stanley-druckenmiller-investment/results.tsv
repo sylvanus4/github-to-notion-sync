@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	15	25	60%	Baseline: JSON pipeline + script path typo (`skills/` not `.cursor/skills/`); standalone Druckenmiller/macro prompts lacked no-hallucination rules, % exposure mapping, invalidation, structured sections, explicit close.
+1	25	25	100%	Fixed synthesizer path to `.cursor/skills/...`; added `## Standalone LLM Analysis` with As-of, sourcing rules, asymmetric table, conviction→% zones, invalidation, risks, provenance, exposure close.

@@ -232,6 +232,20 @@ Present the final report to the user using the report template structure:
 
 Save the report to `outputs/reports/trading/` directory.
 
+### Step 6b: Trading Analysis Eval Contract (Mandatory)
+
+Whether in chat or saved Markdown, the final user-visible analysis MUST satisfy:
+
+| Gate | Pass condition |
+|------|----------------|
+| **Structured output** | `## Summary`, `## Theme Dashboard (Top N)`, `## Bullish / Bearish Highlights`, `## Recommendation`, `## Risks, Data & Narrative Caveats`. |
+| **Specific numbers** | **≥3** quantitative fields from JSON/MD output (e.g. Theme Heat scores, industry avg change%, uptrend % if present, ETF counts). |
+| **Actionable conclusion** | State how to express or avoid themes (proxy ETFs, watchlist only, reduce crowded Late/Exhaustion). |
+| **Risk awareness** | **≥1** limitation from Known Limitations (scraping lag, survivorship, narrative subjectivity) or invalidation if WebSearch disagrees with quant. |
+| **No hallucinated data** | All performance and heat values must trace to `theme_detector_*.json`/`.md`; label WebSearch as narrative only. |
+
+If the script cannot run, keep the same headers and document the blocker—do not fabricate theme ranks.
+
 ---
 
 ## Resources

@@ -193,6 +193,24 @@ Recognize these patterns early to save time:
 
 See `references/failed_tests.md` for detailed examples and diagnostic framework.
 
+## Standard Response Format (Every Engagement)
+
+Unless the user only needs a one-line clarification, structure answers with these **labeled sections**:
+
+1. **Hypothesis restatement** — One sentence rule set (entry/exit/universe).
+2. **Test plan** — Data range, costs/slippage assumptions, parameter grid (if any).
+3. **Results snapshot** — Table of key metrics the user supplied (trades, win%, avg W/L, max DD, years).
+4. **Stress & robustness** — Bullet findings (parameter plateaus, regime split, OOS decay).
+5. **Biases & caveats** — Look-ahead, survivorship, liquidity, corporate actions.
+6. **Verdict** — **Deploy / Refine / Abandon** with one-sentence justification.
+7. **Next experiments** — Numbered list of **actionable** follow-up tests (max 5).
+
+**Actionable close**: Section 6 must give a **single** verdict label; Section 7 must list **at least one** concrete next step.
+
+**Numeric grounding**: When discussing the user's backtest, quote **≥3** numeric inputs they provided (e.g., trade count, win rate %, drawdown %)—never invent backtest stats.
+
+**Risk awareness**: Section 5 or 6 must mention **at least one** failure mode (e.g., "breaks if slippage > X bps" or "sample <30 trades").
+
 ## Output
 
 - `outputs/reports/trading/backtest_eval_<timestamp>.json` — structured evaluation with per-dimension scores, red flags, and verdict

@@ -19,17 +19,6 @@ Generate self-contained HTML files for technical diagrams, visualizations, and d
 
 **Proactive table rendering.** When you're about to present tabular data as an ASCII box-drawing table in the terminal (comparisons, audits, feature matrices, status reports, any structured rows/columns), generate an HTML page instead. The threshold: if the table has 4+ rows or 3+ columns, it belongs in the browser. Don't wait for the user to ask — render it as HTML automatically and tell them the file path. You can still include a brief text summary in the chat, but the table itself should be the HTML page.
 
-## HARD-GATE (Diagram & Slide Generation)
-
-When generating a new diagram, visual plan, or slide deck (not diff-review, project-recap, or fact-check), do NOT start generating until these are confirmed:
-
-1. **Subject matter** — What system, concept, or data is being visualized?
-2. **Target audience** — Developers? PMs? Executives? (determines information density)
-
-If the user's request is vague (e.g., "make a diagram"), ASK what to visualize and for whom before proceeding. Do not guess the subject matter.
-
-This gate does NOT apply to: diff-review, plan-review, project-recap, fact-check, or proactive table rendering (these have sufficient context from git/files).
-
 ## Input
 
 The user provides one of the following:

@@ -156,7 +156,7 @@ Verify the following when using:
 ```
 □ Have you collected all Phase 1 data?
 □ Did you apply each indicator's threshold mechanically?
-□ Did you keep qualitative evaluation within +5 point limit?
+□ Did you keep qualitative evaluation within +3 point limit (v2.1)?
 □ Are you NOT assigning points based on news article impressions?
 □ Does your final score align with other quantitative frameworks?
 ```
@@ -172,7 +172,7 @@ Ignore "many news reports" or "experts are cautious" without quantitative data.
 Always evaluate in this order: Phase 1 (Data Collection) → Phase 2 (Quantitative) → Phase 3 (Qualitative Adjustment).
 
 ### 3. Upper Limit on Subjective Indicators
-Qualitative adjustment has a total limit of +5 points. It cannot override quantitative evaluation.
+Qualitative adjustment has a total limit of **+3 points** (v2.1). It cannot override quantitative evaluation.
 
 ### 4. "Taxi Driver" is Symbolic
 Do not readily acknowledge mass penetration without direct recommendations from non-investors.
@@ -208,6 +208,20 @@ For detailed risk budgets, ATR levels, and short-selling rules per phase (Normal
 ## Output Format
 
 Reports may be saved to `outputs/reports/trading/` when generating structured evaluation reports.
+
+### Trading Analysis Eval Contract (Mandatory)
+
+User-facing answers MUST satisfy five gates:
+
+| Gate | Pass condition |
+|------|----------------|
+| **Structured output** | `## Summary`, `## Phase 1 Data Table`, `## Quantitative Score (Phase 2)`, `## Qualitative Adjustment (Phase 3, max +3)`, `## Final Judgment & Risk Budget`, `## Risks & What Would Change the Score`. |
+| **Specific numbers** | **≥3** measured fields from Phase 1 **and** the final 0–15 score with phase label (e.g. Caution 5–7). Show Put/Call 5d avg, VIX, margin debt YoY %, breadth %, IPO stats as collected—not placeholders. |
+| **Actionable conclusion** | End with risk budget % band + concrete actions (profit-taking stairs, new entry throttle) per phase. |
+| **Risk awareness** | List **≥1** invalidation (e.g. data revision, breadth improvement, qualitative evidence failing checklist). |
+| **No hallucinated data** | If a Phase 1 box is empty, write **not collected**—never invent CBOE/Yahoo values. |
+
+**Phase 1 Data Table (minimum columns):** Indicator | Value | As-of date | Source — one row per collected item.
 
 ---
 

@@ -1,0 +1,10 @@
+{
+  "skill": "trading-market-news-analyst",
+  "baseline_score": 19,
+  "final_score": 24,
+  "experiments": 1,
+  "pass_rate": "96%",
+  "max_score": 25,
+  "eval_template": "Trading Analysis (5 evals × 5 inputs)",
+  "test_inputs_domain": "weekly what moved markets, FOMC post-mortem, earnings mega-cap, commodity shock, quiet tape"
+}

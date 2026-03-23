@@ -80,6 +80,20 @@ Present the generated Markdown report to the user, highlighting:
 - Key breadth levels to watch
 - Any data freshness warnings
 
+### Phase 2b: Trading Analysis Eval Contract (Mandatory)
+
+Structure every **user-facing** answer (after the script runs, or if the script fails) so it passes five binary gates:
+
+| Gate | Pass condition |
+|------|----------------|
+| **Structured output** | Include `## Summary`, `## Composite & Components`, `## Equity Guidance`, `## Recommendation`, `## Risks & Data Caveats`. |
+| **Specific numbers** | Cite **≥3** values from the generated JSON/Markdown (e.g. composite 0–100, one component score, data `as-of` date or days-since-update). |
+| **Actionable conclusion** | Map score → health zone → explicit equity exposure **band** from the zone table (e.g. 75–90%). |
+| **Risk awareness** | State **≥1** risk: stale data (>5 days), weight redistribution, or history trend (improving/deteriorating). |
+| **No hallucinated data** | Numbers must trace to script output; if fetch failed, say so—do not invent breadth levels. |
+
+**Text-only requests (no run yet):** Run the script first when possible; if blocked, output the same header structure and state the exact CLI from Phase 1.
+
 ---
 
 ## 6-Component Scoring System

@@ -1,0 +1,4 @@
+experiment	score	max	pass_rate	mutation_summary
+0	18	25	72%	baseline Japanese pipeline; numeric provenance and invalidation not hard-required in template
+1	22	25	88%	added Mandatory Output Contract (JA/KO): data provenance section, ≥3 sourced numerics, invalidation, review integration
+2	24	25	96%	Phase 3 template: new section 1b データ出所・数値一覧; checklist items for provenance and invalidation

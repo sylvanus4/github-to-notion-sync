@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	20	25	80%	baseline report outline; weak explicit data provenance and invalidation for all numeric claims
+1	24	25	96%	expanded Standard Report Format with Data Provenance table, Actionable Outlook, anti-hallucination rule, ≥3 numeric datapoints, invalidation in risk section

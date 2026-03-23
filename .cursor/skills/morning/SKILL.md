@@ -111,14 +111,40 @@ Skip if `--skip-briefing` is set or `--dry-run` is set.
 `#효정-할일`. The Today pipeline optionally posts to `#h-report`.
 This Phase 3 briefing is a short consolidated summary linking both.
 
-Use `slack_send_message` MCP tool (server: `plugin-slack-slack`):
+Use `slack_send_message` from MCP server `plugin-slack-slack` in **two steps** (parent + thread).
+
+#### Step A — Parent message (channel summary)
+
+Post the high-level header and **signal summary** first. Capture the returned message `ts` for Step B.
 
 ```
 slack_send_message(
   channel_id="C0AA8NT4T8T",
-  message="*☀️ 모닝 루틴 완료* (YYYY-MM-DD)\n\n*Google Daily*\n- 캘린더: N건 일정 (면접 N, 미팅 N)\n- 메일: N건 정리 (스팸 N, 알림 N, 팀원 N, 뉴스 N)\n- 답장 필요: N건\n- 문서: N건 생성 → Drive 업로드\n\n*주식 분석*\n- N개 종목 분석 완료\n- 매수 N | 중립 N | 매도 N\n- 핫 종목: {discovered tickers}\n- 보고서: `{report_path}`\n\n_상세: Google Daily → 위 쓰레드 / 주식 보고서 → #h-report_"
+  message="*☀️ 모닝 루틴 완료* (YYYY-MM-DD)\n\n*Google Daily*\n- 캘린더: N건 일정 (면접 N, 미팅 N)\n- 메일: N건 정리 (스팸 N, 알림 N, 팀원 N, 뉴스 N)\n- 답장 필요: N건\n- 문서: N건 생성 → Drive 업로드\n\n*주식 분석 (요약)*\n- N개 종목 분석 완료\n- 매수 N | 중립 N | 매도 N\n- 핫 종목: {discovered tickers}\n- 보고서: `{report_path}`\n\n_스레드에 세부 종목·단계 상태를 정리합니다._"
 )
 ```
+
+#### Step B — Thread reply (detail + disclaimer)
+
+Post **details** in a thread on Step A using `thread_ts` from Step A’s response. Include:
+
+- Google Daily: which sub-phases completed vs failed (calendar, gmail, drive, slack, memory)
+- Today: top BUY / top SELL tickers (names or symbols), and pointer to `#h-report` if posted there
+- **Disclaimer** (required, last line of thread body):
+
+`_본 브리핑은 정보 제공 목적이며 특정 금융상품 매수·매도를 권유하지 않습니다._`
+
+```
+slack_send_message(
+  channel_id="C0AA8NT4T8T",
+  thread_ts="<ts_from_step_A>",
+  message="*세부 내역*\n\n*Google Daily 상태*\n- …\n\n*주식 시그널 상세*\n- 매수 후보: …\n- 매도 후보: …\n\n_본 브리핑은 정보 제공 목적이며 특정 금융상품 매수·매도를 권유하지 않습니다._"
+)
+```
+
+#### Phase 3 — Error recovery (Slack MCP)
+
+If `slack_send_message` fails: **retry once** after a short backoff (2–3s). If it still fails, log the error, record `morning_briefing=failed` in session notes (and append a one-line entry to `MEMORY.md` if that file is updated this run), and **stop Phase 3** without failing the entire morning run—Phases 1–2 outputs remain valid.
 
 ### Slack mrkdwn Rules
 
@@ -135,7 +161,7 @@ slack_send_message(
 | `--skip-google` | Skip Phase 1 (Google Daily) | Google Daily enabled |
 | `--skip-today` | Skip Phase 2 (Today pipeline) | Today enabled |
 | `--skip-briefing` | Skip Phase 3 (consolidated Slack briefing) | Briefing enabled |
-| `--dry-run` | Run all phases but skip all Slack posting | Slack enabled |
+| `--dry-run` | Suppress Slack in Today + Google Daily; skip Phase 3 briefing | Slack enabled |
 | `--skip-sync` | Pass to Today: skip data sync | Sync enabled |
 | `--skip-fundamentals` | Pass to Today: skip fundamental data | Fundamentals enabled |
 | `--skip-discover` | Pass to Today: skip hot stock discovery | Discovery enabled |
@@ -144,6 +170,13 @@ slack_send_message(
 | `--skip-sentiment` | Pass to Today: skip sentiment scoring | Sentiment enabled |
 | `--skip-docx` | Pass to Today: skip .docx report | DOCX enabled |
 | `--skip-quality-gate` | Pass to Today: skip report quality eval | Quality gate enabled |
+
+### CLI propagation and defaults
+
+- Forward **`--dry-run`** to **Today** so its Slack steps are skipped per `today` skill.
+- **Google Daily** has no documented `--dry-run` flag: when `--dry-run` is set, still run Calendar, Gmail, Drive, and memory steps, but **do not** post Slack messages for Google Daily phases (treat as a manual dry-run branch).
+- **`--skip-briefing`**: skip Phase 3 only; Phases 1–2 still run unless combined with `--skip-google` / `--skip-today`.
+- **Combined flags** apply left-to-right semantics: all stated skips are honored; there is no implicit override between `--dry-run` and `--skip-briefing` (both suppress Phase 3 posting).
 
 ## Examples
 
@@ -187,7 +220,39 @@ Quick data sync + basic technical analysis without screening, news, or report.
 /morning --dry-run
 ```
 
-Runs everything but skips all Slack posting across both pipelines.
+Runs Google Daily and Today workflows with **Slack disabled** (Today: pass `--dry-run`; Google Daily: skip Slack posts only). Phase 3 briefing is **not** posted.
+
+### Skip consolidated briefing only
+
+```
+/morning --skip-briefing
+```
+
+Runs Phases 1–2; omits Phase 3 parent + thread (Google Daily / Today may still post to their own channels per those skills unless you combine with `--dry-run`).
+
+### Per-flag reference (each flag appears in an example)
+
+| Test input / intent | Example command |
+|---------------------|-----------------|
+| Full default pipeline | `/morning` |
+| Skip stock pipeline | `/morning --skip-today` |
+| Skip Google | `/morning --skip-google` |
+| Lightweight Today | `/morning --skip-screener --skip-news --skip-sentiment --skip-docx` |
+| Dry run | `/morning --dry-run` |
+| Skip data sync only | `/morning --skip-sync` |
+| Skip fundamentals only | `/morning --skip-fundamentals` |
+| Skip hot-stock discovery | `/morning --skip-discover` |
+| Skip quality gate only | `/morning --skip-quality-gate` |
+| Skip Phase 3 only | `/morning --skip-briefing` |
+
+### End-to-end walkthrough (all phases, default flags)
+
+Use this as the canonical “full run” narrative when the user says e.g. “아침 루틴 시작해줘” with no skips:
+
+1. **Phase 1 — Google Daily**: Open `.cursor/skills/google-daily/SKILL.md` and execute Calendar → Gmail triage → Drive upload → Slack (unless `--dry-run`) → memory sync. Capture `calendar_summary`, `email_summary`, `documents_created`.
+2. **Phase 1.5 — Gate**: Verify calendar + triage produced structured output or an explicit “no events / no mail” outcome; if Google auth or CLI is missing, log and continue to Phase 2.
+3. **Phase 2 — Today**: Open `.cursor/skills/today/SKILL.md` and run the full pipeline (sync, fundamentals, discovery, screener, news, sentiment, analysis, optional quality gate, docx, Slack to `#h-report` when enabled). Forward any Today flags from the user line. Capture `stock_count`, `signal_summary`, `top_movers`, `hot_stocks`, `report_path`.
+4. **Phase 3 — Morning briefing**: Unless `--skip-briefing` or `--dry-run`, post Step A parent message to `#효정-할일`, then Step B thread with details + disclaimer. On Slack failure, follow Phase 3 error recovery above.
 
 ## Skills Composed
 

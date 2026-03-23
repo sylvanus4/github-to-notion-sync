@@ -57,3 +57,28 @@ Agentic workflow to track how investment signals evolve over time. The agent per
 - **Spurious ticker binding**: Always run `sanitize_signal_output` on LLM output.
 - **Weak evolution detection**: Supply structured `new_research_str` (news + price deltas) to Signal Tracking prompt.
 - **PostgreSQL schema**: Align stored fields with project's signal table schema.
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing
+
+| User query pattern | This skill vs other |
+|--------------------|---------------------|
+| Signal evolution / validity / Strengthened·Weakened·Falsified | **This skill** |
+| One-off RSI/MACD check | `daily-stock-check` |
+| Final report assembly | `alphaear-reporter` |
+| Sentiment only | `alphaear-sentiment` |
+
+Use `alphaear-search` + `alphaear-stock` inside the research step; do not substitute unrelated skills.
+
+### Data source attribution (required)
+
+Tag facts feeding the signal: `(출처: alphaear-search / 엔진명)`, `(출처: alphaear-stock / yfinance|akshare)`, `(출처: FinResearcher 산출 요약)`. Evolution verdict must reference what changed (뉴스/가격) and from which source.
+
+### Korean output
+
+Korean users: verdicts and rationale in natural Korean (강화/약화/반증, 신뢰도, 근거).
+
+### Fallback protocol
+
+If research sparse: `조사 데이터 부족 — 추가 뉴스/가격 수집 필요` and avoid strong verdicts. If JSON/sanitize fails: `신호 JSON 정제 실패 — 재시도` per Error Handling table.

@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	21	25	84%	baseline JSON/md outputs; chat answers could omit uniform sections and assumed-price discipline
+1	25	25	100%	added Mandatory Output Contract: fixed section order, results table, explicit recommendation line, risks, ASSUMED tagging, ≥3 numerics

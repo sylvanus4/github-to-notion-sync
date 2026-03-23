@@ -35,8 +35,8 @@ detection, and produces structured Korean summaries with detailed action items.
 | Language | Korean |
 | MCP Server (Notion) | `plugin-notion-workspace-notion` |
 | MCP Server (Slack) | `plugin-slack-slack` |
-| Default Slack Channel | `#ai-platform-chapter-기획` (ID: `C0AL6D32Z7W`) |
-| Default Notion Parent | `3239eddc34e680e8a7a5d5b5eac18b38` (meetings) |
+| Default Slack Channel | Specify at invocation via `--slack-channel <id>` |
+| Default Notion Parent | Specify at invocation via `--notion-parent <id>` |
 | Table Conversion Script | `.cursor/skills/md-to-notion/scripts/convert_tables.py` |
 
 ## Input Modes
@@ -244,17 +244,16 @@ If Phase 3 produced contextual PM analysis (SWOT, assumptions, ICP, etc.),
 append it as an additional section in the summary document under
 `## 부록: PM 분석`.
 
-### Quality Checklist (HARD-GATE — do NOT proceed to Phase 5 until ALL pass)
+### Quality Checklist
 
-- [ ] Every discussion topic captured (topic count in summary >= topic count in transcript)
-- [ ] All decisions listed with context (each decision has: what, who, rationale)
-- [ ] All participants mentioned with roles (participant count matches transcript)
-- [ ] No action items missing (action items have: owner, deadline or "TBD", deliverable)
-- [ ] Open questions documented (at least 1 if meeting had unresolved discussions)
-- [ ] PM analysis appendix included (if meeting type is strategy/product/technical)
-- [ ] Language is clear, professional Korean (no English sentences except proper nouns)
-
-If any item fails, fix the generated documents before proceeding. Do NOT proceed to Phase 5 with incomplete or placeholder content.
+Before proceeding to Phase 5, verify:
+- [ ] Every discussion topic is captured
+- [ ] All decisions listed with context
+- [ ] All participants mentioned with roles
+- [ ] No action items missing
+- [ ] Open questions documented
+- [ ] PM analysis appendix included (if applicable)
+- [ ] Language is clear, professional Korean
 
 ---
 
@@ -336,7 +335,7 @@ CallMcpTool(
 ```
 
 **CRITICAL**: The `parent` field must be an object `{"page_id": "..."}`,
-not a bare string. Default parent: `3239eddc34e680e8a7a5d5b5eac18b38`.
+not a bare string. The parent page ID must be provided via `--notion-parent`.
 
 **Step 3: Verify upload**
 
@@ -384,7 +383,7 @@ When the `--pptx` flag is provided:
 
 When the `--slack` flag is provided:
 
-1. Post main message to the target channel (default: `C0AL6D32Z7W`)
+1. Post main message to the target channel (specified via `--slack-channel`)
 2. Reply in-thread with detailed discussion points
 3. Reply in-thread with action items dashboard
 4. Reply in-thread with next steps

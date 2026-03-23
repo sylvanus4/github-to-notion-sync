@@ -11,7 +11,7 @@ description: >-
   daily-stock-check). Korean triggers: "모델 평가", "벤치마크".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "ml"
 ---
 # Overview
@@ -28,6 +28,18 @@ This skill provides tools to add structured evaluation results to Hugging Face m
 - **vLLM**: Efficient GPU inference for custom model evaluation
 - **lighteval**: HuggingFace's evaluation library with vLLM/accelerate backends
 - **inspect-ai**: UK AI Safety Institute's evaluation framework
+
+## Agent Response Contract (Binary Eval Gate)
+
+When the user asks for model evaluation, benchmarks, or model-card updates (not only silent script runs), the **user-facing reply** MUST satisfy:
+
+1. **EVAL 1 — Relevance first:** Open with `## 관련도 선행 평가`: `**점수:** N/10` and `**선행 근거:**` (2–4 Korean sentences) tying the request to README extraction, AA import, Jobs eval, or vLLM/lighteval paths in this skill. If out of scope, score < 5 and brief Korean redirect.
+
+2. **EVAL 2 — Composed related skills (≥3):** Section `## 위임된 관련 스킬` with **≥3 rows** from: `hf-hub`, `hf-evaluation` (this skill's scripts), `hf-jobs`, `hf-model-trainer`, `hf-datasets` — backtick names, Korean scope and artifact columns.
+
+3. **EVAL 3 — Korean narrative structure:** Main guidance in **Korean**; H2/H3, bullets, **≥1** markdown table (e.g., workflow steps, method comparison).
+
+4. **EVAL 4 — Actionable recommendations:** `## 실행 액션 플랜` with **≥3** numbered lines, each with **담당:** and **기한:** (Korean).
 
 # Version
 1.3.0
@@ -197,7 +209,7 @@ Fetch benchmark scores from Artificial Analysis API and add them to a model card
 
 **Basic Usage:**
 ```bash
-AA_API_KEY="your-api-key" uv run scripts/evaluation_manager.py import-aa \
+AA_API_KEY="your-api-key" uv run scripts/evaluation_manager.py import-aa \  # pragma: allowlist secret
   --creator-slug "anthropic" \
   --model-name "claude-sonnet-4" \
   --repo-id "username/model-name"

@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	16	25	64%	Baseline: pipeline/scripts documented; conversational "ticket" outputs missing fixed headers, ≥3 numeric echoes, explicit go/no-go, invalidation, provenance for non-script paths.
+1	24	25	96%	Added "Agent Narrative Output" — context, ranked candidates with metrics, exportability, YAML summary with numeric fields, risks/invalidation, provenance, closing go/no-go.

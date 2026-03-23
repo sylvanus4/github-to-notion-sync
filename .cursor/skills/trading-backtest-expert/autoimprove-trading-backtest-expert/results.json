@@ -1,0 +1,10 @@
+{
+  "skill": "trading-backtest-expert",
+  "baseline_score": 20,
+  "final_score": 24,
+  "experiments": 1,
+  "pass_rate": "96%",
+  "max_score": 25,
+  "eval_template": "Trading Analysis (5 evals × 5 inputs)",
+  "test_inputs_domain": "SPY MA cross backtest metrics, OOS decay question, slippage stress, small sample warning, script-only run"
+}

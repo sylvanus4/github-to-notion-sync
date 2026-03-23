@@ -30,7 +30,7 @@ document splitting, and ASCII art preservation automatically.
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `<path>` | Yes | File path or folder path containing `.md` files |
-| `--parent <id>` | No | Notion parent page ID (32-char hex). Defaults to `3239eddc34e680e8a7a5d5b5eac18b38` (AI 자동 정리) |
+| `--parent <id>` | Yes | Notion parent page ID (32-char hex). Must be provided. |
 | `--icon <emoji>` | No | Uniform emoji icon for all created pages (default: 📄) |
 | `--skip-meta` | No | Skip README.md, CHANGELOG.md, LICENSE.md |
 | `--no-table-convert` | No | Keep pipe tables as-is (skip conversion) |
@@ -105,17 +105,6 @@ Apply `--title-prefix` to titles after extraction.
 
 If `--dry-run`, print `[N] {title} ({chars} chars) ← {filepath}` and stop.
 
-### Step 2.5: Pre-Publish Validation Gate
-
-Before creating Notion pages, verify for each file:
-- [ ] Title extracted (non-empty H1 heading or valid filename-derived title)
-- [ ] Content is non-empty after table conversion
-- [ ] No files exceed `--split-threshold` without a split plan (check JSON `split` flag)
-- [ ] Pipe tables converted to Notion-compatible `<table>` HTML blocks (verify JSON output has no remaining `|---|` patterns outside code blocks)
-- [ ] ASCII diagrams wrapped in fenced code blocks (preserved, not converted)
-
-If any file fails validation, skip it with a warning message and continue with remaining files. Report skipped files at the end.
-
 ### Step 3: Publish to Notion
 
 **CRITICAL MCP call format** — the `parent` field must be an object, and `title`
@@ -184,7 +173,7 @@ sub-pages are present.
 
 | Issue | Resolution |
 |-------|------------|
-| `--parent` not provided | Use default: `3239eddc34e680e8a7a5d5b5eac18b38` (AI 자동 정리) |
+| `--parent` not provided | Abort: "Error: --parent is required. Provide a Notion parent page ID." |
 | No `.md` files found | Abort: "Error: No markdown files found at {path}" |
 | Path does not exist | Abort: "Error: Path not found: {path}" |
 | `parent: "Expected object, received string"` | Fix: use `{"page_id": "..."}` format |
@@ -200,7 +189,7 @@ sub-pages are present.
 ### Single file upload
 
 ```
-/md-to-notion output/plans/release-plan.ko.md --parent 3239eddc34e680e8a7a5d5b5eac18b38
+/md-to-notion output/plans/release-plan.ko.md --parent <your-notion-parent-page-id>
 ```
 
 ### Folder upload with icon

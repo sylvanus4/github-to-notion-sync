@@ -62,3 +62,26 @@ Search A-Share, HK, and US stock tickers by code or name, and retrieve historica
 - **No results for US ticker**: This skill focuses on A-Share/HK via akshare; US tickers may need `yfinance` path — check `stock_tools.py` implementation.
 - **Proxy issues**: Script uses `temporary_no_proxy()` context to retry when proxy blocks akshare.
 - **Stale data**: `get_stock_price` auto-syncs when DB is >2 days behind requested end_date.
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing
+
+| User query pattern | This skill vs other |
+|--------------------|---------------------|
+| Ticker resolve + OHLCV history (KR/HK/US ad-hoc) | **This skill** |
+| Routine weekly DB sync for tracked list | `weekly-stock-update` |
+| Technical indicators / signals | `daily-stock-check` |
+| investing.com CSV import | `stock-csv-downloader` |
+
+### Data source attribution (required)
+
+For each price series state data vendor: `(출처: akshare)`, `(출처: Yahoo Finance / yfinance)`, or `(출처: 프로젝트 PostgreSQL 캐시)`. Mention as-of date or latest trading day.
+
+### Korean output
+
+Korean users: natural Korean with 시가, 고가, 저가, 종가, 거래량, 등락률, 이동평균선(다른 스킬과 결합 시).
+
+### Fallback protocol
+
+Unknown ticker → `티커 확인 실패 — search_ticker 재시도 또는 코드 형식 확인`. Network failure → `네트워크 오류 — akshare/yfinance 재시도 또는 캐시 데이터`. US path missing → `미국 종목은 yfinance 경로 사용(구현 확인)` 명시.

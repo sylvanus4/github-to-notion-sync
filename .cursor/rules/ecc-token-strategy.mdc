@@ -1,0 +1,50 @@
+---
+description: Agent-level token optimization — model routing, context management, subagent strategy, MCP budget
+alwaysApply: true
+---
+
+# Agent Token Strategy
+
+Complements `rtk-token-optimization.mdc` (CLI output compression) with higher-level cost controls.
+
+## Model Routing
+
+| Tier | When | Cost |
+|------|------|------|
+| `fast` / Haiku | Subagent exploration, file reading, simple lookups, grep tasks | ~1x |
+| Default / Sonnet | Day-to-day coding, reviews, test writing, implementation | ~4x |
+| Opus | Complex architecture, multi-step reasoning, debugging subtle issues | ~19x |
+
+- Default to the cheapest tier that meets the task's needs
+- Use `fast` model for Task tool subagents when doing exploration, file reading, or test running
+- Only escalate to Opus for multi-step reasoning or architectural decisions
+
+## Context Window Hygiene
+
+- Prefer subagents (Task tool) for exploration — they read many files but return only a summary, keeping main context clean
+- At logical task boundaries (after research, after debugging, before new phase), consider context as potentially stale
+- Avoid reading large files (>1K lines) in main context — use SemanticSearch or Grep scoped to that file instead
+- When generating plans or reports, write to files rather than outputting long text inline
+
+## Subagent Cost Control
+
+- For exploration tasks that only need file reading and searching: use `model: "fast"`
+- For implementation tasks requiring code generation: use default model
+- One focused task per subagent — avoid multi-purpose subagent prompts
+- Include explicit return instructions ("return only: X, Y, Z") to prevent verbose subagent responses
+
+## MCP Server Budget
+
+- Keep under 10 MCP servers enabled per project — each adds tool definitions to context
+- Prefer CLI tools when they exist (`gh` over GitHub MCP for simple operations)
+- Disable unused MCP servers in project config
+
+## LLM API Calls in Pipeline Code
+
+When the project's Python scripts call LLM APIs (Claude, OpenAI, etc.):
+
+- Route by complexity: Haiku for classification/extraction, Sonnet for analysis, Opus only for multi-step reasoning
+- Set explicit budget limits before batch processing
+- Use prompt caching (`cache_control: {"type": "ephemeral"}`) for system prompts >1024 tokens
+- Retry only on transient errors (rate limit, connection, server errors) — fail fast on auth/validation errors
+- Log model selection decisions for cost threshold tuning

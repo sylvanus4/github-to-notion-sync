@@ -1,0 +1,48 @@
+{
+  "skill_name": "daily-db-sync",
+  "status": "complete",
+  "current_experiment": 3,
+  "baseline_score": 92.0,
+  "best_score": 100.0,
+  "experiments": [
+    {
+      "id": 0,
+      "score": 23,
+      "max_score": 25,
+      "pass_rate": 92.0,
+      "status": "baseline",
+      "description": "original skill — no changes"
+    },
+    {
+      "id": 1,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "keep",
+      "description": "added dry-run/status/DB-connection error guidance rows to Error Handling table"
+    },
+    {
+      "id": 2,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "keep",
+      "description": "added idempotency note to Workflow step 5"
+    },
+    {
+      "id": 3,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "keep",
+      "description": "added Korean date expression parsing guide to Workflow step 1"
+    }
+  ],
+  "eval_breakdown": [
+    {"name": "Correct Command", "pass_count": 20, "total": 20},
+    {"name": "Correct Parameters", "pass_count": 20, "total": 20},
+    {"name": "Result Reporting", "pass_count": 20, "total": 20},
+    {"name": "Error Guidance", "pass_count": 18, "total": 20},
+    {"name": "No Wrong Skill", "pass_count": 20, "total": 20}
+  ]
+}

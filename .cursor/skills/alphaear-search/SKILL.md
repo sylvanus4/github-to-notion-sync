@@ -55,3 +55,26 @@ Finance-specific web and local search. Supports Jina, DuckDuckGo, and Baidu engi
 - **Jina vs DDG**: Jina returns LLM-friendly output; use DDG for English/international queries.
 - **General research**: For non-finance queries, delegate to parallel-web-search.
 - **Local search**: `scripts/hybrid_search.py` uses vector + BM25 over `daily_news`.
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing
+
+| User query pattern | This skill vs other |
+|--------------------|---------------------|
+| Finance web + `daily_news` RAG | **This skill** |
+| General non-finance research | `parallel-web-search` |
+| OHLCV / tickers | `alphaear-stock` / `weekly-stock-update` |
+| Curated hot news lists | `alphaear-news` |
+
+### Data source attribution (required)
+
+Tag each result batch: `(출처: Jina Search)`, `(출처: DuckDuckGo)`, `(출처: Baidu)`, `(출처: PostgreSQL daily_news 로컬 RAG)`, `(출처: 검색 캐시)`. Multi-engine: list each engine’s contribution.
+
+### Korean output
+
+Korean queries → Korean synthesis; keep proper nouns and tickers in standard form.
+
+### Fallback protocol
+
+Jina 429/timeout → `Jina 제한 — DDG/Baidu로 재검색`. Local DB empty → `daily_news RAG 결과 없음 — 웹 엔진으로 대체`. Say so explicitly in the user-facing reply.

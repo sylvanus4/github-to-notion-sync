@@ -1,0 +1,46 @@
+{
+  "skill": "today",
+  "category": "Pipeline Orchestrators",
+  "status": "complete",
+  "baseline": {
+    "experiment": 0,
+    "passed": 12,
+    "total": 25,
+    "pct": 48,
+    "notes": "Pre-mutation SKILL.md (see SKILL.md.baseline)"
+  },
+  "final": {
+    "passed": 25,
+    "total": 25,
+    "pct": 100
+  },
+  "experiments_count": 6,
+  "test_inputs": [
+    "오늘의 파이프라인 전체 실행해줘",
+    "today dry-run skip-twitter",
+    "today status",
+    "주식 데이터 동기화만 해줘",
+    "아침 루틴 시작"
+  ],
+  "evals": [
+    "E1_phase_ordering",
+    "E2_error_recovery",
+    "E3_cli_flags",
+    "E4_slack_output",
+    "E5_completeness"
+  ],
+  "matrix_baseline": {
+    "E1_phase_ordering": ["pass", "pass", "pass", "fail", "fail"],
+    "E2_error_recovery": ["fail", "fail", "fail", "fail", "fail"],
+    "E3_cli_flags": ["pass", "fail", "pass", "fail", "fail"],
+    "E4_slack_output": ["pass", "pass", "pass", "pass", "pass"],
+    "E5_completeness": ["fail", "pass", "pass", "pass", "pass"]
+  },
+  "matrix_final": {
+    "E1_phase_ordering": ["pass", "pass", "pass", "pass", "pass"],
+    "E2_error_recovery": ["pass", "pass", "pass", "pass", "pass"],
+    "E3_cli_flags": ["pass", "pass", "pass", "pass", "pass"],
+    "E4_slack_output": ["pass", "pass", "pass", "pass", "pass"],
+    "E5_completeness": ["pass", "pass", "pass", "pass", "pass"]
+  }
+}

@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	21	25	84%	Baseline: strong methodology; user reply sometimes lacked fixed headers, explicit ≥3 reported metrics, and FMP/WebSearch freshness as mandatory risk callout
+1	24	25	96%	Added Phase 3b TA-Eval Contract: six ## sections, ≥3 numbers from MD/JSON or CLI args, zone→risk budget action, stale/invalidation caveats, no guessed scores if FMP missing

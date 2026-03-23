@@ -23,6 +23,30 @@ metadata:
 
 Build automated data pipelines by composing existing Python scripts, Makefile targets, and GitHub Actions workflows. No new code required -- pipelines are defined as YAML configurations or shell script chains.
 
+## Meta-Orchestration
+
+### Prompt router (representative user phrases)
+
+| # | Example prompt | This skill? | Delegation order (numbered) | Output merge strategy | User overrides |
+|---|----------------|-------------|------------------------------|------------------------|----------------|
+| 1 | AI 리포트 품질을 자동 평가해줘 | No | 1) `ai-quality-evaluator` (not a GHA/Makefile concern unless user asks) | — | — |
+| 2 | 데일리 파이프라인을 설계해줘 | Partial | If **runtime** automation: 1) `ai-workflow-integrator` for stage logic → 2) this skill to emit workflow/Makefile/shell | Artifact bundle: YAML + optional Makefile target + inventory entry | `RUNNER=github|local`; cron expr; secrets list |
+| 3 | 이 프로세스를 자동화할지 결정해줘 | No | 1) `automation-strategist` → 2) this skill for implementation | Decision + generated config files | — |
+| 4 | 시스템 데이터 흐름을 분석해줘 | No | 1) `system-thinker` → 2) this skill only to materialize scheduled automation | Map + pipeline file | — |
+| 5 | 프로젝트 컨텍스트를 업데이트해줘 | No | 1) `context-engineer` | — | — |
+
+### Error recovery (pipeline construction)
+
+| Failure mode | Retry | Fallback | Abort |
+|--------------|-------|----------|-------|
+| Template conflict with existing workflow | — | Diff against `daily-today.yml`; extend don’t duplicate | — |
+| Secret missing | — | Stub with `secrets.*`; list required keys for user | Cannot deploy until user confirms |
+| Stage flaky | — | `continue-on-error` + notification; or retry loop in shell | User sets policy |
+
+### Output aggregation
+
+Ship **one** pipeline definition plus **inventory markdown block** (trigger, stages, secrets, duration). If multiple formats (GHA + Makefile), list execution order: prefer CI for schedule, Makefile for local.
+
 ## Available Scripts
 
 These are the building blocks for pipelines:

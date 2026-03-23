@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	20	25	80%	Baseline: had generic "Output Format" line; missing ordered markdown headers, ≥3 scenario P/L rows, explicit invalidation/stop, provenance labels, hallucination guard for missing FMP.
+1	25	25	100%	Added "Required Section Headers (Eval-Aligned)" + hallucination guard + ask-for-inputs rule for AAPL covered call without numbers.

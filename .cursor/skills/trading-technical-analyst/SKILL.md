@@ -158,6 +158,17 @@ If multiple charts are provided:
 
 Do not batch analyses. Complete and save each report before moving to the next chart.
 
+## Mandatory Output Contract (Quality Gate)
+
+Every analysis MUST satisfy these rules before the response is complete:
+
+1. **Chart required**: If the user did not provide a visible weekly chart image, **stop** and request the image. Do **not** invent prices, indicator values, or candle levels.
+2. **Structured sections (inline or file)**: Use these **named headers** in order: `Chart Overview`, `Trend Analysis`, `Support and Resistance`, `Moving Averages & Volume`, `Key Numeric Levels (from chart)`, `Scenario Analysis`, `Actionable Summary`, `Risks & Invalidation`, `Disclaimer`.
+3. **Minimum three numbers**: Cite **at least three** distinct numeric values (e.g., price handles, MA values, RSI, % off high) taken **only** from the chart image; label each as `(from chart)`.
+4. **Actionable close**: End with **Actionable Summary** stating the preferred scenario, what to monitor next, and a **primary trade stance** (e.g., lean long / neutral / reduce) tied to chart structure—not fundamentals.
+5. **Risk / invalidation**: **Risks & Invalidation** must list at least one invalidation level (price close above/below X) or pattern failure that would negate the base case.
+6. **No fabricated data**: Never state specific dates, earnings, or off-chart levels unless the user supplied them or they appear on the chart.
+
 ## Quality Standards
 
 ### Objectivity Requirements

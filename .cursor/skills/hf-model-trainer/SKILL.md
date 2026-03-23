@@ -10,7 +10,7 @@ description: >-
   general HF Hub operations (use hf-cli). Korean triggers: "모델 훈련", "파인튜닝", "TRL".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "ml"
 license: Complete terms in LICENSE.txt
 ---
@@ -67,6 +67,18 @@ When assisting with training jobs:
 3. **Provide job details after submission** - After submitting, provide job ID, monitoring URL, estimated time, and note that the user can request status checks later.
 
 4. **Use example scripts as templates** - Reference `scripts/train_sft_example.py`, `scripts/train_dpo_example.py`, etc. as starting points.
+
+## Agent Response Contract (Binary Eval Gate)
+
+When the user asks for training, fine-tuning, or a training plan (not only internal tool ops), the assistant's **user-facing reply** MUST satisfy:
+
+1. **EVAL 1 — Relevance first:** Start with `## 관련도 선행 평가` and give `**점수:** N/10` plus `**선행 근거:**` (2–4 Korean sentences) explaining how the request maps to TRL/SFT/DPO/GRPO scope in this skill. If the request is out of scope (e.g., pure stock signals), score < 5 and answer with a short Korean redirect only.
+
+2. **EVAL 2 — Composed related skills (≥3):** Include `## 위임된 관련 스킬` table with **≥3 rows** from: `hf-hub`, `hf-datasets`, `hf-jobs`, `hf-model-trainer`, `hf-trackio`, `hf-evaluation` (use exact backtick names). Columns: 스킬, 위임 범위 (Korean), 기대 산출물 (Korean).
+
+3. **EVAL 3 — Korean narrative structure:** After those sections, substantive guidance MUST be **Korean** (code blocks, URLs, and skill names in backticks may stay as-is). Use H2/H3, bullets, and **≥1** Korean markdown table (e.g., hardware, hyperparameters, or checklist).
+
+4. **EVAL 4 — Actionable recommendations:** End with `## 실행 액션 플랜`: **≥3** numbered items; each MUST include **담당:** and **기한:** (Korean, concrete).
 
 ## Local Script Dependencies
 

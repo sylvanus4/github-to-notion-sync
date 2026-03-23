@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	21	25	84%	Baseline: strong filters/recipes; final user message did not mandate labeled sections, ≥3 numeric thresholds in table, provenance vs fake tickers, or explicit actionable close for all NL requests.
+1	25	25	100%	Added "Step 5b: Structured User Reply" — section table, filter codes with numeric thresholds, risks, provenance; explicit mapping note for ROE/저평가/대형주.

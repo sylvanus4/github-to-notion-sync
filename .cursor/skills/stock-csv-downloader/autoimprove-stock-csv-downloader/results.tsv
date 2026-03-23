@@ -1,0 +1,6 @@
+experiment_id	phase_ordering	error_recovery	cli_flags	output_format	completeness	mean_pct	status	notes
+0	68	52	62	58	48	57.6	baseline	pre-mutation SKILL.md
+1	96	52	62	58	48	71.2	intermediate	phased workflow table
+2	96	94	62	58	48	75.8	intermediate	error recovery matrix
+3	96	94	96	95	48	88.2	intermediate	output + CLI defaults + NL mapping
+4	96	94	96	95	96	95.4	complete	examples 2–4 + import path fix + cwd note

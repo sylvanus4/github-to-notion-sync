@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	17	25	68%	Baseline: v2.1 scoring solid; Implementation Checklist still said +5 qualitative cap (contradicts v2.1); no mandatory Phase 1 table + final section template for chat evals
+1	24	25	96%	Fixed checklist + principle to +3 max; added TA-Eval Contract with Phase 1 Data Table, final judgment headers, ≥3 measured fields + 0–15 score, risk budget actions, not-collected rule

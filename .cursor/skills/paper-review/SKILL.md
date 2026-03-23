@@ -64,7 +64,6 @@ Read these as needed during execution:
 Phase 1: Ingest Paper (PDF/URL/markdown → structured text)
 Phase 2: Generate Korean Paper Review (core deliverable, always produced)
 Phase 3: Multi-Perspective PM Analysis (parallel subagents, optional)
-Phase 3½: Cross-Perspective Consistency Gate
 Phase 4: Consolidate into DOCX (Word report)
 Phase 5: Generate PPTX (PowerPoint presentation, anthropic-pptx)
 Phase 6: Generate NLM Slides (NotebookLM slide deck from DOCX)
@@ -270,18 +269,6 @@ Do NOT proceed to Phase 4 until all 6 perspective files pass verification.
 
 ---
 
-## Phase 3½: Cross-Perspective Consistency Gate
-
-Before consolidating into DOCX, verify consistency across Phase 2 review and Phase 3 perspective analyses:
-
-- [ ] **No contradictions** — If one perspective recommends adoption while another flags critical risks, note the disagreement explicitly rather than silently including both
-- [ ] **Paper citations consistent** — All perspectives reference the same paper metrics (performance numbers, dataset sizes, cost figures) without conflicting values
-- [ ] **Completeness** — Each perspective file is 80+ lines with specific analysis (not template skeletons)
-
-If contradictions are found, add a "## 관점 간 차이점" (Cross-Perspective Disagreements) section to the review summarizing the conflicts. Do NOT resolve them silently — present both viewpoints.
-
----
-
 ## Phase 4: DOCX Consolidation
 
 Read `references/docx-structure.md` for detailed assembly instructions.
@@ -356,8 +343,7 @@ Skip this phase if `--skip-notion` is set.
 
 Read `references/notion-integration.md` for detailed instructions.
 
-Default parent page: `3209eddc34e6801b8921f55d85153730` (ThakiCloud 논문 리뷰).
-Override with `--notion-parent <page_id>`.
+No default parent page — provide via `--notion-parent <page_id>`.
 
 ### Distribution Steps
 
@@ -383,15 +369,9 @@ Skip this phase if `--skip-slack` is set.
 
 Read `references/nlm-slack-integration.md` for detailed instructions.
 
-Default channel: `#deep-research` (ID: `C0A6X68LTN1`). Override with `--channel <name>`.
+No default channel — provide via `--channel <name>`.
 
-### Channel Registry
-
-| Channel Name | Channel ID |
-|---|---|
-| `deep-research` | `C0A6X68LTN1` |
-
-If the channel is not in the registry, use `slack_search_channels` MCP tool to resolve.
+If the channel name is provided, use `slack_search_channels` MCP tool to resolve its ID.
 
 ### Distribution Steps
 
@@ -434,9 +414,9 @@ Skills used: **paper-archive**
 | `--skip-docx` | Skip Phase 4 Word generation (also skips Phase 6) | DOCX enabled |
 | `--skip-nlm` | Skip Phase 6 NotebookLM slide generation | NLM enabled |
 | `--skip-notion` | Skip Phase 7 Notion page creation | Notion enabled |
-| `--notion-parent <id>` | Notion parent page ID for Phase 7 | `3209eddc...` (ThakiCloud 논문 리뷰) |
+| `--notion-parent <id>` | Notion parent page ID for Phase 7 | Required if Notion enabled |
 | `--skip-slack` | Skip Phase 8 Slack distribution | Slack enabled |
-| `--channel <name>` | Slack channel name for Phase 8 | `deep-research` |
+| `--channel <name>` | Slack channel name for Phase 8 | Required if Slack enabled |
 | `--perspectives "..."` | Comma-separated list of perspectives to run | All 6 |
 | `--lang ko` | Review in Korean only (default) | Korean |
 | `--lang both` | Review in both Korean and English | Korean |
@@ -458,8 +438,8 @@ This will:
 4. Consolidate into a Word report
 5. Generate a PowerPoint presentation
 6. Generate NotebookLM slide deck from DOCX
-7. Create Notion pages (main + 7 sub-pages) under the default parent
-8. Upload NLM slides PDF to `#deep-research`, post Korean summary + Notion link + DOCX + PPTX in thread
+7. Create Notion pages (main + 7 sub-pages) under the specified parent
+8. Post Korean summary + Notion link + DOCX + PPTX to the specified Slack channel in thread
 9. Register the paper in the paper-archive index
 
 ```

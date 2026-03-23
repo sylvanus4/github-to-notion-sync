@@ -40,60 +40,9 @@ When invoked without a screen name (e.g. `/twitter-timeline-to-slack` or "트위
 
 ### Phase 0: Cookie Validation
 
-Before fetching tweets, verify that `TWITTER_COOKIE` is set and functional.
+Verify `TWITTER_COOKIE` is set and functional before fetching. If missing or expired, guide the user through interactive registration.
 
-#### Step 0a: Check .env
-
-Read the project `.env` file and check if `TWITTER_COOKIE` is present and non-empty.
-
-- If **missing or empty** → jump to Step 0c (Cookie Registration).
-- If **present** → proceed to Step 0b.
-
-#### Step 0b: Test Cookie Validity
-
-Run the fetch script in test mode to verify the cookie works:
-
-```bash
-cd scripts/twitter && node run_pipeline.js --fetch-only --limit 1
-```
-
-If the fetch succeeds → proceed to Phase 1.
-
-If the fetch fails with a cookie-related error (e.g. "401", "403", "Could not authenticate", or empty timeline returned) → inform the user the cookie has expired and jump to Step 0c.
-
-#### Step 0c: Cookie Registration (Interactive)
-
-When the cookie is missing or expired, guide the user through registration:
-
-1. **Notify** the user:
-   ```
-   TWITTER_COOKIE가 설정되지 않았거나 만료되었습니다.
-   브라우저에서 새 쿠키를 가져와야 합니다.
-   ```
-
-2. **Display instructions** — ask the user to provide their cookie value:
-   ```
-   Twitter 쿠키를 가져오는 방법:
-   1. Chrome에서 x.com에 로그인
-   2. F12 → Network 탭 열기
-   3. 페이지를 새로고침 (F5)
-   4. 아무 요청을 클릭 → Headers 탭
-   5. "cookie:" 헤더의 전체 값을 복사
-
-   복사한 쿠키 값을 붙여넣어 주세요.
-   ```
-
-3. **Receive cookie value** from the user. Once provided:
-   - Validate the format: must contain `auth_token=` and `ct0=` substrings (minimum required cookies for Twitter Syndication API)
-   - If invalid format → ask the user to re-copy with the full cookie header value
-
-4. **Save to .env**:
-   - Read the current `.env` file
-   - If a `TWITTER_COOKIE=` line exists, replace its value with the new cookie
-   - If no `TWITTER_COOKIE=` line exists, append it after the Twitter comment block
-   - Write the updated `.env` file
-
-5. **Verify** by re-running Step 0b. If it succeeds → proceed to Phase 1.
+See [references/cookie-validation.md](references/cookie-validation.md) for the full validation and registration flow (Steps 0a–0c).
 
 ### Phase 1: Fetch Tweets
 
@@ -137,6 +86,37 @@ Before posting, read `outputs/twitter/{screen_name}/tweets.json` and check each 
 ### Phase 3: Post via x-to-slack (FULL workflow per tweet)
 
 **CRITICAL**: Each tweet MUST go through the complete x-to-slack workflow. Do NOT shortcut or summarize from raw tweet text alone.
+
+#### EXECUTION CONSTRAINT (CRITICAL — READ BEFORE PROCEEDING)
+
+Phase 3 MUST be executed by the MAIN agent — NOT delegated to subagents via
+the Task tool. Subagents produce drastically lower quality because they lack:
+- The full message templates and formatting rules
+- Quality gate context and character count minimums
+- WebSearch depth and follow-up capability
+- Access to the reference examples that define expected output quality
+
+If you find yourself wanting to use the Task tool to "process tweets in parallel"
+or "handle each tweet via subagent" — STOP. This is the #1 cause of quality
+degradation. Process each tweet yourself, sequentially, in the main context.
+
+**Prohibited patterns:**
+- `Task tool` with prompt "process this tweet" or "post tweet to Slack"
+- Batching multiple tweets into a single subagent prompt
+- Summarizing tweet content without FxTwitter enrichment + WebSearch
+- Producing Message 2 shorter than 800 characters or Message 3 shorter than 400 characters
+
+#### BATCH LIMIT
+
+Process a maximum of **5 tweets per invocation**. This prevents context window
+exhaustion which causes quality degradation in later tweets.
+
+- If more than 5 unposted tweets exist, process the 5 oldest first
+- After completing 5 tweets, report: "5/N tweets processed. Re-invoke
+  `/twitter-timeline-to-slack` to continue with the next batch."
+- Always pass `--limit 5` to `run_pipeline.js` unless the user explicitly
+  requests more via `--limit N`
+- The user can override with `--limit N` but quality may degrade beyond 7
 
 The manifest from Phase 2 provides pre-computed fields for each tweet:
 - `has_media` / `media_type` / `media_url` — pre-extracted best media URL from tweets.json
@@ -277,6 +257,26 @@ Use the **thread variant** when `is_thread === true`, otherwise use the **single
 - <{url3}|{title3}>
 ```
 
+**BAD output (subagent quality — DO NOT produce this):**
+```
+원문 요약 (@username)
+개발자가 X를 시도했다는 내용. 조회 약 4만.
+```
+```
+리서치 컨텍스트
+일반적인 배경 설명. 별도 검증 필요.
+```
+
+This is what subagent delegation and context pressure produce: no author bio,
+no emoji-formatted engagement stats, no structured sections, no WebSearch findings,
+no reference links, no analytical depth. This is **never acceptable**.
+
+**GOOD output (expected quality — ALWAYS produce this level):**
+See Example 2 in the Examples section below for a complete reference. Every post
+MUST match that level of detail: author bio, emoji stats, 핵심 내용 with 3+ sentences,
+추가 조사 결과 with specific data points from WebSearch, 2+ 참고 링크, and
+a topic-specific Message 3 with concrete Action Items.
+
 **Thread variant** (`is_thread === true`):
 
 Use the `thread` array from tweets.json to show all tweets in the thread numbered sequentially. Use the ROOT tweet's engagement stats (first tweet in chain typically has higher engagement).
@@ -359,46 +359,38 @@ After successful posting, update `tweets.json`:
 - Set `slack_ts` to the `message_ts` from Message 1
 - Set `classified_topic` to the classification result
 
+#### Step 3f-verify: Quality Self-Check (MANDATORY)
+
+Before proceeding to the next tweet, verify the posted thread against ALL
+quality gate items. If ANY item below is missing, you MUST edit or re-post
+the deficient message:
+
+- [ ] Message 1 has a substantive Korean title (not just a translation of
+      the tweet — add analytical framing)
+- [ ] Message 2 includes author bio context (not just @handle)
+- [ ] Message 2 includes engagement stats with ❤️/🔁/👀 emoji formatting
+- [ ] Message 2 "핵심 내용" section has 3+ sentences of substantive analysis
+- [ ] Message 2 "추가 조사 결과" has specific findings from 2+ WebSearches
+      (not generic background — cite specific data points, dates, numbers)
+- [ ] Message 2 "참고 링크" has 2+ URLs from WebSearch results
+- [ ] Message 3 has topic-specific analysis (not generic filler like
+      "이 콘텐츠는 흥미롭습니다")
+- [ ] Message 3 Action Items are concrete and actionable
+- [ ] Media upload was attempted if `has_media === true`
+
+**RED FLAG**: If your Message 2 is shorter than 800 characters or Message 3
+is shorter than 400 characters, the output is almost certainly too shallow.
+Go back and add depth — re-run WebSearch if needed, expand the analysis,
+add more specific data points.
+
+See [references/quality-enforcement.md](references/quality-enforcement.md) for
+the full quality gate with BAD vs GOOD output examples.
+
 #### Step 3g: Decision Extraction (skip if `skip-decisions`)
 
-After posting and updating the local DB, evaluate whether the tweet content
-warrants a DECISION post using the `decision-router` skill rules.
+Evaluate whether the tweet warrants a DECISION post. Default to NOT posting — only post when the decision signal is clear and actionable.
 
-Detection criteria for tweets:
-- Tweet about a tool/technology with clear adoption-or-not signal for the platform → **team** scope, MEDIUM urgency → post to `#7층-리더방` (`C0A6Q7007N2`)
-- Personal tool/workflow adoption signal → **personal** scope, LOW urgency → post to `#효정-의사결정` (`C0ANBST3KDE`)
-- Market-moving news requiring portfolio adjustment → **personal** scope, HIGH urgency → post to `#효정-의사결정` (`C0ANBST3KDE`)
-- Competitor announcement requiring strategic response → **team** scope, MEDIUM urgency → post to `#7층-리더방` (`C0A6Q7007N2`)
-
-Check primarily Message 3 insights for actionable strategic implications. Only
-post when the decision signal is clear and actionable — default to NOT posting.
-
-If a decision is detected, format using the DECISION template and post to the
-appropriate channel with a link back to the original Slack thread (using
-`message_ts` from Step 3e as reference):
-
-```
-*[DECISION]* {urgency_badge} | 출처: twitter-timeline-to-slack
-
-*{Decision Title}*
-
-*배경*
-{1-3 sentence context from the tweet and research}
-
-*판단 필요 사항*
-{What needs to be decided}
-
-*옵션*
-A. {option A} — {pro/con}
-B. {option B} — {pro/con}
-C. 보류 / 추가 조사 필요
-
-*추천*
-{recommended option with rationale}
-
-*긴급도*: {HIGH / MEDIUM / LOW}
-*원본*: <{original_tweet_url}|{tweet summary}>
-```
+See [references/decision-template.md](references/decision-template.md) for detection criteria, the DECISION post template, and channel routing rules.
 
 #### Step 3h: Rate Limiting
 
@@ -406,25 +398,7 @@ Wait 10-15 seconds before processing the next tweet to avoid Slack rate limits.
 
 ### Quality Gate
 
-Each posted Slack thread MUST include ALL of the following. If any item is missing, the post is incomplete:
-
-- Author name + handle + bio context (not just @handle)
-- Engagement stats with ❤️/🔁/👀 emoji formatting
-- Quote tweet section with author attribution (if quote exists in FxTwitter data)
-- At least 2 WebSearch results integrated in "추가 조사 결과" with specific findings
-- At least 2 reference links in "참고 링크" section
-- Topic-specific insights in Message 3 (not generic filler)
-- Media attachment uploaded when tweet contains photos or videos (first image or first video only)
-
-**Thread-specific quality checks** (when `is_thread === true`):
-
-- Message 2 MUST use the thread variant template with "스레드 전문" section
-- ALL tweets in the thread must be listed numbered (1️⃣, 2️⃣, ...) in the "스레드 전문" section
-- Root tweet engagement stats must be shown (not the reply's stats, since the root typically has higher engagement)
-- "📎 스레드: {N}개 트윗" metadata must be present
-- "핵심 내용" must synthesize the FULL thread as one coherent narrative, not just one tweet
-- Web research must cover topics from across the entire thread, not just the first tweet
-- Tweets with `skip_reason: "thread_member"` must NOT be posted separately
+The authoritative quality checklist is in **Step 3f-verify** above. For the full quality gate with BAD vs GOOD output examples and thread-specific checks, see [references/quality-enforcement.md](references/quality-enforcement.md).
 
 ### Phase 4: Local Storage
 
@@ -654,7 +628,7 @@ This skill orchestrates:
 | `효정-의사결정` | `C0ANBST3KDE` | Personal decisions (tool adoption, portfolio) |
 | `7층-리더방` | `C0A6Q7007N2` | Team/CTO decisions (infra, strategy, competitive) |
 
-Step 3g uses these channels. Replace placeholder IDs after channel creation.
+Step 3g uses these channels. See [references/decision-template.md](references/decision-template.md) for the full decision routing rules.
 
 ## MCP Tool Reference
 

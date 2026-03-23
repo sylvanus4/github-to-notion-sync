@@ -14,7 +14,7 @@ description: >-
   Do NOT use for model search only (use hf-models).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "research"
 ---
 
@@ -40,6 +40,18 @@ validates quality, estimates costs, and generates configs.
 - `hf-model-trainer` — training execution (Phase 6)
 - `hf-trackio` — experiment monitoring (Phase 6)
 - `hf-collections` — save curated model+dataset pairs
+
+## Agent Response Contract (Binary Eval Gate)
+
+When executing or summarizing this planner for the user, the **user-facing reply** MUST satisfy:
+
+1. **EVAL 1 — Relevance first:** Lead with `## 관련도 선행 평가`: `**점수:** N/10` and `**선행 근거:**` (2–4 Korean sentences) mapping the task to model scout / dataset match / cost / config phases. If the ask is training-only or dataset-only, score < 5 and redirect in Korean.
+
+2. **EVAL 2 — Composed related skills (≥3):** Section `## 위임된 관련 스킬` with **≥3 rows** drawn from **Required Skills** above (`hf-models`, `hf-datasets`, `hf-dataset-viewer`, `hf-evaluation`, `hf-jobs`, `hf-model-trainer`, `hf-trackio`, `hf-collections`, `hf-hub`). Table: 스킬 (backticks), 위임 범위 (Korean), 기대 산출물 (Korean).
+
+3. **EVAL 3 — Korean narrative structure:** Phase outputs and recommendations in **Korean**; use H2/H3, bullets, and **≥1** markdown table (e.g., candidate models, datasets, or cost options).
+
+4. **EVAL 4 — Actionable recommendations:** Close with `## 실행 액션 플랜`: **≥3** numbered items including **담당:** and **기한:** each (Korean).
 
 ## Reference Files
 

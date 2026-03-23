@@ -1,0 +1,7 @@
+{
+  "skill": "trading-data-quality-checker",
+  "baseline_score": 17,
+  "final_score": 24,
+  "experiments": 1,
+  "pass_rate": "96%"
+}

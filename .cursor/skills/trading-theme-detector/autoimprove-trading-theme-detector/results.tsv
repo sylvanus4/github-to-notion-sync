@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	20	25	80%	Baseline: script + template rich; final chat could skip unified ## headers, ≥3 JSON-sourced metrics, and explicit narrative-quant disagreement as risk
+1	24	25	96%	Added Step 6b TA-Eval Contract: five ## sections, ≥3 Heat/change%/uptrend fields, actionable ETF/watchlist stance, Known Limitations as risk, no fabricated ranks

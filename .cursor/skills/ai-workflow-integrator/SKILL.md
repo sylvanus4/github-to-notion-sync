@@ -23,6 +23,31 @@ metadata:
 
 Design and orchestrate AI-powered stock analysis workflows by composing existing skills and scripts into multi-stage pipelines. Each workflow defines stages, data flow between stages, error handling, and output targets.
 
+## Meta-Orchestration
+
+### Prompt router (representative user phrases)
+
+| # | Example prompt | This skill? | Delegation order (numbered) | Output merge strategy | User overrides |
+|---|----------------|-------------|------------------------------|------------------------|----------------|
+| 1 | AI 리포트 품질을 자동 평가해줘 | Partial (stage) | When designing a pipeline: insert **after** report gen → 1) `ai-quality-evaluator` → 2) Slack (if PASS/approved) | Merge: evaluation markdown appended to run log + gate blocks publish | `QUALITY_MIN=8.0`; `SKIP_QUALITY=1` (must warn user) |
+| 2 | 데일리 파이프라인을 설계해줘 | Yes | 1) Clarify trigger/outputs → 2) Pick template A–D → 3) Map stages to skills/scripts → 4) Define error policy per stage → 5) If execute: run sequential/parallel per diagram → 6) Aggregate → 7) Document workflow | **Merge**: analysis JSON + optional discovery/news/sentiment → reporter/docx path → Slack summary; parallel branches join before sentiment/report | `SKIP_DISCOVERY`, `PARALLEL_NEWS=1`, `SLACK_CHANNEL`, `DAYS_SYNC`, template id |
+| 3 | 이 프로세스를 자동화할지 결정해줘 | No | 1) `automation-strategist` → 2) return here only if user approves build | Strategist output precedes build | — |
+| 4 | 시스템 데이터 흐름을 분석해줘 | No | 1) `system-thinker` first → 2) optional `pipeline-builder` for concrete YAML/Makefile | System map before implementation artifacts | — |
+| 5 | 프로젝트 컨텍스트를 업데이트해줘 | No | 1) `context-engineer` | MEMORY / context package | — |
+
+### Error recovery (workflow-level)
+
+| Failure mode | Retry | Fallback | Abort |
+|--------------|-------|----------|-------|
+| Stage `retry(N)` exhausted | — | Apply stage policy: skip/abort | Abort if policy abort |
+| Parallel branch partial fail | — | Merge successful branches; note gaps in summary | User asked strict consistency |
+| Skill missing | — | Skip stage if policy skip | Abort if critical path |
+| Empty analysis | — | Skip downstream sentiment/report; emit warning | — |
+
+### Output aggregation (required)
+
+After execution, produce **one** run summary: stage timeline, artifacts written (`outputs/*`), Slack status, and merged JSON handles (paths). Do not leave parallel results disconnected—**join** on ticker/date keys before report generation.
+
 ## Core Concepts
 
 ### Workflow Anatomy

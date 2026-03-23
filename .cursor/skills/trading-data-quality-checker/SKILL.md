@@ -141,6 +141,21 @@ base. Suggest specific corrections for each issue.
 - `references/instrument_notation_standard.md` -- Notation and price scale reference
 - `references/common_data_errors.md` -- Common error patterns and prevention
 
+## Agent Response Contract (Trading-Analysis Evals)
+
+When the user asks for data-quality validation in chat (with or without running the script), the assistant **must** structure the reply using these labeled sections — not a wall of text:
+
+1. **Summary** — Total findings by severity (ERROR / WARNING / INFO counts as integers).
+2. **Structured Findings** — Bullets or table: `Severity | Category | Line# | Snippet` for each item (minimum 3 rows when the document has ≥3 issues; if fewer issues exist, list all).
+3. **Numeric Evidence** — Quote **at least three** numeric literals **from the user’s document or script output** (e.g., `$2,800`, `110.0%`, `Jan 15`). Do not invent prices, dates, or percentages.
+4. **Recommended Actions** — One actionable edit per top finding (what to change, where).
+5. **Risks & Limitations** — At least one of: false-positive risk, false-negative risk, or heuristic limits (digit-count, allocation-section detection).
+6. **Provenance** — State explicitly: numbers came from `user document`, `check_data_quality.py` JSON/MD, or `inferred (--as-of)` only.
+
+**Actionable close:** End with a single sentence: whether the document is **ready to publish**, **needs edits**, or **needs re-run** with a specific flag/path.
+
+If no file path is given, ask for `--file` or pasted excerpt before scoring; do not fabricate document content.
+
 ## Key Principles
 
 1. **Advisory mode**: All findings are warnings for human review. The script

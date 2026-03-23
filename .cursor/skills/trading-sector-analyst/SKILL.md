@@ -120,6 +120,18 @@ Create a structured Markdown document with the following sections:
 5. **Recommended Positioning**: Strategic and tactical positioning recommendations based on scenario probabilities
 6. **Key Risks**: Notable risks or contradictory signals to monitor
 
+### Trading Analysis Eval Contract (Mandatory)
+
+For **chat-style** replies (in addition to saved Markdown files), include these `##` sections so outputs pass breadth/market evals:
+
+| Gate | Pass condition |
+|------|----------------|
+| **Structured output** | `## Summary`, `## Sector Rankings & Metrics`, `## Cycle / Regime`, `## Recommendation`, `## Risks & Invalidation`. |
+| **Specific numbers** | **≥3** figures from `analyze_sector_rotation.py` output (e.g. uptrend % per leading/lagging sector, risk regime score, cycle confidence). |
+| **Actionable conclusion** | Explicit sector tilt or **neutral/wait** with reference to scenario probabilities. |
+| **Risk awareness** | **≥1** contradiction, data freshness issue, or scenario invalidation trigger. |
+| **No hallucinated data** | Sector stats must match script/CSV; optional charts only supplement—do not invent performance %. |
+
 ## Output Format
 
 Save analysis results as a Markdown file with naming convention: `sector_analysis_YYYY-MM-DD.md` in `outputs/reports/trading/`

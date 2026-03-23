@@ -1,0 +1,8 @@
+experiment_id	status	score	total	pct_delta	summary
+0	baseline	10	25	40%	baseline SKILL.md before mutations
+1	keep	15	25	60%	add Execution order table
+2	keep	20	25	80%	add Failure behavior section
+3	keep	23	25	92%	restructure Output Format + disclaimer + Price Sync label
+4	keep	25	25	100%	add Example 3 full pipeline
+5	keep	25	25	100%	Quick Start --delay; How It Works step 6 fundamentals
+final	complete	25	25	100%	target met

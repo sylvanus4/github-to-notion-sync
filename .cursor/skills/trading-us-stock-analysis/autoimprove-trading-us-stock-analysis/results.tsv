@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	22	25	88%	baseline thorough; chat outputs could still skip unified conclusion/risk/provenance blocks
+1	25	25	100%	added Mandatory Output Contract: Data Provenance, Conclusion (Actionable), Risks & Invalidation, ≥3 session numerics, no orphan prices

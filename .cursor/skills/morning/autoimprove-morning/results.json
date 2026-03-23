@@ -1,0 +1,90 @@
+{
+  "skill": "morning",
+  "target_path": ".cursor/skills/morning/SKILL.md",
+  "baseline_dir": ".cursor/skills/morning/autoimprove-morning",
+  "eval_criteria": [
+    "EVAL1_phase_ordering",
+    "EVAL2_error_recovery",
+    "EVAL3_cli_flags",
+    "EVAL4_slack_output",
+    "EVAL5_completeness"
+  ],
+  "test_inputs": [
+    "아침 루틴 시작해줘",
+    "/morning --skip-today",
+    "/morning --skip-google",
+    "/morning --skip-screener --skip-news --skip-sentiment --skip-docx",
+    "/morning --dry-run"
+  ],
+  "baseline_score_pct": 20,
+  "final_score_pct": 100,
+  "experiments_run": 4,
+  "status": "complete",
+  "dashboard_html": "skipped",
+  "experiments": [
+    {
+      "id": 0,
+      "eval_scores": {
+        "EVAL1": "pass",
+        "EVAL2": "fail",
+        "EVAL3": "fail",
+        "EVAL4": "fail",
+        "EVAL5": "fail"
+      },
+      "score_pct": 20,
+      "mutation": "none"
+    },
+    {
+      "id": 1,
+      "eval_scores": {
+        "EVAL1": "pass",
+        "EVAL2": "fail",
+        "EVAL3": "fail",
+        "EVAL4": "fail",
+        "EVAL5": "fail"
+      },
+      "score_pct": 20,
+      "mutation": "CLI propagation + dry-run table clarification",
+      "kept": true
+    },
+    {
+      "id": 2,
+      "eval_scores": {
+        "EVAL1": "pass",
+        "EVAL2": "pass",
+        "EVAL3": "fail",
+        "EVAL4": "pass",
+        "EVAL5": "fail"
+      },
+      "score_pct": 60,
+      "mutation": "Phase 3 parent/thread Slack + disclaimer + MCP error recovery",
+      "kept": true
+    },
+    {
+      "id": 3,
+      "eval_scores": {
+        "EVAL1": "pass",
+        "EVAL2": "pass",
+        "EVAL3": "pass",
+        "EVAL4": "pass",
+        "EVAL5": "fail"
+      },
+      "score_pct": 80,
+      "mutation": "Per-flag example table + skip-briefing example",
+      "kept": true
+    },
+    {
+      "id": 4,
+      "eval_scores": {
+        "EVAL1": "pass",
+        "EVAL2": "pass",
+        "EVAL3": "pass",
+        "EVAL4": "pass",
+        "EVAL5": "pass"
+      },
+      "score_pct": 100,
+      "mutation": "End-to-end walkthrough all phases",
+      "kept": true
+    }
+  ]
+}

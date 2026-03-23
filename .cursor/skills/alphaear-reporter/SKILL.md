@@ -54,3 +54,26 @@ Professional financial report generation via a Plan → Write → Edit → Chart
 - **Stale input**: Use project stock data and daily-stock-check outputs for fresh signals.
 - **Chart configs**: If Writer prompt omits charts, call `scripts/visualizer.py` directly.
 - **Slack posting**: Integrate via `slack_send_message` MCP after report assembly.
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing
+
+| User query pattern | This skill vs other |
+|--------------------|---------------------|
+| Structured finance report / Executive Summary / Risks / References | **This skill** |
+| Draw.io logic chain | `alphaear-logic-visualizer` |
+| Daily trading signals list | `daily-stock-check` |
+| ADR / infra docs | `technical-writer` |
+
+### Data source attribution (required)
+
+Each section must reference upstream inputs: `(출처: daily-stock-check 산출)`, `(출처: alphaear-news/daily_news)`, `(출처: Yahoo Finance / yfinance)`, etc. References list at end mirrors those tags.
+
+### Korean output
+
+Default report body in natural Korean for Korean stakeholders; keep standard terms (시가총액, 이동평균선, PER, 리스크 팩터).
+
+### Fallback protocol
+
+Empty signals → `입력 시그널 없음 — 리포트 생성 보류 또는 사용자 입력 요청`. Missing chart data → `차트 데이터 부족 — json-chart 플레이스홀더 유지 및 visualizer 호출 권장` 명시.

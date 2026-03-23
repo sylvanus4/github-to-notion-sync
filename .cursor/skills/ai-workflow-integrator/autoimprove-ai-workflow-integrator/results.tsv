@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	15	20	75.0%	baseline — templates and aggregate steps present; per-prompt routing and explicit join contract incomplete for all 5 inputs
+1	20	20	100.0%	keep — added Meta-Orchestration: router rows, workflow-level error matrix, mandatory single run-summary merge, stage flags

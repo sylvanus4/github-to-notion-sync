@@ -23,6 +23,30 @@ metadata:
 
 Manage the knowledge architecture that makes AI agents effective collaborators in this stock analytics project. Context engineering ensures every AI interaction starts with the right domain knowledge, project state, and historical context -- eliminating the need to re-explain.
 
+## Meta-Orchestration
+
+### Prompt router (representative user phrases)
+
+| # | Example prompt | This skill? | Delegation order (numbered) | Output merge strategy | User overrides |
+|---|----------------|-------------|------------------------------|------------------------|----------------|
+| 1 | AI 리포트 품질을 자동 평가해줘 | No | 1) `ai-quality-evaluator` | — | — |
+| 2 | 데일리 파이프라인을 설계해줘 | No | 1) `ai-workflow-integrator` / `today` | — | — |
+| 3 | 이 프로세스를 자동화할지 결정해줘 | No | 1) `automation-strategist` | — | — |
+| 4 | 시스템 데이터 흐름을 분석해줘 | No | 1) `system-thinker` | — | — |
+| 5 | 프로젝트 컨텍스트를 업데이트해줘 | Yes | 1) Choose mode (MEMORY refresh vs context package vs glossary vs optimization) → 2) Parallel gather (git log, tasks, lessons, skills) → 3) Apply edits → 4) Run quality checks table | **Merged** updates: MEMORY.md sections + optional new `references/*-context.md` + summary bullet for user | `PRUNE_DAYS` (default 30); `MODE=1|2|3|4`; target domain name for packages |
+
+### Error recovery
+
+| Failure mode | Retry | Fallback | Abort |
+|--------------|-------|----------|-------|
+| MEMORY.md conflict/stale | — | Re-read file; merge sections; never delete [decision] without user OK | — |
+| Oversized skill | — | Extract to `references/`; leave stub workflow | — |
+| Missing domain for package | — | Ask user to name domain | — |
+
+### Output aggregation
+
+After updates, emit **one** user-facing summary listing: files touched, pruned count, open gaps, and **next recommended skill** if work continues (e.g. `skill-guide-sync`).
+
 ## Knowledge Architecture
 
 The project's context is organized in three tiers:

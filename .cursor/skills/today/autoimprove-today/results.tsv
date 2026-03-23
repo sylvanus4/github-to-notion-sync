@@ -1,0 +1,30 @@
+phase	experiment	status	passed	total	pct	note
+baseline	0	complete	12	25	48	SKILL.md.baseline
+final	6	complete	25	25	100	target >= 95% met
+
+eval	input_idx	input_snippet	baseline	final
+E1	1	full_pipeline	pass	pass
+E1	2	dry-run_skip-twitter	pass	pass
+E1	3	status	pass	pass
+E1	4	sync_only_ko	fail	pass
+E1	5	morning_routine	fail	pass
+E2	1	full_pipeline	fail	pass
+E2	2	dry-run_skip-twitter	fail	pass
+E2	3	status	fail	pass
+E2	4	sync_only	fail	pass
+E2	5	morning	fail	pass
+E3	1	full_pipeline	pass	pass
+E3	2	dry-run_skip-twitter	fail	pass
+E3	3	status	pass	pass
+E3	4	sync_only	fail	pass
+E3	5	morning	fail	pass
+E4	1	full_pipeline	pass	pass
+E4	2	dry-run_skip-twitter	pass	pass
+E4	3	status	pass	pass
+E4	4	sync_only	pass	pass
+E4	5	morning	pass	pass
+E5	1	full_example	fail	pass
+E5	2	dry-run	pass	pass
+E5	3	status	pass	pass
+E5	4	sync_only	pass	pass
+E5	5	morning	pass	pass

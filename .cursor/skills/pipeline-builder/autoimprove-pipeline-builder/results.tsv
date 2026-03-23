@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	13	20	65.0%	baseline — formats and error patterns documented; five canonical user phrases not routed with merge/override contract
+1	20	20	100.0%	keep — added Meta-Orchestration: router (incl. strategist/system bridge), construction errors, inventory+artifact aggregation, RUNNER/cron overrides

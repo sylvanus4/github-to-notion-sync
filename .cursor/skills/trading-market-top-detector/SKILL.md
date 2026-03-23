@@ -132,6 +132,20 @@ Present the generated Markdown report to the user, highlighting:
 - Follow-Through Day status (if applicable)
 - Delta vs previous run (if prior report exists)
 
+### Phase 3b: Trading Analysis Eval Contract (Mandatory)
+
+When presenting results (or a blocked run), format the answer for five binary eval gates:
+
+| Gate | Pass condition |
+|------|----------------|
+| **Structured output** | `## Summary`, `## Score & Zone`, `## Inputs & Freshness`, `## Key Drivers`, `## Recommendation`, `## Risks & Invalidation`. |
+| **Specific numbers** | **≥3** values from the latest `market_top_*.md`/`.json` or declared CLI inputs (e.g. composite 0–100, breadth-50dma, put/call, distribution-day count). |
+| **Actionable conclusion** | Map risk zone → risk budget % band and concrete action (tighten stops, reduce new buys, etc.). |
+| **Risk awareness** | Include **≥1** invalidation or data caveat (stale WebSearch field >3 sessions, FMP outage, conflicting breadth). |
+| **No hallucinated data** | Every number must be traceable to script output, user-supplied args, or dated WebSearch capture—never fabricate live prints. |
+
+If `FMP_API_KEY` is missing, use the same headers and state the blocker; do not guess scores.
+
 ---
 
 ## 6-Component Scoring System

@@ -60,6 +60,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `performance-profiler` — Latency/query/bundle analysis
 - `design-architect` — 4-phase Jobs/Ive design audit
 - `problem-definition` — 5D problem definition framework
+- `first-principles-analysis` — Strip assumptions to bedrock truths, rebuild understanding from fundamentals
 - `codebase-archaeologist` — Git history ownership maps, churn hotspots, bus factor
 - `refactor-simulator` — Blast radius analysis before code changes
 - `skill-optimizer` — Audit, evaluate, benchmark agent skills
@@ -94,6 +95,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 
 **Trading analysis skills** (options/stock analysis):
 - `trading-options-theta` — 12 quant-firm-style options theta prompts (0DTE, iron condor, regime, skew, earnings IV crush, etc.)
+- `trading-agent-desk` — Multi-agent debate-based trading desk (4 analysts → bull/bear debate → research manager → risk evaluator + BM25 memory)
 
 **NLM x PM composite skills** (PM frameworks → NotebookLM multi-format outputs):
 - `nlm-strategy-hub` — PM strategy + market research → NLM research hub (slides, podcast, mind map, report)
@@ -144,6 +146,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/i18n-check` | i18n-sync, domain-commit | Sequential |
 | `/design-audit` | design-architect | Sequential (phased approval) |
 | `/define-problem` | problem-definition | Sequential (Socratic) |
+| `/first-principles` | first-principles-analysis | Sequential (4-phase: assumptions → strip → bedrock → rebuild) |
 | `/deep-review` | frontend-expert, backend-expert, security-expert, qa-test-expert | Parallel (review) → Eval-Opt (fix+re-evaluate, with --refine) |
 | `/simplify` | simplify | Parallel (review) → Eval-Opt (fix+re-evaluate, with --refine) |
 | `/diagnose` | diagnose | Parallel (analysis) → Sequential (synthesis+fix) |
@@ -156,7 +159,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/cursor-sync` | cursor-sync | Sequential |
 | `/skill-autoimprove` | skill-autoimprove, skill-optimizer | Sequential (audit) → Eval-Opt (autonomous mutation loop) → Sequential (benchmark verification) |
 | `/plans` | prompt-architect, plans | Sequential → Eval-Opt (user-driven refinement) |
-| `/today` | today (weekly-stock-update, discover-hot-stocks, daily-stock-check, alphaear-news, alphaear-sentiment, alphaear-reporter, anthropic-docx) | Sequential → Eval-Opt (report quality gate) |
+| `/today` | today (weekly-stock-update, discover-hot-stocks, daily-stock-check, alphaear-news, alphaear-sentiment, trading-agent-desk, alphaear-reporter, anthropic-docx) | Sequential → Eval-Opt (report quality gate) |
 | `/paperclip-status` | paperclip-control | Sequential |
 | `/paperclip-task` | paperclip-tasks | Sequential |
 | `/paperclip-agent` | paperclip-agents | Sequential |
@@ -175,6 +178,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/nlm-arxiv-slides` | defuddle, anthropic-pdf, nlm-slides, notebooklm, notebooklm-research, notebooklm-studio | Sequential (download+extract+rewrite+upload+research+analyze+slides) |
 | `/related-papers-scout` | related-papers-scout (defuddle, WebSearch, Semantic Scholar API, Slack MCP) | Parallel (4 search agents) → Sequential (filter+rank+deep-dive+report+slack) |
 | `/options-theta` | trading-options-theta | Sequential (route → load prompt → execute) or Combo (regime → pre-market → setup → risk) |
+| `/agent-desk` | trading-agent-desk (agent_desk/desk.py, analysts, debate, risk, memory, reflection) | Parallel (4 analysts) → Sequential (debate → synthesis → risk eval) |
 | `/notion-meeting-sync` | notion-meeting-sync, pm-execution, anthropic-pptx, anthropic-theme-factory | Sequential (sync → analysis → summary → action items → PPTX) |
 | `/code-review-all` | code-review-all | Sequential (stack detect) → Parallel (3 agents) → Sequential (score+report) |
 | `/future-skills-audit` | all 6 future skills | Parallel (audit) → Sequential (report) |

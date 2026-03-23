@@ -1,0 +1,7 @@
+{
+  "skill": "hf-model-trainer",
+  "baseline_score": 4,
+  "final_score": 20,
+  "experiments": 2,
+  "pass_rate": "100%"
+}

@@ -42,15 +42,28 @@ Evaluate the following from collected data:
 #### Standard Report Format:
 ```
 1. Executive Summary (3-5 key points)
-2. Global Market Overview
+2. Data Provenance & As-Of (required)
+   - Table: Metric | Value | % change (if any) | Source | Timestamp (UTC or market date)
+   - Every numeric quote in the report must appear in this table or be labeled INLINE with source+date
+3. Global Market Overview
    - US Markets
    - Asian Markets
    - European Markets
-3. Forex & Commodities Trends
-4. Key Events & Economic Indicators
-5. Risk Factor Analysis
-6. Investment Strategy Implications
+4. Forex & Commodities Trends
+5. Key Events & Economic Indicators
+6. Risk Factor Analysis (invalidation conditions required)
+7. Investment Strategy Implications
+8. Actionable Outlook (required)
+   - 1-5 day bias: Risk-on / Risk-off / Mixed (pick one)
+   - Primary playbook: add/trim risk, hedges, or wait—with **one** concrete trigger (level or event)
+9. Summary
 ```
+
+**Anti-hallucination**: Do not fabricate index levels, yields, or FX prints. If a number is unavailable after search, write `N/A` and omit it from narrative conclusions that depend on it.
+
+**Numeric density**: Include **at least three** distinct numeric market datapoints (e.g., index level, VIX, yield, FX) tied to the provenance table.
+
+**Actionable + risk**: **Actionable Outlook** must end with a clear stance; **Risk Factor Analysis** must include at least one **invalidation** (what data would prove the thesis wrong).
 
 ## Script Usage
 

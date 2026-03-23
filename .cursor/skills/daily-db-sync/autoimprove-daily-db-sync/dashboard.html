@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autoimprove Dashboard — daily-db-sync</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px}
+h1{font-size:1.6rem;margin-bottom:4px}
+.subtitle{color:#94a3b8;margin-bottom:24px;font-size:0.9rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px}
+.card{background:#1e293b;border-radius:12px;padding:20px;text-align:center}
+.card .label{font-size:0.75rem;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em}
+.card .value{font-size:2rem;font-weight:700;margin-top:4px}
+.card .value.green{color:#4ade80}
+.card .value.blue{color:#60a5fa}
+.card .value.yellow{color:#facc15}
+.card .value.red{color:#f87171}
+.status-badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:0.75rem;font-weight:600;text-transform:uppercase}
+.status-running{background:#1d4ed8;color:#dbeafe}
+.status-complete{background:#15803d;color:#dcfce7}
+.status-idle{background:#374151;color:#9ca3af}
+.chart-container{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;margin-bottom:24px}
+th{text-align:left;padding:10px 12px;background:#1e293b;color:#94a3b8;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em}
+td{padding:10px 12px;border-bottom:1px solid #1e293b}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600}
+.tag-keep{background:#166534;color:#86efac}
+.tag-discard{background:#7f1d1d;color:#fca5a5}
+.tag-baseline{background:#1e40af;color:#93c5fd}
+.eval-bar{height:8px;border-radius:4px;background:#334155;overflow:hidden;margin-top:4px}
+.eval-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#4ade80,#22d3ee);transition:width 0.5s}
+.eval-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0}
+.eval-name{font-size:0.85rem}
+.eval-score{font-size:0.85rem;color:#94a3b8}
+.footer{text-align:center;color:#475569;font-size:0.75rem;margin-top:24px}
+</style>
+</head>
+<body>
+<h1>🔬 Autoimprove — daily-db-sync</h1>
+<p class="subtitle">Autonomous skill prompt optimization dashboard</p>
+
+<div class="grid">
+  <div class="card"><div class="label">Status</div><div id="status" class="value blue">—</div></div>
+  <div class="card"><div class="label">Baseline</div><div id="baseline" class="value">—</div></div>
+  <div class="card"><div class="label">Best Score</div><div id="best" class="value green">—</div></div>
+  <div class="card"><div class="label">Experiments</div><div id="expCount" class="value yellow">0</div></div>
+  <div class="card"><div class="label">Keep Rate</div><div id="keepRate" class="value">—</div></div>
+</div>
+
+<div class="chart-container">
+  <canvas id="scoreChart" height="200"></canvas>
+</div>
+
+<h2 style="margin-bottom:12px;font-size:1.1rem">Eval Breakdown</h2>
+<div id="evalBreakdown" style="background:#1e293b;border-radius:12px;padding:16px;margin-bottom:24px"></div>
+
+<h2 style="margin-bottom:12px;font-size:1.1rem">Experiment Log</h2>
+<table>
+  <thead><tr><th>#</th><th>Score</th><th>Pass Rate</th><th>Status</th><th>Description</th></tr></thead>
+  <tbody id="expTable"></tbody>
+</table>
+
+<p class="footer">Auto-refreshes every 10s · Last update: <span id="lastUpdate">—</span></p>
+
+<script>
+let chart;
+async function load(){
+  try{
+    const r=await fetch('results.json?t='+Date.now());
+    const d=await r.json();
+    document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString();
+    const st=d.status||'idle';
+    const stEl=document.getElementById('status');
+    stEl.textContent=st;
+    stEl.className='value '+(st==='running'?'yellow':st==='complete'?'green':'blue');
+    document.getElementById('baseline').textContent=(d.baseline_score||0).toFixed(0)+'%';
+    document.getElementById('best').textContent=(d.best_score||0).toFixed(0)+'%';
+    document.getElementById('expCount').textContent=(d.experiments||[]).length;
+    const exps=d.experiments||[];
+    const kept=exps.filter(e=>e.status==='keep').length;
+    const total=exps.filter(e=>e.status!=='baseline').length;
+    document.getElementById('keepRate').textContent=total?Math.round(kept/total*100)+'%':'—';
+    const tbody=document.getElementById('expTable');
+    tbody.innerHTML='';
+    exps.forEach(e=>{
+      const cls=e.status==='keep'?'tag-keep':e.status==='discard'?'tag-discard':'tag-baseline';
+      tbody.innerHTML+=`<tr><td>${e.id}</td><td>${e.score}/${e.max_score}</td><td>${e.pass_rate.toFixed(1)}%</td><td><span class="tag ${cls}">${e.status}</span></td><td>${e.description}</td></tr>`;
+    });
+    const eb=document.getElementById('evalBreakdown');
+    eb.innerHTML='';
+    (d.eval_breakdown||[]).forEach(ev=>{
+      const pct=ev.total?Math.round(ev.pass_count/ev.total*100):0;
+      eb.innerHTML+=`<div class="eval-row"><span class="eval-name">${ev.name}</span><span class="eval-score">${ev.pass_count}/${ev.total} (${pct}%)</span></div><div class="eval-bar"><div class="eval-fill" style="width:${pct}%"></div></div>`;
+    });
+    const labels=exps.map(e=>'#'+e.id);
+    const data=exps.map(e=>e.pass_rate);
+    const colors=exps.map(e=>e.status==='keep'?'#4ade80':e.status==='discard'?'#f87171':'#60a5fa');
+    if(chart)chart.destroy();
+    const ctx=document.getElementById('scoreChart').getContext('2d');
+    chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Pass Rate %',data,borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,0.1)',fill:true,tension:0.3,pointBackgroundColor:colors,pointRadius:6,pointHoverRadius:8}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,grid:{color:'#1e293b'},ticks:{color:'#94a3b8',callback:v=>v+'%'}},x:{grid:{color:'#1e293b'},ticks:{color:'#94a3b8'}}}}});
+  }catch(e){console.error('Dashboard load error:',e)}
+}
+load();
+setInterval(load,10000);
+</script>
+</body>
+</html>

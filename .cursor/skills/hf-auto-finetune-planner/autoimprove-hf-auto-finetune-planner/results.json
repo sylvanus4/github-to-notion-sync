@@ -1,0 +1,7 @@
+{
+  "skill": "hf-auto-finetune-planner",
+  "baseline_score": 5,
+  "final_score": 20,
+  "experiments": 2,
+  "pass_rate": "100%"
+}

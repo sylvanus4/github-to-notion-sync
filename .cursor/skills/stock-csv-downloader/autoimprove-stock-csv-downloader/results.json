@@ -1,0 +1,59 @@
+{
+  "skill": "stock-csv-downloader",
+  "status": "complete",
+  "eval_labels": [
+    "phase_ordering",
+    "error_recovery",
+    "cli_flags",
+    "output_format",
+    "completeness"
+  ],
+  "baseline": {
+    "scores": {
+      "phase_ordering": 68,
+      "error_recovery": 52,
+      "cli_flags": 62,
+      "output_format": 58,
+      "completeness": 48
+    },
+    "mean_pct": 57.6
+  },
+  "final": {
+    "scores": {
+      "phase_ordering": 96,
+      "error_recovery": 94,
+      "cli_flags": 96,
+      "output_format": 95,
+      "completeness": 96
+    },
+    "mean_pct": 95.4
+  },
+  "experiments": [
+    {
+      "id": 0,
+      "mutation_summary": "Baseline capture (SKILL.md.baseline)",
+      "mean_pct": 57.6
+    },
+    {
+      "id": 1,
+      "mutation_summary": "Phased workflow with explicit dependencies and Phase 5 verify",
+      "mean_pct": 71.2
+    },
+    {
+      "id": 2,
+      "mutation_summary": "Error recovery and halt behavior table",
+      "mean_pct": 75.8
+    },
+    {
+      "id": 3,
+      "mutation_summary": "Output/CSV spec, CLI defaults column, natural-language mapping",
+      "mean_pct": 88.2
+    },
+    {
+      "id": 4,
+      "mutation_summary": "Examples 3–4, Example 2 verify, backend cwd + correct import_csv paths",
+      "mean_pct": 95.4
+    }
+  ],
+  "stop_reason": "mean_pct >= 95"
+}

@@ -2,14 +2,14 @@
 name: sod-ship
 description: >-
   Start-of-day git sync pipeline: commit dirty working directories, push
-  unpushed commits, and pull remote changes for all 5 managed projects,
-  resolving errors along the way. Use when the user runs /sod-ship, asks to
-  "sync all projects", "start of day sync", "pull all repos", "컴퓨터 바꿔서
-  작업 시작", "아침 싱크", "프로젝트 동기화", "sod-ship", or needs to ensure all
-  repos are clean and up-to-date before starting work. Do NOT use for
-  end-of-day shipping (use eod-ship), morning briefing with Google/stock
-  pipelines (use morning-ship), or syncing .cursor/ assets only (use
-  cursor-sync).
+  unpushed commits, pull remote changes for all 5 managed projects, then
+  run cursor-sync to propagate .cursor/ assets across all repos. Use when
+  the user runs /sod-ship, asks to "sync all projects", "start of day sync",
+  "pull all repos", "컴퓨터 바꿔서 작업 시작", "아침 싱크", "프로젝트 동기화",
+  "sod-ship", or needs to ensure all repos are clean and up-to-date before
+  starting work. Do NOT use for end-of-day shipping (use eod-ship), morning
+  briefing with Google/stock pipelines (use morning-ship), or syncing
+  .cursor/ assets only (use cursor-sync).
 metadata:
   author: "thaki"
   version: "1.0.0"
@@ -264,6 +264,10 @@ Call `CallMcpTool` with:
 **dev 브랜치 머지 (ai-platform-webui)**
 - origin/dev 머지: N개 커밋 반영 {완료|충돌|스킵}
 
+**커서 동기화**
+- N개 파일 Pull → research 허브, M개 파일 Push → 4개 타겟
+- 검증: commands=X  skills=Y  rules=Z (5개 레포 동일)
+
 **결과**
 - ✅ SYNCED: N/5 | ⚠️ PARTIAL: N/5 | ❌ FAILED: N/5
 - 총 커밋: 생성 N개, 수신 M개
@@ -335,6 +339,11 @@ SOD 동기화 리포트
 dev 브랜치 머지 (ai-platform-webui):
   origin/dev → tmp: N개 커밋 머지 완료
 
+커서 동기화:
+  Pull: N개 파일 → research 허브
+  Push: M개 파일 → 4개 타겟
+  검증: commands=426  skills=498  rules=34 (5개 레포 동일)
+
 결과: SYNCED 5/5, PARTIAL 0/5, FAILED 0/5
 슬랙: #효정-할일 채널에 게시 완료
 
@@ -398,6 +407,35 @@ Append a dated SOD sync digest to the fixed canvas `F0AN2C7UKCY`:
 Keep each digest entry concise (under 500 chars). The canvas accumulates entries
 over time as a running log of daily SOD activities.
 
+### Phase 8: Cursor Sync
+
+**Skip if** `--dry-run` is set, or if `--skip-pull` is set (no new remote content to propagate).
+
+After git pull brings each repo's `.cursor/` assets up to date with its remote,
+run `cursor-sync` to propagate any new or updated skills/commands/rules across
+all 5 repos via the research merge hub.
+
+Follow the `cursor-sync` skill (`.cursor/skills/cursor-sync/SKILL.md`):
+
+1. **Pull Phase**: `rsync -au` from each of the 4 target repos → research (newest wins)
+2. **Push Phase**: `rsync -ac` from research → all 4 target repos (checksum-based)
+3. **Verify**: all 5 repos have identical file counts for `commands/`, `skills/`, `rules/`
+
+Record `{cursor_sync: {pulled: N, pushed: M}}` where N = total new files pulled
+into research, M = total new files pushed per target.
+
+If cursor-sync encounters errors (missing directories, rsync failures), warn and
+continue — it does not block the SOD pipeline.
+
+Include cursor-sync results in the Phase 5 Slack message and Phase 6 Chat Report
+under a new **커서 동기화** section:
+
+```
+**커서 동기화**
+- N개 파일 Pull (research 허브로), M개 파일 Push (4개 타겟으로)
+- 검증: commands=X  skills=Y  rules=Z (5개 레포 동일)
+```
+
 ## Examples
 
 ### Example 1: Full SOD sync (typical start-of-day)
@@ -411,6 +449,8 @@ User runs `/sod-ship` on a new morning with changes in 2 projects.
 4. Verify: 5/5 SYNCED
 5. Slack: main summary posted to #효정-할일, 2 threaded replies for projects with activity
 6. Chat report displayed
+7. Post-Sync: skill guide sync, canvas update
+8. Cursor Sync: pull에서 받은 .cursor/ 에셋 → research 허브 → 4개 타겟 전파
 
 ### Example 2: Switching computers (dirty repos everywhere)
 
@@ -422,6 +462,8 @@ User runs `/sod-ship` after switching to a different machine.
 4. Verify: 5/5 SYNCED
 5. Slack: main summary + 5 threaded replies
 6. Chat report displayed
+7. Post-Sync: skill guide sync, canvas update
+8. Cursor Sync: 5개 레포의 .cursor/ 에셋 N-Repo 동기화
 
 ### Example 3: Partial pipeline (skip-push or skip-pull)
 
@@ -469,6 +511,8 @@ User runs `/sod-ship` and every project is already up to date.
 | Dev branch not found | Skip dev merge step; continue with remaining phases |
 | Canvas update fails | Warn and continue; does not affect sync results |
 | skill-guide-generator not available | Skip Phase 7a; still attempt Phase 7b with git-only digest |
+| cursor-sync fails (Phase 8) | Warn and continue; git sync results are unaffected |
+| cursor-sync target directory missing | Skip that target; sync remaining targets |
 
 ## Safety Rules
 

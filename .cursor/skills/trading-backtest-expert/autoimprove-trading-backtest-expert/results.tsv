@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	20	25	80%	baseline methodology strong; conversational answers could omit fixed verdict/next-steps scaffold
+1	24	25	96%	added Standard Response Format (7 labeled sections), Deploy/Refine/Abandon requirement, ≥3 user-supplied numerics, explicit failure-mode mention

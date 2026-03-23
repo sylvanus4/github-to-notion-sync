@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	17	25	68%	Baseline: strong script/JSON spec; agent chat replies lacked mandatory sections, numeric quotes, provenance, and explicit publish/no-publish close across adapted inputs (data-quality, FinViz, macro, options, hypothesis).
+1	24	25	96%	Added "Agent Response Contract" — fixed section order, ≥3 numeric literals from doc/output, risks, provenance, actionable close, no-fabrication rule when file missing.

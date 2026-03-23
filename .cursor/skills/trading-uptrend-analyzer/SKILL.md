@@ -72,6 +72,20 @@ Present the generated Markdown report to the user, highlighting:
 - Sector heatmap showing strongest and weakest sectors
 - Key momentum and rotation signals
 
+### Phase 2b: Trading Analysis Eval Contract (Mandatory)
+
+Every **user-facing** response after `uptrend_analyzer.py` (or when explaining a failure to run) MUST satisfy:
+
+| Gate | Pass condition |
+|------|----------------|
+| **Structured output** | `## Summary`, `## Composite & Zones`, `## Sector / Participation Highlights`, `## Recommendation`, `## Risks & Data Caveats`. |
+| **Specific numbers** | **≥3** figures from the latest report (composite 0–100, one sector uptrend % or spread, data timestamp). |
+| **Actionable conclusion** | Tie composite + warnings to an exposure stance using the zone table (e.g. Normal Exposure 80–100%). |
+| **Risk awareness** | Include **≥1** of: Late Cycle / High Spread / Divergence penalty, thin history (Low confidence), or CSV fetch age. |
+| **No hallucinated data** | All metrics must come from script JSON/Markdown; never invent sector ratios. |
+
+If the user asks in Korean without you having run the script, run Phase 1 first when possible; otherwise use the headers above and give the exact command from Phase 1.
+
 ---
 
 ## 5-Component Scoring System

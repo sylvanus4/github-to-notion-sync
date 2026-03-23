@@ -23,6 +23,30 @@ metadata:
 
 Strategic automation planning for the stock analytics pipeline. Knowing what to automate is valuable. Knowing what NOT to automate is more valuable.
 
+## Meta-Orchestration
+
+### Prompt router (representative user phrases)
+
+| # | Example prompt | This skill? | Delegation order (numbered) | Output merge strategy | User overrides |
+|---|----------------|-------------|------------------------------|------------------------|----------------|
+| 1 | AI 리포트 품질을 자동 평가해줘 | No (downstream) | 1) Finish ARIA recommendation → 2) if publishing auto: `ai-quality-evaluator` before Slack | Decision doc + optional quality gate appendix | `GATE_THRESHOLD` |
+| 2 | 데일리 파이프라인을 설계해줘 | Partial | 1) ARIA on each stage → 2) `ai-workflow-integrator` or `today` for blueprint | Strategy table + referenced workflow template | Template choice |
+| 3 | 이 프로세스를 자동화할지 결정해줘 | Yes | 1) Inventory → 2) Score ARIA → 3) Risk matrix → 4) HITL pattern → 5) ROI → 6) If build: delegate `pipeline-builder` / `ai-workflow-integrator` with ordered handoff | **Single** decision brief: scores + risks + checkpoints + implementation order | Weight overrides for ARIA factors; `REQUIRE_HITL=1` |
+| 4 | 시스템 데이터 흐름을 분석해줘 | No | 1) `system-thinker` → 2) feed bottlenecks back into ARIA | Link bottleneck section into risk mitigations | — |
+| 5 | 프로젝트 컨텍스트를 업데이트해줘 | No | 1) `context-engineer` | MEMORY / glossary | — |
+
+### Error recovery
+
+| Failure mode | Retry | Fallback | Abort |
+|--------------|-------|----------|-------|
+| Ambiguous process scope | — | Ask 1–2 clarifying questions | User cannot define process |
+| ROI data missing | — | Use ranges + assumptions section | — |
+| User rejects automation | — | Document manual path + audit plan | — |
+
+### Output aggregation
+
+Deliver one merged **Automation Strategy** doc: ARIA scores, risk table, HITL diagram choice, ROI, phased plan, explicit **next skill** to invoke for implementation.
+
 ## Decision Framework: ARIA (Assess-Risk-Implement-Audit)
 
 ### Phase 1: Assess Automation Candidates

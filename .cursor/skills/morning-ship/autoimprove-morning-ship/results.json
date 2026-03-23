@@ -1,0 +1,90 @@
+{
+  "skill": "morning-ship",
+  "category": "Pipeline Orchestrators",
+  "status": "complete",
+  "baseline_score_pct": 40.0,
+  "final_score_pct": 100.0,
+  "experiments_run": 4,
+  "eval_criteria": [
+    "e1_phase_order",
+    "e2_error_recovery",
+    "e3_cli_flags",
+    "e4_slack_output",
+    "e5_completeness"
+  ],
+  "runs": [
+    {
+      "id": "baseline",
+      "round": 0,
+      "results": {
+        "e1_phase_order": "PASS",
+        "e2_error_recovery": "FAIL",
+        "e3_cli_flags": "FAIL",
+        "e4_slack_output": "FAIL",
+        "e5_completeness": "FAIL"
+      },
+      "pass_count": 2,
+      "score_pct": 40.0
+    },
+    {
+      "id": "after_exp1",
+      "round": 1,
+      "results": {
+        "e1_phase_order": "PASS",
+        "e2_error_recovery": "FAIL",
+        "e3_cli_flags": "PASS",
+        "e4_slack_output": "FAIL",
+        "e5_completeness": "FAIL"
+      },
+      "pass_count": 3,
+      "score_pct": 60.0
+    },
+    {
+      "id": "after_exp2",
+      "round": 2,
+      "results": {
+        "e1_phase_order": "PASS",
+        "e2_error_recovery": "FAIL",
+        "e3_cli_flags": "PASS",
+        "e4_slack_output": "PASS",
+        "e5_completeness": "FAIL"
+      },
+      "pass_count": 4,
+      "score_pct": 80.0
+    },
+    {
+      "id": "after_exp3",
+      "round": 3,
+      "results": {
+        "e1_phase_order": "PASS",
+        "e2_error_recovery": "PASS",
+        "e3_cli_flags": "PASS",
+        "e4_slack_output": "PASS",
+        "e5_completeness": "FAIL"
+      },
+      "pass_count": 4,
+      "score_pct": 80.0
+    },
+    {
+      "id": "after_exp4",
+      "round": 4,
+      "results": {
+        "e1_phase_order": "PASS",
+        "e2_error_recovery": "PASS",
+        "e3_cli_flags": "PASS",
+        "e4_slack_output": "PASS",
+        "e5_completeness": "PASS"
+      },
+      "pass_count": 5,
+      "score_pct": 100.0
+    }
+  ],
+  "test_inputs_mapped": [
+    "/morning-ship",
+    "/morning-ship --skip-pull",
+    "/morning-ship --skip-google --skip-stock",
+    "/morning-ship --targets ai-platform-webui,research",
+    "/morning-ship --dry-run"
+  ],
+  "notes": "CLI table references test inputs; --no-slack covered in Example 6."
+}

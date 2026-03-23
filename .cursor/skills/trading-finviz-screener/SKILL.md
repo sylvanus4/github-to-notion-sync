@@ -179,6 +179,23 @@ After opening the screener, report:
 3. Summary of applied filters
 4. Suggested next steps (e.g., "Sort by dividend yield", "Switch to Financial view for detailed ratios")
 
+### Step 5b: Structured User Reply (Required)
+
+The final assistant message **must** use labeled sections (not a prose blob):
+
+| Section | Content |
+|---------|---------|
+| **Screener URL** | Full URL string |
+| **Filter Table** | Columns: `Code | Meaning | Numeric threshold (if any)` — include **≥3** numeric thresholds from the mapping (e.g., ROE > 15%, RSI < 30, yield > 3%) |
+| **Recipe / Rationale** | Why these filters match the user request (e.g., “large cap + high ROE + undervalued”) |
+| **Next Actions** | 2–3 concrete UI steps on FinViz |
+| **Risks** | e.g., point-in-time data, survivorship, liquidity; no guarantee of returns |
+| **Provenance** | Filters from `finviz_screener_filters.md` / user wording; **do not** list fake tickers or prices “from FinViz” without user run |
+
+**Actionable close:** One sentence — e.g., “Open URL, sort by X, then narrow with Y.”
+
+For requests like “ROE 높은 저평가 대형주”, map to `cap_large` (or mega), `fa_roe_o15` or `fa_roe_o20`, and value filters (`fa_pe_u20`, `fa_pb_u2`, etc.) per the Common Concept Mapping table.
+
 ---
 
 ## Usage Recipes

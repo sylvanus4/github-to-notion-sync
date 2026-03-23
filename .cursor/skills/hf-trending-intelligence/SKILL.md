@@ -2,19 +2,22 @@
 name: hf-trending-intelligence
 description: >-
   Autonomous daily intelligence pipeline that cross-references HF papers,
-  models, datasets, and community activity to detect emerging AI trends before
-  they go mainstream. Produces a scored intelligence report and distributes to
-  Slack + Notion. Use when the user asks to "run daily AI radar", "trending
-  intelligence", "AI research radar", "detect AI trends", "daily paper
-  intelligence", "AI 트렌드 레이더", "일일 AI 인텔리전스", "트렌딩 분석",
-  "연구 레이더", or wants to know what's trending across the HF ecosystem today.
-  Do NOT use for full paper review with PM analysis (use paper-review).
-  Do NOT use for daily stock analysis (use today).
-  Do NOT use for general web research only (use parallel-web-search).
-  Do NOT use for paper browsing without cross-referencing (use hf-papers).
+  models, datasets, spaces, leaderboards, and community activity to detect
+  emerging AI trends before they go mainstream. Supports optional topic filtering
+  (LLM, multi-LLM, video-generation, etc.) for focused scans. Produces a scored
+  intelligence report and distributes to Slack + Notion. Use when the user asks
+  to "run daily AI radar", "trending intelligence", "AI research radar", "detect
+  AI trends", "daily paper intelligence", "AI 트렌드 레이더", "일일 AI
+  인텔리전스", "트렌딩 분석", "연구 레이더", "HF 종합 트렌딩", or wants to know
+  what's trending across the HF ecosystem today. Do NOT use for full paper review
+  with PM analysis (use paper-review). Do NOT use for daily stock analysis (use
+  today). Do NOT use for general web research only (use parallel-web-search). Do
+  NOT use for paper browsing without cross-referencing (use hf-papers). Do NOT
+  use for topic-only scan without full cross-referencing (use hf-topic-radar). Do
+  NOT use for leaderboard-only tracking (use hf-leaderboard-tracker).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "research"
 ---
 
@@ -34,9 +37,12 @@ papers, models, datasets, and community buzz on Hugging Face Hub.
 
 - `hf-papers` — daily paper listing
 - `hf-models` — model search and info
+- `hf-spaces` — trending space search
 - `hf-collections` — curate trending items
 - `hf-discussions` — measure community activity
 - `hf-dataset-viewer` — dataset info
+- `hf-topic-radar` — topic-focused model/space scanning (composable sub-skill)
+- `hf-leaderboard-tracker` — leaderboard cross-reference data
 - `parallel-web-search` — external signal enrichment
 - `md-to-notion` — permanent Notion archive
 - `kwp-slack-slack-messaging` — Slack distribution
@@ -51,6 +57,7 @@ papers, models, datasets, and community buzz on Hugging Face Hub.
 
 - **Date** (optional): Defaults to `today`; can specify a specific date
 - **Focus area** (optional): Filter by domain (e.g., "NLP", "vision", "multimodal")
+- **Topics** (optional): Topic filter using HF tags from `hf-topic-radar/references/topic-config.md`. When specified, adds Phase 1.5 (topic-focused model/space scan) and Phase 2.5 (leaderboard cross-reference). Without this parameter, behavior is identical to v1.0.
 
 ## Pipeline Phases
 
@@ -69,6 +76,26 @@ hf papers ls --date today --sort trending --limit 30 --format json
 4. If focus area specified, filter papers by keyword relevance
 
 **Output:** List of 30 papers with IDs, titles, keywords, and upvote counts
+
+### Phase 1.5 — Topic-Focused Model & Space Trending (Conditional)
+
+**Activation:** Only runs when `topics` parameter is provided.
+
+Invoke `hf-topic-radar` as a composable sub-skill, running Phases 1-5 only
+(model scan, space scan, paper filter, dedup, scoring). Skip Phase 6-7
+(report/Slack) — those are handled by this skill's own distribution phase.
+
+```
+topic_results = hf-topic-radar(topics=user_topics, date=date, distribute=false)
+```
+
+**Processing:**
+1. Collect topic radar's `trend_items[]` output
+2. Cross-reference with Phase 1 papers: link topic radar items to papers by
+   author/org or keyword overlap
+3. Add topic-tagged items to the main pipeline for scoring in Phase 4
+
+**Output:** Additional scored items tagged with topics, merged into the main pipeline
 
 ### Phase 2 — Cross-Reference (Parallel)
 
@@ -98,6 +125,27 @@ Count open discussions as a proxy for community engagement.
 **Constraint:** Max 4 concurrent subagents.
 
 **Output per paper:** `{model_count, dataset_count, discussion_count}`
+
+### Phase 2.5 — Leaderboard Cross-Reference (Conditional)
+
+**Activation:** Only runs when `topics` parameter is provided.
+
+Check if `hf-leaderboard-tracker` has recent snapshot data in
+`output/hf-leaderboard/`. If snapshots exist and are less than 7 days old,
+cross-reference top papers and models with leaderboard positions.
+
+**Processing:**
+1. Load latest snapshots from `output/hf-leaderboard/*-latest.json`
+2. For each top-scoring paper/model from Phase 2, check if it appears on any
+   leaderboard
+3. If found: add leaderboard rank and score to the item's metadata
+4. Flag items that are both trending AND top-ranked on leaderboards as
+   "leaderboard-validated" — these get a scoring bonus in Phase 4
+
+**Scoring bonus:** Items appearing on a leaderboard get +0.10 to their
+final trend score (capped at 1.0).
+
+**Output:** Enriched items with optional `leaderboard_rank` and `leaderboard_score` fields
 
 ### Phase 3 — Web Enrichment
 
@@ -213,6 +261,44 @@ Use `md-to-notion` to publish the full report as a Notion page under the researc
 - **HF Collection** — monthly curated collection of HOT papers/models
 - **Slack Thread** — in `#deep-research`
 - **Notion Page** — permanent archive
+
+## Examples
+
+### Example 1: Default radar (no topic filter)
+
+User says: "Run daily AI radar"
+
+Actions:
+1. Run Phases 1-7 (paper scan → cross-reference → web enrichment → scoring → report → curate → distribute)
+2. Skip Phase 1.5 and 2.5 (no topics specified)
+3. Behavior identical to v1.0
+
+Result: Full radar report with top trending papers, Slack thread, Notion page
+
+### Example 2: Topic-enhanced radar
+
+User says: "HF 종합 트렌딩 — LLM, video generation 중심으로"
+
+Actions:
+1. Run Phase 1 (paper scan)
+2. Run Phase 1.5 (topic radar for LLM + video generation)
+3. Run Phase 2 (cross-reference)
+4. Run Phase 2.5 (leaderboard cross-reference using cached snapshots)
+5. Items appearing on leaderboards get +0.10 scoring bonus
+6. Run Phases 3-7 with enriched data
+
+Result: Enhanced report with topic-tagged items, leaderboard-validated trends, richer insights
+
+### Example 3: Focused area without topic tags
+
+User says: "AI research radar focused on NLP"
+
+Actions:
+1. Run Phase 1 with focus_area="NLP" (keyword filter on papers)
+2. Skip Phase 1.5 (no topics parameter, only focus_area)
+3. Run Phases 2-7 normally
+
+Result: Paper-centric radar filtered by NLP keywords, no model/space topic scan
 
 ## Error Recovery
 

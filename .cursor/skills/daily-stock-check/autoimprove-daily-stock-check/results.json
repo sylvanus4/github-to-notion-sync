@@ -1,0 +1,51 @@
+{
+  "skill": "daily-stock-check",
+  "eval_labels": [
+    "E1 Phase ordering",
+    "E2 Error recovery",
+    "E3 CLI flags",
+    "E4 Slack output",
+    "E5 Completeness"
+  ],
+  "test_inputs_count": 5,
+  "baseline": {
+    "per_eval": [5, 0, 4, 0, 0],
+    "total": 9,
+    "max": 25,
+    "pct": 0.36
+  },
+  "final": {
+    "per_eval": [5, 5, 5, 5, 5],
+    "total": 25,
+    "max": 25,
+    "pct": 1.0
+  },
+  "experiments": [
+    {
+      "id": 1,
+      "focus": "CLI --source table and examples",
+      "total_after": 10,
+      "pct_after": 0.4
+    },
+    {
+      "id": 2,
+      "focus": "Error handling table; Step 1.5 halt/partial/inline",
+      "total_after": 15,
+      "pct_after": 0.6
+    },
+    {
+      "id": 3,
+      "focus": "Slack root + thread templates; Step 4 retry",
+      "total_after": 20,
+      "pct_after": 0.8
+    },
+    {
+      "id": 4,
+      "focus": "Phase order; prerequisites; examples 1-5; summary bucket check",
+      "total_after": 25,
+      "pct_after": 1.0
+    }
+  ],
+  "status": "complete",
+  "notes": "dashboard.html omitted per run instructions; SKILL.md.baseline is pre-mutation copy"
+}

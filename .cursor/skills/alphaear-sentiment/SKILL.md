@@ -67,3 +67,26 @@ Text: {text}
 - **"BERT pipeline not initialized"**: Default is LLM-only; use the prompt above. For FinBERT, set `SENTIMENT_MODE=bert` and install transformers.
 - **Batch returns 0**: In LLM-only mode, batch does nothing; run Agent loop with prompt + `update_single_news_sentiment` per item.
 - **json_set on PostgreSQL**: If `meta_data` is JSONB, SQL may differ from SQLite; check `database_manager` for dialect.
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing
+
+| User query pattern | This skill vs other |
+|--------------------|---------------------|
+| Sentiment label/score for text or headlines | **This skill** |
+| Fetching news lists | `alphaear-news` — **not** this skill |
+| Trading buy/sell signals | `daily-stock-check` — **not** this skill |
+| Price forecast | `alphaear-predictor` — **not** this skill |
+
+### Data source attribution (required)
+
+State engine per score: `(출처: LLM 감성 분석)`, `(출처: FinBERT 로컬 모델)`, or `(출처: daily_news.sentiment_score — DB 업데이트)`. If analyzing user-pasted text with no DB row, say `원문 기반 분석 (외부 DB 미연동)`.
+
+### Korean output
+
+Present `label`, `score`, `reason` in Korean for Korean users; use terms like 긍정/부정/중립, 감성 점수, 리스크 요인.
+
+### Fallback protocol
+
+If FinBERT unavailable: `FinBERT 미설치 — LLM 프롬프트 모드로 분석`. If LLM JSON parse fails: `감성 분석 재시도 중` and retry; if still failing, report 중립(0) and 오류 사유.

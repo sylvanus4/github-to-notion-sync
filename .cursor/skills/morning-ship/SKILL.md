@@ -38,6 +38,18 @@ Pull latest changes from all managed repos, run Google Workspace briefing, kick 
 
 Arguments can be combined freely. Defaults: pull all, run Google daily, run stock pipeline, post to Slack.
 
+### CLI flags reference
+
+| Flag | Default (if omitted) | Effect | Covered in |
+|------|----------------------|--------|------------|
+| _(none)_ | — | Full pipeline: Phase 1 → 2 → 3 → 3.5 → 4 → 5 | Example 1 |
+| `--skip-pull` | Pull runs | Skip Phase 1 (git sync) | Example 3; test input `/morning-ship --skip-pull` |
+| `--skip-google` | Google daily runs | Skip Phase 2 (calendar + Gmail) | Example 2; combine with `--skip-stock` per test input `/morning-ship --skip-google --skip-stock` |
+| `--skip-stock` | Stock pipeline runs | Skip Phase 3 (and stock thread in Phase 4) | Example 2; combine with `--skip-google` as above |
+| `--targets <list>` | All managed projects | Phase 1 pulls only comma-separated registry names (e.g. `ai-platform-webui,research`) | Example 4; test input `/morning-ship --targets ai-platform-webui,research` |
+| `--no-slack` | Slack posts | Skip Phase 4; still run Phase 5 chat report | Example 6 |
+| `--dry-run` | Live execution | No git pull, no Google, no stock, no Slack; preview-only Phase 1 introspection + Phase 5 preview | Example 5; test input `/morning-ship --dry-run` |
+
 ## Workflow
 
 ### Phase 1: Git Sync (Pull All Managed Projects)
@@ -135,7 +147,7 @@ If any critical item fails, post a **degraded briefing** that lists completed ph
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.
 
-Post a consolidated morning briefing to `#효정-할일` using the `slack_send_message` MCP tool.
+Post a consolidated morning briefing to `#효정-할일` using the `slack_send_message` MCP tool. The main message **must** end with a short disclaimer (see template footer) and use Slack mrkdwn for all sections above it.
 
 #### Step 1: Main Summary
 
@@ -171,6 +183,8 @@ Post a consolidated morning briefing to `#효정-할일` using the `slack_send_m
 
 *합계*
 - N개 프로젝트 동기화, 일정 N건, 메일 N건 처리, N개 종목 분석
+
+_자동 생성 브리핑이며 투자 권유가 아닙니다._ 데이터 지연 시 각 섹션에 `[지연]` 표기.
 ```
 
 #### Step 2: Git Sync Details (Thread)
@@ -264,14 +278,16 @@ Git 동기화:
 
 ### Example 1: Full morning pipeline
 
-User runs `/morning-ship` at the start of the day.
+User runs `/morning-ship` at the start of the day (all phases, including optional quality gate and all Slack threads).
 
-1. Git pull: 5/5 projects synced, 10 commits received total
-2. Calendar: 3 meetings (2 HIGH), focus slots 10:00-11:00 and 15:00-18:00
-3. Gmail: 5 spam deleted, 12 notifications archived, 3 colleague emails, 2 reply needed
-4. Stock: 15 tickers analyzed, AAPL buy signal
-5. Slack: summary + 3 threads posted to #효정-할일
-6. Report displayed in chat
+1. **Phase 1 — Git sync:** 5/5 projects synced, 10 commits received total (registry order; `ai-platform-webui` via `tmp`).
+2. **Phase 2a — Calendar:** 3 meetings (2 HIGH), focus slots 10:00-11:00 and 15:00-18:00.
+3. **Phase 2b — Gmail:** 5 spam deleted, 12 notifications archived, 3 colleague emails, 2 reply needed.
+4. **Phase 3 — Stock (`today` with `--skip-slack`):** 15 tickers analyzed, AAPL buy signal, `.docx` report path captured.
+5. **Phase 3.5 — Quality gate:** Checklist verified (no conflicts, calendar date present, triage counts present, report or skip reason); proceed.
+6. **Phase 4 — Slack:** Main mrkdwn summary (with disclaimer footer) → thread: Git detail → thread: 일정 & 메일 → thread: 주식 요약.
+7. **Phase 5 — Chat report:** Same consolidated summary printed in chat (Korean text report).
+8. **Optional alternate invocations (full detail elsewhere):** `--dry-run` (Example 5) limits execution to Phase 1 preview plus Phase 5 text preview while skipping Phases 2–4; `--no-slack` (Example 6) runs Phases 1–3, 3.5, and 5 but skips Phase 4.
 
 ### Example 2: Pull only
 
@@ -311,10 +327,19 @@ User runs `/morning-ship --dry-run` to preview.
 3. Slack: skipped (dry-run)
 4. Report: preview summary only
 
+### Example 6: Run pipeline without Slack
+
+User runs `/morning-ship --no-slack` to execute Phases 1–3 and 3.5 locally but omit MCP posting (e.g. testing on a machine without Slack MCP).
+
+1. Git pull, Google daily, and stock pipeline run as in a full run
+2. Phase 3.5 quality gate runs
+3. Phase 4 skipped; Phase 5 chat report still shown with `[Slack skipped: --no-slack]` noted in the report header
+
 ## Error Handling
 
 | Scenario | Action |
 |----------|--------|
+| `git fetch` fails (network, DNS, auth) | Log project + error; skip pull for that project; continue with others; include `[FETCH_FAILED]` in Slack/git thread |
 | Project directory does not exist | Warn and skip; continue with remaining projects |
 | Uncommitted changes in project | Warn about dirty state; skip pull for that project; continue with others |
 | Merge conflict on pull | Report conflict details; skip that project; continue with others |
@@ -323,6 +348,8 @@ User runs `/morning-ship --dry-run` to preview.
 | Calendar API error | Report error; continue to Gmail triage |
 | Gmail API error | Report partial results; continue to stock pipeline |
 | Stock pipeline failure | Report error; continue to Slack/Report |
+| `today` sub-step fails mid-pipeline | Capture last good artifact path if any; mark stock section `[PARTIAL]`; continue to Phase 3.5 / Slack / Report |
+| `slack_send_message` MCP error (any call) | Log tool error; retry once after 5s; if still failing, skip remaining Slack thread posts, display full report in chat with `[SLACK_FAIL]` |
 | Slack message fails | Report error; still display report in chat |
 | No changes in any project | Report "all projects up to date" |
 

@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	20	25	80%	Baseline: script output strong on file reports; agent chat replies lacked fixed section headers and explicit ≥3-number citation rule from latest MD/JSON
+1	24	25	96%	Added Phase 2b TA-Eval Contract: five ## sections, ≥3 values from report, zone→exposure band, stale-data/weight risks, no invented breadth

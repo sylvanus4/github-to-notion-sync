@@ -22,6 +22,67 @@ MiroFish is a multi-agent swarm intelligence prediction engine. It constructs hi
 
 Verify with: `curl -s http://localhost:5001/health`
 
+## Quality Contract (Seed, Config, Report, API)
+
+When executing this skill for any user scenario, satisfy these binary checks so downstream steps stay reproducible.
+
+### EVAL 1 — Seed document
+
+Every seed markdown (daily or ad-hoc) MUST include:
+
+| Element | Requirement |
+|--------|-------------|
+| Title | Single H1 with scenario name |
+| Date | ISO `YYYY-MM-DD` in title or `## Metadata` |
+| Sections | At least 3 level-2 (`##`) sections (e.g. Context, Stakeholders, Events) |
+| Entities | At least 5 concrete names (tickers, people, firms, policies, instruments) |
+
+Daily mode: follow [references/daily-seed-template.md](references/daily-seed-template.md). Ad-hoc: still use the same four rows.
+
+### EVAL 2 — Simulation configuration
+
+State explicitly for the run (defaults in parentheses; override when the user asks):
+
+| Parameter | Default | Override examples |
+|-----------|---------|-------------------|
+| Topic / objective | User prompt → `simulation_requirement` (ontology) | Shorter requirement string for focused graphs |
+| Agent count | ~26 personas after prepare (from graph entities) | Richer seed → more entities → more agents |
+| Rounds | 20 (daily); ad-hoc typically 20–25 | Stop early via `/api/simulation/stop` if `max_rounds` > target |
+| `project_name` | `Daily-Stock-{date}` or user slug | Custom label for Fed/NVDA/regulation runs |
+
+The create step always requires both `project_id` (from ontology) and `graph_id` (from completed build).
+
+### EVAL 3 — User-facing report structure
+
+After `/api/report/generate` completes, the synthesized narrative (before or after Korean translation) MUST be organized so the reader gets:
+
+1. **Primary prediction** — clearest forward-looking claim for the scenario horizon
+2. **Confidence** — qualitative band (high / medium / low) with 1–2 sentences why
+3. **Key factors** — at least 3 bullets (macro, flows, positioning, policy, etc.)
+4. **Agent consensus / divergence** — which stakeholder groups aligned vs conflicted (approximate counts or examples from Twitter/Reddit threads)
+
+If the raw report omits any item, add it in translation or an executive summary section.
+
+### EVAL 4 — Canonical API paths (base `http://localhost:5001`)
+
+Use these routes only (not generic `POST /graph` or `POST /simulation/run` placeholders):
+
+| Step | Method | Path |
+|------|--------|------|
+| Health | GET | `/health` |
+| Ontology | POST | `/api/graph/ontology/generate` (multipart) |
+| Graph build | POST | `/api/graph/build` |
+| Build poll | GET | `/api/graph/task/<task_id>` |
+| Simulation create | POST | `/api/simulation/create` |
+| Prepare | POST | `/api/simulation/prepare` |
+| Prepare status | POST | `/api/simulation/prepare/status` |
+| Start | POST | `/api/simulation/start` |
+| Run status | GET | `/api/simulation/<simulation_id>/run-status` |
+| Stop | POST | `/api/simulation/stop` |
+| Report generate | POST | `/api/report/generate` |
+| Report status | POST | `/api/report/generate/status` |
+| Report body | GET | `/api/report/<report_id>` |
+
 > **IMPORTANT:** After updating `.env`, you MUST restart the backend. It caches env vars at startup.
 > ```bash
 > lsof -ti :5001 | xargs kill -9 && cd ~/thaki/MiroFish && npm run backend

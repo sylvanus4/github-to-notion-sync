@@ -128,6 +128,21 @@ Present the final recommendation including:
 - Any binding constraints
 - Risk management reminders (portfolio heat, loss-cutting discipline)
 
+## Mandatory Output Contract (Quality Gate)
+
+All human-facing outputs (chat or markdown report) MUST use this structure:
+
+1. **Parameters** — Account size, entry, stop (or ATR inputs), method, risk %, optional constraints.
+2. **Method & rationale** — One paragraph: why Fixed Fractional / ATR / Kelly.
+3. **Numeric results** — Table: `Shares` | `Position $` | `$ risk` | `% account risk` | `Stop price` | `Risk per share`.
+4. **Binding constraint** — State `None` or which cap reduced size (position %, sector %, Kelly cap).
+5. **Recommendation** — Single explicit line: "Buy **N** shares at assumed entry **$X** with stop **$Y**."
+6. **Risks** — At least one bullet: gap risk, model risk (if prices assumed), or portfolio heat.
+
+**No fabricated prices**: If the user omits entry/stop, **fetch** via web/tools when possible. If still unknown, print clearly tagged **ASSUMED:** values and rerun or label results as illustrative only—never present assumed numbers as live quotes.
+
+**Minimum numerics**: Final output must show **≥3** numbers (e.g., shares, entry, stop, $ risk) before completion.
+
 ## Output Format
 
 ### JSON Report

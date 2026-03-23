@@ -18,6 +18,21 @@ metadata:
 
 Generate 1-5 structured hypothesis cards from a normalized input bundle, critique and rank them, then optionally export `pursue` cards into `strategy.yaml` + `metadata.json` artifacts.
 
+## Mandatory Hypothesis-Card Output Shape (User-Facing)
+
+Every ranked hypothesis response (including “오늘의 트레이딩 가설 카드”) **must** use this structure:
+
+1. **Input Bundle Summary** — Source path or paste; list **≥3 numeric fields** copied from evidence (e.g., `win_rate`, `R`, `sample_n`, `drawdown %`) or state `insufficient numeric evidence` and ask for data.
+2. **Ranked Cards** — For each card: `### H1 …` (or H2…) with subsections: **Claim**, **Falsification / Kill Criteria** (explicit), **Experiment** (holdout, sample size, metrics), **Evidence Quality** (per `evidence_quality_guide.md`).
+3. **Scores** — Integer rank + qualitative tier; include at least one **probability or threshold number** from methodology (e.g., `min_trades=30`) not invented market stats.
+4. **Pursue / Park / Kill** — Table: `Card | Decision | One-line rationale`.
+5. **Risk Factors** — Data snooping, overfitting, regime change — at least one bullet.
+6. **Provenance** — Numbers tied to `example_input.json` / user JSON / script output only.
+
+**Closing:** One sentence: which card to **pursue first** and why (actionable).
+
+If the user provides only free text, normalize into the JSON schema from `examples/example_input.json` before generating cards, or request the missing fields.
+
 ## Workflow
 
 1. Receive input JSON bundle.

@@ -37,6 +37,34 @@ Orchestrates a multi-phase pipeline: optional setup-doctor pre-flight, data fres
 
 ## Workflow
 
+### Natural language triggers
+
+Map common utterances to flags and phase scope before executing. Do not skip dependency order.
+
+| User intent (examples) | Execution |
+| --- | --- |
+| Full daily pipeline (`오늘의 파이프라인 전체 실행해줘`, `Run today's pipeline`) | Phases **0→6** with default flags (no `dry-run`). Run fundamentals (2.5), screener (3.5), news/sentiment (4.5), full report + Slack + quality gate + decisions unless user opts out. |
+| `today dry-run skip-twitter` | Full pipeline **except**: no Slack post (`dry-run`); no Phase 6 (`skip-twitter`). Still generate `.docx` unless `skip-docx`. |
+| `today status` | **Phase 1 only** — stop after gap report (`status` / Step 1c). No writes. |
+| Stock data sync only (`주식 데이터 동기화만 해줘`, sync prices only) | **Phases 1, 2, and 2.5** then stop: `skip-discover skip-screener skip-report` (skips Phases 3, 3.5, 4, 4.5, 5, 6). |
+| Morning routine (`아침 루틴 시작`, `morning ship`) | **Do not run `today` alone** — invoke the `morning-ship` skill (Google briefing + `today` + consolidated Slack). If user insists on stock-only, run `today` full or with their flags. |
+
+### Error recovery by step
+
+| Step / call | On failure |
+| --- | --- |
+| Phase 0 (setup-doctor) | **Halt** if critical (DB unreachable, missing packages); **continue** with warnings if only optional gaps. |
+| `weekly_stock_update.py` / `import_csv.py` | **Report** stderr; **retry once** after 30–60s if rate limit; if still failing, **continue** with warning and list tickers still stale (do not fake data). |
+| `financial_data_collector.py` | **Log** per-ticker failures; **continue** pipeline — screener/report mark fundamentals N/A where missing. |
+| `discover_hot_stocks.py` | **Continue** — empty discovery is expected on weekends/holidays; document in summary. |
+| `stock_screener.py` | **Continue** without screener file if script errors; note in report/Slack that screening was skipped. |
+| `daily_stock_check --source db` | **Halt** — Phase 4 output is required for Phase 5; user must fix DB/script error. |
+| `alphaear-news` / `alphaear-sentiment` | **Continue** — already specified: missing JSON, report shows N/A. |
+| `node generate-report.js` | **Halt** Step 5b; report `.docx` missing — offer `skip-docx` path only if user accepts no file. |
+| `ai-quality-evaluator` | **Continue** with warning if skill unavailable; otherwise follow Step 5b½ thresholds (halt on FAIL when score is below 6.0). |
+| Slack MCP (`slack_search_channels`, post, thread) | On post failure under `dry-run`, N/A; otherwise **retry once**, then **report** failure to user without claiming posted. |
+| Phase 6 (`run_pipeline.js`, x-to-slack) | **Skip** Phase 6 if `TWITTER_COOKIE` missing or fetch fails after one retry; **log** warning. |
+
 ### Phase 0: Setup Doctor Pre-flight (Optional)
 
 Run a quick diagnostic of the `core-platform` capability group to verify all prerequisites are available before starting the pipeline. Skip with `skip-setup-doctor`.
@@ -227,6 +255,30 @@ Use the `alphaear-news` skill to fetch latest financial news from multiple sourc
 
 Use the `alphaear-sentiment` skill to score news sentiment for stocks with BUY or SELL signals. Add sentiment score (-1.0 to 1.0) and summary to the analysis JSON. If the skill fails, the report shows "N/A" for sentiment.
 
+### Phase 4.8: Agent Trading Desk (Optional)
+
+Run a multi-agent debate-based analysis on top BUY/SELL signal stocks. Skip with `skip-agent-desk`.
+
+**Step 4.8a — Select candidates:**
+
+From the Phase 4 analysis output, select up to 5 stocks with the strongest BUY or SELL signals (highest absolute signal scores). These become candidates for the agent desk.
+
+**Step 4.8b — Run Agent Desk pipeline:**
+
+Use `backend/app/services/agent_desk/desk.py` `AgentDesk.run()`:
+1. 4 Analyst agents (Technical, Fundamental, Sentiment, News) run in parallel using quick model
+2. Bull/Bear debate runs for 2 rounds using deep model with BM25 memory injection
+3. Research Manager synthesizes the debate into a BUY/SELL/HOLD decision with confidence
+4. Risk Evaluator applies position sizing and risk-adjusted scoring
+
+Output saved to `outputs/agent-desk/{date}/desk-decisions.json`.
+
+**Step 4.8c — Merge into report:**
+
+Agent desk decisions are included in the Phase 5 report as an "Agent Trading Desk 분석" section, showing the debate-synthesized consensus alongside the technical/quantitative signals.
+
+On failure: **Continue** — agent desk is optional; the pipeline proceeds without desk decisions.
+
 ### Phase 5: Report and Post
 
 **Step 5a — Generate report content:**
@@ -341,6 +393,8 @@ _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) +
 ...
 
 :bulb: {과매도_종목}는 RSI {rsi}로 과매도 구간, 반등 가능성 모니터링 필요
+
+_본 스레드 및 본 분석은 투자 권유가 아니며 참고용입니다._
 ```
 
 **Step 5d — Trading Decision Extraction (skip if `skip-decisions`):**
@@ -422,42 +476,65 @@ Report the number of tweets fetched, classified, and posted with channel distrib
 
 ## CLI Arguments
 
-| Argument | Description | Example |
-|---|---|---|
-| (none) | Run full pipeline | `/today` |
-| `status` | Phase 1 only — show data freshness report | `/today status` |
-| `dry-run` | Run all phases but skip Slack posting (still generates .docx) | `/today dry-run` |
-| `skip-sync` | Skip Phase 2, run analysis on existing data | `/today skip-sync` |
-| `skip-fundamentals` | Skip Phase 2.5, no fundamental data collection | `/today skip-fundamentals` |
-| `skip-discover` | Skip Phase 3, no hot stock discovery | `/today skip-discover` |
-| `skip-screener` | Skip Phase 3.5, no multi-factor screening | `/today skip-screener` |
-| `skip-news` | Skip Phase 4.5a, no market news context | `/today skip-news` |
-| `skip-sentiment` | Skip Phase 4.5b, no sentiment scoring | `/today skip-sentiment` |
-| `skip-docx` | Skip .docx report generation (Step 5b) | `/today skip-docx` |
-| `skip-quality-gate` | Skip report quality evaluation (Step 5b½) | `/today skip-quality-gate` |
-| `skip-report` | Run Phase 1+2+3 only, no analysis or report | `/today skip-report` |
-| `skip-setup-doctor` | Skip Phase 0, no pre-flight setup check | `/today skip-setup-doctor` |
-| `skip-decisions` | Skip Step 5d, no trading decision extraction | `/today skip-decisions` |
-| `skip-twitter` | Skip Phase 6, no Twitter timeline fetch+post | `/today skip-twitter` |
-| `twitter-only` | Run Phase 6 only (twitter-timeline-to-slack) | `/today twitter-only` |
+| Argument | Default | Description | Example |
+|---|---|---|---|
+| (none) | Full pipeline | Run Phases 0–6 (optional phases per flags below) | `/today` |
+| `status` | off | Phase 1 only — show data freshness report | `/today status` |
+| `dry-run` | off | Run all phases but skip Slack posting (still generates `.docx` unless `skip-docx`) | `/today dry-run` |
+| `skip-slack` | off | Skip Step 5c only (no main or thread Slack post); unlike `dry-run`, intent is Slack-specific | `/today skip-slack` |
+| `skip-sync` | off | Skip Phase 2, run analysis on existing DB data | `/today skip-sync` |
+| `skip-fundamentals` | off | Skip Phase 2.5, no fundamental data collection | `/today skip-fundamentals` |
+| `skip-discover` | off | Skip Phase 3, no hot stock discovery | `/today skip-discover` |
+| `skip-screener` | off | Skip Phase 3.5, no multi-factor screening | `/today skip-screener` |
+| `skip-news` | off | Skip Phase 4.5a, no market news context | `/today skip-news` |
+| `skip-sentiment` | off | Skip Phase 4.5b, no sentiment scoring | `/today skip-sentiment` |
+| `skip-agent-desk` | off | Skip Phase 4.8, no multi-agent debate analysis | `/today skip-agent-desk` |
+| `skip-docx` | off | Skip Step 5b `.docx` generation | `/today skip-docx` |
+| `skip-quality-gate` | off | Skip Step 5b½ (`ai-quality-evaluator`) | `/today skip-quality-gate` |
+| `skip-report` | off | Stop after Phase 3 (Phases 1+2+3); no 3.5 / 4 / 5 / 6 | `/today skip-report` |
+| `skip-setup-doctor` | off | Skip Phase 0 | `/today skip-setup-doctor` |
+| `skip-decisions` | off | Skip Step 5d (`decision-router`) | `/today skip-decisions` |
+| `skip-twitter` | off | Skip Phase 6 | `/today skip-twitter` |
+| `twitter-only` | off | Phase 6 only | `/today twitter-only` |
+
+**Combined flags:** Multiple tokens stack (e.g. `dry-run` + `skip-twitter`). Example: `/today dry-run skip-twitter` — full analysis and `.docx`, no Slack, no Twitter phase.
+
+**Sync-only preset:** After Phases 1 + 2 + 2.5, stop using `skip-discover skip-screener skip-report` (see Natural language triggers).
 
 ## Examples
 
-### Example 1: Full daily pipeline
+### Example 1: Full daily pipeline (every phase end-to-end)
 
-User says: "Run today's pipeline"
+User says: "Run today's pipeline" or `오늘의 파이프라인 전체 실행해줘`
 
-Actions:
-0. Run setup-doctor pre-flight check for core-platform dependencies (Phase 0)
-1. Check DB status and CSV freshness (Phase 1)
-2. Import CSV gaps and fetch from Yahoo Finance (Phase 2)
-3. Discover hottest untracked stocks from NASDAQ 100, KOSPI 100, KOSDAQ 100 (Phase 3)
-4. Run Turtle + Bollinger + Oscillator analysis (Phase 4)
-5. Fetch market news context and sentiment scores (Phase 4.5)
-6. Generate themed report content, produce .docx file, and post summary to `#h-report` (Phase 5)
-7. Fetch latest tweets and post to classified Slack channels (Phase 6)
+Actions (execute in order; each depends on the previous completing successfully unless error recovery says otherwise):
 
-Result: Prerequisites verified, data synced, hot stocks discovered, multi-indicator analysis complete, .docx report saved to `outputs/reports/daily-{date}.docx`, summary posted to Slack, tweets distributed to topic channels.
+0. **Phase 0** — `setup-doctor` core-platform pre-flight (unless `skip-setup-doctor`).
+1. **Phase 1** — DB `--status` + CSV freshness + gap report (halt here if `status`).
+2. **Phase 2** — `import_csv` (if needed) + `weekly_stock_update.py --days 3` + verify `--status`.
+3. **Phase 2.5** — `financial_data_collector.py --all` + `--status` (unless `skip-fundamentals`).
+4. **Phase 3** — `discover_hot_stocks.py` + per-ticker price fetch (unless `skip-discover`).
+5. **Phase 3.5** — `stock_screener.py --all --json` → `outputs/screener-{date}.json` (unless `skip-screener`; optional `--no-sentiment` on script).
+6. **Phase 4** — `daily_stock_check --source db`.
+7. **Phase 4.5** — `alphaear-news` + `alphaear-sentiment` (unless `skip-news` / `skip-sentiment`).
+7.5. **Phase 4.8** — `AgentDesk.run()` multi-agent debate on top BUY/SELL tickers (unless `skip-agent-desk`).
+8. **Phase 5a** — `alphaear-reporter` clustering and narrative sections.
+9. **Phase 5b** — Persist JSON artifacts + `node generate-report.js` (unless `skip-docx`).
+10. **Phase 5b½** — `ai-quality-evaluator` loop (unless `skip-quality-gate` or evaluator unavailable → warn and continue).
+11. **Phase 5½** — Manual checklist (data consistency, signals, completeness, date) — flag discrepancies in Slack if any fail.
+12. **Phase 5c** — Slack main + **mandatory thread** (unless `dry-run`, `skip-slack`, or no MCP).
+13. **Phase 5d** — `decision-router` posts (unless `skip-decisions`).
+14. **Phase 6** — `twitter-timeline-to-slack` (unless `skip-twitter` or missing `TWITTER_COOKIE`).
+
+Result: All default phases complete; `.docx` at `outputs/reports/daily-{date}.docx`; analysis/screener/discovery JSON under `outputs/`; `#h-report` main + threaded BUY/SELL detail; optional decisions and Twitter distribution.
+
+### Example 1b: Full pipeline, no Slack, no Twitter
+
+User says: `today dry-run skip-twitter` (or natural-language equivalent with same flags)
+
+Actions: Same as Example 1 through Phase 5d (Slack skipped for 5c because of `dry-run`). **Phase 6 skipped** entirely. `.docx` and local JSON outputs still produced unless `skip-docx`.
+
+Result: Full analysis artifact without public Slack post or Twitter phase.
 
 ### Example 2: Check data freshness only
 
@@ -603,6 +680,8 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **Tracked tickers**: `backend/app/core/constants.py` (`DEFAULT_STOCKS`, `TICKER_CATEGORY_MAP`)
 - **Slack channel**: `#h-report` (optional)
 - **Slack decision channel**: `#효정-의사결정` (`C0ANBST3KDE`) — personal trading decisions (Step 5d)
-- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`, `decision-router`
+- **Agent desk**: `backend/app/services/agent_desk/desk.py` (`AgentDesk`) — multi-agent debate pipeline (Phase 4.8)
+- **Agent desk output**: `outputs/agent-desk/{date}/desk-decisions.json`
+- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`, `decision-router`, `trading-agent-desk`
 - **Tab skills**: `tab-stock-sync`, `tab-event-detect`, `tab-fundamental-sync`, `tab-hot-stock-discovery`, `tab-technical-analysis`, `tab-turtle-refresh`, `tab-bollinger-refresh`, `tab-dualma-refresh`, `tab-screening`, `tab-llm-agents`, `tab-genai-features`, `tab-analysis-run`
 - **GitHub Actions**: `.github/workflows/daily-today.yml` (independent pipeline, uses its own API keys via GitHub Secrets)

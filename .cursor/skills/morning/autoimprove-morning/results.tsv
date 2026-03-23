@@ -1,0 +1,7 @@
+experiment_id	eval1_phase_order	eval2_error_recovery	eval3_cli_flags	eval4_slack_output	eval5_completeness	score_pct	status	notes
+0	P	F	F	F	F	20	baseline	Phase 3 MCP and examples gaps
+1	P	F	F	F	F	20	partial	CLI propagation only; kept for clarity
+2	P	P	F	P	F	60	improved	Slack thread + disclaimer + MCP retry
+3	P	P	P	P	F	80	improved	Per-flag reference table + skip-briefing example
+4	P	P	P	P	P	100	complete	E2E numbered walkthrough
+final	P	P	P	P	P	100	complete	autoimprove-morning finished

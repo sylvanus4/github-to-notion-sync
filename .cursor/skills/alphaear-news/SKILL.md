@@ -66,3 +66,26 @@ Full source list: `references/sources.md`. Key IDs:
 - **Empty results**: Verify `source_id` spelling; some sources may be rate-limited.
 - **Stale data**: Built-in 5-minute cache; force fresh fetch by waiting or clearing cache.
 - **Missing US/KR sources**: NewsNow focuses on CN sources; use `parallel-web-search` for Reuters/Bloomberg/CNBC/KR finance.
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing
+
+| User query pattern | This skill vs other |
+|--------------------|---------------------|
+| Hot headlines / multi-source trends / Polymarket | **This skill** (`alphaear-news`) |
+| Raw OHLCV / ticker history | `alphaear-stock` or `weekly-stock-update` — **not** this skill |
+| Sentiment score only | `alphaear-sentiment` — **not** this skill |
+| Broad macro synthesis | `alphaear-deepear-lite` orchestration |
+
+### Data source attribution (required)
+
+Every headline, market line, or Polymarket stat must cite origin: `(출처: NewsNow → daily_news DB, source_id=…)`, `(출처: Polymarket gamma-api)`, or `(출처: parallel-web-search 보충 — Reuters/CNBC 등)`. Include `source_id` or URL when available.
+
+### Korean output
+
+Summaries for Korean users: natural Korean; name sources in-line (위챗/웨이보/폴리마켓 등 적절히 병기).
+
+### Fallback protocol
+
+On NewsNow timeout/empty: state `NewsNow 1차 수집 실패 → 캐시/재시도 또는 parallel-web-search로 보충` before presenting partial results. On Polymarket failure: say `Polymarket API 사용 불가 — 예측시장 섹션 생략` explicitly.

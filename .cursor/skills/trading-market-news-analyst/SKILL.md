@@ -61,6 +61,16 @@ Assess: Reinforcing vs offsetting events, sequential causation, coincidental tim
 
 Use [references/report_template.md](references/report_template.md) for structure. Output: `outputs/reports/trading/market_news_analysis_[START]_to_[END].md`. Objective, quantified, cited, causation-disciplined.
 
+**Mandatory add-ons to every report:**
+
+1. **Impact-ranked event table** — Columns: `Event` | `Impact score` | `Key numeric fact` | `Source` | `Date (as-of)` (minimum **3** rows when ≥3 major events exist; if fewer events, explain why).
+2. **Market reaction metrics** — For top events, quote **≥3** market numbers (index % move, VIX change, yield bps, commodity %) **only** from collected sources; include citation.
+3. **Forward playbook (Actionable)** — Final section with **stance** (risk-on/off/neutral), **primary trade expression** (e.g., favor duration, quality, energy hedges—not specific stock picks unless sourced), and **monitoring checklist**.
+4. **Risks & invalidation** — At least one scenario where the narrative breaks (data revision, policy surprise, positioning unwind).
+5. **No fabricated prints** — If reaction data unavailable, write `Reaction: N/A (data gap)` instead of guessing.
+
+English remains the default output language unless the user requests otherwise.
+
 ## Key Principles
 
 1. Impact over noise

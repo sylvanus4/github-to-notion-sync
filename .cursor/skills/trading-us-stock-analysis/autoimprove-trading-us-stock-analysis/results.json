@@ -1,0 +1,10 @@
+{
+  "skill": "trading-us-stock-analysis",
+  "baseline_score": 22,
+  "final_score": 25,
+  "experiments": 1,
+  "pass_rate": "100%",
+  "max_score": 25,
+  "eval_template": "Trading Analysis (5 evals × 5 inputs)",
+  "test_inputs_domain": "AAPL comprehensive, TSLA vs NVDA, MSFT fundamentals, NFLX technical, quick price check"
+}

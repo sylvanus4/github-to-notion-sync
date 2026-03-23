@@ -24,6 +24,30 @@ metadata:
 
 Transform task-by-task thinking into systems thinking for the stock analytics domain. Instead of asking "what do I need to do next?", ask "how much of this could run without me?"
 
+## Meta-Orchestration
+
+### Prompt router (representative user phrases)
+
+| # | Example prompt | This skill? | Delegation order (numbered) | Output merge strategy | User overrides |
+|---|----------------|-------------|------------------------------|------------------------|----------------|
+| 1 | AI 리포트 품질을 자동 평가해줘 | No | 1) `ai-quality-evaluator` | Evaluation markdown | `DATE`, paths |
+| 2 | 데일리 파이프라인을 설계해줘 | Partial | 1) Map current `today` flow (this skill) → 2) `ai-workflow-integrator` to redesign | Map + delta design doc | Scope: whole vs subsystem |
+| 3 | 이 프로세스를 자동화할지 결정해줘 | No | 1) `automation-strategist` | — | — |
+| 4 | 시스템 데이터 흐름을 분석해줘 | Yes | 1) Boundaries → 2) Data flow trace → 3) Components table → 4) Bottlenecks → 5) Optional `visual-explainer` | **Single** system map + bottleneck appendix (text or HTML link) | `DEPTH=shallow|full`; include feedback loops Y/N |
+| 5 | 프로젝트 컨텍스트를 업데이트해줘 | No | 1) `context-engineer` | MEMORY / packages | — |
+
+### Error recovery
+
+| Failure mode | Retry | Fallback | Abort |
+|--------------|-------|----------|-------|
+| Incomplete logs/metrics | — | Annotate unknown durations; suggest instrumentation | — |
+| `visual-explainer` unavailable | — | Text/ASCII diagram per troubleshooting table | — |
+| Scope creep | — | Split into subsystems; prioritize one tracer bullet | — |
+
+### Output aggregation
+
+Combine **map + component table + bottleneck ranked list + recommended fixes** into one deliverable. If HTML diagram produced, link it from the top summary.
+
 ## Core Framework: DFTS (Data-Flow-Trigger-State)
 
 Every system in this project can be decomposed into four elements:

@@ -1,0 +1,6 @@
+experiment	round	e1_phase_order	e2_error_recovery	e3_cli_flags	e4_slack_output	e5_completeness	pass_count	score_pct	status
+baseline	0	PASS	FAIL	FAIL	FAIL	FAIL	2	40.0	baseline
+after_exp1	1	PASS	FAIL	PASS	FAIL	FAIL	3	60.0	improved
+after_exp2	2	PASS	FAIL	PASS	PASS	FAIL	4	80.0	improved
+after_exp3	3	PASS	PASS	PASS	PASS	FAIL	4	80.0	improved
+after_exp4	4	PASS	PASS	PASS	PASS	PASS	5	100.0	complete

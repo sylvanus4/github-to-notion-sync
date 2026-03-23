@@ -22,6 +22,29 @@ metadata:
 
 Validate AI-generated financial reports and analysis outputs against ground truth data, scoring across 5 quality dimensions. Acts as a quality gate between report generation and Slack distribution.
 
+## Meta-Orchestration
+
+Use this section for multi-skill runs: **delegation order**, **failure handling**, **how sub-outputs merge**, and **user-facing overrides**.
+
+### Prompt router (representative user phrases)
+
+| # | Example prompt | This skill? | Delegation order (numbered) | Output merge strategy | User overrides |
+|---|----------------|-------------|------------------------------|------------------------|----------------|
+| 1 | AI 리포트 품질을 자동 평가해줘 | Yes | 1) Resolve `DATE` → 2) Load artifacts (docx/json) → 3) Ground truth (`weekly_stock_update.py --status`, `daily_stock_check.py --source db`, constants) → 4) Score 5 dimensions → 5) Emit gate markdown → 6) Optional: hand off to Slack MCP only if user asks and gate PASS/REVIEW | **Single** evaluation doc: gate line + weighted table + issues + hallucinations + recommendations (do not split across files) | `DATE=YYYY-MM-DD`; optional explicit paths for report/docx and `analysis-{date}.json`; `SKIP_DB=1` to run reduced accuracy mode (must label REVIEW) |
+| 2 | 데일리 파이프라인을 설계해줘 | No | 1) `today` SKILL (run path) **or** `ai-workflow-integrator` (custom design) — pick one based on “run existing” vs “design new” | Downstream skill defines merge | As in target skill |
+| 3 | 이 프로세스를 자동화할지 결정해줘 | No | 1) `automation-strategist` → 2) if implement: `pipeline-builder` (cron/GHA) or `ai-workflow-integrator` (AI stages) | Strategist doc + optional build artifacts | ARIA thresholds user-adjustable |
+| 4 | 시스템 데이터 흐름을 분석해줘 | No | 1) `system-thinker` (map/bottleneck) → 2) optional `visual-explainer` | Map + bottleneck appendix | Diagram depth / scope from user |
+| 5 | 프로젝트 컨텍스트를 업데이트해줘 | No | 1) `context-engineer` Mode 1 (MEMORY) or Mode 2 (package) | MEMORY.md + optional `references/*-context.md` | `PRUNE_DAYS` default 30 |
+
+### Error recovery (this skill)
+
+| Failure mode | Retry | Fallback | Abort |
+|--------------|-------|----------|-------|
+| Artifact missing | — | Ask user for path or adjacent `DATE` | If no inputs after 1 clarification |
+| DB/script error | 2×, 5s backoff | Run JSON-only scoring; mark Accuracy/Consistency **REVIEW** | User requires full DB gate and DB down |
+| docx read fails | — | Use `anthropic-docx` or JSON-only | — |
+| Comparison mode second date missing | — | Run single-date eval | — |
+
 ## Quality Dimensions
 
 | Dimension | Weight | What It Measures |

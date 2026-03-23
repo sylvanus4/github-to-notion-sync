@@ -51,6 +51,31 @@ This skill generates markdown analysis reports saved to the `outputs/reports/tra
 
 Reports include executive summaries, current readings, signal identification, scenario analysis with probabilities, and actionable positioning recommendations for different trader types.
 
+## Trading Analysis Eval Contract (Mandatory)
+
+Every user-facing reply (Slack, chat, or saved file) MUST satisfy five binary quality gates aligned with structured output, numeric specificity, actionable conclusion, risk awareness, and anti-hallucination.
+
+### Required `##` headers (minimum)
+
+Use in order: `## Summary`, `## Data & Levels`, `## Regime / Scenarios`, `## Recommendation`, `## Risks & Invalidation`. Saved reports must still follow the template in `assets/breadth_analysis_template.md`; these headers map to that structure for chat-style answers.
+
+### Numeric evidence (≥3 distinct numbers)
+
+- **Chart image(s) provided:** Quote **≥3** readings taken only from the image(s) (e.g. 8MA %, 200MA %, uptrend ratio %, threshold distances, dates visible on the axis).
+- **No chart (text-only request):** Do **not** fabricate live market %. State that analysis requires Chart 1 and/or Chart 2 **or** delegate to `trading-market-breadth-analyzer` / `trading-uptrend-analyzer` for CSV-based breadth. You **may** cite **≥3** methodology constants (73%, 23%, ~10%, ~40%) **only** when each is labeled **reference threshold (not a live reading)**.
+
+### Actionable conclusion
+
+`## Recommendation` must end with an explicit stance: signal status (CONFIRMED BUY / DEVELOPING / FAILED / SELL / WAIT), or **obtain charts / run alternate skill** before trading.
+
+### Risk / invalidation
+
+`## Risks & Invalidation` must list **≥1** concrete failure mode (stale chart date, failed reversal per Step 4.1.5, strategic vs tactical conflict, ambiguous right-edge slope).
+
+### Anti-hallucination
+
+Never assert index prices, live breadth %, or chart dates not visible in the user upload. Use **not visible / not provided** when uncertain.
+
 ## Core Principles
 
 1. **Dual-Timeframe Analysis**: Combine strategic (Chart 1: 200MA Breadth) and tactical (Chart 2: Uptrend Ratio) perspectives

@@ -13,6 +13,24 @@ Inspect and query the GraphRAG knowledge graphs that MiroFish builds from seed d
 
 MiroFish backend running at `http://localhost:5001`. At least one knowledge graph must be built.
 
+## Quality Contract (graph exploration vs simulation evals)
+
+This skill does **not** run simulations or author full seed documents. Map user requests as follows:
+
+| Eval | How this skill satisfies it |
+|------|---------------------------|
+| EVAL 1 (seed structure) | When the user only needs graph data, **cite** that a proper seed for *new* graphs must follow `mirofish` (H1 title, ISO date, ≥3 `##` sections, ≥5 entities). If they need a new semiconductor graph, tell them to run ontology with a seed listing fabs, tickers (e.g. NVDA, TSM), and policies — then return exploration results. |
+| EVAL 2 (simulation config) | State explicitly: **this skill is read-only** — no default rounds/agent counts here. For “탐색만” requests, defaults are N/A; if they ask to simulate after exploration, hand off to `mirofish` / `mirofish-financial-sim` with rounds 20–25 and ~26 agents after prepare. |
+| EVAL 3 (output structure) | Every graph summary you return MUST include: **graph_id** (or project id), **timestamp**, **entity counts** (total + by type if available), **≥3 example entities** relevant to the query (e.g. semiconductor: company + concept + person), and **1–2 relationship insights** (e.g. high-degree nodes, clusters). |
+| EVAL 4 (API usage) | Use only the documented endpoints below (`/api/graph/...`, `/api/simulation/entities/...`). Do **not** invent `POST /graph` or `POST /simulation/run` — those are not valid shortcuts. |
+
+### Example: “반도체 관련 엔티티 탐색”
+
+1. `GET /api/graph/project/list` → pick `project_id` / latest `graph_id` (or ask user).
+2. `GET /api/simulation/entities/<graph_id>/by-type/organization` (and `concept`, `person`) — filter client-side for 키워드: 반도체, semiconductor, NVDA, TSM, foundry, etc.
+3. Optionally `GET /api/graph/data/<graph_id>` for edges involving those node ids (may be large — prefer entity endpoints first).
+4. Respond with the EVAL 3 bullet structure.
+
 ## API Reference
 
 ### Project Management

@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	22	25	88%	Baseline: file template strong; ad-hoc chat replies could omit parallel ## headers and ≥3 script-sourced numbers for TA-Eval
+1	24	25	96%	Added Trading Analysis Eval Contract under Step 5: chat ## sections, ≥3 script metrics, actionable tilt, invalidation, no invented performance %

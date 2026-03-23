@@ -9,8 +9,7 @@ description: >-
   "cognee cognify", "cognee search", "ingest documents", "index documents
   for RAG", or wants to convert documents into a searchable knowledge base.
   Do NOT use for general web search (use WebSearch).
-  Do NOT use for stock-specific data pipelines (use today).
-  Do NOT use for paper review (use paper-review).
+  Do NOT use for paper review (use paper-review if available).
   Do NOT use for general web scraping (use scrapling or defuddle).
   Korean triggers: "지식 그래프", "AI 메모리", "시맨틱 검색", "문서 인덱싱",
   "cognee", "지식 엔진".

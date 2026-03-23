@@ -58,3 +58,29 @@ Coordinates alphaear-search, alphaear-news, alphaear-sentiment, alphaear-signal-
 - **Single-domain**: If the query is narrow (e.g. only sentiment, only stock price), call the specific alphaear-* skill instead.
 - **Data freshness**: Combine DeepEar Lite signals with project daily-stock-check and weekly-stock-update for up-to-date inputs.
 - **Report output**: Route final assembly to alphaear-reporter for structured report generation.
+
+## AlphaEar Quality Standards (auto-improved)
+
+### Intent → sub-skill routing (canonical patterns)
+
+| User query pattern | Delegate |
+|--------------------|----------|
+| Macro/sector impact (“금리 인상이 반도체에…”) | `alphaear-search` + `alphaear-news` → `alphaear-sentiment` → optional `alphaear-predictor` / `alphaear-signal-tracker` → `alphaear-reporter` |
+| Ticker news + sentiment (“NVDA 뉴스와 감성”) | `alphaear-news` (or search) → `alphaear-sentiment` |
+| Price / OHLCV history (“005930 주가 히스토리”) | `alphaear-stock` (or `weekly-stock-update` if routine sync) |
+| Signal validity / evolution (“매수 시그널 유효?”) | `alphaear-signal-tracker` (+ `alphaear-news`, `alphaear-stock` for facts) |
+| Logic / transmission diagram (“Draw.io”, 논리 흐름) | `alphaear-logic-visualizer` |
+
+Never answer with a single sub-skill when the user clearly asked for multi-domain synthesis; run the minimal chain above.
+
+### Data source attribution (required)
+
+In the final synthesized answer, tag every data-backed claim with its origin, e.g. `(출처: Yahoo Finance / yfinance)`, `(출처: PostgreSQL daily_news, NewsNow 수집)`, `(출처: Polymarket gamma-api)`, `(출처: Kronos 모델 예측)`, `(출처: 프로젝트 DB OHLCV)`. If a sub-skill returned no data, state that explicitly.
+
+### Korean output
+
+When the user writes in Korean, respond in natural Korean using standard finance terms: 시가총액, 이동평균선, PER, PBR, RSI, 거래량, 종가, 시가, 고가, 저가, 금리, 섹터.
+
+### Fallback protocol
+
+If a planned sub-skill or API is unavailable, state: `1차 소스(이름)를 사용할 수 없어 대체 경로(이름)로 진행했습니다` and proceed (e.g. DeepEar Lite 실패 시 daily-stock-check / DB 데이터). Do not silently omit the failure.

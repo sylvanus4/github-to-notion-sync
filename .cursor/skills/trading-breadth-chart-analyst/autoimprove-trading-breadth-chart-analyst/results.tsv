@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	18	25	72%	Baseline: mental simulation on 5 breadth-focused prompts × 5 TA-Eval gates; weak on text-only prompts for numeric specificity and chat structure
+1	24	25	96%	Inserted Trading Analysis Eval Contract: required ## headers, ≥3 numbers (chart vs no-chart rules), actionable Recommendation, Risks & Invalidation, anti-hallucination; delegate path to CSV skills

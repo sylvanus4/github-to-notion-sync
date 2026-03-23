@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	22	25	88%	baseline SKILL.md (template + workflow; no explicit no-chart gate or inline header contract)
+1	25	25	100%	added Mandatory Output Contract: chart required, named headers, ≥3 chart-sourced numbers, actionable close, invalidation, anti-fabrication

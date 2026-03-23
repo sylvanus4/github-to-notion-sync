@@ -14,7 +14,7 @@ description: >
   Korean triggers: "데이터 사이언티스트 관점", "DS 분석", "데이터 영향 분석".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "role-analysis"
 ---
 
@@ -162,6 +162,18 @@ When relevant, execute sequentially:
 ### 데이터 인프라 개선
 ### 실험 설계 제안
 ```
+
+## Agent Response Contract (Binary Eval Gate)
+
+When relevance score is **≥ 5**, every end-user analysis MUST satisfy:
+
+1. **EVAL 1 — Relevance first:** Before any other analysis sections, output `## 관련도 선행 평가` containing `**점수:** N/10` and `**선행 근거:**` (2–4 Korean sentences explicitly mapping the topic to the **Relevance Criteria** table). If N < 5, output only a short Korean relevance note—do not fill the full template.
+
+2. **EVAL 2 — Composed sub-skills (≥3):** Include `## 위임된 서브스킬` as a markdown table with **at least three rows** chosen from this skill's **Analysis Pipeline** only. Columns: 서브스킬 (backtick name, e.g. `kwp-data-data-exploration`), 위임 범위 (Korean), 기대 산출물 (Korean).
+
+3. **EVAL 3 — Korean narrative structure:** After the sections above, all substantive analysis MUST be **Korean** (proper nouns and skill identifiers may appear in English inside backticks). Use H2/H3 headings, bullet lists, and **at least one** additional markdown table in the body (excluding the delegation table).
+
+4. **EVAL 4 — Actionable recommendations:** End with `## 실행 액션 플랜` containing **at least three** numbered items (`1.`, `2.`, `3.`). Each item MUST explicitly include **담당:** (role or team) and **기한:** (concrete horizon, e.g. 2주 내, 30일 내, 분기 내).
 
 ## Error Handling
 

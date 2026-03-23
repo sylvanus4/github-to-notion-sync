@@ -1,0 +1,3 @@
+experiment	score	max	pass_rate	mutation_summary
+0	15	20	75.0%	baseline audit — seed/report/API partially implicit; ad-hoc seed rules weaker than daily
+1	19	20	95.0%	added Quality Contract: seed checklist, config defaults table, report structure (prediction/confidence/factors/consensus), canonical API path table

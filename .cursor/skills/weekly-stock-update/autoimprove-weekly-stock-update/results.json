@@ -1,0 +1,50 @@
+{
+  "skill": "weekly-stock-update",
+  "skill_path": ".cursor/skills/weekly-stock-update/SKILL.md",
+  "status": "complete",
+  "eval_adaptations": {
+    "EVAL4": "Slack template eval remapped to Output Format (header, detail, summary, disclaimer); skill does not post to Slack"
+  },
+  "test_inputs": [
+    "주식 데이터 업데이트해줘",
+    "NVDA, 삼성전자 최근 2주 데이터 동기화해줘",
+    "weekly-stock-update --status",
+    "weekly-stock-update --fundamentals",
+    "주식 가격 DB 동기화"
+  ],
+  "scoring_model": "5 evals × 5 inputs = 25 binary checks; 1 = pass per cell",
+  "baseline": {
+    "experiment_id": 0,
+    "score": 10,
+    "max": 25,
+    "pass_rate": 0.4,
+    "per_eval_pass_inputs": {
+      "EVAL1_phase_ordering": 4,
+      "EVAL2_error_recovery": 0,
+      "EVAL3_cli_flags": 5,
+      "EVAL4_output_format": 0,
+      "EVAL5_full_run_example": 0
+    }
+  },
+  "final": {
+    "experiment_id": "final",
+    "score": 25,
+    "max": 25,
+    "pass_rate": 1.0,
+    "per_eval_pass_inputs": {
+      "EVAL1_phase_ordering": 5,
+      "EVAL2_error_recovery": 5,
+      "EVAL3_cli_flags": 5,
+      "EVAL4_output_format": 5,
+      "EVAL5_full_run_example": 5
+    }
+  },
+  "experiments": [
+    {"id": 1, "action": "add_execution_order", "decision": "keep"},
+    {"id": 2, "action": "add_failure_behavior", "decision": "keep"},
+    {"id": 3, "action": "output_format_disclaimer_script_alignment", "decision": "keep"},
+    {"id": 4, "action": "example_3_full_pipeline", "decision": "keep"},
+    {"id": 5, "action": "quickstart_delay_how_it_works_fundamentals", "decision": "keep"}
+  ],
+  "dashboard_html": "skipped_per_user_request"
+}

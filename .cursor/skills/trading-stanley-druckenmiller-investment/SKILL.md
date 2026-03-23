@@ -72,7 +72,7 @@ Check that the 5 required skill JSON reports exist in `outputs/reports/trading/`
 ### Phase 2: Execute Strategy Synthesizer
 
 ```bash
-python3 skills/trading-stanley-druckenmiller-investment/scripts/strategy_synthesizer.py \
+python3 .cursor/skills/trading-stanley-druckenmiller-investment/scripts/strategy_synthesizer.py \
   --reports-dir outputs/reports/trading/ \
   --output-dir outputs/reports/trading/ \
   --max-age 72
@@ -138,6 +138,20 @@ Load appropriate reference documents to provide philosophical context:
 | 0-19 | Capital Preservation | 0-20% | Maximum defense |
 
 ---
+
+## Standalone LLM Analysis (No JSON Files)
+
+When the user asks for **Druckenmiller-style macro positioning** without prior skill JSON (e.g., “현재 매크로 포지셔닝 기회를 드러큰밀러 스타일로”), **do not invent** index levels or portfolio returns. Use this structure:
+
+1. **As-of** — State today’s date or user-provided date; if using WebSearch, label findings **as-of search time**.
+2. **Liquidity & Policy** — Bullets: rates, QT/QE hints, FX/commodity **only with sourced or user-stated numbers** (yields %, DXY level, etc.); if no data, say **DATA NEEDED** and list what to fetch.
+3. **Asymmetric Opportunities** — Table: `Thesis | Upside sketch | Downside / wrongness | Conviction 1–10` (integers).
+4. **Conviction → Exposure** — Map qualitative conviction to **percentage range** using **Conviction Zone Mapping** above (e.g., “Moderate → 50–70% equity”).
+5. **Invalidation** — Explicit conditions that void the thesis (e.g., “Fed hawkish surprise”, “credit spread > X bps” — use **X** only if user/search provides it).
+6. **Risks** — Tail risks, correlation breakdown, policy error — ≥1 bullet.
+7. **Provenance** — `user input` | `WebSearch` | `script output` | `framework only (no live data)`.
+
+**Closing:** One sentence — **increase / hold / reduce** exposure vs baseline, tied to a conviction zone.
 
 ## Output Files
 

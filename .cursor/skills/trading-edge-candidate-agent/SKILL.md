@@ -120,6 +120,20 @@ python3 .cursor/skills/trading-edge-candidate-agent/scripts/validate_candidate.p
   - `gap_up_continuation` with `gap_up_detection`
 - Mark unsupported hypothesis families as research-only in ticket notes, not as export candidates.
 
+## Agent Narrative Output (Research / Edge Requests)
+
+When responding in chat (especially for: research tickets, “edge candidate”, “hypothesis to ticket”, or EOD observations without immediate script run), use this **fixed section order**:
+
+1. **Context** — Data source named (e.g., `ohlcv.parquet` path, `hints.yaml`, or “user text only”).
+2. **Top Candidates** — Ranked list (max 10); each line: `rank | ticker/signal_id | anomaly metric (numeric) | brief thesis`.
+3. **Exportability** — For each top item: `exportable` vs `research_only` and **entry family** (`pivot_breakout` / `gap_up_continuation` or other).
+4. **Ticket / YAML Summary** — Key fields with **at least three numeric values** from inputs or computed stats (e.g., `top_n=10`, `z-score`, `return %`, `volume ratio`) — never invented tickers or prices.
+5. **Recommended Next Step** — One concrete action: run `export_candidate.py`, run `validate_candidate.py`, or gather missing OHLCV.
+6. **Risks & Invalidation** — Schema rejection risks, unsupported entry family, or data staleness; what would **falsify** the edge.
+7. **Provenance** — All numbers trace to user input, script stdout, or file paths; if unknown, write `UNKNOWN` and request data.
+
+End with an **explicit go / no-go** for pipeline handoff (one sentence).
+
 ## Guardrails
 
 - Reject candidates that violate schema bounds (risk, exits, empty conditions).

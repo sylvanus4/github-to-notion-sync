@@ -85,6 +85,23 @@ Fetch earnings date (Earnings Calendar). Pre-earnings: Long straddle/strangle (I
 
 Report: Strategy setup, leg table, P/L analysis, ASCII diagram, Greeks, risk assessment, trade management, suitability, alternatives. Save as `options_analysis_[TICKER]_[STRATEGY]_[DATE].md`.
 
+### Required Section Headers (Eval-Aligned)
+
+The written report **must** include these **markdown headings** in order:
+
+1. `## Setup` — Ticker, strategy name, expiries, strikes, contracts, **S₀** (spot), **r**, **σ or IV**, **T** (years) — every parameter shown as a **number** where known.
+2. `## Legs` — Table: leg, type, strike, qty, mid/theo price (numeric).
+3. `## P/L & Breakevens` — Max profit ($), max loss ($), breakeven(s) with **numeric** prices.
+4. `## Greeks` — Net delta, gamma, theta, vega (numbers or “N/A” with reason).
+5. `## Scenario Table` — At least 3 rows: stock price scenarios with P/L **numbers** (from model, not guessed).
+6. `## Recommendation` — **One** primary action (open / skip / adjust strike) with rationale.
+7. `## Risks & Invalidation` — Assignment risk, gap risk, IV crush, early exercise; **stop or roll trigger** as price level or % move when possible.
+8. `## Data Provenance` — Label each figure: `FMP API`, `user-provided`, `Black-Scholes (scripts/black_scholes.py)`, or `UNKNOWN`.
+
+**Hallucination guard:** If FMP fails, use user-supplied **S₀** and IV; never fabricate live quotes. For “AAPL 커버드콜” without numbers, **ask** for spot, short-call strike, expiry, and IV or accept HV default and state it.
+
+**Closing:** Single-sentence **trade decision** (do / don’t / conditional).
+
 ## Key Principles
 
 **Black-Scholes Limits:** European-style, constant vol, no costs. Real: bid-ask, American early exercise, liquidity. Use for education; get broker quotes before trading.

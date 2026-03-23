@@ -9,17 +9,18 @@ description: >-
   recent stock prices in the database (use weekly-stock-update). Korean
   triggers: "주식", "체크", "분석", "데이터".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: "generation"
   author: "thaki"
 ---
 # Daily Stock Check
 
-Analyze all stocks in `data/latest/` using Turtle Trading and Bollinger Bands methodologies, then post a formatted summary to `#h-daily-stock-check` on Slack.
+Analyze tracked stocks from **CSV files** (`--dir`) or **PostgreSQL** (`--source db`) using Turtle Trading and Bollinger Bands, then post a formatted summary (root message + threaded details) to `#h-daily-stock-check` on Slack.
 
 ## Prerequisites
 
-- Stock CSV files exist in `data/latest/` (download using `stock-csv-downloader` skill if missing)
+- **CSV mode (`--source csv`, default):** `*.csv` files exist under `--dir` (use `stock-csv-downloader` if missing)
+- **DB mode (`--source db`):** PostgreSQL reachable via `DATABASE_URL`; prices loaded for tracked tickers (use `weekly-stock-update` if stale)
 - Slack MCP server is connected
 - Python 3.11+ available
 
@@ -28,6 +29,13 @@ Analyze all stocks in `data/latest/` using Turtle Trading and Bollinger Bands me
 ```bash
 cd backend
 python -m scripts.daily_stock_check --dir ../data/latest
+```
+
+PostgreSQL (tracked tickers in DB; requires `DATABASE_URL` and synced prices):
+
+```bash
+cd backend
+python -m scripts.daily_stock_check --source db
 ```
 
 ## Analysis Methodology
@@ -75,10 +83,37 @@ Combined score from Turtle + Bollinger signals (STRONG_BUY=+2, BUY=+1, NEUTRAL=0
 
 ## Script CLI Arguments
 
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--dir DIR` | Directory containing `*.csv` stock files (CSV mode only) | `data/latest` |
+| `--tickers T` | Comma-separated tickers to analyze (empty = all) | *(all tickers)* |
+| `--source MODE` | `csv` (read `*.csv` from `--dir`) or `db` (PostgreSQL OHLCV) | `csv` |
+
+Examples:
+
+```bash
+# All CSVs under data/latest (default source=csv)
+python -m scripts.daily_stock_check --dir ../data/latest
+
+# Subset from CSVs
+python -m scripts.daily_stock_check --dir ../data/latest --tickers AAPL,NVDA
+
+# All stocks from DB (weekly-stock-update or equivalent must have populated prices)
+python -m scripts.daily_stock_check --source db
+
+# DB subset
+python -m scripts.daily_stock_check --source db --tickers AAPL,NVDA
 ```
---dir DIR      CSV directory (default: data/latest)
---tickers T    Comma-separated tickers to filter (default: all)
-```
+
+## Phase order (dependencies)
+
+Execute strictly in this order. **Do not** call Slack tools until Step 1 completes and Step 1.5 is satisfied (or explicit partial-analysis path below).
+
+1. **Step 1** — Run `daily_stock_check` → JSON on stdout
+2. **Step 1.5** — Quality gate on that JSON
+3. **Step 2** — Resolve `#h-daily-stock-check` channel ID
+4. **Step 3** — Format mrkdwn (summary + threaded detail plan)
+5. **Step 4** — Post to Slack (root + thread replies)
 
 ## Workflow
 
@@ -102,9 +137,13 @@ Before formatting for Slack, verify the analysis output:
 - [ ] Each stock result has both Turtle and Bollinger analysis sections
 - [ ] Data dates are within the last 3 trading days (skip this check on weekends/holidays)
 - [ ] No script errors in stderr output
-- [ ] Summary signal counts (BUY + NEUTRAL + SELL) equal `total_stocks`
+- [ ] Summary buckets (`strong_buy` + `buy` + `neutral` + `sell` + `strong_sell`) sum to `total_stocks`
 
-If analysis produced partial results (some tickers failed), include a `[부분 분석]` warning banner in the Slack message listing failed tickers. See [assets/templates/slack-message.md](assets/templates/slack-message.md) for the message template.
+**Halt (no Slack post):** If the script exits non-zero, prints an `error` key in JSON, stdout is not valid JSON, or `total_stocks == 0` — stop, report the failure to the user, and recommend prerequisites (refresh CSV/DB data). Do not call `slack_send_message`.
+
+**Partial results:** If some requested tickers are missing but `total_stocks >= 1`, continue: include a `[부분 분석]` warning banner in the root Slack message listing missing tickers. See [assets/templates/slack-message.md](assets/templates/slack-message.md).
+
+**Inline-only:** If the user asked for signals only with no Slack post, skip Steps 2–4 after Step 1.5 and return the JSON or a formatted summary in chat.
 
 ### Step 2: Find Slack Channel ID
 
@@ -114,59 +153,84 @@ Use `slack_search_channels` MCP tool to find `#h-daily-stock-check`:
 query: "h-daily-stock-check"
 ```
 
-### Step 3: Format and Post to Slack
+If no channel is returned: widen the query, verify Slack MCP auth, then **halt** and tell the user the channel could not be resolved (do not post to an arbitrary channel).
 
-Format the JSON output as a Slack mrkdwn message. Use the template below.
+### Step 3: Format for Slack (mrkdwn)
 
-### Slack Message Template
+Format the JSON using the templates below. Plan a **root message** (header + summary counts) and **threaded detail** (per-signal sections) so the channel stays scannable.
+
+### Slack message templates
+
+**Root message (channel):** header, signal summary, disclaimer footer.
 
 ```
 :chart_with_upwards_trend: *Daily Stock Check — {date}*
 Analyzed {total_stocks} stocks | :green_circle: BUY {buy_count} | :white_circle: NEUTRAL {neutral_count} | :red_circle: SELL {sell_count}
+_{data_source_line}_
 
----
+_Turtle: SMA(20,50) + Donchian(20) | Bollinger: BB(20,2σ) + %B + Squeeze_
+_This is not financial advice._
+```
 
+Set `{data_source_line}` to `Data source: CSV (--dir)` or `Data source: PostgreSQL (--source db)` as appropriate.
+
+**Thread reply 1 — BUY / STRONG_BUY** (mrkdwn):
+
+```
 :large_green_circle: *BUY / STRONG_BUY*
 
 > *{ticker}* `{price}` ({change_pct}%)
 > Turtle: {turtle_signal} — {turtle_rationale}
 > Bollinger: {bb_signal} — {bb_rationale}
 > Overall: *{overall_signal}*
+(repeat per ticker)
+```
 
----
+**Thread reply 2 — NEUTRAL:**
 
+```
 :white_circle: *NEUTRAL*
 
 > *{ticker}* `{price}` ({change_pct}%)
 > Turtle: {turtle_signal} | BB: {bb_signal}
+```
 
----
+**Thread reply 3 — SELL / STRONG_SELL:**
 
+```
 :red_circle: *SELL / STRONG_SELL*
 
 > *{ticker}* `{price}` ({change_pct}%)
 > Turtle: {turtle_signal} — {turtle_rationale}
 > Bollinger: {bb_signal} — {bb_rationale}
 > Overall: *{overall_signal}*
-
----
-
-_Turtle: SMA(20,50) + Donchian(20) | Bollinger: BB(20,2σ) + %B + Squeeze_
-_Data source: data/latest/ CSVs | This is not financial advice._
 ```
 
 Formatting rules:
-- Group stocks by overall signal: BUY/STRONG_BUY first, then NEUTRAL, then SELL/STRONG_SELL
+- Post the **root message** first; capture `thread_ts` from the response.
+- Post each signal group as a **thread reply** (`thread_ts` = root message) using `slack_send_message` (or equivalent MCP parameter for threading).
+- Group stocks by overall signal within each thread block: BUY/STRONG_BUY, then NEUTRAL, then SELL/STRONG_SELL
 - For NEUTRAL stocks, use a compact one-line format
 - For BUY/SELL stocks, show full rationale details
 - Use emoji indicators: :green_circle: for buy, :red_circle: for sell, :white_circle: for neutral
-- If Slack message exceeds 4000 characters, split into multiple messages (header + body + footer)
+- If a single thread reply would exceed ~3500 characters, split that section into additional thread messages (same `thread_ts`)
 
 ### Step 4: Post to Slack
 
-Use `slack_send_message` MCP tool:
-- `channel_id`: the channel ID from Step 2
-- `message`: formatted mrkdwn content from Step 3
+1. `slack_send_message` with `channel_id` from Step 2 and the **root** mrkdwn from Step 3.
+2. On success, send thread replies with the same `channel_id` and `thread_ts` from the root message.
+3. If `slack_send_message` fails: retry once after 2–3s; if it still fails, **halt**, surface the error to the user, and do not drop analysis silently.
+
+## Error handling and fallbacks
+
+| Step / call | On failure | Action |
+|-------------|------------|--------|
+| `python -m scripts.daily_stock_check` | Non-zero exit or stderr error | Halt; show stderr; suggest fixing CSV dir, `--source`, or DB connectivity |
+| Script stdout | Invalid JSON or `"error"` key | Halt; propagate message; no Slack |
+| Step 1.5 | `total_stocks == 0` | Halt; recommend `stock-csv-downloader` or `weekly-stock-update` |
+| `slack_search_channels` | Empty / no match | Halt; verify MCP and channel name |
+| `slack_send_message` | API/MCP error | Retry once; then halt and report |
+| DB mode | Connection/query errors (from script) | Halt; verify `DATABASE_URL` and migrations |
 
 ## Data Requirements
 
@@ -185,22 +249,58 @@ If CSVs have fewer than 20 rows, recommend running `stock-csv-download` first:
 
 ## Examples
 
-### Example 1: Full daily check run
-User says: "Run today's stock check and post to Slack"
-Actions:
-1. Execute daily_stock_check script with data/latest
-2. Find #h-daily-stock-check channel via slack_search_channels
-3. Format JSON as mrkdwn, group by signal (BUY/NEUTRAL/SELL)
-4. Post via slack_send_message
-Result: Slack message with analysis summary and per-stock signals posted to channel
+### Example 1: Full pipeline (CSV → quality gate → Slack root + threads)
 
-### Example 2: Analysis for specific tickers
-User says: "Check AAPL and NVDA signals only"
+User says: "Run today's stock check and post to Slack" (same intent as Korean prompts like *오늘 주식 분석 돌려줘* or *일간 주식 분석*).
+
+Actions (all phases, no skips):
+
+1. `cd backend && python -m scripts.daily_stock_check --dir ../data/latest` (default `--source csv`)
+2. Parse JSON; run **Step 1.5** checklist; halt if `total_stocks == 0` or invalid output
+3. `slack_search_channels` → resolve `#h-daily-stock-check`
+4. Build **root** mrkdwn (header + counts + disclaimer + data source line)
+5. `slack_send_message` root → obtain `thread_ts`
+6. Post **thread reply** mrkdwn for BUY/STRONG_BUY block, then NEUTRAL, then SELL/STRONG_SELL (split if oversized)
+
+Result: Channel shows summary in the main message; full per-stock detail in threads.
+
+### Example 2: Specific tickers (CSV), optional Slack
+
+User says: *AAPL, NVDA 시그널만 확인해줘* / "Check AAPL and NVDA only"
+
+```bash
+cd backend
+python -m scripts.daily_stock_check --dir ../data/latest --tickers AAPL,NVDA
+```
+
 Actions:
-1. Run script with --tickers AAPL,NVDA
-2. Output per-stock turtle, bollinger, overall signals
-3. Optionally post to Slack or return inline
-Result: Focused analysis for requested tickers
+1. Run command above; Step 1.5 on JSON
+2. If user did **not** ask for Slack: return formatted summary or raw JSON in chat (**skip Steps 2–4**)
+3. If user also wants Slack: continue from Example 1 Step 3 with this JSON
+
+Result: Focused analysis for requested tickers.
+
+### Example 3: Explicit Slack post
+
+User says: *주식 체크 결과 슬랙에 올려줘* / "Post stock check results to Slack"
+
+Actions: Same as Example 1 after Step 1 (always complete Steps 2–4 with threading unless Step 1.5 halts).
+
+### Example 4: DB source (CLI parity)
+
+User says: `daily stock check --source db` or requests analysis from the database.
+
+```bash
+cd backend
+python -m scripts.daily_stock_check --source db
+python -m scripts.daily_stock_check --source db --tickers AAPL,NVDA
+```
+
+Actions: Prerequisites (DB + `DATABASE_URL`); then same quality gate and Slack flow as Example 1; root template uses `Data source: PostgreSQL (--source db)`.
+
+### Example 5: Weekend / holiday note
+
+If Step 1.5 date-freshness check is skipped (weekend/holiday), still require valid JSON and `total_stocks >= 1` before Slack; document in thread if data is last session only.
 
 ## Troubleshooting
 
