@@ -4,7 +4,7 @@ description: >-
   Track AI model leaderboard rankings across Open LLM Leaderboard, Chatbot
   Arena, and video generation benchmarks. Detects rank changes, new entries, and
   category leaders by comparing against previous snapshots. Posts structured
-  Slack threads to #deep-research with highlighted movers. Use when the user asks
+  Slack threads to #deep-research-trending with highlighted movers. Use when the user asks
   to "check leaderboard rankings", "HF leaderboard", "model rankings",
   "leaderboard changes", "Open LLM Leaderboard", "Chatbot Arena rankings",
   "리더보드 추적", "모델 랭킹", "벤치마크 순위", "HF 리더보드", "leaderboard
@@ -27,7 +27,7 @@ and distribute structured delta reports to Slack.
 ## Prerequisites
 
 - `hf` CLI installed and authenticated (see `hf-hub` skill)
-- Slack MCP configured for posting (channel: `#deep-research` — `C0A6X68LTN1`)
+- Slack MCP configured for posting (channel: `#deep-research-trending` — `C0AN34G4QHK`)
 - `jq` for JSON processing
 
 ## Required Skills
@@ -180,7 +180,7 @@ Generate a structured markdown report.
 
 ### Phase 7 — Distribute to Slack
 
-Post to `#deep-research` (`C0A6X68LTN1`) as a threaded message.
+Post to `#deep-research-trending` (`C0AN34G4QHK`) as a threaded message.
 
 **Main message:** Summary with biggest movers across all leaderboards
 
@@ -201,7 +201,7 @@ Follow `references/report-template.md` for formatting.
 - **Leaderboard Report** (markdown) — `output/hf-leaderboard/{DATE}-leaderboard-report.md`
 - **Snapshots** (JSON) — `output/hf-leaderboard/{LEADERBOARD}-latest.json`
 - **Archive** (JSON) — `output/hf-leaderboard/archive/{LEADERBOARD}-{DATE}.json`
-- **Slack Thread** — in `#deep-research` (only when changes detected)
+- **Slack Thread** — in `#deep-research-trending` (only when changes detected)
 
 ## Examples
 

@@ -78,8 +78,8 @@ Composite relevance score = topic_match * 0.5 + institution * 0.2 + community * 
 
 | Tier | Score | Action |
 |------|-------|--------|
-| **A (Must Read)** | >= 8.0 | Full `paper-review` pipeline → `#deep-research` |
-| **B (Interesting)** | 5.0 - 7.9 | `alphaxiv-paper-lookup` quick summary → `#deep-research` |
+| **A (Must Read)** | >= 8.0 | Full `paper-review` pipeline → `#deep-research-trending` |
+| **B (Interesting)** | 5.0 - 7.9 | `alphaxiv-paper-lookup` quick summary → `#deep-research-trending` |
 | **C (Archive)** | 3.0 - 4.9 | Archive in `paper-archive` with metadata, no Slack |
 | **D (Skip)** | < 3.0 | Log and skip |
 
@@ -125,7 +125,7 @@ Top Papers:
 | HF papers API unavailable | Retry with backoff; fall back to arXiv-only; report partial source in summary |
 | Paper PDF download fails | Skip full review; post quick summary from alphaxiv-paper-lookup if available; log for manual review |
 | Relevance scoring model error | Use fallback heuristic (keyword match only); flag papers for manual review; log model error |
-| Slack channel not found | Fall back to default `#deep-research`; log channel config error; continue pipeline |
+| Slack channel not found | Fall back to default `#deep-research-trending`; log channel config error; continue pipeline |
 
 ## Examples
 

@@ -8,7 +8,7 @@
 | Notion | `md-to-notion` | Parent: `3209eddc34e6801b8921f55d85153730` | `--skip-notion` |
 | PPTX | `anthropic-pptx` | `<artifacts>/deliverables/presentation.pptx` | `--skip-pptx` |
 | NotebookLM | `notebooklm` + `notebooklm-studio` | New NLM notebook | `--skip-nlm` |
-| Slack | Slack MCP (`plugin-slack-slack`) | `#deep-research` (`C0A6X68LTN1`) | `--skip-slack` |
+| Slack | Slack MCP (`plugin-slack-slack`) | `#deep-research-trending` (`C0AN34G4QHK`) | `--skip-slack` |
 
 ## Artifact-to-Channel Mapping
 

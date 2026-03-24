@@ -30,7 +30,7 @@ Run the full 7-phase pipeline as specified in the skill:
 4. Delta Detection (compare against previous snapshots)
 5. Save Snapshots (for future comparisons)
 6. Report Generation → `output/hf-leaderboard/{DATE}-leaderboard-report.md`
-7. Distribute to Slack `#deep-research` (only if changes detected)
+7. Distribute to Slack `#deep-research-trending` (only if changes detected)
 
 ### Step 3: Report Results
 

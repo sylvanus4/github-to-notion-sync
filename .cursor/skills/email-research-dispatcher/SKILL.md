@@ -24,7 +24,7 @@ Extract research-worthy topics from emails, run web research, and post structure
 1. **Extract topics** — Scan triaged emails (from `gmail-daily-triage`) for research-worthy content: technology mentions, competitor references, market questions, customer technical queries
 2. **Research** — For each topic, run `parallel-web-search` with 3-5 targeted queries; optionally use `defuddle` for linked articles
 3. **Synthesize** — Produce a structured finding per topic: summary, key data points, relevance to our products/company, source URLs
-4. **Classify & post** — Route findings to appropriate Slack channels: `#deep-research` for tech topics, `#press` for news/competitor items, `#효정-할일` for action-required items
+4. **Classify & post** — Route findings to appropriate Slack channels: `#deep-research-trending` for tech topics, `#press` for news/competitor items, `#효정-할일` for action-required items
 5. **GitHub routing** — If the email contains a bug report or feature request, create a GitHub issue in the appropriate project via `gh` CLI
 
 ## Composed Skills

@@ -34,7 +34,7 @@ MCP tools used: `notebook_create`, `source_add`, `studio_create`, `studio_status
 3. **Create Notebooks** — Create two NLM notebooks; upload EN + KO sources to each
 4. **Generate Slides** — `studio_create` for both notebooks (parallel); poll `studio_status` every 30s (5-8 min each); download PDFs
 5. **Drive Upload** — `gws drive +upload` both PDFs; extract shareable links
-6. **Slack Post** — Post summary + Drive links to `#deep-research`; thread replies with per-audience details
+6. **Slack Post** — Post summary + Drive links to `#deep-research-trending`; thread replies with per-audience details
 
 ### Examples
 

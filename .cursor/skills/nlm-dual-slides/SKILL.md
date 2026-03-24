@@ -162,7 +162,7 @@ Extract file IDs from the upload output. Construct shareable links:
 
 ### Phase 6 — Slack Distribution
 
-Post to the configured channel (default: `#deep-research`, ID `C0A6X68LTN1`) using the Slack MCP `slack_send_message` tool.
+Post to the configured channel (default: `#deep-research-trending`, ID `C0AN34G4QHK`) using the Slack MCP `slack_send_message` tool.
 
 **Message 1 — Main summary** (Korean):
 
@@ -211,7 +211,7 @@ Call `slack_send_message` with `thread_ts` from Message 1.
 | `--skip-drive` | Skip Google Drive upload | Drive enabled |
 | `--skip-slack` | Skip Slack posting | Slack enabled |
 | `--drive-folder ID` | Google Drive folder ID for uploads | Drive root |
-| `--channel name` | Slack channel name | `deep-research` |
+| `--channel name` | Slack channel name | `deep-research-trending` |
 | `--nlm-lang CODE` | NotebookLM slide output language (BCP-47) | `ko` (Korean) |
 | `--revise` | Run `studio_revise` on expert deck for white-bg refinement | disabled |
 
@@ -242,7 +242,7 @@ This will:
 6. Generate slide decks for both notebooks (parallel)
 7. Download PDFs to `outputs/presentations/sefo-v3-Elementary-Slides-2026-03-22.pdf` and `sefo-v3-Expert-Slides-2026-03-22.pdf`
 8. Upload both PDFs to Google Drive
-9. Post summary + Drive links to `#deep-research` with threaded details
+9. Post summary + Drive links to `#deep-research-trending` with threaded details
 
 ### Example 2: arXiv URL — expert only, custom Drive folder
 
@@ -256,7 +256,7 @@ This will:
 3. Create one NotebookLM notebook ("Paper Title - Expert Slides")
 4. Generate expert slide deck, download PDF
 5. Upload to the specified Google Drive folder
-6. Post summary with Drive link to `#deep-research`
+6. Post summary with Drive link to `#deep-research-trending`
 
 ### Example 3: PDF file — elementary only, Korean, skip Slack
 
@@ -283,7 +283,7 @@ This will:
 | Generation timeout | Poll `studio_status` every 30-60s; slides take **5-8 minutes** per deck |
 | File not found after download | Use **absolute path** in `output_path`; NLM MCP resolves from its own cwd |
 | Drive upload fails | Verify `gws auth status` and retry; check file path exists |
-| Slack posting fails | Verify channel ID `C0A6X68LTN1` is accessible; use `slack_search_channels` to confirm |
+| Slack posting fails | Verify channel ID `C0AN34G4QHK` is accessible; use `slack_search_channels` to confirm |
 
 ## Skills Composed
 

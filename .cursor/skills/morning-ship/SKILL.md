@@ -22,7 +22,7 @@ Pull latest changes from all managed repos, run Google Workspace briefing, kick 
 
 - **Managed projects**: See [eod-ship project-registry.md](../eod-ship/references/project-registry.md)
 - **Slack channel**: `#효정-할일` (Channel ID: `C0AA8NT4T8T`)
-- **Upstream skills**: `calendar-daily-briefing`, `gmail-daily-triage`, `today`
+- **Upstream skills**: `calendar-daily-briefing`, `gmail-daily-triage`, `today`, `toss-morning-briefing`
 
 ## Usage
 
@@ -33,6 +33,7 @@ Pull latest changes from all managed repos, run Google Workspace briefing, kick 
 /morning-ship --skip-stock           # skip daily stock pipeline
 /morning-ship --targets research     # pull specific projects only (comma-separated)
 /morning-ship --no-slack             # skip Slack notification
+/morning-ship --skip-toss             # skip Toss morning briefing
 /morning-ship --dry-run              # preview only (no git pull, no triage, no pipeline)
 ```
 
@@ -42,7 +43,8 @@ Arguments can be combined freely. Defaults: pull all, run Google daily, run stoc
 
 | Flag | Default (if omitted) | Effect | Covered in |
 |------|----------------------|--------|------------|
-| _(none)_ | — | Full pipeline: Phase 1 → 2 → 3 → 3.5 → 4 → 5 | Example 1 |
+| _(none)_ | — | Full pipeline: Phase 1 → 2 → 3 → 3.3 → 3.5 → 4 → 5 | Example 1 |
+| `--skip-toss` | Toss briefing runs | Skip Phase 3.3 (Toss morning briefing) | — |
 | `--skip-pull` | Pull runs | Skip Phase 1 (git sync) | Example 3; test input `/morning-ship --skip-pull` |
 | `--skip-google` | Google daily runs | Skip Phase 2 (calendar + Gmail) | Example 2; combine with `--skip-stock` per test input `/morning-ship --skip-google --skip-stock` |
 | `--skip-stock` | Stock pipeline runs | Skip Phase 3 (and stock thread in Phase 4) | Example 2; combine with `--skip-google` as above |
@@ -132,6 +134,21 @@ Run the `today` skill (`.cursor/skills/today/SKILL.md`) with `--skip-slack` flag
 7. Report generation (.docx)
 8. Capture output: `{stocks_analyzed, signals[], report_path, screener_results}`
 
+### Phase 3.3: Toss Morning Briefing (Optional)
+
+**Skip if** `--skip-toss`, `--dry-run`, or `tossctl` is not installed / not authenticated.
+
+Follow the `toss-morning-briefing` skill (`.cursor/skills/toss-morning-briefing/SKILL.md`):
+
+1. **Auth check**: `tossctl auth status --output json`. If session is expired or `tossctl` not found, skip this phase silently with a warning.
+2. **Account snapshot**: Fetch `tossctl account summary --output json` and `tossctl portfolio positions --output json`.
+3. **Yesterday comparison**: Load previous day's snapshot from `outputs/toss/summary-{yesterday}.json` and `outputs/toss/positions-{yesterday}.json` to compute overnight P&L.
+4. **Risk snapshot**: Run inline 6-dimension risk assessment (concentration, sector exposure, buying power, drawdown, correlation, profit factor).
+5. **Compose briefing**: Generate a comprehensive Korean morning portfolio briefing with total assets, top holdings with overnight P&L, pending orders, and risk scorecard.
+6. **Capture output**: `{total_assets, cash, buying_power, positions[], risk_score, risk_level, overnight_pnl}`
+
+On failure: **Continue** — Toss briefing is optional. Log a warning and proceed to Phase 3.5.
+
 ### Phase 3.5: Pre-Notification Quality Gate
 
 Before posting the morning briefing to Slack, verify:
@@ -181,6 +198,11 @@ Post a consolidated morning briefing to `#효정-할일` using the `slack_send_m
 - 매수 시그널: TICKER1, TICKER2
 - 리포트: <REPORT_LINK|daily-report.docx>
 
+*투자 계좌* (Phase 3.3)
+- 총 자산: ₩N / 전일 대비: +₩N (+N%)
+- 리스크: 🟢 GREEN
+- 보유 종목 N개
+
 *합계*
 - N개 프로젝트 동기화, 일정 N건, 메일 N건 처리, N개 종목 분석
 
@@ -222,6 +244,20 @@ Post a thread reply with stock pipeline summary:
   "message": "*[주식 분석 요약]*\n\n*시그널*\n{buy/sell/neutral signals per ticker}\n\n*스크리너 결과*\n- 통과 종목: N개\n- 주요 종목: TICKER1 (이유), TICKER2 (이유)\n\n리포트: <REPORT_LINK|daily-report-YYYY-MM-DD.docx>"
 }
 ```
+
+#### Step 5: Toss Portfolio Thread (if Phase 3.3 ran)
+
+Post a thread reply with Toss Securities portfolio briefing:
+
+```json
+{
+  "channel_id": "C0AA8NT4T8T",
+  "thread_ts": "MAIN_MESSAGE_TS",
+  "message": "*[투자 계좌 현황]*\n\n*총 자산:* ₩N / *현금:* ₩N / *매수 가능:* ₩N\n*전일 대비:* +₩N (+N%)\n\n*주요 보유 종목*\n- TICKER1: N주 / ₩N (+N%)\n- TICKER2: N주 / ₩N (-N%)\n\n*리스크:* 🟢 GREEN\n\n_읽기 전용 — 매매 없음_"
+}
+```
+
+Skip this thread if Phase 3.3 was skipped.
 
 #### Slack mrkdwn Rules
 
@@ -284,10 +320,11 @@ User runs `/morning-ship` at the start of the day (all phases, including optiona
 2. **Phase 2a — Calendar:** 3 meetings (2 HIGH), focus slots 10:00-11:00 and 15:00-18:00.
 3. **Phase 2b — Gmail:** 5 spam deleted, 12 notifications archived, 3 colleague emails, 2 reply needed.
 4. **Phase 3 — Stock (`today` with `--skip-slack`):** 15 tickers analyzed, AAPL buy signal, `.docx` report path captured.
-5. **Phase 3.5 — Quality gate:** Checklist verified (no conflicts, calendar date present, triage counts present, report or skip reason); proceed.
-6. **Phase 4 — Slack:** Main mrkdwn summary (with disclaimer footer) → thread: Git detail → thread: 일정 & 메일 → thread: 주식 요약.
-7. **Phase 5 — Chat report:** Same consolidated summary printed in chat (Korean text report).
-8. **Optional alternate invocations (full detail elsewhere):** `--dry-run` (Example 5) limits execution to Phase 1 preview plus Phase 5 text preview while skipping Phases 2–4; `--no-slack` (Example 6) runs Phases 1–3, 3.5, and 5 but skips Phase 4.
+5. **Phase 3.3 — Toss briefing:** Total assets ₩15,200,000, 5 positions, overnight P&L +₩120,000 (+0.8%), risk GREEN.
+6. **Phase 3.5 — Quality gate:** Checklist verified (no conflicts, calendar date present, triage counts present, report or skip reason); proceed.
+7. **Phase 4 — Slack:** Main mrkdwn summary (with disclaimer footer) → thread: Git detail → thread: 일정 & 메일 → thread: 주식 요약 → thread: 투자 계좌.
+8. **Phase 5 — Chat report:** Same consolidated summary printed in chat (Korean text report).
+9. **Optional alternate invocations (full detail elsewhere):** `--dry-run` (Example 5) limits execution to Phase 1 preview plus Phase 5 text preview while skipping Phases 2–4; `--no-slack` (Example 6) runs Phases 1–3, 3.3, 3.5, and 5 but skips Phase 4.
 
 ### Example 2: Pull only
 

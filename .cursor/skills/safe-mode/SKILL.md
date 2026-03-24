@@ -178,7 +178,7 @@ User: /safe-mode guard backend/
 Agent: Safe Mode GUARD activated.
   - Destructive command interception: ON
   - Directory lock: backend/ (edits outside blocked)
-  
+
 User: Can you check the migration and fix the schema issue?
 Agent: [reads files, proposes fix within backend/ — allowed]
 Agent: [attempts to edit frontend/config.ts — BLOCKED, warns user]

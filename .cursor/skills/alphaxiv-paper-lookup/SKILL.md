@@ -90,7 +90,7 @@ Based on the user's intent:
 | Full review + PPTX + Notion | Use `paper-review` instead |
 | arXiv paper to NotebookLM slides | Use `nlm-arxiv-slides` instead |
 | Find related papers after lookup | Follow up with `related-papers-scout` |
-| Share findings to Slack | Post summary to `#deep-research` via Slack MCP |
+| Share findings to Slack | Post summary to `#deep-research-trending` via Slack MCP |
 
 ## Error Handling
 

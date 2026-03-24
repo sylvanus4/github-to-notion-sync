@@ -2,10 +2,11 @@
 name: bespin-news-digest
 description: >-
   Fetch the latest Bespin Global news email from Gmail, extract all article URLs,
-  apply the full x-to-slack research pipeline (Jina content extraction + WebSearch
-  + AI GPU Cloud classification + 3-message Slack thread) to EACH article
-  sequentially, generate a rich DOCX with all findings, upload to Google Drive,
-  and post a summary to #효정-할일. Use when the user runs /bespin-news, asks to
+  apply x-to-slack content extraction and research methodology (Jina content
+  extraction + WebSearch + AI GPU Cloud classification + 3-message Slack thread)
+  to EACH article sequentially, generate a rich DOCX with all findings, upload
+  to Google Drive, and post a summary to #효정-할일. ALL articles are posted to
+  #press — channel routing from x-to-slack is NOT used. Use when the user runs /bespin-news, asks to
   "process Bespin news", "뉴스 클리핑 분석", "bespin-news-digest", "베스핀 뉴스",
   or wants a detailed analysis of the latest Bespin Global news clipping.
   Do NOT use for general Gmail triage (use gmail-daily-triage).
@@ -130,6 +131,11 @@ print(f"Found {len(articles)} articles")
 ```
 
 ## Phase 3 — Per-Article Pipeline
+
+> **CRITICAL — CHANNEL ROUTING**: ALL articles MUST be posted to `#press` (`C0A7NCP33LG`).
+> Do NOT use x-to-slack topic classification for channel selection. The x-to-slack
+> pipeline is used ONLY for its content extraction and research methodology, NOT for
+> its channel routing. Never route articles to any channel other than `#press`.
 
 **CRITICAL**: Process each article SEQUENTIALLY. Do NOT parallelize. Each article
 MUST go through ALL sub-steps below. Never shortcut to a quick summary.

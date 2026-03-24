@@ -25,6 +25,7 @@ Detailed prerequisites for each capability group: CLI tools, packages, env vars,
 19. [agent-browser](#19-agent-browser) — CLI browser automation
 20. [security-scanning](#20-security-scanning) — Secret and vulnerability scanning
 21. [scrapling](#21-scrapling) — Web scraping framework
+22. [tossinvest](#22-tossinvest) — Toss Securities CLI (tossctl)
 
 ---
 
@@ -666,3 +667,53 @@ python3 -c "import scrapling; print('scrapling OK')" 2>/dev/null && echo "PASS s
 ```
 
 **Dependent Skills:** scrapling
+
+---
+
+## 22. tossinvest
+
+**Purpose:** Toss Securities brokerage CLI for Korean market trading, portfolio management, and account operations.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | tossctl | `go install github.com/JungHoonGhae/tossinvest-cli/cmd/tossctl@latest` |
+| CLI | go (>= 1.21) | `brew install go` |
+| Package (Python) | playwright | `pip install playwright && playwright install chromium` |
+| Browser | chromium | `playwright install chromium` |
+| CLI | python3 (>= 3.9) | `brew install python@3.12` |
+
+**Quick Setup:**
+
+```bash
+go install github.com/JungHoonGhae/tossinvest-cli/cmd/tossctl@latest
+pip install playwright && playwright install chromium
+tossctl config init
+tossctl doctor
+```
+
+**Environment Variables:**
+
+None required. Authentication uses browser-based login via `tossctl auth login`.
+
+**Local State Files:**
+
+| File | Purpose |
+|------|---------|
+| `~/.config/tossctl/config.json` | Trading permissions and settings |
+| `~/.config/tossctl/session.json` | Browser session state |
+| `~/.config/tossctl/trading-permission.json` | Temporary trading permission TTL |
+| `~/.config/tossctl/trading-lineage.json` | Order lineage for recovery |
+
+**Verification:**
+
+```bash
+command -v tossctl && echo "PASS tossctl" || echo "FAIL tossctl"
+command -v go && echo "PASS go" || echo "FAIL go"
+python3 -c "import playwright; print('PASS playwright')" 2>/dev/null || echo "FAIL playwright"
+playwright install --dry-run chromium 2>/dev/null && echo "PASS chromium" || echo "FAIL chromium"
+tossctl doctor 2>/dev/null
+```
+
+**Dependent Skills:** tossinvest-setup, tossinvest-cli, tossinvest-trading

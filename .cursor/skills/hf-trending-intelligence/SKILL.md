@@ -29,7 +29,7 @@ papers, models, datasets, and community buzz on Hugging Face Hub.
 ## Prerequisites
 
 - `hf` CLI installed and authenticated (see `hf-hub` skill)
-- Slack MCP configured for posting (channel: `#deep-research` — `C0A6X68LTN1`)
+- Slack MCP configured for posting (channel: `#deep-research-trending` — `C0AN34G4QHK`)
 - Notion MCP configured for page creation
 - `jq` for JSON processing
 
@@ -245,7 +245,7 @@ hf collections add-item "$COLLECTION_SLUG" PAPER_ID paper --note "Score: 0.85 �
 
 Post the report to Slack and Notion.
 
-**Slack (#deep-research):**
+**Slack (#deep-research-trending):**
 1. Main message: Executive summary with top 3 trends
 2. Thread reply 1: Full trend list with scores
 3. Thread reply 2: Actionable insights and dataset gaps
@@ -259,7 +259,7 @@ Use `md-to-notion` to publish the full report as a Notion page under the researc
 
 - **Intelligence Report** (markdown) — `output/hf-intelligence/YYYY-MM-DD-radar.md`
 - **HF Collection** — monthly curated collection of HOT papers/models
-- **Slack Thread** — in `#deep-research`
+- **Slack Thread** — in `#deep-research-trending`
 - **Notion Page** — permanent archive
 
 ## Examples

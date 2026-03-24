@@ -42,11 +42,11 @@ After content extraction, classify by topic:
 
 | Topic | Keywords | Target Channel |
 |-------|----------|---------------|
-| AI/ML Infrastructure | GPU, CUDA, inference, training, cluster | `#deep-research` |
-| Kubernetes/Cloud Native | K8s, Helm, service mesh, CNCF | `#deep-research` |
+| AI/ML Infrastructure | GPU, CUDA, inference, training, cluster | `#deep-research-trending` |
+| Kubernetes/Cloud Native | K8s, Helm, service mesh, CNCF | `#deep-research-trending` |
 | Security | CVE, vulnerability, breach, zero-day | `#security-alerts` |
 | Market/Business | funding, acquisition, IPO, revenue | `#market-intel` |
-| Research/Papers | paper, arxiv, model, benchmark | `#deep-research` |
+| Research/Papers | paper, arxiv, model, benchmark | `#deep-research-trending` |
 | General Tech | framework, library, release, update | `#tech-news` |
 
 ## Workflow
@@ -130,7 +130,7 @@ Top Stories:
 | Unsupported URL format | Log and skip; report "Unsupported URL: <url>" in daily digest; suggest defuddle or x-to-slack for manual processing |
 | Content extraction fails | Retry with defuddle; if still fails, log URL and skip; include in digest as "Failed to extract" |
 | Classification confidence too low | Route to `#tech-news` for manual review; log with low-confidence flag in daily digest |
-| Target channel not found | Fall back to default channel (e.g. `#deep-research`); log channel mapping error for config fix |
+| Target channel not found | Fall back to default channel (e.g. `#deep-research-trending`); log channel mapping error for config fix |
 | Duplicate content detected | Skip processing; log and deduplicate against recent intake; do not post to Slack |
 
 ## Examples

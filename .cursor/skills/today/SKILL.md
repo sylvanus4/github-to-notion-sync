@@ -82,6 +82,28 @@ Read the `setup-doctor` skill and run Phase 1-3 checks for `--group core-platfor
 - If critical items fail (DB connection, missing packages) → report the failures and halt
 - If only warnings (optional items missing) → report and proceed
 
+### Phase 1.5: Toss Daily Snapshot (Optional)
+
+Archive the current Toss Securities account state for historical tracking. Skip with `skip-toss`.
+
+**Step 1.5a — Check tossctl auth:**
+
+```bash
+tossctl auth status --output json
+```
+
+If session is active, proceed. If expired or `tossctl` not installed, skip Phase 1.5 and log a warning.
+
+**Step 1.5b — Run snapshot:**
+
+Follow the `toss-daily-snapshot` skill (`.cursor/skills/toss-daily-snapshot/SKILL.md`):
+
+1. `tossctl account summary --output json` → save to `outputs/toss/summary-{date}.json`
+2. `tossctl portfolio positions --output json` → save to `outputs/toss/positions-{date}.json`
+3. `tossctl watchlist list --output json` → save to `outputs/toss/watchlist-{date}.json`
+
+On failure: **Continue** — Toss snapshot is optional; the pipeline proceeds without it.
+
 ### Phase 1: Data Freshness Check
 
 Check current state of DB and CSV data to identify gaps.
@@ -435,6 +457,39 @@ C. 보류 / 추가 조사 필요
 
 Post each decision as a separate message (not threaded) to `#효정-의사결정`.
 
+### Phase 5.5: Toss Signal Bridge + Risk Monitor (Optional)
+
+Translate pipeline signals into tossctl order previews and run portfolio risk assessment. Skip with `skip-toss`.
+
+**Step 5.5a — Signal Bridge (skip if no tossctl or `skip-toss`):**
+
+Follow the `toss-signal-bridge` skill (`.cursor/skills/toss-signal-bridge/SKILL.md`):
+
+1. Load today's `outputs/screener-{date}.json` and `outputs/analysis-{date}.json`
+2. Filter to symbols tradeable on Toss Securities
+3. Fetch current quotes via `tossctl quote get`
+4. Check existing exposure via `tossctl portfolio positions --output json`
+5. Apply position sizing logic with account buying power
+6. Generate order previews (dry-run only — no execution)
+7. Present ranked trade candidates in Korean
+
+**Step 5.5b — Risk Monitor (skip if no tossctl or `skip-toss`):**
+
+Follow the `toss-risk-monitor` skill (`.cursor/skills/toss-risk-monitor/SKILL.md`):
+
+1. Run 6-dimension risk assessment (concentration, sector, buying power, drawdown, correlation, profit factor)
+2. Generate composite risk scorecard (GREEN/YELLOW/RED)
+3. If any RED conditions → auto-post alert to `#h-daily-stock-check`
+
+**Step 5.5c — Include in Slack thread (if Phase 5c runs):**
+
+Add a "Toss 실행 가능 시그널" section to the Slack thread reply containing:
+- Top 3 trade candidates with signal strength and estimated cost
+- Portfolio risk status summary
+- Note: "실행하려면 tossinvest-trading 스킬을 사용하세요"
+
+On failure: **Continue** — Toss integration is optional; log a warning and proceed.
+
 ### Phase 5½: Report Quality Gate
 
 Before posting to Slack or proceeding to Phase 6, verify report quality:
@@ -494,6 +549,7 @@ Report the number of tweets fetched, classified, and posted with channel distrib
 | `skip-report` | off | Stop after Phase 3 (Phases 1+2+3); no 3.5 / 4 / 5 / 6 | `/today skip-report` |
 | `skip-setup-doctor` | off | Skip Phase 0 | `/today skip-setup-doctor` |
 | `skip-decisions` | off | Skip Step 5d (`decision-router`) | `/today skip-decisions` |
+| `skip-toss` | off | Skip Phase 1.5 (snapshot) and Phase 5.5 (signal bridge + risk) | `/today skip-toss` |
 | `skip-twitter` | off | Skip Phase 6 | `/today skip-twitter` |
 | `twitter-only` | off | Phase 6 only | `/today twitter-only` |
 
@@ -510,6 +566,7 @@ User says: "Run today's pipeline" or `오늘의 파이프라인 전체 실행해
 Actions (execute in order; each depends on the previous completing successfully unless error recovery says otherwise):
 
 0. **Phase 0** — `setup-doctor` core-platform pre-flight (unless `skip-setup-doctor`).
+0.5. **Phase 1.5** — `toss-daily-snapshot` archive (unless `skip-toss` or tossctl unavailable).
 1. **Phase 1** — DB `--status` + CSV freshness + gap report (halt here if `status`).
 2. **Phase 2** — `import_csv` (if needed) + `weekly_stock_update.py --days 3` + verify `--status`.
 3. **Phase 2.5** — `financial_data_collector.py --all` + `--status` (unless `skip-fundamentals`).
@@ -524,6 +581,7 @@ Actions (execute in order; each depends on the previous completing successfully 
 11. **Phase 5½** — Manual checklist (data consistency, signals, completeness, date) — flag discrepancies in Slack if any fail.
 12. **Phase 5c** — Slack main + **mandatory thread** (unless `dry-run`, `skip-slack`, or no MCP).
 13. **Phase 5d** — `decision-router` posts (unless `skip-decisions`).
+13.5. **Phase 5.5** — `toss-signal-bridge` order previews + `toss-risk-monitor` assessment (unless `skip-toss` or tossctl unavailable).
 14. **Phase 6** — `twitter-timeline-to-slack` (unless `skip-twitter` or missing `TWITTER_COOKIE`).
 
 Result: All default phases complete; `.docx` at `outputs/reports/daily-{date}.docx`; analysis/screener/discovery JSON under `outputs/`; `#h-report` main + threaded BUY/SELL detail; optional decisions and Twitter distribution.
@@ -682,6 +740,6 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **Slack decision channel**: `#효정-의사결정` (`C0ANBST3KDE`) — personal trading decisions (Step 5d)
 - **Agent desk**: `backend/app/services/agent_desk/desk.py` (`AgentDesk`) — multi-agent debate pipeline (Phase 4.8)
 - **Agent desk output**: `outputs/agent-desk/{date}/desk-decisions.json`
-- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`, `decision-router`, `trading-agent-desk`
+- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`, `decision-router`, `trading-agent-desk`, `toss-daily-snapshot`, `toss-signal-bridge`, `toss-risk-monitor`
 - **Tab skills**: `tab-stock-sync`, `tab-event-detect`, `tab-fundamental-sync`, `tab-hot-stock-discovery`, `tab-technical-analysis`, `tab-turtle-refresh`, `tab-bollinger-refresh`, `tab-dualma-refresh`, `tab-screening`, `tab-llm-agents`, `tab-genai-features`, `tab-analysis-run`
 - **GitHub Actions**: `.github/workflows/daily-today.yml` (independent pipeline, uses its own API keys via GitHub Secrets)

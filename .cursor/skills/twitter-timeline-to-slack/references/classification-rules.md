@@ -18,7 +18,7 @@ Keywords: claude code, cursor, copilot, windsurf, cline, aider, github copilot, 
 ### Prompt Engineering (weight: 1.3x) → #prompt
 Keywords: prompt, system prompt, few-shot, chain of thought, cot, instruction, prompt engineering, jailbreak, prompt injection, reasoning, thinking, xml tags, prompt template, zero-shot, in-context learning, icl
 
-### Research (weight: 1.3x) → #deep-research
+### Research (weight: 1.3x) → #deep-research-trending
 Scope: Academic papers, new model releases/architectures, benchmarks. NOT general AI news.
 Keywords: paper, arxiv, transformer, llm architecture, benchmark, evaluation, pretraining, fine-tuning, rlhf, scaling law, attention, diffusion, multimodal, embedding, rag, retrieval, quantization, distillation, mixture of experts, moe, vision language, qwen, llama, gemma, phi, nemotron, glm, deepseek, gemini, abliterated, uncensored
 

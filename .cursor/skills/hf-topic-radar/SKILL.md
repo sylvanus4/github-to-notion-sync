@@ -4,7 +4,7 @@ description: >-
   Topic-focused HuggingFace trending scan that fetches trending models, spaces,
   and papers for user-configured AI topics (LLM, multi-LLM, video generation,
   etc.), deduplicates cross-source items, scores and ranks results, and posts
-  structured Slack threads to #deep-research. Use when the user asks to "scan HF
+  structured Slack threads to #deep-research-trending. Use when the user asks to "scan HF
   for trending LLMs", "HF topic radar", "what's hot on HuggingFace for video
   generation", "HF 토픽 레이더", "허깅페이스 트렌딩", "HF 관심 분야 트렌딩",
   "topic-focused HF scan", "run topic radar", or wants to know what's trending
@@ -28,7 +28,7 @@ to Slack.
 ## Prerequisites
 
 - `hf` CLI installed and authenticated (see `hf-hub` skill)
-- Slack MCP configured for posting (channel: `#deep-research` — `C0A6X68LTN1`)
+- Slack MCP configured for posting (channel: `#deep-research-trending` — `C0AN34G4QHK`)
 - `jq` for JSON processing
 
 ## Required Skills
@@ -177,7 +177,7 @@ Do NOT include vague insights like "keep monitoring" or "this area is growing."
 
 ### Phase 7 — Distribute to Slack
 
-Post to `#deep-research` (`C0A6X68LTN1`) as a threaded message.
+Post to `#deep-research-trending` (`C0AN34G4QHK`) as a threaded message.
 
 **Main message:** Summary line + HOT items count per topic
 
@@ -194,7 +194,7 @@ Follow `references/slack-format.md` for mrkdwn formatting.
 ## Output Summary
 
 - **Topic Radar Report** (markdown) — `output/hf-intelligence/{DATE}-topic-radar.md`
-- **Slack Thread** — in `#deep-research`
+- **Slack Thread** — in `#deep-research-trending`
 
 ## Examples
 
@@ -207,7 +207,7 @@ Actions:
 2. Run Phases 1-7 with all 3 topics
 3. Post 4-message Slack thread: summary + 1 reply per topic
 
-Result: Report at `output/hf-intelligence/2026-03-20-topic-radar.md`, Slack thread in #deep-research
+Result: Report at `output/hf-intelligence/2026-03-20-topic-radar.md`, Slack thread in #deep-research-trending
 
 ### Example 2: Single topic scan
 

@@ -22,7 +22,7 @@ Orchestrate 8 phases of morning automation across 15+ skills with parallel execu
 
 - **Slack channel**: `#효정-할일` (Channel ID: `C0AA8NT4T8T`)
 - **Stock Slack**: `#h-report` (Channel ID: `C0AKHQWJBLZ`)
-- **Research Slack**: `#deep-research` (Channel ID: `C0A6X68LTN1`)
+- **Research Slack**: `#deep-research-trending` (Channel ID: `C0AN34G4QHK`)
 - **Design doc**: `docs/daily-automation-guide.md`
 - **Pipeline state**: `outputs/pipeline-state/YYYY-MM-DD-am.json`
 
@@ -274,7 +274,7 @@ Read and follow `hf-trending-intelligence` skill (`.cursor/skills/hf-trending-in
 
 - Cross-reference HF daily papers, trending models, new datasets, community activity
 - Score emerging trends before they go mainstream
-- Post intelligence report to `#deep-research` + Notion
+- Post intelligence report to `#deep-research-trending` + Notion
 
 #### 6b. paper-auto-classifier
 
@@ -284,7 +284,7 @@ Read and follow `paper-auto-classifier` skill (`.cursor/skills/paper-auto-classi
 - Fetch HF daily papers
 - Score relevance against tracked research topics
 - Route: Tier A (relevance >= 8) → queue for full `paper-review`
-- Route: Tier B (relevance 5-7) → quick summary to `#deep-research`
+- Route: Tier B (relevance 5-7) → quick summary to `#deep-research-trending`
 - Discard: Tier C (relevance < 5)
 
 ```python

@@ -198,13 +198,13 @@ are likely too thin — regenerate with more detail.
 
 Skip this phase if `--skip-slack` is set.
 
-Default channel: `#deep-research` (ID: `C0A6X68LTN1`). Override with `--channel <name>`.
+Default channel: `#deep-research-trending` (ID: `C0AN34G4QHK`). Override with `--channel <name>`.
 
 ### Channel Registry
 
 | Channel Name | Channel ID | Type |
 |---|---|---|
-| `deep-research` | `C0A6X68LTN1` | private |
+| `deep-research-trending` | `C0AN34G4QHK` | private |
 | `research` | `C0A7GBRK2SW` | private |
 | `press` | `C0A7NCP33LG` | public |
 | `research-pr` | `C0A7FS8UC66` | public |
@@ -300,7 +300,7 @@ Skills used: **paper-archive**
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--skip-slack` | Skip Phase 6 Slack distribution | Slack enabled |
-| `--channel <name>` | Target Slack channel name | `deep-research` |
+| `--channel <name>` | Target Slack channel name | `deep-research-trending` |
 | `--top N` | Number of papers to discover | 5 |
 | `--institutions "..."` | Comma-separated institution filter | `google,mit,stanford,nvidia` |
 | `--recency-months N` | Max age of papers in months (older papers are skipped) | 9 |
@@ -325,7 +325,7 @@ This will:
 3. Score and rank candidates by institution, citations, GitHub stars, community buzz, and recency
 4. Deep-dive into the top 5 with structured Korean summaries
 5. Save a consolidated report to `outputs/papers/`
-6. Post a main summary + 5 threaded paper summaries to `#deep-research`
+6. Post a main summary + 5 threaded paper summaries to `#deep-research-trending`
 7. Register all 5 discovered papers + input paper in the paper-archive index
 
 ```

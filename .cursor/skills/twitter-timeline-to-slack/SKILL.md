@@ -68,7 +68,7 @@ For each tweet, the classifier analyzes text content against keyword rules and r
 |----------|----------------|------------|
 | AI Coding | `#ai-coding-radar` | Very strict — only Claude Code / Cursor practical tips |
 | Prompt Engineering | `#prompt` | Moderate |
-| Research | `#deep-research` | Moderate — papers, models, benchmarks |
+| Research | `#deep-research-trending` | Moderate — papers, models, benchmarks |
 | Stock/Finance | `#효정-주식` | Moderate — crypto, stocks, macro, prediction markets |
 | Ideas | `#idea` | Moderate — business insights, frameworks, patterns (absorbs business keywords from insight) |
 | Insights | `#효정-insight` | Very strict — pure analysis, learning methods only (축소 운영) |

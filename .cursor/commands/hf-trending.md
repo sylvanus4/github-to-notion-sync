@@ -33,7 +33,7 @@ Run the full pipeline as specified in the skill:
 4. Trend Scoring (composite score with optional leaderboard bonus)
 5. Intelligence Report Generation
 6. Curate (add HOT items to monthly HF collection)
-7. Distribute to Slack `#deep-research` + Notion
+7. Distribute to Slack `#deep-research-trending` + Notion
 
 ### Step 3: Report Results
 

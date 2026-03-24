@@ -45,7 +45,7 @@ Follow the distribution phases from the skill:
 2. **Notion**: Create structured sub-pages under research parent page
 3. **PPTX**: Generate summary slides via `anthropic-pptx`
 4. **NotebookLM**: Upload paper + key experiment results
-5. **Slack**: Post structured thread to `#deep-research`
+5. **Slack**: Post structured thread to `#deep-research-trending`
 
 ### Step 4: Summary
 

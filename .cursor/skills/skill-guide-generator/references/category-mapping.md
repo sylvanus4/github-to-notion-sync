@@ -21,6 +21,7 @@ Rules are evaluated top-to-bottom; first match wins.
 | `role-*` | `28-role-based-analysis.md` | 역할 기반 분석 |
 | `sp-*` | `22-sp-development-workflow.md` | SP 개발 워크플로우 |
 | `tab-*` | `30-tab-stock-pipeline-api.md` | TAB 파이프라인 API |
+| `tossinvest-*` | `31-tossinvest-brokerage.md` | 토스증권 브로커리지 |
 | `trading-*` | `24-trading-strategies.md` | 트레이딩 전략 |
 | `workflow-*` | `23-workflow-patterns.md` | 워크플로우 패턴 |
 

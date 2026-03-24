@@ -1,6 +1,6 @@
 ---
 name: local-dev-setup
-description: Go 백엔드 로컬 개발 환경을 자동 설정합니다. Docker DB/NATS 생성, 마이그레이션 적용, 시드 데이터, RSA 키 생성, 인프라 포트포워딩, .env 업데이트를 순차 수행합니다. 로컬 개발 환경, 로컬 셋업, backend 셋업, 환경 구성, 개발 환경 준비, 로컬 실행 요청 시 사용합니다. Do NOT use for 프론트엔드 개발 환경 설정이나 K8s 클러스터 배포.
+description: Go 백엔드 로컬 개발 환경을 자동 설정합니다. Docker DB/NATS 생성, 마이그레이션 적용, 시드 데이터, RSA 키 생성, 인프라 포트포워딩, .env 업데이트, Caddy HTTPS 리버스 프록시 설정을 순차 수행합니다. 로컬 개발 환경, 로컬 셋업, backend 셋업, 환경 구성, 개발 환경 준비, 로컬 실행 요청 시 사용합니다. Do NOT use for 프론트엔드 개발 환경 설정이나 K8s 클러스터 배포.
 ---
 
 # Local Development Setup
@@ -15,6 +15,7 @@ Go 백엔드(`ai-platform/backend/go`) 로컬 개발 환경 자동 설정.
 | `openssl` | 항상 | RSA 키 생성 |
 | `make` | 항상 | 마이그레이션, 서버 실행 |
 | `migrate` | 자동 설치 | DB 마이그레이션 CLI |
+| `caddy` | 항상 (자동 설치) | HTTPS 리버스 프록시 (쿠키 기반 인증 테스트) |
 | `kubectl` | full 모드만 | 포트포워딩 |
 
 ## Workflow Checklist
@@ -28,6 +29,7 @@ Go 백엔드(`ai-platform/backend/go`) 로컬 개발 환경 자동 설정.
 - [ ] Step 5: 포트포워딩 (full 모드)
 - [ ] Step 5b: S3 크리덴셜 조회 (full 모드)
 - [ ] Step 6: .env 업데이트
+- [ ] Step 7: Caddy HTTPS 설정
 ```
 
 ---
@@ -335,6 +337,133 @@ new_string: KEY="새값"
 
 ---
 
+## Step 7: Caddy HTTPS 설정
+
+`__Secure-` 쿠키 기반 인증은 HTTPS에서만 동작합니다. Caddy를 리버스 프록시로 사용하여 로컬에서 HTTPS를 제공합니다.
+
+고정값:
+- **도메인**: `tkai-api-local.thakicloud.net`
+- **Caddyfile 위치**: 프로젝트 루트 (`ai-platform-webui/Caddyfile`)
+- **참조 가이드**: `ai-platform/backend/go/docs/local/local_caddy_https_guide.md`
+
+### 7-1. Caddy 설치 확인
+
+```bash
+which caddy 2>/dev/null
+```
+
+| 출력 | 액션 |
+|------|------|
+| 경로 출력 | 스킵 |
+| 빈 출력 | `brew install caddy` |
+
+### 7-2. hosts 파일 확인
+
+```bash
+grep -c 'tkai-api-local.thakicloud.net' /etc/hosts 2>/dev/null
+```
+
+| 출력 | 액션 |
+|------|------|
+| `1` 이상 | 스킵 |
+| `0` | 사용자에게 수동 실행 안내 (sudo 필요): |
+
+```
+⚠️ hosts 파일에 도메인이 등록되어 있지 않습니다. 다음 명령어를 터미널에서 직접 실행해주세요:
+
+echo '127.0.0.1 tkai-api-local.thakicloud.net' | sudo tee -a /etc/hosts
+```
+
+### 7-3. Caddy 루트 인증서 신뢰
+
+Caddy CA 인증서가 시스템에 신뢰 등록되어 있는지 확인합니다.
+
+```bash
+security find-certificate -a -c "Caddy Local Authority" /Library/Keychains/System.keychain 2>/dev/null
+```
+
+| 출력 | 액션 |
+|------|------|
+| 인증서 정보 출력 | 스킵 |
+| 빈 출력 / 에러 | 사용자에게 수동 실행 안내: |
+
+```
+⚠️ Caddy 루트 인증서가 신뢰 등록되어 있지 않습니다. 다음 명령어를 터미널에서 직접 실행해주세요 (최초 1회):
+
+sudo caddy trust
+```
+
+### 7-4. Caddyfile 생성
+
+Working directory: 프로젝트 루트 (`ai-platform-webui/`)
+
+```bash
+ls Caddyfile 2>/dev/null
+```
+
+| 출력 | 액션 |
+|------|------|
+| `Caddyfile` | 파일 내에 `tkai-api-local.thakicloud.net` 포함 여부 확인 → 있으면 스킵, 없으면 덮어쓰기 |
+| 빈 출력 | 아래 내용으로 생성 |
+
+Caddyfile 내용:
+
+```
+https://tkai-api-local.thakicloud.net {
+	tls internal
+
+	handle /api/* {
+		reverse_proxy localhost:3000
+	}
+
+	handle /swagger/* {
+		reverse_proxy localhost:3000
+	}
+
+	handle /healthz {
+		reverse_proxy localhost:3000
+	}
+
+	handle {
+		reverse_proxy localhost:5173
+	}
+}
+```
+
+### 7-5. 백엔드 .env 쿠키/CORS 설정
+
+**파일:** `ai-platform/backend/go/.env`
+
+다음 변수들을 StrReplace로 업데이트합니다. 기존 값이 무엇이든 아래 값으로 덮어씁니다.
+
+| 변수 | 값 | 비고 |
+|------|-----|------|
+| `CORS_ALLOW_ORIGINS` | `"https://thakicloud.net"` | 정적 origin |
+| `CORS_ALLOW_ORIGIN_PATTERNS` | `"*.thakicloud.net"` | 서브도메인 동적 매칭 |
+| `CORS_ALLOW_CREDENTIALS` | `true` | 쿠키 전송 허용 |
+| `COOKIE_SECURE_MODE` | `true` | `__Secure-` 접두사 + `Secure=true` |
+| `AUTH_COOKIE_DOMAIN` | `.thakicloud.net` | 서브도메인 간 쿠키 공유 |
+
+`CORS_ALLOW_ORIGIN_PATTERNS` 키가 .env에 존재하지 않으면 `CORS_ALLOW_CREDENTIALS` 줄 바로 위에 새 줄로 삽입합니다.
+`COOKIE_SECURE_MODE`, `AUTH_COOKIE_DOMAIN` 키가 .env에 존재하지 않으면 CORS 블록 아래에 새 줄로 삽입합니다.
+
+### 7-6. rspack allowedHosts 확인
+
+**파일:** `ai-platform/frontend/rspack.config.mjs`
+
+`devServer` 블록에 `allowedHosts`가 `.thakicloud.net`을 포함하는지 확인합니다.
+
+```bash
+grep -c 'thakicloud.net' ai-platform/frontend/rspack.config.mjs
+```
+
+| 출력 | 액션 |
+|------|------|
+| `1` 이상 | 스킵 |
+| `0` | `devServer` 블록의 `host: '0.0.0.0'` 다음 줄에 `allowedHosts: ['localhost', '.thakicloud.net'],` 추가 |
+
+---
+
 ## 완료 메시지
 
 모든 단계 완료 후 사용자에게 요약 출력:
@@ -348,8 +477,14 @@ new_string: KEY="새값"
   ✓ RSA 키: certs/ 디렉토리
   ✓ 포트포워딩: 실행 중 (full 모드만)
   ✓ .env: 업데이트 완료
+  ✓ Caddy: https://tkai-api-local.thakicloud.net → Backend(:3000) + Frontend(:5173)
+  ✓ Cookie: __Secure- 모드 (COOKIE_SECURE_MODE=true)
 
-서버 실행: cd ai-platform/backend/go && ./scripts/run-eda.sh
+실행 방법:
+  1. 백엔드: cd ai-platform/backend/go && make run-server
+  2. 프론트엔드: cd ai-platform/frontend && pnpm run dev
+  3. Caddy: caddy run --config Caddyfile
+  4. 브라우저: https://tkai-api-local.thakicloud.net
 ```
 
 ---
@@ -368,3 +503,9 @@ new_string: KEY="새값"
 | 네임스페이스 `NotFound` | `kubectl get namespaces`로 사용 가능한 네임스페이스 목록 확인 후 재선택 |
 | S3 시크릿 `grep` 결과 0건 | 네임스페이스 내 시크릿 전체 목록 확인: `kubectl get secrets -n $NAMESPACE` → 올바른 네임스페이스인지 재확인 |
 | S3 `InvalidAccessKeyId` (403) | .env의 `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY`가 K8s 시크릿 값과 일치하는지 확인, Step 5b 재실행 |
+| 브라우저 403 (Caddy → 프론트엔드) | `rspack.config.mjs`의 `devServer.allowedHosts`에 `.thakicloud.net` 미등록 → Step 7-6 확인 |
+| CORS 에러 (Caddy 경유) | 백엔드 `.env`의 `CORS_ALLOW_ORIGIN_PATTERNS`에 `*.thakicloud.net` 설정 확인 |
+| 쿠키 미설정 (Caddy HTTPS) | `COOKIE_SECURE_MODE=true` 확인 + 백엔드 재시작 |
+| `ERR_CERT_AUTHORITY_INVALID` | `sudo caddy trust` 실행 (최초 1회) |
+| Caddy `EADDRINUSE :443` | `lsof -i :443 -t \| xargs kill -9` 또는 기존 Caddy 종료: `caddy stop` |
+| API 요청이 `http://localhost:3000`으로 감 | 프론트엔드 `.env`의 `VITE_GO_BACKEND_URL`이 빈 문자열인지 확인 후 **프론트엔드 재시작** |

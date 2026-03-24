@@ -24,7 +24,7 @@ and PPTX.
 ## Prerequisites
 
 - A completed AutoResearchClaw pipeline run with deliverables directory
-- Slack MCP configured (for `#deep-research` channel posting)
+- Slack MCP configured (for `#deep-research-trending` channel posting)
 - Notion MCP configured (for research page creation)
 - NotebookLM MCP configured (optional, for study artifacts)
 
@@ -40,7 +40,7 @@ Phase 2: Paper Archive           → Register in paper-archive index
 Phase 3: Notion Upload           → Create structured Notion sub-pages
 Phase 4: PPTX Generation        → Generate executive summary slides
 Phase 5: NotebookLM Upload      → Create notebook with study artifacts
-Phase 6: Slack Notification      → Post summary thread to #deep-research
+Phase 6: Slack Notification      → Post summary thread to #deep-research-trending
 ```
 
 ## Execution
@@ -130,7 +130,7 @@ Upload sources and generate study artifacts.
 
 ### Phase 6: Slack Notification
 
-Post a structured 3-message thread to `#deep-research` (`C0A6X68LTN1`).
+Post a structured 3-message thread to `#deep-research-trending` (`C0AN34G4QHK`).
 
 **Message 1 (main)**: Summary announcement
 
@@ -163,13 +163,13 @@ Post a structured 3-message thread to `#deep-research` (`C0A6X68LTN1`).
 - `--skip-slack` — Skip Slack notification
 - `--skip-nlm` — Skip NotebookLM upload
 - `--skip-pptx` — Skip PPTX generation
-- `--channel "#channel"` — Override Slack channel (default: `#deep-research`)
+- `--channel "#channel"` — Override Slack channel (default: `#deep-research-trending`)
 
 ## Output Convention
 
 - PPTX: `<artifacts-dir>/deliverables/presentation.pptx`
 - Notion pages: under parent `3209eddc34e6801b8921f55d85153730`
-- Slack: `#deep-research` channel (`C0A6X68LTN1`)
+- Slack: `#deep-research-trending` channel (`C0AN34G4QHK`)
 - Paper archive: `output/papers/` index
 
 ## Skills Composed
@@ -196,7 +196,7 @@ Actions:
 4. Upload to Notion under research parent page
 5. Generate 12-slide PPTX summary
 6. Create NotebookLM notebook + slide deck + podcast
-7. Post 3-message Slack thread to `#deep-research`
+7. Post 3-message Slack thread to `#deep-research-trending`
 
 Result: Research outputs distributed to 5 channels with links in Slack thread.
 
@@ -207,7 +207,7 @@ User says: "Post research results to Slack only"
 Actions:
 1. Locate deliverables, read `manifest.json`
 2. Skip Phases 2-5 (archive, Notion, PPTX, NLM)
-3. Post summary thread to `#deep-research`
+3. Post summary thread to `#deep-research-trending`
 
 ## Troubleshooting
 
