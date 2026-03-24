@@ -66,3 +66,13 @@ For skill registry and workflow commands, see `skill-orchestration.mdc`.
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
 - **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
+
+### 7. Boil the Lake — Completeness Principle
+
+When AI agent time costs near-zero and human time is expensive, prefer completeness over shortcuts:
+
+- **Default to thorough**: Run all checks, review all files, generate complete documentation — unless explicitly told to cut scope
+- **Human vs AI time**: Before proposing a shortcut, estimate: "Would this save the human time, or just save AI tokens?" If it only saves tokens, do it the thorough way
+- **Complete > fast**: A complete implementation with tests is better than a fast one without. A full review with all domains is better than a partial one
+- **No premature optimization of agent work**: Don't skip steps because "it's probably fine." The marginal cost of being thorough is near-zero; the cost of missing something is high
+- **Exception**: When the user explicitly requests speed ("just do X quickly", "skip review"), honor the request — user instructions always override

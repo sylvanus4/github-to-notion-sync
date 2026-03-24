@@ -1,13 +1,14 @@
 ---
 name: pr-review-captain
 description: >-
-  Summarize pull request changes, assess risks, generate review checklists, and
-  produce release notes. Use when the user asks for a PR summary, change risk
+  Summarize pull request changes, assess risks, generate review checklists,
+  produce release notes, detect stale documentation, and enforce CHANGELOG and
+  VERSION conventions. Use when the user asks for a PR summary, change risk
   assessment, review checklist, or release note generation. Do NOT use for
   committing local changes (use domain-commit) or writing ADR/operational
   documentation (use technical-writer). Korean triggers: "리뷰", "생성", "체크", "커밋".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: "review"
   author: "thaki"
 ---
@@ -87,6 +88,61 @@ Generate a checklist tailored to the PR content:
 - [ ] Health probes configured
 - [ ] Resource limits set
 - [ ] Rollback tested
+
+## Documentation Staleness Detection
+
+When reviewing a PR, automatically check for stale documentation:
+
+### Diff-Based Doc Scan
+
+1. Parse the diff for modified source files
+2. For each modified file, check if a corresponding doc exists:
+   - `src/api/<module>.ts` → look for `docs/api/<module>.md`
+   - `src/services/<name>/` → look for `docs/services/<name>.md`
+   - `README.md` references to changed files
+3. If the doc exists but was NOT updated in the same PR, flag as potentially stale:
+
+```
+⚠️ Documentation may be stale:
+  - docs/api/auth.md — auth service modified but docs not updated
+  - README.md mentions auth flow but no README changes in diff
+```
+
+### CHANGELOG Edit-Only Rule
+
+If the PR includes code changes, verify CHANGELOG presence:
+
+1. Check if `CHANGELOG.md` (or equivalent) is in the diff
+2. If present: verify it's an **additive edit** (new entry added, existing entries untouched)
+3. If absent: warn that CHANGELOG should be updated for user-facing changes
+4. **Never modify existing CHANGELOG entries** — only add new ones at the top
+
+```
+CHANGELOG Check:
+  [✓] CHANGELOG.md updated with new entry
+  [✓] Existing entries unchanged
+  OR
+  [⚠] CHANGELOG.md not updated — add entry for user-facing changes
+```
+
+### VERSION Bump Gate
+
+If the PR modifies API contracts, public interfaces, or contains breaking changes:
+
+1. Check if `VERSION`, `package.json version`, or `pyproject.toml version` is updated
+2. Apply semver rules:
+   - Breaking changes → major bump required
+   - New features → minor bump required
+   - Bug fixes → patch bump required
+3. If version not bumped but should be:
+
+```
+⚠️ VERSION BUMP NEEDED
+  Change type: [breaking / feature / fix]
+  Expected bump: [major / minor / patch]
+  Current version: [X.Y.Z]
+  Suggested version: [X.Y.Z+1]
+```
 
 ## Release Notes
 

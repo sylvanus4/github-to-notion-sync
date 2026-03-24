@@ -3,19 +3,69 @@ name: diagnose
 description: >-
   Run 3 parallel analysis agents (Root Cause, Error Context, Impact) to
   diagnose bugs, errors, and performance issues, then synthesize findings into a
-  single root cause and apply a fix. Use when the user runs /diagnose, asks to
-  "find the bug", "debug this", "why is this failing", "root cause analysis", or
-  "diagnose the error". Do NOT use for code review (use /simplify or
-  /deep-review), new feature work, or general Q&A. Korean triggers: "진단", "리뷰",
-  "디버깅", "수정".
+  single root cause and apply a fix. Includes blast radius warning for changes
+  affecting >5 files, 3-strike escalation, and no-fix-without-investigation
+  iron law. Use when the user runs /diagnose, asks to "find the bug", "debug
+  this", "why is this failing", "root cause analysis", or "diagnose the error".
+  Do NOT use for code review (use /simplify or /deep-review), new feature work,
+  or general Q&A. Korean triggers: "진단", "리뷰", "디버깅", "수정".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # Diagnose — Root Cause Analysis and Fix
 
 When something is broken, run 3 parallel analysis agents to find the root cause from different angles, synthesize a diagnosis, and apply a fix.
+
+## Iron Laws
+
+### No Fix Without Investigation
+
+**NEVER propose a fix before completing Step 3 (Synthesis).** The temptation to "just try this quick fix" is the #1 source of masking bugs. The sequence is always: gather → analyze → synthesize → THEN fix.
+
+### Blast Radius Warning
+
+If the proposed fix touches **more than 5 files**, display a warning:
+
+```
+⚠️ BLAST RADIUS WARNING
+========================
+This fix touches [N] files across [M] directories.
+
+Files affected:
+  1. [file] — [change description]
+  2. [file] — [change description]
+  ...
+
+Risk: High blast radius increases regression probability.
+Recommendation: Consider splitting into smaller, testable changes.
+Continue? [Yes / Split into phases / Abort]
+```
+
+### 3-Strike Escalation
+
+If 3 consecutive fix attempts fail (fix applied → new error introduced → reverted):
+
+1. **Strike 1**: Revert, try alternative fix approach
+2. **Strike 2**: Revert, broaden investigation scope (check related systems)
+3. **Strike 3**: **STOP.** Report all findings and state explicitly:
+
+```
+🛑 3-STRIKE ESCALATION
+=======================
+3 consecutive fix attempts failed. Stopping to prevent further damage.
+
+Attempted fixes:
+  1. [fix description] → [failure reason]
+  2. [fix description] → [failure reason]
+  3. [fix description] → [failure reason]
+
+Root cause is likely deeper than initially diagnosed.
+Recommended next step: [manual investigation / pair debugging / architecture review]
+```
+
+Do NOT attempt a 4th fix. Present findings and ask for human guidance.
 
 ## Usage
 

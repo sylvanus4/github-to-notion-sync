@@ -3,15 +3,16 @@ name: deep-review
 description: >-
   Run 4 parallel domain-expert agents (Frontend, Backend/DB, Security, Test
   Coverage) to review code from multiple engineering perspectives and auto-fix
-  findings. Supports diff/today/full scoping. Use when the user runs
-  /deep-review, asks for "full-stack review", "multi-domain review", "review
-  frontend and backend", or "comprehensive code review". Do NOT use for
-  single-domain review (use /refactor, /security, etc.), code quality metrics
-  only (use /simplify), or general Q&A. Korean triggers: "리뷰", "테스트", "수정",
-  "보안".
+  findings. Supports diff/today/full scoping with Fix-First pattern,
+  adversarial tier scaling by diff size, and 8/10 confidence gate. Use when
+  the user runs /deep-review, asks for "full-stack review", "multi-domain
+  review", "review frontend and backend", or "comprehensive code review". Do
+  NOT use for single-domain review (use /refactor, /security, etc.), code
+  quality metrics only (use /simplify), or general Q&A. Korean triggers: "리뷰",
+  "테스트", "수정", "보안".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # Deep Review — Multi-Domain Full-Stack Review
@@ -27,6 +28,41 @@ Review code from 4 engineering perspectives simultaneously: frontend, backend/DB
 | `full` | `/deep-review full` | All source files in the project |
 
 Combinable with focus: `/deep-review today focus on security`.
+
+## Adversarial Review Tiers
+
+Review intensity scales with diff size to catch more issues in riskier changes:
+
+| Diff Size | Tier | Behavior |
+|-----------|------|----------|
+| 1-50 lines | Standard | Normal 4-agent review |
+| 51-200 lines | Elevated | Agents additionally check cross-file consistency and integration points |
+| 201-500 lines | Adversarial | Agents run with adversarial prompts: "Find at least 3 issues. If you find zero, explain why this code is provably correct." |
+| 500+ lines | Critical | Adversarial + mandatory `--refine` loop + blast radius warning |
+
+The tier is auto-detected from `git diff --stat` at the start of the review.
+
+## Confidence Gate (8/10 Threshold)
+
+Every finding must include a confidence score (1-10). Only findings with confidence >= 8 are reported to the user.
+
+- **Confidence 8-10**: Report as a finding, eligible for auto-fix
+- **Confidence 5-7**: Log internally but do not surface unless `--show-low-confidence` flag is set
+- **Confidence 1-4**: Discard silently
+
+This eliminates false-positive noise and ensures every reported finding is actionable.
+
+## Fix-First Pattern
+
+During review, agents categorize each finding:
+
+| Category | Criteria | Action |
+|----------|----------|--------|
+| **Auto-fixable** | Single-file, mechanical fix (unused import, missing null check, wrong type, formatting) | Fix silently during Step 4, mention in report as "auto-fixed" |
+| **Requires judgment** | Multi-file impact, architectural choice, ambiguous intent | Report as finding with options, let user decide |
+| **Informational** | Best practice suggestion, potential future issue | Report as Low severity, never auto-fix |
+
+The goal: reduce review friction by fixing trivial issues automatically, only surfacing decisions that require human judgment.
 
 ## Workflow
 
@@ -61,27 +97,35 @@ Each agent returns findings in this structure:
 
 ```
 DOMAIN: [agent domain]
+TIER: [Standard|Elevated|Adversarial|Critical]
 FINDINGS:
 - severity: [Critical|High|Medium|Low]
+  confidence: [1-10]
+  category: [auto-fixable|requires-judgment|informational]
   file: [path]
   line: [number or range]
   issue: [description]
   fix: [suggested change]
 ```
 
-### Step 3: Aggregate and Deduplicate
+### Step 3: Aggregate, Filter, and Deduplicate
 
 1. Merge all agent outputs into a single findings list
-2. Remove duplicates (same file + same line + similar issue)
-3. Sort: Critical > High > Medium > Low
-4. Group by file within same severity
+2. **Apply confidence gate**: discard findings with confidence < 8 (unless `--show-low-confidence`)
+3. Remove duplicates (same file + same line + similar issue)
+4. Sort: Critical > High > Medium > Low
+5. Group by file within same severity
+6. Separate into auto-fixable vs requires-judgment buckets
 
-### Step 4: Apply Fixes
+### Step 4: Apply Fixes (Fix-First Pattern)
 
-For each finding (highest severity first):
-1. Read the target file
-2. Apply fix via StrReplace
-3. Track applied vs skipped
+**Phase A — Silent auto-fixes** (auto-fixable findings, confidence >= 8):
+1. Apply all auto-fixable fixes via StrReplace without prompting
+2. Log each fix for the report's "Auto-Fixed" section
+
+**Phase B — User-decision fixes** (requires-judgment findings):
+1. Present each finding with options
+2. Apply only if user approves (or skip in automated mode)
 
 Skip if: conflict with prior fix, ambiguous change, or file already modified at that location.
 
@@ -123,6 +167,8 @@ Present report:
 Deep Review Report
 ==================
 Scope: [diff|today|full] — [N] files reviewed
+Review Tier: [Standard|Elevated|Adversarial|Critical] (diff size: [N] lines)
+Confidence Gate: 8/10 (filtered [N] low-confidence findings)
 
 Findings by Domain:
   Frontend:      [N] findings
@@ -131,13 +177,13 @@ Findings by Domain:
   Test Coverage: [N] findings
 
 Total: [N] (Critical: X, High: X, Medium: X, Low: X)
-Applied Fixes: [N] / [N]
-Skipped: [N] (reasons listed)
+Auto-Fixed (Fix-First): [N]
+User-Decision Fixes: [N] applied / [N] skipped
 Refinement: [N] iterations (if --refine used)
 
 Top Issues:
-  1. [file] — [domain] — [what was found/fixed]
-  2. [file] — [domain] — [what was found/fixed]
+  1. [file] — [domain] — [what was found/fixed] (confidence: X/10)
+  2. [file] — [domain] — [what was found/fixed] (confidence: X/10)
 ```
 
 ## Optional Arguments
@@ -152,6 +198,10 @@ Top Issues:
 # Evaluator-Optimizer refinement (combinable with any mode)
 /deep-review --refine                 # re-evaluate after fixes (max 2 iterations)
 /deep-review today --refine           # today mode + re-evaluation loop
+
+# Confidence and fix control
+/deep-review --show-low-confidence    # include findings with confidence 5-7
+/deep-review --no-auto-fix            # skip Fix-First silent fixes, report everything
 ```
 
 ## Examples

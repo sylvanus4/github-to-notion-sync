@@ -3,18 +3,56 @@ name: security-expert
 description: >-
   Perform threat modeling (STRIDE), vulnerability assessments (OWASP Top 10),
   secret detection, LLM/AI-specific security checks, and PII handling reviews.
-  Use when the user asks for a security review, threat model, vulnerability
-  scan, or secret audit. Do NOT use for data governance or regulatory compliance
-  documentation (use compliance-governance) or dependency CVE scanning only (use
+  Supports daily (quick scan) and comprehensive (full audit) modes with 8/10
+  confidence gate and exploit verification. Use when the user asks for a
+  security review, threat model, vulnerability scan, or secret audit. Do NOT
+  use for data governance or regulatory compliance documentation (use
+  compliance-governance) or dependency CVE scanning only (use
   dependency-auditor). Korean triggers: "보안", "감사", "리뷰", "체크".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: "review"
   author: "thaki"
 ---
 # Security Expert
 
 Procedural security skill for a FastAPI microservices platform with LLM inference, RAG, PII redaction, and multi-tenant architecture.
+
+## Scan Modes
+
+| Mode | Trigger | Scope | Duration |
+|------|---------|-------|----------|
+| `daily` | `/security daily` or default | Changed files only (git diff), secret scan, OWASP quick checks | ~2 min |
+| `comprehensive` | `/security comprehensive` or `/security full` | Full STRIDE + OWASP Top 10 + LLM security + PII review + dependency scan | ~10 min |
+
+Default mode is `daily` for fast feedback. Use `comprehensive` before releases or after major architecture changes.
+
+## Confidence Gate (8/10 Threshold)
+
+Every finding must include a confidence score (1-10):
+
+- **Confidence 8-10**: Report as a finding with severity and fix recommendation
+- **Confidence 5-7**: Log internally, only surface if `--show-low-confidence` is set
+- **Confidence 1-4**: Discard silently to prevent false positive noise
+
+### False Positive Filtering
+
+Before reporting, check each finding against:
+1. **Known safe patterns**: Test fixtures, example values, commented-out code
+2. **Project allowlist**: Patterns in `.gitleaksignore` or `security-allowlist.json`
+3. **Context check**: Is the "secret" actually a hash, placeholder, or test value?
+
+If a finding matches any filter, downgrade confidence to 4 (auto-discard).
+
+## Exploit Verification
+
+For Critical and High severity findings (confidence >= 8):
+1. Attempt to construct a proof-of-concept (PoC) demonstrating the vulnerability
+2. For injection findings: craft a test payload and trace its path through the code
+3. For auth bypass: trace the auth chain to confirm the gap is reachable
+4. Mark as **Verified** (PoC works) or **Theoretical** (plausible but unconfirmed)
+
+Only **Verified** findings require immediate action. **Theoretical** findings are tracked for follow-up.
 
 ## Threat Modeling (STRIDE)
 
@@ -122,10 +160,12 @@ Solution: Add patterns to `.gitleaksignore` for known false positives
 ```
 Security Review Report
 ======================
+Mode: [daily / comprehensive]
 Scope: [Component / Service / Full system]
 Date: [YYYY-MM-DD]
+Confidence Gate: 8/10 (filtered [N] low-confidence findings)
 
-1. Threat Model (STRIDE)
+1. Threat Model (STRIDE) [comprehensive only]
    Component: [name]
    Threats identified: [N]
    - [S/T/R/I/D/E]: [Threat] → [Mitigation]
@@ -133,29 +173,34 @@ Date: [YYYY-MM-DD]
 2. OWASP Top 10
    Compliance: [XX / 10 categories addressed]
    Critical findings:
-   - [A0X]: [Finding] at [File:Line] → [Fix]
+   - [A0X]: [Finding] at [File:Line] (confidence: X/10, verified: ✓/✗) → [Fix]
 
-3. LLM Security
+3. LLM Security [comprehensive only]
    Services reviewed: [list]
    Findings:
-   - [LLM0X]: [Finding] → [Mitigation]
+   - [LLM0X]: [Finding] (confidence: X/10) → [Mitigation]
 
 4. Secret Scan
    Files scanned: [N]
-   Secrets found: [N]
-   - [File:Line]: [Type] → [Action: rotate + remove]
+   Secrets found: [N] (after false positive filtering)
+   False positives filtered: [N]
+   - [File:Line]: [Type] (confidence: X/10) → [Action: rotate + remove]
 
-5. PII Handling
+5. PII Handling [comprehensive only]
    Compliance: [Compliant / Gaps found]
    Gaps:
    - [Service]: [Issue] → [Fix]
 
-6. Risk Summary
+6. Exploit Verification Summary
+   Verified (PoC confirmed): [N]
+   Theoretical (unconfirmed): [N]
+
+7. Risk Summary
    Critical: [N] | High: [N] | Medium: [N] | Low: [N]
    Top 3 priority fixes:
-   1. [Fix] — CVSS: [X.X]
-   2. [Fix] — CVSS: [X.X]
-   3. [Fix] — CVSS: [X.X]
+   1. [Fix] — CVSS: [X.X] — [Verified/Theoretical]
+   2. [Fix] — CVSS: [X.X] — [Verified/Theoretical]
+   3. [Fix] — CVSS: [X.X] — [Verified/Theoretical]
 ```
 
 ## Additional Resources

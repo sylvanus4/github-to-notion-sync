@@ -2,15 +2,16 @@
 name: ship
 description: >-
   End-to-end pre-merge pipeline that reviews code with 4 parallel agents,
-  auto-fixes findings, verifies with linting, creates domain-split commits, and
-  opens a PR. Use when the user runs /ship, asks to "ship it", "prepare for
-  merge", "create a PR with review", or "commit and PR". Do NOT use for
+  auto-fixes findings, verifies with linting, creates bisect-able domain-split
+  commits, and opens a PR. Enforces the Iron Law of Verification and Review
+  Readiness checks. Use when the user runs /ship, asks to "ship it", "prepare
+  for merge", "create a PR with review", or "commit and PR". Do NOT use for
   review-only (use /simplify or /deep-review), manual commits (use
   /domain-commit), or PR management (use /pr-create, /pr-review). Korean
   triggers: "출시", "리뷰", "생성", "파이프라인".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # Ship — Pre-Merge Pipeline
@@ -28,6 +29,43 @@ One command to go from "code is done" to "PR is ready". Runs parallel code revie
 ```
 
 Arguments can be combined: `/ship --base dev --no-fix`.
+
+## Iron Law of Verification
+
+**Never claim completion without fresh evidence.** Before creating commits or PRs, the pipeline MUST:
+
+1. Run lint/typecheck on all modified files and confirm PASS
+2. Run relevant tests (if test files exist for modified code) and confirm PASS
+3. Verify no files are left in an inconsistent state (partial edits, broken imports)
+
+If any verification fails, the pipeline STOPS and reports the failure. It does NOT proceed to commit or PR creation with known failures.
+
+## Review Readiness Dashboard
+
+Before Step 5 (commits), display a pre-flight checklist:
+
+```
+Review Readiness
+================
+[✓] All lint checks pass
+[✓] No Critical findings remaining
+[✓] All auto-fixes verified
+[?] Tests pass (N/A if no test runner configured)
+[✓] No TODO/FIXME introduced without issue link
+[✓] No secrets or credentials detected
+[✓] Commit messages follow convention
+```
+
+If any `[✗]` items exist, pause and ask user whether to proceed or fix first.
+
+## Bisect-able Commit Strategy
+
+Commits are structured so `git bisect` can identify regressions:
+
+1. Each commit must leave the codebase in a compilable, lint-passing state
+2. Feature code and its tests go in the same commit (not separate)
+3. Refactoring commits are separated from behavior-changing commits
+4. Database migrations get their own commit, before the code that depends on them
 
 ## Workflow
 
@@ -87,15 +125,22 @@ Sub-agent config: `subagent_type: generalPurpose`, `model: fast`, `readonly: tru
 
 **Max iterations:** 1 (ship should stay fast — full refinement is for `/simplify --refine` or `/deep-review --refine`)
 
-### Step 5: Domain-Split Commits (skip if `--dry-run`)
+### Step 5: Review Readiness Check
 
-Follow the `domain-commit` skill pattern:
+Display the Review Readiness Dashboard (see above). Verify all items pass before proceeding. If any fail, pause for user decision.
+
+### Step 6: Bisect-able Domain-Split Commits (skip if `--dry-run`)
+
+Follow the `domain-commit` skill pattern with bisect-able ordering:
 1. Analyze all changes (staged + unstaged)
 2. Group files by domain (backend, frontend, config, docs, tests)
-3. Create one commit per domain with proper `[TYPE] Summary` format
-4. Run pre-commit hooks; fix and re-commit on failure
+3. **Order commits for bisect-ability**: migrations first → backend → frontend → tests → config → docs
+4. Ensure each commit leaves the codebase compilable (feature + its tests in same commit)
+5. Separate refactoring commits from behavior-changing commits
+6. Create one commit per domain with proper `[TYPE] Summary` format
+7. Run pre-commit hooks; fix and re-commit on failure
 
-### Step 6: Create PR (skip if `--no-pr` or `--dry-run`)
+### Step 7: Create PR (skip if `--no-pr` or `--dry-run`)
 
 1. Determine current branch name
 2. Push branch to origin: `git push origin HEAD:tmp`
@@ -108,28 +153,31 @@ Follow the `domain-commit` skill pattern:
 
 **CRITICAL**: Never push to upstream. Only push to origin.
 
-### Step 7: Report
+### Step 8: Report
 
 ```
 Ship Report
 ===========
-Pipeline: review → fix → commit → PR
+Pipeline: review → fix → verify → commit → PR
 
 Review:
   Files reviewed: [N]
   Findings: [N] (Critical: X, High: X, Medium: X, Low: X)
   Fixed: [N] | Skipped: [N]
 
-Commits:
-  [TYPE] commit message 1
-  [TYPE] commit message 2
+Review Readiness:
+  [✓] Lint pass | [✓] No Critical remaining | [✓] Tests pass | [✓] No secrets
+
+Commits (bisect-able order):
+  1. [TYPE] commit message 1  (compilable: ✓)
+  2. [TYPE] commit message 2  (compilable: ✓)
 
 PR:
   URL: https://github.com/org/repo/pull/N
   Title: [PR title]
   Base: main ← [branch]
 
-Verification: lint PASS
+Iron Law Verification: ALL PASS
 ```
 
 ## Examples

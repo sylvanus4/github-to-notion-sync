@@ -1,15 +1,17 @@
 ---
 name: performance-profiler
 description: >-
-  Measure API endpoint latency (p50/p95/p99), analyze PostgreSQL slow queries,
-  profile frontend bundle size, and evaluate against SLO targets. Use when the
-  user asks about performance issues, latency problems, slow queries, bundle
-  optimization, or SLO compliance. Do NOT use for database schema design (use
-  db-expert), code-level optimization (use backend-expert or frontend-expert),
-  or infrastructure scaling review (use sre-devops-expert). Korean triggers:
-  "성능", "리뷰", "분석", "설계".
+  Measure API endpoint latency (p50/p95/p99), browser Core Web Vitals
+  (TTFB/FCP/LCP), analyze PostgreSQL slow queries, profile frontend bundle
+  size, and evaluate against SLO targets. Supports baseline comparison and
+  regression grading (A-F). Use when the user asks about performance issues,
+  latency problems, slow queries, bundle optimization, CWV metrics, or SLO
+  compliance. Do NOT use for database schema design (use db-expert), code-level
+  optimization (use backend-expert or frontend-expert), or infrastructure
+  scaling review (use sre-devops-expert). Korean triggers: "성능", "리뷰", "분석",
+  "설계".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: "review"
   author: "thaki"
 ---
@@ -130,9 +132,45 @@ docker compose exec redis redis-cli -p 6379 INFO memory | head -10
 docker compose exec redis redis-cli -p 6379 CLIENT LIST | wc -l
 ```
 
-### Step 5: Compare Against SLO
+### Step 5: Browser Core Web Vitals (CWV)
+
+If the frontend is running, measure CWV using browser MCP tools:
+
+1. Navigate to key pages (login, dashboard, main content pages)
+2. Measure for each page:
+
+| Metric | Description | Good | Needs Improvement | Poor |
+|--------|-------------|------|-------------------|------|
+| TTFB | Time to First Byte | < 800ms | 800ms - 1800ms | > 1800ms |
+| FCP | First Contentful Paint | < 1.8s | 1.8s - 3.0s | > 3.0s |
+| LCP | Largest Contentful Paint | < 2.5s | 2.5s - 4.0s | > 4.0s |
+
+3. Take a screenshot at LCP point for visual reference
+4. Check for layout shifts (CLS) during page load
+
+### Step 6: Compare Against SLO and Baseline
 
 For each measured metric, compare against the SLO target and flag violations.
+
+#### Baseline Comparison
+
+If a previous performance baseline exists (`output/perf-baselines/`):
+1. Load previous measurements
+2. Calculate delta for each metric
+3. Flag regressions (> 10% degradation)
+4. Celebrate improvements (> 10% faster)
+
+If no baseline exists, offer to save current measurements as baseline.
+
+#### Regression Grading
+
+| Grade | Criteria |
+|-------|----------|
+| **A** | All SLOs met, no regressions from baseline, CWV all "Good" |
+| **B** | All SLOs met, minor regressions (< 15%) or CWV "Needs Improvement" |
+| **C** | 1-2 SLO warnings, moderate regressions (15-30%) |
+| **D** | SLO violations, significant regressions (> 30%) |
+| **F** | Multiple SLO violations, CWV "Poor", or critical regression |
 
 ## Examples
 
@@ -199,6 +237,20 @@ Resource Usage:
   Redis memory: [X] MB / [MAX] MB
   Redis clients: [N]
 
+Browser Core Web Vitals:
+  Page               TTFB     FCP      LCP      Grade
+  ──────────────── ──────── ──────── ──────── ──────
+  /login             120ms    0.9s     1.8s     Good
+  /dashboard         250ms    1.5s     2.2s     Good
+  /settings          180ms    2.1s     3.2s     Needs Improvement
+
+Baseline Comparison:
+  [✓ No baseline found — current saved as baseline]
+  OR
+  [Compared against baseline from YYYY-MM-DD]
+  API latency: -5% (improved) | Bundle size: +2% | LCP: +12% (regression ⚠)
+
+Overall Grade: [A-F]
 SLO Compliance: [N]/[M] targets met
 Violations: [list]
 

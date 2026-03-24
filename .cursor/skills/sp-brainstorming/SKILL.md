@@ -3,11 +3,13 @@ name: brainstorming
 description: >-
   You MUST use this before any creative work - creating features, building
   components, adding functionality, or modifying behavior. Explores user intent,
-  requirements and design before implementation. Korean triggers: "브레인스토밍", "아이디어".
-  Do NOT use for implementation tasks (use sp-tdd or sp-executing-plans).
+  requirements and design before implementation. Includes YC pressure-testing
+  framework, anti-sycophancy rules, forced alternatives, and premise
+  verification. Korean triggers: "브레인스토밍", "아이디어". Do NOT use for
+  implementation tasks (use sp-tdd or sp-executing-plans).
 metadata:
   author: "superpowers"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "process"
 ---
 # Brainstorming Ideas Into Designs
@@ -101,6 +103,46 @@ digraph brainstorming {
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design, get approval before moving on
 - **Be flexible** - Go back and clarify when something doesn't make sense
+
+## Anti-Sycophancy Rules
+
+When evaluating ideas and presenting designs, actively resist agreeing with everything:
+
+1. **Forced counter-argument**: For every approach you recommend, state the single strongest reason NOT to do it
+2. **No "looks good" without teeth**: Every approval must identify at least one concrete risk or trade-off
+3. **Challenge premises**: Before accepting a requirement, ask "what evidence supports this assumption?"
+4. **Kill ideas explicitly**: If an approach is bad, say so directly with reasoning — don't soften into "another option to consider"
+
+## YC Pressure-Testing Framework
+
+Apply these Garry Tan / YC-style stress tests to proposed designs:
+
+### The 5 Killer Questions
+
+1. **"Who is the specific user and what is their hair-on-fire problem?"** — If the answer is vague ("developers who want better tools"), the idea needs sharpening
+2. **"What is the smallest possible version that tests the core hypothesis?"** — Strip everything until only the risky assumption remains
+3. **"Why hasn't someone already built this? If they have, why will yours win?"** — Force honest competitive analysis
+4. **"What would make you kill this project?"** — Define explicit failure criteria before building
+5. **"Does this pass the 'friend test'?"** — Would you tell a friend to use this? If you'd hesitate, something is wrong
+
+### Premise Verification Protocol
+
+Before accepting any design requirement as given:
+
+1. **Source check**: Where did this requirement originate? (User research? Assumption? Competitor copy?)
+2. **Evidence grade**: Is there data (A), anecdotes (B), or just intuition (C)?
+3. **Inversion test**: What happens if we do the opposite of this requirement?
+4. **Dependency check**: Does this requirement depend on another unverified assumption?
+
+Requirements with Grade C evidence must be flagged as assumptions to validate, not facts to build on.
+
+### Forced Alternatives Gate
+
+When proposing approaches, you MUST:
+- Present at least 2 meaningfully different approaches (not variations of the same idea)
+- Include a "do nothing" or "simpler alternative" option when applicable
+- For each approach, state: effort, risk, reversibility, and what you'd learn
+- Recommend one, but make the case strong enough that the user could disagree
 
 ## Examples
 
