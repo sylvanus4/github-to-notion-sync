@@ -18,10 +18,14 @@ description: >-
   Do NOT use for ad-hoc PPTX creation without meeting content (use anthropic-pptx).
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "2.0.1"
   category: "execution"
 ---
 # Meeting Digest
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 Single-meeting orchestrator that accepts flexible input (Notion page, raw
 transcript, or local file), runs multi-perspective PM analysis with meeting-type
@@ -241,8 +245,7 @@ Save to `output/meetings/{date}/action-items.md`.
 ### 4.3 PM Analysis Appendix (conditional)
 
 If Phase 3 produced contextual PM analysis (SWOT, assumptions, ICP, etc.),
-append it as an additional section in the summary document under
-`## 부록: PM 분석`.
+append it as an additional section in the summary document under a Korean appendix heading (e.g. appendix for PM analysis).
 
 ### Quality Checklist
 
@@ -320,12 +323,12 @@ CallMcpTool(
     "parent": {"page_id": "<parent-id>"},
     "pages": [
       {
-        "properties": {"title": "[{YYYY-MM-DD}] {meeting-title} 요약 보고서"},
+        "properties": {"title": "[{YYYY-MM-DD}] {meeting-title} — summary report (Korean title per template)"},
         "icon": "📋",
         "content": "<FULL content from /tmp/notion_page_0.json>"
       },
       {
-        "properties": {"title": "[{YYYY-MM-DD}] 액션 아이템 대시보드"},
+        "properties": {"title": "[{YYYY-MM-DD}] action items dashboard (Korean title per template)"},
         "icon": "✅",
         "content": "<FULL content from /tmp/notion_page_1.json>"
       }
@@ -367,14 +370,14 @@ When the `--pptx` flag is provided:
 
 | # | Slide | Content |
 |---|-------|---------|
-| 1 | 표지 | 회의 요약 보고서 + 날짜 + 회의 제목 |
-| 2 | 목차 | 주요 섹션 overview |
-| 3 | 회의 개요 | 참석자, 일시, 주제 |
-| 4-N | 핵심 논의 사항 | 1 slide per major topic |
-| N+1 | 주요 결정 사항 | Decision table or cards |
-| N+2 | 액션 아이템 | Priority-grouped action table |
-| N+3 | 미해결 이슈 | Open questions + timelines |
-| N+4 | 다음 단계 | Next steps + timeline |
+| 1 | Cover | Meeting summary title + date + meeting name (Korean) |
+| 2 | Agenda | Major sections overview |
+| 3 | Meeting overview | Attendees, time, topics |
+| 4-N | Key discussion | One slide per major topic |
+| N+1 | Key decisions | Decision table or cards |
+| N+2 | Action items | Priority-grouped action table |
+| N+3 | Open issues | Open questions + timelines |
+| N+4 | Next steps | Follow-ups + timeline |
 
 4. Apply "Modern Minimalist" theme (or user preference)
 5. Save to `output/meetings/{date}/meeting-summary.pptx`
@@ -438,7 +441,7 @@ Actions:
 4. Generate summary + action items
 5. Upload 2 sub-pages to Notion (default behavior)
 6. Create PPTX with themed slides
-7. Post digest to `#ai-platform-chapter-기획` with threaded replies
+7. Post digest to the configured planning Slack channel with threaded replies
 
 Result: Full output package + Notion pages + Slack notification
 

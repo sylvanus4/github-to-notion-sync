@@ -1,0 +1,6 @@
+experiment	round	eval1_did_doing_blocked	eval2_commit_complete	eval3_attribution	eval4_calendar_items	total	score_pct
+baseline	0	PASS	FAIL	PASS	PASS	3/4	75.0
+exp1_commit_verification	1	PASS	PASS	PASS	PASS	4/4	100.0
+exp2_vacation_handling	2	PASS	PASS	PASS	PASS	4/4	100.0
+exp3_cross_repo_commits	3	PASS	PASS	PASS	PASS	4/4	100.0
+exp4_timezone_awareness	4	PASS	PASS	PASS	PASS	4/4	100.0

@@ -1,0 +1,115 @@
+---
+name: prd-state-matrix
+description: >-
+  기존 PRD/기획서에서 State Matrix와 Edge Case를 자동 추출·보완하여
+  기획 문서의 완성도를 강화한다. Use when the user asks to "extract state matrix",
+  "상태값 매트릭스", "PRD 상태값 추출", "엣지 케이스 보완", "기획서 완성도 점검",
+  "state matrix", "edge case analysis", "PRD 보완", "상태 전이 분석",
+  "기획서 상태값", "PRD edge case", or needs to systematically identify
+  all states and edge cases in a product specification.
+  Do NOT use for writing PRDs from scratch (use pm-execution).
+  Do NOT use for code-level state analysis (use code-to-spec).
+  Do NOT use for general document quality inspection (use doc-quality-gate).
+metadata:
+  author: thaki
+  version: "1.0.1"
+  category: planning-automation
+---
+
+# PRD State Matrix
+
+Extract and augment **state matrices** and **edge cases** from existing PRDs/specs to improve completeness.
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
+
+## Content pattern
+
+**Pipeline + inversion**: Confirm analysis scope and feature context (inversion gate), then run extraction → edge analysis → optional policy mapping → recommendations.
+
+## Input
+
+1. **PRD/spec** (required) — Notion URL, local file, or pasted description  
+2. **Feature scope** (required) — Feature name to analyze; if missing, stop and ask (inversion gate)  
+3. **Policy doc** (optional) — For policy coverage checks  
+4. **Technical constraints** (optional) — API/platform limits  
+
+**CRITICAL**: Do not proceed without a defined feature scope.
+
+## Workflow
+
+### Step 1: Parse PRD
+
+Extract:
+- Capability description
+- User flows
+- Business rules
+- UI notes
+- Any existing states/exceptions
+
+For Notion pages, fetch via Notion MCP (`notion-fetch` or equivalent).
+
+### Step 2: Build state matrix
+
+Use [references/state-matrix-template.md](references/state-matrix-template.md).
+
+State families to consider:
+- **UI**: initial, loading, success, failure, empty, disabled
+- **Data**: none, partial, full, error, cached
+- **User**: anonymous, authenticated, role variants, first visit vs return
+- **Business**: domain-specific (e.g. payment pending, shipped, refunded)
+
+Per state capture:
+- Entry conditions
+- Visible UI
+- Allowed user actions
+- Next states
+
+### Step 3: Edge cases
+
+Apply [references/edge-case-patterns.md](references/edge-case-patterns.md).  
+Label items already in the doc as **existing**; newly found as **new**.
+
+### Step 4: Policy mapping (optional)
+
+If policy provided:
+- Extract relevant policy clauses
+- Check PRD coverage
+- List gaps
+
+### Step 5: Recommendations
+
+Deliver prioritized (High/Medium/Low):
+- Missing states to add
+- Edge cases to handle
+- Policy gaps to close
+
+### Step 6: Publish (optional)
+
+- **Notion**: child page under PRD for the matrix  
+- **Slack**: short summary of gaps  
+
+## Examples
+
+### Example 1: Sign-up flow
+
+User: "Extract a state matrix from the sign-up spec"
+
+Actions: parse flows → matrix (e.g. empty/typing/validating/success/failure/duplicate) → edge cases (network loss, social link failure, etc.) → gap list.
+
+### Example 2: Payments + policy
+
+User: "Analyze payment PRD states and map e-payment regulations"
+
+Actions: matrix for payment lifecycle → edge cases (duplicate charge, partial pay, timeout, insufficient funds) → policy mapping table + gaps.
+
+## Error handling
+
+| Error | Action |
+|-------|--------|
+| PRD not found | Reconfirm URL or ask for paste |
+| Scope missing | List features; require selection |
+| PRD too thin | Ask for more context |
+| Notion failure | Fall back to local/paste |
+| Too many features (5+) | Offer sequential analysis or prioritization |

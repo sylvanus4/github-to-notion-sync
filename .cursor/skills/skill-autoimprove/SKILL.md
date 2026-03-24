@@ -1,22 +1,21 @@
 ---
 name: skill-autoimprove
 description: >-
-  Autonomously optimize any existing skill's prompt by running it repeatedly,
-  scoring outputs against binary evals, mutating one thing at a time, and
-  keeping only improvements. Based on Karpathy's autoresearch methodology.
-  Use when the user asks to "skill-autoimprove", "auto-improve this skill",
-  "자동 스킬 개선", "autonomous skill optimization", "self-improve skill",
-  "test and improve skill", "run evals and fix skill", "스킬 자동 개선",
-  "스킬 최적화 루프", "스킬 자동 반복 개선", "skill autoimprove", or wants
-  an autonomous loop that tests a skill, finds failures, mutates the prompt,
-  and keeps improvements. Outputs: an improved SKILL.md, results.tsv log,
-  changelog.md of every mutation tried, and a live HTML dashboard.
-  Do NOT use for static skill auditing without mutation (use skill-optimizer
-  audit mode). Do NOT use for creating skills from scratch (use
-  anthropic-skill-creator or create-skill). Do NOT use for improving output
-  quality without changing the skill prompt (use workflow-eval-opt). Do NOT
-  use for transcript-based skill evolution (use autoskill-evolve). Do NOT
-  use for autonomous research paper pipelines (use auto-research).
+  Autonomously optimize an existing skill prompt: repeated runs, binary evals,
+  one mutation at a time, keep only improvements (Karpathy-style autoresearch).
+  Use when the user asks "skill-autoimprove", "auto-improve this skill",
+  "스킬 자동 개선", "프롬프트 자동 개선", "스킬 실험 루프", "스킬 최적화 루프",
+  "run evals and fix skill", "self-improve skill", or wants a loop that mutates
+  SKILL.md until scores improve. Produces improved SKILL.md, results.tsv,
+  changelog.md, and a live HTML dashboard.
+  Do NOT use for static audits only (skill-optimizer audit), new skill creation
+  (create-skill), single-doc polish without editing the skill (doc-quality-gate
+  / workflow-patterns evaluator-optimizer), transcript mining (autoskill-evolve),
+  or paper pipelines (paper-review).
+metadata:
+  author: "thaki"
+  version: "2.0.0"
+  category: "self-improvement"
 ---
 
 # Skill Auto-Improve
@@ -43,10 +42,10 @@ Take any existing skill, define what "good output" looks like as binary yes/no c
 
 ## Recommended Workflow (Integration with Existing Skills)
 
-For best results, combine autoresearch with existing skills:
+For best results in thaki-planning-automation:
 
 1. **Pre-flight** — Run `skill-optimizer` in audit mode on the target skill to fix structural issues first (formatting, missing sections, dead triggers). Fix those before entering the mutation loop.
-2. **Eval design** — Define 3-6 binary evals guided by [references/eval-guide.md](references/eval-guide.md). Optionally reference `ecc-eval-harness` eval patterns for inspiration.
+2. **Eval design** — Define 3-6 binary evals guided by [references/eval-guide.md](references/eval-guide.md). Optionally mirror patterns from `skill-optimizer` [references/eval-framework.md](../skill-optimizer/references/eval-framework.md) for runtime grading style.
 3. **Autoresearch loop** — This skill's autonomous mutation cycle (the core).
 4. **Post-verification** — Run `skill-optimizer` in benchmark mode with **fresh test inputs** (not the ones used during autoresearch) to verify improvements generalize and detect overfitting.
 
@@ -56,7 +55,7 @@ For best results, combine autoresearch with existing skills:
 
 **STOP. Do not run any experiments until all fields below are confirmed with the user. Ask for any missing fields before proceeding.**
 
-1. **Target skill** — Which skill to optimize? (need the exact path to SKILL.md)
+1. **Target skill** — Which skill to optimize? (need the exact path to SKILL.md under `.cursor/skills/`)
 2. **Test inputs** — 3-5 different prompts/scenarios to test the skill with. Variety matters — pick inputs that cover different use cases to avoid overfitting.
 3. **Eval criteria** — 3-6 binary yes/no checks that define a good output. See [references/eval-guide.md](references/eval-guide.md) for how to write good evals.
 4. **Runs per experiment** — How many times to run the skill per mutation. Default: 5. More runs = more reliable scores, but slower. 5 is the sweet spot.
@@ -109,7 +108,7 @@ Example: 4 evals × 5 runs = max score of 20.
 
 ## Step 3: Generate the Live Dashboard
 
-Before running any experiments, create a live HTML dashboard at `autoimprove-[skill-name]/dashboard.html` and open it in the browser.
+Before running any experiments, create a live HTML dashboard at `autoimprove-[skill-name]/dashboard.html` inside the target skill's folder (or a sibling folder the user approves) and open it in the browser.
 
 The dashboard must:
 - Auto-refresh every 10 seconds (reads from results.json)
@@ -156,10 +155,10 @@ When the run finishes, update `status` to `"complete"` so the dashboard shows a 
 
 Run the skill AS-IS before changing anything. This is experiment #0.
 
-1. Create a working directory: `autoimprove-[skill-name]/` inside the skill's folder
+1. Create a working directory: `autoimprove-[skill-name]/` inside the skill's folder (e.g. `.cursor/skills/[skill-name]/autoimprove-[skill-name]/`)
 2. Create `results.tsv` with the header row
 3. Create `results.json` and `dashboard.html`, then open the dashboard
-4. Back up the original SKILL.md as `SKILL.md.baseline`
+4. Back up the original SKILL.md as `SKILL.md.baseline` in `autoimprove-[skill-name]/` (or alongside SKILL.md per team convention)
 5. Run the skill [N] times using the test inputs
 6. Score every output against every eval
 7. Record the baseline score and update both results.tsv and results.json
@@ -214,7 +213,7 @@ This is the core autoresearch loop. Once started, run autonomously until stopped
 
 8. **Repeat.** Go back to step 1 of the loop.
 
-**NEVER STOP.** Once the loop starts, do not pause to ask the user if you should continue. They may be away from the computer. Run autonomously until:
+**NEVER STOP.** Once the loop starts, do not pause to ask the user if they should continue. They may be away from the computer. Run autonomously until:
 - The user manually stops you
 - You hit the budget cap (if one was set)
 - You hit 95%+ pass rate for 3 consecutive experiments (diminishing returns)
@@ -287,23 +286,22 @@ experiment	score	max_score	pass_rate	status	description
 ## How This Connects to Other Skills
 
 **What feeds into autoresearch:**
-- Any existing skill that needs runtime quality optimization
+- Any existing skill under `.cursor/skills/` that needs runtime quality optimization
 - `skill-optimizer` audit results (fix structural issues before entering the mutation loop)
 - User-defined eval criteria (or help them define evals using the eval guide)
 
 **What autoresearch feeds into:**
-- The improved skill replaces the original (backup kept as SKILL.md.baseline)
+- The improved skill replaces the original (backup kept as `SKILL.md.baseline`)
 - `skill-optimizer` benchmark mode (run fresh benchmarks to verify improvements generalize)
 - The changelog can be passed to future models for continued optimization
 - The eval suite can be reused whenever the skill is updated
-- Significant findings should be captured in `learned-memory.mdc`
+- Significant findings should be captured in `AGENTS.md`, `MEMORY.md`, or `docs/ai/feedback.md` per team practice
 
 **Related skills (different purposes):**
 - `skill-optimizer` — Static audit, eval, benchmark, and A/B comparison. Use for measurement. Autoresearch uses measurement results to drive autonomous mutation.
-- `anthropic-skill-creator` — Create skills from scratch and measure performance. Use for creation. Autoresearch optimizes existing skills.
-- `workflow-eval-opt` — Evaluator-optimizer loop for output quality. Autoresearch targets the skill prompt itself, not individual outputs.
+- `create-skill` — Create skills from scratch. Autoresearch optimizes existing skills.
+- `doc-quality-gate` / evaluator-optimizer workflows — Improve a specific document output; autoresearch improves the skill prompt itself.
 - `autoskill-evolve` — Mines transcripts for new skill candidates. Autoresearch improves existing skills through runtime experiments.
-- `ecc-eval-harness` — Formal eval framework for agent sessions. Reference its eval design patterns when writing evals for autoresearch.
 
 ---
 

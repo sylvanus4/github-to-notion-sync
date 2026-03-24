@@ -5,23 +5,26 @@ description: >-
   files) for quality assurance. Use when the user asks to "optimize skills",
   "audit skills", "check skill quality", "evaluate skill", "benchmark skill",
   "test skill effectiveness", "compare skill versions", "skill regression test",
-  or "measure skill impact". Do NOT use for creating new skills from scratch
-  (use create-skill instead), general code review, or non-skill file
-  optimization. Korean triggers: "스킬", "감사", "리뷰", "테스트".
+  "measure skill impact", "스킬 최적화", "스킬 감사", "스킬 품질 점검",
+  "스킬 평가", "스킬 벤치마크", "스킬 비교", "스킬 테스트", "트리거 정확도".
+  Do NOT use for creating new skills from scratch (use create-skill instead),
+  autonomous prompt mutation loops (use skill-autoimprove), transcript-based
+  skill extraction (use autoskill-extractor), general code review, or non-skill
+  file optimization.
 metadata:
   author: "thaki"
   version: "2.0.0"
-  category: "execution"
+  category: "review"
 ---
 # Skill Optimizer
 
-Quality assurance for agent skills: static audit, runtime evaluation, quantitative benchmarking, and A/B comparison. Adapted from Anthropic's Executor/Grader/Comparator/Analyzer pattern for Cursor's Task subagent system.
+Quality assurance for agent skills: static audit, runtime evaluation, quantitative benchmarking, and A/B comparison. Adapted from Anthropic's Executor/Grader/Comparator/Analyzer pattern for Cursor's Task subagent system. Use in this repo alongside `post-skill-creation.mdc` (audit after new skills) and `skill-orchestration.mdc` (registry awareness).
 
 ## Input
 
 The user provides:
 1. **Mode** (optional) — `audit` (default), `eval`, `benchmark`, or `compare`
-2. **Skills directory** (optional) — defaults to `.cursor/skills/`
+2. **Skills directory** (optional) — defaults to `.cursor/skills/` in this workspace
 3. **Scope** (optional) — "all" (default) or a specific skill name
 
 ## Modes
@@ -288,36 +291,36 @@ Win rate: Version A [N]% — Version B [N]%
 User says: "Optimize all my skills"
 
 Actions:
-1. Discover 4 skills in `.cursor/skills/`
-2. Audit: find 15 issues (2 critical, 5 high, 6 medium, 2 low)
+1. Discover skills in `.cursor/skills/`
+2. Audit: find issues (critical/high/medium/low)
 3. Present gap report, user confirms
-4. Apply fixes: update 4 SKILL.md files, create 5 references/ files
+4. Apply fixes: update SKILL.md files, create references/ files as needed
 5. Verify: all under 500 lines, all references linked
 
-Result: 4 optimized skills with progressive disclosure, negative triggers, and examples
+Result: Optimized skills with progressive disclosure, negative triggers, and examples
 
 ### Example 2: Eval a specific skill
 
-User says: "Evaluate my domain-commit skill"
+User says: "Evaluate my doc-quality-gate skill"
 
 Actions:
-1. Read domain-commit SKILL.md, extract trigger/behavior expectations
+1. Read doc-quality-gate SKILL.md, extract trigger/behavior expectations
 2. Auto-generate 4 test cases from description
 3. Run Executor subagents WITH and WITHOUT skill
 4. Grade outputs against criteria
-5. Present eval report: 3/4 passed, skill impact positive
+5. Present eval report: pass rate and skill impact
 
-Result: Quantified evidence that the skill improves agent behavior on 3 of 4 test cases
+Result: Quantified evidence that the skill improves agent behavior on the test cases
 
 ### Example 3: Compare skill versions
 
-User says: "Compare my old and new pr-review-captain skill"
+User says: "Compare my old and new prd-research-factory skill"
 
 Actions:
 1. Load both versions of SKILL.md
 2. Run 3 test prompts through both versions
 3. Comparator blind-judges all outputs
-4. De-anonymize and report: new version wins 2/3, tie 1/3
+4. De-anonymize and report wins/ties
 
 Result: Evidence-based decision to ship the new version
 
@@ -333,3 +336,9 @@ Result: Evidence-based decision to ship the new version
 | Subagent timeout during eval | Report timeout, skip test case, continue with remaining |
 | Insufficient test cases | Auto-generate from skill description with user confirmation |
 | Previous benchmark not found | Skip regression check, establish current run as baseline |
+
+## Further reference
+
+- Trigger description tuning: [references/trigger-optimization.md](references/trigger-optimization.md)
+- Scoring rubric: [references/optimization-checklist.md](references/optimization-checklist.md)
+- ADK / portable skill layout: [references/adk-compatibility.md](references/adk-compatibility.md)

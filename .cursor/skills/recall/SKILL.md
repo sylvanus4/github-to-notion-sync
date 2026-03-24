@@ -12,12 +12,16 @@ description: >-
   creating new memory entries (update MEMORY.md directly).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "execution"
 ---
 # Recall: Long-Term Memory Search
 
 Restore context from prior sessions, decisions, and patterns stored in the project's `memory/` directory.
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 ## Prerequisite
 
@@ -34,7 +38,7 @@ Classify the user's request into one of three modes:
 
 ### 1. Temporal Mode
 
-**Triggers**: date references — "yesterday", "last week", "March 5", "오늘", "어제", "지난주"
+**Triggers**: date references — e.g. "yesterday", "last week", "March 5" (Korean date phrases are listed in YAML `description` triggers)
 
 ```bash
 python scripts/memory/search.py --mode temporal --date "yesterday" --top 10 --verbose

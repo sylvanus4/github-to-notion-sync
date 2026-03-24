@@ -1,0 +1,155 @@
+---
+name: policy-text-generator
+description: >-
+  정책 문서와 가이드라인을 기반으로 일관된 UI 문구(에러 메시지, 안내 문구,
+  빈 상태, 권한 부족 등)를 자동 생성합니다. 톤앤매너를 유지하며 i18n 키-값
+  쌍을 동시에 생성합니다. Use when the user asks to "문구 생성", "에러 메시지
+  만들어줘", "UI 텍스트 작성", "정책 기반 문구", "policy text", "generate UI
+  copy", "에러 메시지 가이드", "빈 상태 문구", "안내 문구 생성", "문구 일괄
+  생성", "i18n 문구", "policy-text-generator", or wants consistent UI text
+  based on product policies and tone guidelines. Do NOT use for generating
+  planning documents from code (use code-to-spec). Do NOT use for document
+  quality review (use spec-quality-gate). Do NOT use for marketing content
+  (use kwp-marketing-content-creation). Do NOT use for general document writing
+  (use technical-writer). Korean triggers: "문구 생성", "에러 메시지", "UI
+  텍스트", "안내 문구", "정책 문구", "빈 상태 문구".
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "generation"
+---
+# Policy Text Generator — 정책 기반 문구 생성
+
+정책 문서와 톤앤매너 가이드라인을 기반으로 일관된 UI 문구를 자동 생성한다.
+
+## Input
+
+| 입력 | 필수 | 비고 |
+|------|------|------|
+| **문구 유형 또는 화면 컨텍스트** | **필수** | 에러/빈 상태/안내/확인 등 또는 화면명 |
+| 정책 문서 경로 | 선택 | 정책 규칙이 정의된 파일 |
+| 톤앤매너 가이드 | 선택 | 기본값: [references/text-patterns.md](references/text-patterns.md) |
+| i18n 출력 | 선택 | `--i18n` 플래그로 ko/en JSON 동시 생성 |
+
+---
+
+## Workflow
+
+### Step 1: 정책 및 컨텍스트 로드
+
+1. 정책 문서가 제공되면 정책 규칙 추출
+2. 톤앤매너 가이드([references/text-patterns.md](references/text-patterns.md)) 로드
+3. 화면 컨텍스트가 주어지면 해당 화면의 기획서/코드에서 필요한 문구 유형 자동 식별
+
+### Step 2: 문구 유형 분류
+
+요청된 문구를 아래 유형으로 분류:
+
+| 유형 | 용도 | 톤 |
+|------|------|-----|
+| error_network | 네트워크/서버 에러 | 공감 + 해결책 |
+| error_validation | 입력값 검증 에러 | 구체적 안내 |
+| error_permission | 권한 부족 | 정중한 안내 + 대안 |
+| error_business | 비즈니스 규칙 위반 | 이유 설명 + 대안 |
+| empty_list | 빈 목록 | 행동 유도(CTA) |
+| empty_search | 검색 결과 없음 | 대안 검색어 제안 |
+| success_action | 성공 피드백 | 간결한 확인 |
+| confirm_destructive | 삭제/위험 액션 확인 | 결과 경고 + 되돌림 여부 |
+| confirm_normal | 일반 확인 | 간결한 확인 |
+| info_guide | 기능 안내/도움말 | 설명적 |
+| info_placeholder | 입력 필드 플레이스홀더 | 예시 형태 |
+| info_tooltip | 툴팁 | 한 줄 설명 |
+
+### Step 3: 문구 생성
+
+각 유형별로 톤앤매너 가이드의 규칙을 적용하여 문구 생성:
+
+1. **패턴 적용**: 유형별 문구 패턴 참조
+2. **정책 반영**: 정책 문서에 고정 문구가 있으면 그대로 사용
+3. **변수 처리**: 동적 값은 `{변수명}` 형태로 표시
+4. **길이 제한**: 유형별 권장 길이 준수
+5. **CTA 포함**: 에러/빈 상태에는 행동 유도 포함
+
+### Step 4: 출력
+
+**기본 출력 — 문구 목록 표:**
+
+```markdown
+## 생성된 문구
+
+| # | 유형 | 키 | 한국어 | 영어 | 비고 |
+|---|------|-----|--------|------|------|
+| 1 | error_network | orders.error.network | 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요. | A temporary error occurred. Please try again later. | CTA: 다시 시도 |
+```
+
+**`--i18n` 출력 — JSON 파일:**
+
+```json
+// ko/{domain}.json
+{
+  "orders": {
+    "error": {
+      "network": "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      "permission": "이 기능을 사용할 권한이 없습니다. 관리자에게 문의해 주세요."
+    },
+    "empty": {
+      "list": "아직 주문이 없습니다. 첫 주문을 시작해 보세요.",
+      "search": "\"{keyword}\"에 대한 검색 결과가 없습니다. 다른 검색어를 시도해 보세요."
+    }
+  }
+}
+```
+
+---
+
+## Examples
+
+### Example 1: 화면 컨텍스트 기반 일괄 생성
+
+User says: "주문 목록 화면에 필요한 문구 전부 만들어줘"
+
+Actions:
+1. 주문 목록 화면 기획서/코드 분석 → 필요 문구 유형 식별
+2. 8개 문구 생성: 로딩, 에러(네트워크, 권한), 빈 목록, 검색 결과 없음, 삭제 확인, 성공 피드백, 필터 안내
+3. 문구 목록 표 + i18n JSON 출력
+
+Result: 화면에 필요한 모든 문구가 일관된 톤으로 생성
+
+### Example 2: 에러 메시지만 생성
+
+User says: "결제 관련 에러 메시지 만들어줘"
+
+Actions:
+1. 결제 도메인 에러 유형 식별: 카드 거절, 잔액 부족, 유효기간 만료, 네트워크, 서버
+2. 유형별 에러 메시지 생성
+3. 톤앤매너: 공감 + 구체적 해결책
+
+Result: 결제 에러 5종 문구 + CTA 포함
+
+### Example 3: 정책 기반 문구
+
+User says: "개인정보 관련 안내 문구를 정책 문서 기반으로 만들어줘"
+
+Actions:
+1. 정책 문서에서 개인정보 관련 고정 문구 추출
+2. 동의 안내, 수집 목적, 보관 기간 문구 생성
+3. 정책 문서의 법적 문구는 그대로 유지
+
+Result: 정책 정합성이 보장된 개인정보 안내 문구
+
+---
+
+## Error Handling
+
+| 에러 | 처리 |
+|------|------|
+| 정책 문서 없음 | 톤앤매너 가이드만으로 일반적 문구 생성, 정책 미반영 고지 |
+| 화면 컨텍스트 불명확 | 일반 유형별 문구 생성, 구체적 화면명 요청 |
+| 도메인 용어 불명 | 일반적 용어 사용, 사용자에게 도메인 용어 확인 요청 |
+| 지원하지 않는 문구 유형 | 가장 유사한 유형으로 대체 생성 |
+
+## Troubleshooting
+
+- **톤이 일관되지 않음**: text-patterns.md의 톤 규칙을 프로젝트에 맞게 커스터마이징
+- **i18n 키 충돌**: 기존 i18n 파일이 있으면 먼저 로드하여 키 충돌 방지
+- **문구가 너무 길거나 짧음**: text-patterns.md의 길이 가이드 조정

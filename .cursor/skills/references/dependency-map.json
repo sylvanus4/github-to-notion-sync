@@ -1,0 +1,68 @@
+{
+  "$schema": "PRD Cascade Sync Dependency Map",
+  "version": "1.0.0",
+  "description": "프로젝트별 PRD 파이프라인 노드 간 의존 관계를 정의합니다. 이 파일을 프로젝트에 맞게 수정하세요.",
+  "node_types": [
+    "requirement",
+    "user-story",
+    "acceptance-criteria",
+    "ui-spec",
+    "design-spec",
+    "api-spec",
+    "qa-scenario",
+    "policy"
+  ],
+  "relation_types": [
+    {
+      "name": "derives-from",
+      "description": "하류 노드가 상류 노드로부터 파생됨",
+      "propagation": "downstream"
+    },
+    {
+      "name": "constrains",
+      "description": "상류 노드가 하류 노드의 범위를 제한함",
+      "propagation": "downstream"
+    },
+    {
+      "name": "implements",
+      "description": "하류 노드가 상류 노드를 구현함",
+      "propagation": "downstream"
+    },
+    {
+      "name": "verifies",
+      "description": "하류 노드가 상류 노드를 검증함",
+      "propagation": "downstream"
+    }
+  ],
+  "default_edges": [
+    { "from": "requirement", "to": "user-story", "relation": "derives-from" },
+    { "from": "user-story", "to": "acceptance-criteria", "relation": "derives-from" },
+    { "from": "acceptance-criteria", "to": "ui-spec", "relation": "implements" },
+    { "from": "acceptance-criteria", "to": "api-spec", "relation": "implements" },
+    { "from": "ui-spec", "to": "design-spec", "relation": "implements" },
+    { "from": "ui-spec", "to": "qa-scenario", "relation": "verifies" },
+    { "from": "api-spec", "to": "qa-scenario", "relation": "verifies" },
+    { "from": "policy", "to": "requirement", "relation": "constrains" },
+    { "from": "policy", "to": "ui-spec", "relation": "constrains" }
+  ],
+  "projects": {
+    "_template": {
+      "nodes": [
+        {
+          "id": "REQ-001",
+          "type": "requirement",
+          "title": "예시 요구사항",
+          "notion_page_id": "notion-page-id-here",
+          "notion_url": "https://notion.so/..."
+        }
+      ],
+      "edges": [
+        {
+          "from": "REQ-001",
+          "to": "US-001",
+          "relation": "derives-from"
+        }
+      ]
+    }
+  }
+}

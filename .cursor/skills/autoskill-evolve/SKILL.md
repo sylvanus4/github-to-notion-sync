@@ -1,109 +1,133 @@
 ---
 name: autoskill-evolve
 description: >-
-  End-to-end skill evolution pipeline: extract candidates from agent transcripts,
-  judge each against existing skills, apply add/merge/discard. Use when the user
-  asks to "evolve skills", "run autoskill evolution", "mine sessions for skills",
-  "autoskill evolve", "스킬 진화", "세션 기반 스킬 진화", "transcripts to skills",
-  or when triggered by /autoskill-evolve. Do NOT use for creating skills
-  manually (use create-skill), auditing skills (use skill-optimizer), or
-  recalling session context (use recall).
+  E2E 스킬 진화 파이프라인: 에이전트 세션 트랜스크립트에서 스킬 후보를 추출하고,
+  기존 스킬과 비교 판정(add/merge/discard)하여 스킬 생태계를 자동 진화시킴.
+  autoskill-extractor를 오케스트레이션하여 완전한 진화 사이클을 수행.
+  Use when the user asks to "스킬 진화", "autoskill evolve", "세션 기반 스킬 진화",
+  "transcripts to skills", "run autoskill evolution", "mine sessions for skills",
+  "스킬 자동 업데이트", or when triggered by /autoskill-evolve.
+  Do NOT use for creating skills manually (use create-skill).
+  Do NOT use for auditing existing skills (use skill-optimizer).
+  Do NOT use for session context recall (use recall or continual-learning).
+  Do NOT use for autonomous skill prompt optimization (use skill-autoimprove).
 metadata:
-  author: thaki
-  version: "0.2.0"
-  category: self-improvement
+  author: "thaki"
+  version: "1.0.1"
+  category: "self-improvement"
 ---
-
 # AutoSkill Evolve
 
-End-to-end skill evolution pipeline that extracts reusable skill candidates from agent transcripts, judges each against the existing skill ecosystem, and applies add/merge/discard decisions. Optionally mines workflow patterns, composes workflow-type skills, validates security, and tracks intent alignment. Orchestrates autoskill-extractor, autoskill-judge, autoskill-merger, workflow-miner, skill-composer, semantic-guard, and intent-alignment-tracker.
+End-to-end pipeline: extract reusable skill candidates from agent session transcripts, compare them against the existing skill ecosystem, and decide add / merge / discard.
 
-## Instructions
+## Output language
 
-### Pipeline Overview
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
+
+## Pipeline Overview
 
 ```
-Transcripts → [Mine Patterns] → Extract → Judge → [Compose/Merge] → Guard → Report (+IA)
+Transcripts → Extract → Judge → Add/Merge/Discard → Guard → Report
 ```
 
-### Step 1: Scope Selection
+## Input
 
-Determine which transcripts to process based on the `--scope` flag:
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `--scope <scope>` | No | `recent` (default, last 5) / `all` / `session <uuid>` |
+| `--dry-run` | No | Preview only; no file changes |
+| `--auto-optimize` | No | Run `skill-optimizer` audit on created/merged skills |
+| `--slack` | No | Post summary to Slack |
+| `--hint <text>` | No | Pass extraction hint to `autoskill-extractor` |
 
-- `recent` (default): Process the 5 most recent transcripts not yet indexed
-- `all`: Process all unindexed transcripts (use with caution)
-- `session <uuid>`: Process a specific session transcript
+## State Tracking
 
-Track processed transcripts in `.cursor/hooks/state/autoskill-evolution.json`:
+Evolution state is tracked in `.cursor/hooks/state/autoskill-evolution.json`:
+
 ```json
 {
-  "last_processed": "2026-03-14T10:00:00Z",
+  "last_processed": "2026-03-24T10:00:00Z",
   "processed_transcripts": ["uuid1", "uuid2"],
-  "evolution_count": 42,
-  "skills_created": 12,
-  "skills_merged": 28,
-  "skills_discarded": 15
+  "evolution_count": 0,
+  "skills_created": 0,
+  "skills_merged": 0,
+  "skills_discarded": 0
 }
 ```
 
-### Step 1.5: Pattern Discovery (workflow-miner, optional)
+---
 
-When `--with-mining` is set:
-1. Read `.cursor/skills/workflow-miner/SKILL.md` and run mining on the same transcript scope
-2. Collect discovered frequent tool-call patterns (frequency >= 3)
-3. Pass patterns as extraction hints to Step 2 via `--hint "workflow patterns: ..."`
-4. This helps autoskill-extractor identify multi-step workflow candidates that pure text analysis might miss
+## Step 1: Scope Selection
 
-### Step 2: Extract (autoskill-extractor)
+Choose transcripts to process from the `--scope` flag:
+
+- `recent` (default): up to 5 most recent transcripts not yet indexed/processed
+- `all`: all unprocessed transcripts (use with care)
+- `session <uuid>`: a specific session transcript
+
+Use `processed_transcripts` in the state file to avoid duplicate processing.
+
+---
+
+## Step 2: Extract (autoskill-extractor)
 
 For each transcript in scope:
-1. Read the SKILL.md at `.cursor/skills/autoskill-extractor/SKILL.md`
-2. Run extraction following the instructions
+
+1. Read `.cursor/skills/autoskill-extractor/SKILL.md`
+2. Run extraction per that skill’s instructions
 3. Collect all candidates with confidence >= 0.6
-4. Maximum 2 candidates per transcript
+4. At most 2 candidates per transcript
 
-### Step 3: Judge (autoskill-judge)
+---
 
-For each extracted candidate:
-1. Read the SKILL.md at `.cursor/skills/autoskill-judge/SKILL.md`
-2. Search existing skills for similarity using hybrid retrieval
-3. Apply decision logic: add, merge, or discard
-4. Record decision with reasoning
+## Step 3: Judge
 
-### Step 4: Apply Decisions
+For each extracted candidate, judge its relationship to existing skills.
 
-For `add` decisions:
-1. **Classify candidate type**: Check if the candidate describes a multi-step workflow
-   (3+ sequential skill/tool references, trigger conditions like "whenever/after/before")
-2. **If workflow type**: Read `.cursor/skills/skill-composer/SKILL.md` and use it to generate
-   a proper workflow skill with sequential/parallel patterns, input/output contracts, and
-   error recovery — instead of a plain SKILL.md
-3. **If single skill type**: Create a new skill directory in `.cursor/skills/<name>/` and
-   write SKILL.md with proper frontmatter and body
-4. Optionally run `skill-optimizer` audit on the new skill
+### Decision criteria
 
-For `merge` decisions:
-1. Read the SKILL.md at `.cursor/skills/autoskill-merger/SKILL.md`
-2. Perform the merge following merger instructions
-3. Bump version in the target skill
-4. Record merge changelog
+| Decision | Condition |
+|----------|-----------|
+| **add** | No overlap with existing skills; confidence >= 0.7 |
+| **merge** | Overlaps an existing skill but the candidate adds new value |
+| **discard** | Fully redundant with an existing skill, or insufficient confidence/value |
 
-For `discard` decisions:
+### Finding similar skills
+
+Compare the candidate’s triggers, tags, and description to each existing `.cursor/skills/*/SKILL.md` description:
+
+1. Trigger phrase overlap (3+ overlapping phrases → merge candidate)
+2. Functional overlap (same input → same output pattern)
+3. Tag/category similarity
+
+---
+
+## Step 4: Apply Decisions
+
+### add
+
+1. Create `.cursor/skills/<name>/`
+2. Convert the candidate prompt into SKILL.md format and save
+3. Include name, description, and metadata in frontmatter
+4. If `--auto-optimize`, run `skill-optimizer` audit
+
+### merge
+
+1. Read the target skill’s SKILL.md
+2. Integrate new elements from the candidate (triggers, workflow steps, examples) into the target
+3. Bump the target skill’s version
+4. Record what changed in the merge
+
+### discard
+
 1. Log the discard reason
 2. No file changes
 
-### Step 4.5: Security Validation (semantic-guard)
+---
 
-Before writing any new or merged skill to `.cursor/skills/`:
-1. Read `.cursor/skills/semantic-guard/SKILL.md` and scan the candidate content
-2. Check for: prompt injection patterns, sensitive data, unsafe instructions
-3. **SAFE**: Proceed with writing
-4. **WARNING**: Log warning in evolution report, proceed with caution flag
-5. **BLOCKED**: Do NOT write the skill. Log in discarded candidates with reason "security-blocked"
+## Step 5: Generate Evolution Report
 
-### Step 5: Generate Evolution Report
-
-Create a markdown report at `outputs/autoskill-reports/<date>-evolution.md`:
+Write a report to `outputs/autoskill-reports/<date>-evolution.md`:
 
 ```markdown
 # Skill Evolution Report — YYYY-MM-DD
@@ -111,14 +135,13 @@ Create a markdown report at `outputs/autoskill-reports/<date>-evolution.md`:
 ## Summary
 - Transcripts processed: N
 - Candidates extracted: M
-- Skills added: A (workflow-type: W, single-type: S)
+- Skills added: A
 - Skills merged (updated): U
 - Skills discarded: D
-- Security blocked: B
 
 ## Added Skills
-| Name | Type | Description | Confidence | Source |
-|------|------|-------------|------------|--------|
+| Name | Description | Confidence | Source |
+|------|-------------|------------|--------|
 
 ## Merged Skills
 | Target Skill | Version Change | Changes | Source |
@@ -127,38 +150,79 @@ Create a markdown report at `outputs/autoskill-reports/<date>-evolution.md`:
 ## Discarded Candidates
 | Name | Reason | Confidence |
 |------|--------|------------|
-
-## Security Validation Results
-| Skill | Status | Details |
-|-------|--------|---------|
-
-## Intent Alignment Feedback
-- Sessions with lowest IA scores (candidates for next evolution run)
-- Newly created skills: IA baseline = "pending first use"
-- Skills merged this run: previous IA score → mark for re-evaluation
 ```
 
-When `--ia-priority` is set, sort transcripts by associated IA score (lowest first)
-so the evolution focuses on improving the weakest skills.
+---
 
-### Step 6 (Optional): Post to Slack
+## Step 6 (Optional): Post to Slack
 
-If `--slack` flag is set, post the evolution summary to `#효정-할일` channel.
+If `--slack` is set, post an evolution summary to Slack.
 
-### Flags
+```
+CallMcpTool(
+  server="plugin-slack-slack",
+  toolName="slack_send_message",
+  arguments={
+    "channel_id": "<channel>",
+    "text": "*[AutoSkill Evolution] {date}*\n\nProcessed: {N} transcripts\nAdded: {A} skills | Merged: {U} | Discarded: {D}"
+  }
+)
+```
 
-- `--scope recent|all|session <uuid>`: Transcript selection (default: recent)
-- `--dry-run`: Show what would happen without making changes
-- `--auto-optimize`: Run `skill-optimizer` audit on all created/merged skills
-- `--slack`: Post summary to Slack
-- `--hint "focus"`: Pass extraction hint to `autoskill-extractor`
-- `--with-mining`: Run workflow-miner pattern discovery before extraction (Step 1.5)
-- `--ia-priority`: Sort transcripts by IA score (lowest first) to focus on weakest skills
+---
 
-### Safety Guards
+## Safety Guards
 
-- Never process the same transcript twice (tracked in state file)
-- Maximum 2 candidates per transcript (prevents skill spam)
-- Minimum confidence 0.6 for extraction
-- Human review flag for merge conflicts
-- Dry-run mode for previewing changes
+- Do not process the same transcript twice (state file tracking)
+- At most 2 candidates per transcript (avoid skill spam)
+- Minimum confidence 0.6
+- Flag for human review on merge conflicts
+- Use `--dry-run` to preview changes
+
+---
+
+## Examples
+
+### Example 1: Weekly evolution run
+
+User says: "/autoskill-evolve"
+
+Actions:
+1. Select up to 5 recent unprocessed transcripts
+2. Extract 3 candidates (confidence 0.72, 0.85, 0.61)
+3. Judge: 1 add, 1 merge, 1 discard
+4. Create one new skill; update one existing skill
+5. Write evolution report
+
+### Example 2: Dry-run preview
+
+User says: "autoskill evolve --dry-run --scope all"
+
+Actions:
+1. Scan all unprocessed transcripts
+2. Simulate extraction and decisions
+3. Present “these changes would apply” preview
+4. No file changes
+
+### Example 3: Specific session + auto-optimize
+
+User says: "autoskill evolve --scope session abc123 --auto-optimize"
+
+Actions:
+1. Analyze that session’s transcript
+2. Judge one add
+3. Create the new skill, then run skill-optimizer audit
+4. Refine skill structure per audit
+
+---
+
+## Error Handling
+
+| Error | Recovery |
+|-------|----------|
+| Missing state file | Create initial state file |
+| Transcript directory not found | Verify project paths |
+| All transcripts already processed | Report “no new sessions” |
+| No candidates | Report “no reusable patterns found” |
+| Skill directory creation failed | Report error; continue other decisions |
+| Merge target SKILL.md parse error | Fall back to add as a separate skill |

@@ -18,11 +18,15 @@ description: >-
   Do NOT use for ad-hoc Notion page creation (use Notion MCP directly).
 metadata:
   author: thaki
-  version: 2.0.0
+  version: 2.0.1
   category: research
 ---
 
 # Paper Review Pipeline
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 End-to-end pipeline that transforms an academic paper into a structured Korean
 review, multi-perspective PM/research analysis documents, a consolidated Word
@@ -88,11 +92,10 @@ content is a pipeline failure.
 
 ### Language Requirements
 
-- **All output** (markdown, DOCX, PPTX) MUST be written in Korean (한국어)
-- English is allowed ONLY for proper nouns and technical terms with no standard Korean equivalent
-- Section headings, labels, titles, bullet points, analysis text, and conclusions: all Korean
-- DOCX cover page, TOC, section headers: Korean (see `references/docx-structure.md`)
-- PPTX slide titles, section dividers, closing slide: Korean (see `references/pptx-structure.md`)
+- Follow **Output language** above for every deliverable (markdown, DOCX, PPTX).
+- English only for proper nouns and technical terms with no standard Korean equivalent.
+- Section headings, labels, titles, bullets, analysis, and conclusions: Korean.
+- DOCX/PPTX structure: see `references/docx-structure.md` and `references/pptx-structure.md`.
 
 ### Depth Expectations
 
@@ -195,7 +198,7 @@ using the extracted paper content. This is the **core deliverable** and must
 always be produced regardless of options.
 
 Key requirements:
-- Write in formal Korean academic tone (학술적 한국어)
+- Write in formal Korean academic tone
 - Every claim must reference specific sections, figures, or tables from the paper
 - Contributions should be individually numbered and explained
 - Strengths and weaknesses must be concrete and specific, not generic
@@ -276,13 +279,13 @@ Read `references/docx-structure.md` for detailed assembly instructions.
 Create a professional Word document consolidating all outputs using the
 `anthropic-docx` skill pattern (Node.js `docx` package → `Packer.toBuffer()`).
 
-Document structure (all headings and labels in Korean):
-1. 표지 — 논문 제목, 저자, 분석일, "논문 리뷰 및 분석 보고서"
-2. 목차
-3. 핵심 요약 — 모든 관점의 주요 발견 사항 종합 (2-3 pages, 구체적 수치 포함)
-4. 논문 리뷰 — Phase 2 전체 출력 (생략 없이 완전 포함)
-5. PM/연구 분석 섹션 — 관점별 1개 챕터 (6개 관점 모두 완전 포함)
-6. 부록 — 논문 메타데이터, 분석 방법론 설명
+Document structure (all headings and labels in Korean in the file):
+1. Cover — paper title, authors, analysis date, report title per template
+2. Table of contents
+3. Executive synthesis — consolidated findings across perspectives (2–3 pages, concrete numbers)
+4. Full paper review — complete Phase 2 output, no omission
+5. PM/research analysis — one chapter per perspective (all six in full)
+6. Appendix — metadata, methodology notes
 
 **CRITICAL**: Read EVERY perspective markdown file from `outputs/papers/` and
 include its FULL content in the DOCX. Do not summarize or truncate. The DOCX
@@ -348,7 +351,7 @@ No default parent page — provide via `--notion-parent <page_id>`.
 ### Distribution Steps
 
 1. **Create main page** — `notion-create-pages` MCP tool under the parent page
-   with title `{Paper Title} 논문 분석 ({DATE})` and an overview containing
+   with title pattern `{Paper Title} — paper analysis ({DATE})` (Korean wording in deliverable) and an overview containing
    paper metadata, key metrics, overall score, and a document list
 2. **Create sub-pages** — One sub-page per analysis perspective under the main
    page. Each sub-page contains the full adapted content from the corresponding

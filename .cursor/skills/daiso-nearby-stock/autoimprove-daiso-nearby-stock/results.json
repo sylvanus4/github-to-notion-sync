@@ -1,0 +1,22 @@
+{
+  "skill_name": "daiso-nearby-stock",
+  "status": "complete",
+  "current_experiment": 5,
+  "baseline_score": 80.0,
+  "best_score": 100.0,
+  "experiments": [
+    {"id": 0, "score": 12, "max_score": 15, "pass_rate": 80.0, "status": "baseline", "description": "original skill — no changes"},
+    {"id": 1, "score": 15, "max_score": 15, "pass_rate": 100.0, "status": "keep", "description": "added MUST per-unit price calculation instruction with examples"},
+    {"id": 2, "score": 15, "max_score": 15, "pass_rate": 100.0, "status": "keep", "description": "added top-5 product limit when search returns >5 candidates"},
+    {"id": 3, "score": 15, "max_score": 15, "pass_rate": 100.0, "status": "keep", "description": "added 5km/10km distance filtering for stores"},
+    {"id": 4, "score": 15, "max_score": 15, "pass_rate": 100.0, "status": "keep", "description": "improved store fallback with concrete broader-area example"},
+    {"id": 5, "score": 15, "max_score": 15, "pass_rate": 100.0, "status": "keep", "description": "reinforced zero-stock honesty — never silently omit"}
+  ],
+  "eval_breakdown": [
+    {"name": "Product Filtering", "pass_count": 18, "total": 18},
+    {"name": "Korean Output Format", "pass_count": 18, "total": 18},
+    {"name": "Visit Recommendation Quality", "pass_count": 18, "total": 18},
+    {"name": "Per-Unit Price Calculation", "pass_count": 15, "total": 18},
+    {"name": "Zero-Stock Honesty", "pass_count": 18, "total": 18}
+  ]
+}

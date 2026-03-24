@@ -1,8 +1,16 @@
 ---
+name: planning-meeting-sentinel
 description: Cursor Automation that polls Notion meeting DB every 30 min, auto-runs meeting-digest on new entries, extracts decisions + action items, DMs owners via Slack, and updates a rolling decision log in Notion. Use when "meeting sentinel", "회의 감시", "auto digest meetings". Do NOT use for single meeting digest (use meeting-digest), calendar management (use gws-calendar). Korean triggers: "회의 감시", "자동 다이제스트", "미팅 센티넬".
+metadata:
+  version: "1.0.1"
+  category: planning
 ---
 
 # Planning Meeting Sentinel
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 ## Overview
 Automated meeting intelligence pipeline that continuously monitors a Notion meeting database, runs meeting-digest on new entries, extracts decisions and action items, notifies owners via Slack DM, and maintains a rolling decision log in Notion. Designed for Cursor Automation with 30-minute polling cadence.
@@ -24,7 +32,7 @@ flowchart LR
 
 ## Trigger Conditions
 - Cursor Automation schedule (every 30 min)
-- User says "meeting sentinel", "회의 감시", "auto digest meetings"
+- User says "meeting sentinel", "auto digest meetings" (see YAML `description` for Korean triggers)
 - `/planning-meeting-sentinel` command
 
 ## Skill Chain
@@ -52,5 +60,4 @@ flowchart LR
 ```
 /planning-meeting-sentinel
 "Run meeting sentinel"
-"회의 감시 시작해줘"
 ```

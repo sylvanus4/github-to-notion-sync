@@ -1,8 +1,16 @@
 ---
+name: dependency-radar
 description: Scans Notion project DBs for cross-team linked items, builds a dependency graph, detects potential blockers, alerts on milestone delays, and generates visual dependency maps. Use when "dependency radar", "의존성 분석", "cross-team dependencies", "blocker detection". Do NOT use for single project review (use pm-execution), architecture review (use deep-review). Korean triggers: "의존성 분석", "의존성 레이더", "블로커 탐지".
+metadata:
+  version: "1.0.1"
+  category: planning
 ---
 
 # Dependency Radar
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 ## Overview
 Scans multiple Notion project databases for cross-team linked items, builds a dependency graph, detects potential blockers and milestone delays, and generates visual dependency maps for planning and risk management.
@@ -28,7 +36,7 @@ flowchart LR
 ```
 
 ## Trigger Conditions
-- "dependency radar", "의존성 분석", "cross-team dependencies", "blocker detection"
+- English phrases such as "dependency radar", "cross-team dependencies", "blocker detection" (see YAML `description` for Korean triggers)
 - `/dependency-radar` command
 - Scheduled run (e.g., daily or before sprint planning)
 
@@ -52,6 +60,5 @@ flowchart LR
 ## Example Invocation
 ```
 "Run dependency radar"
-"의존성 분석해줘"
 "Detect cross-team blockers"
 ```

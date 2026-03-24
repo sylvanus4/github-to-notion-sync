@@ -1,8 +1,16 @@
 ---
+name: feature-intake-router
 description: Automates feature request intake from Slack forms, auto-classifies by product area, creates Notion tickets with stakeholder lists, suggests RICE priority, detects duplicates, and notifies PM channel. Use when "feature intake", "기능 요청 접수", "request routing". Do NOT use for PRD generation (use prd-research-factory), backlog scoring (use /backlog-triage). Korean triggers: "기능 요청 접수", "요청 라우팅", "피처 인테이크".
+metadata:
+  version: "1.0.1"
+  category: planning
 ---
 
 # Feature Intake Router
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 ## Overview
 Automates the intake of feature requests from Slack forms or messages. Classifies requests by product area, creates structured Notion tickets with stakeholder mapping, suggests RICE priority scores, detects duplicates via knowledge graph, and notifies the PM channel.
@@ -26,7 +34,7 @@ flowchart LR
 
 ## Trigger Conditions
 - Slack form submission (feature request)
-- "feature intake", "기능 요청 접수", "request routing"
+- English phrases such as "feature intake", "request routing" (see YAML `description` for Korean triggers)
 - `/feature-intake-router` with request text
 
 ## Skill Chain
@@ -49,6 +57,5 @@ flowchart LR
 ## Example Invocation
 ```
 "Feature intake: [paste request from Slack]"
-"기능 요청 접수해줘"
 "Route this feature request to Notion"
 ```

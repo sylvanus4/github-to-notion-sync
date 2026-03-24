@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill Autoimprove — daiso-nearby-stock</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px}
+h1{font-size:1.5rem;margin-bottom:4px}
+.subtitle{color:#94a3b8;margin-bottom:24px;font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.card{background:#1e293b;border-radius:12px;padding:20px}
+.card-label{font-size:.75rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
+.card-value{font-size:2rem;font-weight:700;margin-top:4px}
+.card-value.green{color:#4ade80}.card-value.blue{color:#60a5fa}.card-value.amber{color:#fbbf24}
+.chart-container{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;padding:10px 12px;background:#334155;color:#94a3b8;font-weight:600}
+td{padding:10px 12px;border-bottom:1px solid #334155}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:600}
+.badge.baseline{background:#1e40af;color:#93c5fd}
+.badge.keep{background:#166534;color:#86efac}
+.badge.discard{background:#991b1b;color:#fca5a5}
+.status-bar{background:#1e293b;border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.pulse{width:10px;height:10px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.eval-bar{height:8px;border-radius:4px;background:#334155;overflow:hidden;margin-top:4px}
+.eval-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#4ade80,#22d3ee);transition:width .3s}
+.section-title{font-size:1.1rem;font-weight:600;margin:20px 0 12px}
+</style>
+</head>
+<body>
+<h1>Skill Autoimprove Dashboard</h1>
+<p class="subtitle">daiso-nearby-stock — autonomous mutation loop</p>
+
+<div class="status-bar" id="statusBar">
+  <div class="pulse" id="pulseIndicator"></div>
+  <span id="statusText">Initializing...</span>
+</div>
+
+<div class="grid">
+  <div class="card"><div class="card-label">Baseline</div><div class="card-value blue" id="baselineScore">—</div></div>
+  <div class="card"><div class="card-label">Best Score</div><div class="card-value green" id="bestScore">—</div></div>
+  <div class="card"><div class="card-label">Experiments</div><div class="card-value" id="expCount">0</div></div>
+  <div class="card"><div class="card-label">Keep Rate</div><div class="card-value amber" id="keepRate">—</div></div>
+</div>
+
+<div class="chart-container">
+  <canvas id="scoreChart" height="80"></canvas>
+</div>
+
+<div class="section-title">Eval Breakdown</div>
+<div class="card" style="margin-bottom:24px">
+  <table><thead><tr><th>Eval</th><th>Pass</th><th>Total</th><th>Rate</th><th style="width:40%">Progress</th></tr></thead>
+  <tbody id="evalBody"></tbody></table>
+</div>
+
+<div class="section-title">Experiment Log</div>
+<div class="card">
+  <table><thead><tr><th>#</th><th>Score</th><th>Pass Rate</th><th>Status</th><th>Description</th></tr></thead>
+  <tbody id="expBody"></tbody></table>
+</div>
+
+<script>
+let chart;
+async function refresh(){
+  try{
+    const r=await fetch('results.json?t='+Date.now());
+    const d=await r.json();
+    document.getElementById('statusText').textContent=d.status==='complete'?'Complete — all experiments finished':`Running experiment ${d.current_experiment}...`;
+    if(d.status==='complete'){document.getElementById('pulseIndicator').style.background='#60a5fa';document.getElementById('pulseIndicator').style.animation='none'}
+    document.getElementById('baselineScore').textContent=d.baseline_score.toFixed(0)+'%';
+    document.getElementById('bestScore').textContent=d.best_score.toFixed(0)+'%';
+    document.getElementById('expCount').textContent=d.experiments.length;
+    const kept=d.experiments.filter(e=>e.status==='keep').length;
+    const total=d.experiments.filter(e=>e.status!=='baseline').length;
+    document.getElementById('keepRate').textContent=total?Math.round(kept/total*100)+'%':'—';
+    const labels=d.experiments.map(e=>'#'+e.id);
+    const data=d.experiments.map(e=>e.pass_rate);
+    const colors=d.experiments.map(e=>e.status==='baseline'?'#60a5fa':e.status==='keep'?'#4ade80':'#f87171');
+    if(chart){chart.data.labels=labels;chart.data.datasets[0].data=data;chart.data.datasets[0].pointBackgroundColor=colors;chart.update()}
+    else{const ctx=document.getElementById('scoreChart').getContext('2d');chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Pass Rate %',data,borderColor:'#60a5fa',pointBackgroundColor:colors,pointRadius:6,tension:.3,fill:false}]},options:{scales:{y:{min:0,max:100,ticks:{color:'#94a3b8'}},x:{ticks:{color:'#94a3b8'}}},plugins:{legend:{display:false}}}})}
+    let eb='';d.eval_breakdown.forEach(ev=>{const pct=ev.total?Math.round(ev.pass_count/ev.total*100):0;eb+=`<tr><td>${ev.name}</td><td>${ev.pass_count}</td><td>${ev.total}</td><td>${pct}%</td><td><div class="eval-bar"><div class="eval-fill" style="width:${pct}%"></div></div></td></tr>`});
+    document.getElementById('evalBody').innerHTML=eb;
+    let xb='';d.experiments.forEach(e=>{xb+=`<tr><td>${e.id}</td><td>${e.score}/${e.max_score}</td><td>${e.pass_rate.toFixed(0)}%</td><td><span class="badge ${e.status}">${e.status}</span></td><td>${e.description}</td></tr>`});
+    document.getElementById('expBody').innerHTML=xb;
+  }catch(e){console.error(e)}
+}
+refresh();setInterval(refresh,10000);
+</script>
+</body>
+</html>

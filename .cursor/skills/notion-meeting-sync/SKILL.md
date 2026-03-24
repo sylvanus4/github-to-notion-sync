@@ -15,10 +15,14 @@ description: >-
   source (use anthropic-pptx).
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "1.1.1"
   category: "execution"
 ---
 # Notion Meeting Sync
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 Pull meeting notes from a Notion database, analyze them with PM skills,
 generate comprehensive Korean summaries with detailed action items,
@@ -36,7 +40,7 @@ produce a PowerPoint presentation, and post the final digest to Slack
 | Language | Korean |
 | MCP Server (Notion) | `plugin-notion-workspace-notion` |
 | MCP Server (Slack) | `plugin-slack-slack` |
-| Slack Channel | `#ai-platform-chapter-기획` (ID: `C0AL6D32Z7W`) |
+| Slack Channel | User-provided channel ID or workspace default (no hard-coded channel name in this file) |
 
 ## Scoping Modes
 
@@ -196,68 +200,16 @@ Combine Phase 2 analysis into a comprehensive Korean summary document.
 Save to `output/meetings/{date}/summary.md` where `{date}` is today's
 date in `YYYY-MM-DD` format.
 
-```markdown
-# 회의 요약 보고서
+Use Korean headings and labels in the saved file. Logical outline:
 
-**생성일**: YYYY-MM-DD
-**동기화 범위**: [all/latest/date/full]
-**분석된 회의 수**: N
-
----
-
-## 1. 회의 개요
-
-### 회의 1: [제목]
-
-**일시**: [날짜 및 시간]
-**참석자**: [이름 및 역할]
-**주제**: [한 줄 요약]
-
----
-
-## 2. 핵심 논의 사항
-
-### [주제 1]
-- **논의 내용**: [상세 설명]
-- **결론**: [결정된 사항]
-- **관련 참석자**: [이름]
-
-### [주제 2]
-...
-
----
-
-## 3. 주요 결정 사항
-
-| # | 결정 사항 | 결정 배경 | 영향 범위 | 담당자 |
-|---|----------|----------|----------|--------|
-| 1 | ... | ... | ... | ... |
-
----
-
-## 4. 미해결 이슈 / 오픈 질문
-
-| # | 이슈 | 관련 담당자 | 예상 해결 시점 |
-|---|------|-----------|-------------|
-| 1 | ... | ... | ... |
-
----
-
-## 5. 액션 아이템 요약
-
-[Phase 4에서 상세 문서 생성 — 여기서는 요약만]
-
-| 우선순위 | 담당자 | 액션 | 기한 |
-|---------|--------|------|------|
-| 높음 | ... | ... | ... |
-
----
-
-## 6. 다음 단계
-
-- [구체적인 후속 조치 1]
-- [구체적인 후속 조치 2]
-```
+1. **Title** — meeting summary report  
+2. **Metadata** — generated date, sync scope, meeting count  
+3. **Meeting overviews** — per meeting: title, datetime, attendees, topic line  
+4. **Key discussion** — per topic: discussion, conclusion, participants  
+5. **Decisions** — table (decision, rationale, impact, owner)  
+6. **Open issues** — table (issue, owner, expected resolution)  
+7. **Action summary** — high-level table (priority, owner, action, due); full detail in Phase 4 doc  
+8. **Next steps** — numbered follow-ups  
 
 ### Quality Checklist
 
@@ -277,57 +229,13 @@ Generate a detailed, standalone action items document.
 
 ### Output Format
 
-Save to `output/meetings/{date}/action-items.md`:
+Save to `output/meetings/{date}/action-items.md`.
 
-```markdown
-# 액션 아이템 상세 문서
+Use Korean headings in the file. Structure:
 
-**생성일**: YYYY-MM-DD
-**출처 회의**: [회의 제목 목록]
-
----
-
-## 우선순위: 긴급 (높음)
-
-### AI-001: [액션 제목]
-
-- **담당자**: [이름]
-- **기한**: [YYYY-MM-DD]
-- **우선순위**: 긴급
-- **상태**: 미시작
-- **관련 회의**: [회의 제목]
-- **배경**: [왜 이 액션이 필요한지 2-3문장]
-- **상세 내용**:
-  1. [구체적 실행 단계 1]
-  2. [구체적 실행 단계 2]
-  3. [구체적 실행 단계 3]
-- **성공 기준**: [완료 판단 기준]
-- **의존성**: [선행 조건이나 관련 액션]
-- **비고**: [추가 참고 사항]
-
----
-
-## 우선순위: 보통 (중간)
-
-### AI-002: [액션 제목]
-...
-
----
-
-## 우선순위: 낮음
-
-### AI-003: [액션 제목]
-...
-
----
-
-## 액션 아이템 대시보드
-
-| ID | 액션 | 담당자 | 기한 | 우선순위 | 상태 | 의존성 |
-|----|------|--------|------|---------|------|--------|
-| AI-001 | ... | ... | ... | 긴급 | 미시작 | - |
-| AI-002 | ... | ... | ... | 보통 | 미시작 | AI-001 |
-```
+- **Document title** and metadata (date, source meeting titles).  
+- **Priority sections** — urgent / normal / low; each action: ID, title, owner, due date, priority, status, related meeting, background, numbered steps, success criteria, dependencies, notes.  
+- **Dashboard table** — all actions with ID, summary, owner, due, priority, status, dependencies.
 
 ### Action Item Extraction Rules
 
@@ -357,14 +265,14 @@ Design the deck with these slides (adjust count based on content volume):
 
 | # | Slide | Content |
 |---|-------|---------|
-| 1 | 표지 | 회의 요약 보고서 + 날짜 + 팀명 |
-| 2 | 목차 | 주요 섹션 overview |
-| 3 | 회의 개요 | 참석자, 일시, 주제 요약 |
-| 4-N | 핵심 논의 사항 | 각 주제별 1슬라이드 (핵심 포인트 + 결론) |
-| N+1 | 주요 결정 사항 | 결정 테이블 or 카드 레이아웃 |
-| N+2 | 액션 아이템 | 우선순위별 액션 테이블 |
-| N+3 | 미해결 이슈 | 오픈 질문 + 예상 해결 시점 |
-| N+4 | 다음 단계 | 후속 조치 + 타임라인 |
+| 1 | Cover | Meeting summary title + date + team (Korean copy) |
+| 2 | Agenda | Major sections |
+| 3 | Overview | Attendees, time, topics |
+| 4-N | Discussion | One slide per topic (points + conclusion) |
+| N+1 | Decisions | Table or cards |
+| N+2 | Actions | Priority-grouped table |
+| N+3 | Open issues | Questions + ETA |
+| N+4 | Next steps | Follow-ups + timeline |
 
 ### 5.3 Apply Theme
 
@@ -401,50 +309,32 @@ Save to `output/meetings/{date}/meeting-summary.pptx`
 
 ## Phase 6: Slack Post
 
-Post the meeting digest to `#ai-platform-chapter-기획` using the Slack MCP.
+Post the meeting digest to the configured Slack channel using the Slack MCP.
 PPTX files are NOT uploaded — only text-based summaries are posted.
 
 ### 6.1 Main Message
 
-Send the first message to channel `C0AL6D32Z7W` with a high-level digest:
+Send the first message to the target `channel_id` with a high-level digest:
 
 ```
 CallMcpTool(
   server="plugin-slack-slack",
   toolName="slack_send_message",
   arguments={
-    "channel_id": "C0AL6D32Z7W",
+    "channel_id": "<slack-channel-id>",
     "message": "<constructed message>"
   }
 )
 ```
 
-**Message format** (adapt content from `summary.md`):
+**Message format** (adapt content from `summary.md`; Korean labels in the posted message):
 
-```markdown
-📋 *회의 요약 보고서* — {date}
-
-*동기화 범위*: {scope} | *분석된 회의 수*: {count}
-
----
-
-*📌 회의 목록*
-{for each meeting}
-• *{title}* — {date/time}, 참석: {participants}
-{end for}
-
----
-
-*🔑 주요 결정 사항*
-{numbered list of key decisions}
-
----
-
-*⚠️ 미해결 이슈*
-{numbered list of open issues, if any}
-
-> 상세 내용은 쓰레드를 확인해 주세요.
-```
+- Header: summary report title + date  
+- Line: sync scope + meeting count  
+- Meeting list: title, datetime, participants per row  
+- Key decisions: numbered list  
+- Open issues: numbered list  
+- Footer: pointer to thread for detail  
 
 Keep this message under 4000 characters. If the summary is too long,
 truncate discussion details and refer to the thread.
@@ -452,19 +342,9 @@ truncate discussion details and refer to the thread.
 ### 6.2 Thread: Detailed Discussion Points
 
 Reply in-thread (`thread_ts` = main message timestamp) with the detailed
-discussion points from `summary.md` Section 2 ("핵심 논의 사항"):
+discussion points from `summary.md` Section 2 (key discussion; Korean headings in the post):
 
-```markdown
-💬 *핵심 논의 사항*
-
-*[주제 1]*
-• 논의 내용: ...
-• 결론: ...
-
-*[주제 2]*
-• 논의 내용: ...
-• 결론: ...
-```
+- Thread title line + per-topic blocks: discussion bullets, conclusion bullets.
 
 Split into multiple thread messages if content exceeds 4000 characters.
 
@@ -472,30 +352,13 @@ Split into multiple thread messages if content exceeds 4000 characters.
 
 Reply in-thread with the action items from `action-items.md`:
 
-```markdown
-✅ *액션 아이템* ({total_count}건)
-
-*🔴 긴급*
-• `AI-001` {action} — 담당: {owner}, 기한: {due_date}
-• `AI-002` ...
-
-*🟡 보통*
-• `AI-003` {action} — 담당: {owner}, 기한: {due_date}
-
-*🟢 낮음*
-• `AI-004` ...
-```
+- Header with total count; group by priority (urgent / normal / low); each line: ID, action, owner, due date (Korean labels in post).
 
 ### 6.4 Thread: Next Steps
 
 Reply in-thread with the next steps from `summary.md` Section 6:
 
-```markdown
-🚀 *다음 단계*
-1. {next step 1}
-2. {next step 2}
-3. ...
-```
+- Numbered list with a “next steps” header (Korean in post).
 
 ### 6.5 Slack Post Rules
 
@@ -543,10 +406,10 @@ Actions:
 4. Generate `output/meetings/2026-03-10/summary.md` (Korean)
 5. Generate `output/meetings/2026-03-10/action-items.md` with 12 action items
 6. Create `output/meetings/2026-03-10/meeting-summary.pptx` (10 slides)
-7. Post digest to `#ai-platform-chapter-기획`: main message + 3 thread replies
+7. Post digest to Slack: main message + 3 thread replies
 
 Result: Complete meeting digest package in `output/meetings/2026-03-10/`
-and Slack thread in `#ai-platform-chapter-기획`
+and Slack thread in the target channel
 
 ### Example 2: Latest meeting only
 
@@ -556,7 +419,7 @@ Actions:
 1. Query Notion DB → fetch only the most recently edited meeting
 2. Single meeting analysis (no parallel subagents needed)
 3. Generate summary, action items, and PPTX for that one meeting
-4. Post digest to `#ai-platform-chapter-기획`
+4. Post digest to Slack
 
 Result: Focused output for the single latest meeting, posted to Slack
 
@@ -568,7 +431,7 @@ Actions:
 1. Ignore `.sync-state.json` → treat all DB pages as new
 2. Re-fetch and re-analyze all meetings
 3. Generate comprehensive cross-meeting synthesis
-4. Post full digest with cross-meeting insights to `#ai-platform-chapter-기획`
+4. Post full digest with cross-meeting insights to Slack
 
 Result: Complete refresh of all meeting data with cross-meeting insights,
 posted to Slack
@@ -587,7 +450,7 @@ posted to Slack
 | No new meetings to sync | Report "No new meetings found since last sync" and exit |
 | Slack message too long | Split into multiple thread replies, each under 5000 chars |
 | Slack MCP fails | Save all outputs locally, report Slack posting failure, do not block pipeline |
-| Slack channel not found | Verify channel ID `C0AL6D32Z7W`, search by name `ai-platform-chapter-기획` |
+| Slack channel not found | Verify `channel_id` and workspace permissions |
 
 ## Integration Notes
 

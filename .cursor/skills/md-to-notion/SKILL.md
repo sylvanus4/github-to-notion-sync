@@ -16,10 +16,14 @@ description: >-
   Korean triggers: "노션 업로드", "마크다운 노션", "노션 페이지", "노션에 올려", "노션에 정리".
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "2.0.1"
   category: "execution"
 ---
 # md-to-notion
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English. User-facing status messages and summaries follow this rule; page body mirrors the source markdown language.
 
 Lightweight one-shot publisher: point at local markdown files and a Notion
 parent page, get structured sub-pages. Handles pipe-table conversion, large
@@ -148,7 +152,7 @@ When a file is split (JSON has `"split": true`):
    ```
 
 2. **Create sub-pages** under the newly created parent page, one per part.
-   Use `"{N}부: {subtitle}"` as each sub-page title (e.g., "1부: 리스크 분석").
+   Use `Part {N}: {subtitle}` as each sub-page title (localized labels in Korean deliverables if required).
 
 3. **Record** the parent page ID from step 1 for verification.
 

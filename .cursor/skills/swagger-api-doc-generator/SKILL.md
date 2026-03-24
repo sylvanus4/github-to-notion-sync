@@ -2,26 +2,30 @@
 name: swagger-api-doc-generator
 description: Swagger/OpenAPI URL에서 API 명세 문서를 Markdown으로 생성합니다. Swagger URL 제공 시, API 문서화 요청 시, 특정 API 그룹의 명세가 필요할 때 사용합니다. Do NOT use for 코드 생성(fsd-development), 화면 구현(implement-screen), 또는 화면 기획서 작성(screen-description).
 metadata:
-  version: 1.1.0
+  version: 1.1.1
   category: generation
 ---
 
 # Swagger API Documentation Generator
 
-Swagger/OpenAPI JSON에서 깔끔한 Markdown API 문서를 생성합니다.
+Produce clean Markdown API reference documents from Swagger/OpenAPI JSON.
 
-## 워크플로우
+## Output language
 
-### Step 1: Swagger JSON 가져오기
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
+
+## Workflow
+
+### Step 1: Fetch Swagger JSON
 
 ```bash
 curl -s {SWAGGER_URL} > /tmp/swagger-latest.json
 wc -l /tmp/swagger-latest.json
 ```
 
-### Step 2: API 그룹 확인
+### Step 2: List API groups
 
-사용자가 특정 API를 지정하지 않은 경우, 사용 가능한 태그(그룹) 목록을 보여줌:
+If the user did not specify a group, show available tags:
 
 ```bash
 cat /tmp/swagger-latest.json | python3 -c "
@@ -32,7 +36,7 @@ for t in tags:
     print(f\"- {t.get('name')}: {t.get('description', '')}\")"
 ```
 
-### Step 3: 대상 API 경로 추출
+### Step 3: Extract paths
 
 ```bash
 cat /tmp/swagger-latest.json | python3 -c "
@@ -48,7 +52,7 @@ for path in sorted(filtered.keys()):
         print(f'        Summary: {summary}')"
 ```
 
-### Step 4: 스키마 정의 추출
+### Step 4: Extract schema definitions
 
 ```bash
 cat /tmp/swagger-latest.json | python3 -c "
@@ -62,63 +66,48 @@ for name in sorted(filtered.keys()):
     print(json.dumps(filtered[name], indent=2, ensure_ascii=False))"
 ```
 
-### Step 5: Markdown 문서 생성
+### Step 5: Generate Markdown
 
-문서 저장 위치: `ai-platform/frontend/docs/api/{api-name}/{api-name}-api-spec.md`
+Default save path pattern: `ai-platform/frontend/docs/api/{api-name}/{api-name}-api-spec.md` (adjust to the active repo layout).
 
-상세 템플릿은 [templates.md](templates.md) 참조.
+Templates: [templates.md](templates.md).
 
-## 문서 구조
+## Document structure
 
-```markdown
-# {API Name} API Specification
+Final Markdown MUST use Korean section titles per output rule. Suggested outline (translate headings appropriately): Authentication → API overview → Endpoint index → Endpoint details (request/response) → Error responses → Appendix (schemas).
 
-> **Source**: {swagger_url}
+## Checklist
 
-## 인증
-## API 구조 개요
-## 전체 Endpoints 목록
-## 각 API 상세
-- Request (Path/Query/Body)
-- Response Schema
-## 에러 응답
-## Appendix: Type Definitions
-```
-
-## 체크리스트
-
-- [ ] Swagger JSON 정상 다운로드
-- [ ] 대상 API 경로 확인
-- [ ] Request 스키마 추출 (Path, Query, Body)
-- [ ] Response 스키마 추출
-- [ ] Enum 값 정리
-- [ ] 예시 값 포함
-- [ ] HTTP Status Code 정리
+- [ ] Swagger JSON downloaded successfully
+- [ ] Target paths confirmed
+- [ ] Request schemas (path, query, body)
+- [ ] Response schemas
+- [ ] Enum values documented
+- [ ] Example values included
+- [ ] HTTP status codes listed
 
 ## Examples
 
-### Example 1: 특정 API 그룹 문서화
-User says: "http://localhost:3000/swagger/doc.json 에서 MyTemplates API 문서 만들어줘"
-Actions:
-1. Swagger JSON 다운로드 및 파싱
-2. MyTemplates 태그에 해당하는 경로와 스키마만 필터링
-3. Markdown 문서 생성하여 `docs/api/my-templates/my-templates-api-spec.md`에 저장
-Result: MyTemplates 관련 전체 엔드포인트/스키마가 포함된 API 문서 생성
+### Example 1: Document one API group
 
-### Example 2: API 그룹 선택 안내
-User says: "http://localhost:3000/swagger/index.html 에서 API 문서 만들어줘"
-Actions:
-1. Swagger JSON URL 추출 (`/swagger/doc.json`으로 변환)
-2. 사용 가능한 API 그룹(태그) 목록 제시
-3. 사용자가 선택한 그룹에 대해 문서 생성
-Result: 사용자가 선택한 API 그룹의 문서가 생성됨
+User: "Build docs from http://localhost:3000/swagger/doc.json for MyTemplates"
+
+Actions: download → filter by MyTemplates tag → write `docs/api/my-templates/my-templates-api-spec.md`.
+
+### Example 2: Let user pick a group
+
+User: "Generate API docs from http://localhost:3000/swagger/index.html"
+
+Actions: resolve JSON URL (often `/swagger/doc.json`) → list tags → generate for the chosen tag.
 
 ## Troubleshooting
 
-### Swagger JSON 다운로드 실패
-Cause: URL이 잘못되었거나, 서버가 실행 중이 아님, 또는 인증이 필요한 경로
-Solution: URL을 `/swagger/doc.json` 형태로 확인. 서버 실행 상태 확인. 인증 필요 시 토큰 헤더 추가
+### Download fails
 
-### definitions 키가 비어 있음
-Cause: OpenAPI 3.0+ 에서는 `definitions` 대신 `components.schemas`를 사용
-Solution: `data.get('components', {}).get('schemas', {})` 경로도 확인. OpenAPI 버전에 따라 분기 처리
+Cause: bad URL, server down, or auth required.  
+Fix: normalize to `/swagger/doc.json`, verify server, add auth headers if needed.
+
+### Empty `definitions`
+
+Cause: OpenAPI 3 uses `components.schemas`.  
+Fix: also read `data.get('components', {}).get('schemas', {})` and branch by spec version.

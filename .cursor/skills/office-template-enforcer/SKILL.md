@@ -15,11 +15,15 @@ description: >-
   Do NOT use for non-office document generation like PDFs or spreadsheets.
 metadata:
   author: "thakicloud"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "document"
 ---
 
 # Office Template Enforcer
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 Orchestrate the creation of corporate-compliant office documents by routing user requests to the correct template engine. This skill ensures that all DOCX and PPTX outputs adhere to approved templates with zero style drift.
 
@@ -50,7 +54,7 @@ office-template-enforcer (this skill)
 ### Step 1: Analyze Request
 
 Determine from the user's request:
-- **Document type**: PPTX (presentation, slides, deck, 발표자료, PPT) or DOCX (report, document, proposal text, 보고서, 문서)
+- **Document type**: PPTX (presentation, slides, deck) or DOCX (report, document, proposal text); Korean type keywords live in YAML `description`
 - **Content topic**: What the document is about
 - **Template hint**: If the user mentions a specific template name or ID
 
@@ -92,8 +96,8 @@ See `references/template-catalog.md` for the full catalog.
 
 | Template ID | Type | Purpose | Keywords |
 |-------------|------|---------|----------|
-| thaki-proposal-v1 | PPTX | Corporate proposal deck | proposal, pitch, 제안서, 발표 |
-| thaki-report-v1 | DOCX | Corporate report | report, analysis, 보고서, 분석 |
+| thaki-proposal-v1 | PPTX | Corporate proposal deck | proposal, pitch, deck |
+| thaki-report-v1 | DOCX | Corporate report | report, analysis, memo |
 
 ## Content Generation Rules
 
@@ -106,7 +110,7 @@ See `references/authoring-rules.md` for detailed rules. Key rules:
 
 ### Example 1: PPTX Proposal
 
-**User**: "우리 회사 제안서 템플릿으로 AI PaaS 제안 PPT 만들어줘"
+**User**: "Create an AI PaaS proposal deck using our corporate proposal template"
 
 **Action**: Detect PPTX + proposal → select `thaki-proposal-v1` → generate JSON spec with 5 slides → delegate to `ppt-template-engine` → validate → return `output/ai-paas-proposal.pptx`
 
@@ -118,9 +122,9 @@ See `references/authoring-rules.md` for detailed rules. Key rules:
 
 ### Example 3: Ambiguous Request
 
-**User**: "템플릿으로 문서 만들어줘"
+**User**: "Make a document from template"
 
-**Action**: Ambiguous type → ask user: "PPTX (발표자료) or DOCX (보고서)?" → proceed based on answer
+**Action**: Ambiguous type → ask user: PPTX or DOCX? → proceed based on answer
 
 ## Failure Handling
 

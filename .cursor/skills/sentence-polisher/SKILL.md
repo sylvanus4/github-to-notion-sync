@@ -14,10 +14,16 @@ description: >-
   kwp-brand-voice-guideline-generation), or translation (handle directly).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "generation"
 ---
 # Sentence Polisher
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
+
+Polished passages match input language (Korean in → Korean out; English in → English out). Change summaries and tone notes default to Korean for this workspace unless the caller requests otherwise.
 
 Bilingual (Korean + English) active text fixer. Unlike pm-toolkit `grammar-check` (which only suggests), this skill APPLIES fixes and returns polished text ready for use.
 
@@ -38,7 +44,7 @@ Identify the primary language of the input text:
 Identify before scanning:
 - **Text purpose**: email reply, report, Slack message, presentation, documentation
 - **Target audience**: internal team, external client, executive, technical peer
-- **Expected tone**: formal (-합니다체), semi-formal (-해요체), casual (-하다체), diplomatic
+- **Expected tone**: formal business, semi-formal, casual, or diplomatic (Korean speech levels when polishing Korean)
 
 If invoked by another skill (e.g., `gws-email-reply`), inherit the context from the caller.
 
@@ -49,11 +55,11 @@ Check 4 categories. For the full error taxonomy and examples, see [references/er
 **Grammar**
 - Spelling, punctuation, subject-verb agreement, tense consistency
 - English: article usage (a/an/the), preposition selection
-- Korean: particle errors (조사 — 은/는, 이/가, 을/를, 에/에서)
+- Korean: particle errors (topic/object/locative and related markers)
 
 **Logic**
 - Contradictions within the text
-- Unsupported or vague claims ("많은", "다양한" without specifics)
+- Unsupported or vague quantifiers without specifics
 - Incomplete thoughts or dangling references
 
 **Flow**
@@ -63,12 +69,12 @@ Check 4 categories. For the full error taxonomy and examples, see [references/er
 - Awkward phrasing or unnatural word order
 
 **Korean-specific**
-- Honorific level consistency (존댓말/반말 mixing)
-- Spacing errors (띄어쓰기)
-- **Konglish detection is MANDATORY**: always replace unacceptable Konglish with Korean equivalents per the reference taxonomy. Acceptable terms (미팅, 피드백, etc.) may remain. When in doubt, prefer the Korean equivalent in formal contexts and allow Konglish in casual/tech contexts.
+- Honorific level consistency (polite vs plain mixing)
+- Spacing (word boundaries)
+- **Konglish detection is MANDATORY**: replace unacceptable loanword usage with Korean equivalents per [references/error-taxonomy.md](references/error-taxonomy.md). Keep widely accepted loanwords when listed as acceptable. Prefer Korean in formal contexts; allow established tech loanwords in casual/technical contexts.
 - Excessive English mixing where Korean equivalents exist
-- Formal ending consistency (-합니다/-해요/-하다 should not mix)
-- Double-subject errors (이중 주어)
+- Formal ending consistency (do not mix speech levels within one document)
+- Double-subject constructions
 
 ### Step 4: Auto-fix
 
@@ -133,103 +139,17 @@ No issues found. Text is clean.
 
 ## Examples
 
-### Example 1: Korean email polish
+### Example 1: Korean formal email
 
-**User says:** "이 메일 문장 다듬어줘: 안녕하세요 김과장님, 어제 말씀하신 건에 대해서 검토해봤는데요 결론적으로는 진행하는게 좋을것 같습니다 감사합니다"
+User requests polish on a run-on Korean business email. Run Korean mode, fix spacing/punctuation/particles, unify formal endings, return **Polished Text** + **Change Summary** + **Tone Assessment** in Korean.
 
-**Actions:**
-1. Detect: Korean mode
-2. Context: email reply, formal tone expected
-3. Scan: spacing errors (3), punctuation missing (2), particle issue (1)
-4. Fix and return polished version with change summary
+### Example 2: English internal note
 
-**Result:**
-```
-## Polished Text
+User pastes English with grammar and flow issues. Run English mode; fix verb agreement, run-ons, redundancy; return polished English with counts.
 
-안녕하세요, 김 과장님.
+### Example 3: Mixed Korean–English Slack
 
-어제 말씀하신 건에 대해 검토해 봤는데요, 결론적으로는 진행하는 것이 좋을 것 같습니다.
-
-감사합니다.
-
-## Change Summary
-- Grammar: 2 fixes (punctuation: 2)
-- Korean-specific: 4 fixes (spacing: 3, particle: 1)
-- Total: 6 fixes applied
-
-### Changes Applied
-1. "안녕하세요 김과장님," → "안녕하세요, 김 과장님." — [punctuation: comma after greeting, period at end]
-2. "검토해봤는데요" → "검토해 봤는데요," — [spacing: 본용언+보조용언, punctuation: comma]
-3. "진행하는게" → "진행하는 것이" — [spacing: 의존명사 띄기]
-4. "좋을것 같습니다" → "좋을 것 같습니다" — [spacing: 의존명사 띄기]
-5. "감사합니다" → "감사합니다." — [punctuation: period]
-6. "말씀하신 건에 대해서" → "말씀하신 건에 대해" — [particle: 불필요한 조사 제거]
-
-## Tone Assessment
-Text aligns with formal tone for business email context.
-```
-
-### Example 2: English text polish
-
-**User says:** "proofread: We are planning to have a meeting about the new feature, it will be discuss about the timeline and also the resource that is needed."
-
-**Actions:**
-1. Detect: English mode
-2. Context: inferred as internal communication
-3. Scan: grammar (subject-verb: "discuss" → "discussed"), flow (run-on, passive), redundancy ("also")
-4. Fix and return
-
-**Result:**
-```
-## Polished Text
-
-We are planning a meeting about the new feature to discuss the timeline and required resources.
-
-## Change Summary
-- Grammar: 1 fix (verb form)
-- Flow: 2 fixes (run-on sentence merged, redundancy removed)
-- Total: 3 fixes applied
-
-### Changes Applied
-1. "We are planning to have a meeting about" → "We are planning a meeting about" — [flow: reduce verbosity]
-2. "it will be discuss about the timeline and also the resource that is needed" → "to discuss the timeline and required resources" — [grammar: verb form, flow: remove "also" and nominalization]
-3. Run-on comma splice → single coherent sentence — [flow: sentence merge]
-
-## Tone Assessment
-Text aligns with semi-formal tone for internal communication.
-```
-
-### Example 3: Mixed Korean-English Slack message
-
-**User says:** "문장 다듬어줘: 오늘 deployment 이슈 핸들링 하느라 수고했어요. 내일 리뷰 미팅에서 discuss 해볼게요. 일단 PR은 어사인 해놨습니다."
-
-**Actions:**
-1. Detect: Bilingual mode (mixed Korean-English)
-2. Context: Slack message, semi-formal tone
-3. Scan: Konglish (핸들링→처리, discuss→논의, 어사인→배정), honorific mixing (해요/합니다), spacing
-4. Fix and return
-
-**Result:**
-```
-## Polished Text
-
-오늘 배포 이슈를 처리하느라 수고했어요. 내일 리뷰 미팅에서 논의해 볼게요. 일단 PR은 배정해 놨어요.
-
-## Change Summary
-- Korean-specific: 5 fixes (Konglish: 3, honorific: 1, spacing: 1)
-- Total: 5 fixes applied
-
-### Changes Applied
-1. "핸들링" → "처리" — [Konglish: unacceptable term]
-2. "discuss" → "논의" — [Konglish: English verb in Korean sentence]
-3. "어사인" → "배정" — [Konglish: unacceptable term]
-4. "해놨습니다" → "해 놨어요" — [honorific: unified to -해요체 matching rest of message]
-5. "해볼게요" → "해 볼게요" — [spacing: 본용언+보조용언]
-
-## Tone Assessment
-Text aligns with semi-formal tone for team Slack communication.
-```
+User pastes informal team Slack text mixing languages. Run bilingual mode; normalize Konglish per taxonomy; align speech level; fix spacing; return Korean-forward copy with rationale bullets.
 
 ### Example 4: Pipeline invocation (no user interaction)
 

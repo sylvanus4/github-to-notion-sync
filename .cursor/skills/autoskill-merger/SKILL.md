@@ -1,103 +1,129 @@
 ---
 name: autoskill-merger
 description: >-
-  Merge a skill candidate into an existing skill with semantic union of
-  constraints, triggers, and tags. Use when autoskill-judge returns a merge
-  decision, when the user asks to "merge skill candidate", "update skill with
-  new constraints", "스킬 병합", "autoskill merge", or when invoked by
-  autoskill-evolve. Do NOT use for creating new skills (use create-skill),
-  skill quality auditing (use skill-optimizer), or manual skill editing.
+  스킬 후보를 기존 스킬에 semantic union으로 병합. 제약, 트리거, 태그를 의미
+  기반으로 통합하고 패치 버전을 범프. autoskill-judge의 merge 결정을 실행.
+  Use when autoskill-judge returns a merge decision, "스킬 병합", "autoskill
+  merge", "merge skill candidate", "기존 스킬에 새 제약 추가", "스킬 업데이트
+  병합". Do NOT use for creating new skills (use create-skill), skill quality
+  auditing (use skill-optimizer), or manual skill editing (edit directly).
 metadata:
   author: thaki
-  version: "0.1.0"
+  version: "1.0.1"
   category: self-improvement
 ---
 
 # AutoSkill Merger
 
-Merge a skill candidate into an existing skill, producing an improved version with a patch version bump. Performs semantic union of constraints, triggers, and tags while preserving the existing skill's identity. Adapts AutoSkill's P_merge methodology for the Cursor SKILL.md format.
+Merge a skill candidate into an existing skill to produce an improved version. Unify constraints, triggers, and tags by **semantic union** while preserving the existing skill’s identity.
 
-## Instructions
+## Output language
 
-### Input
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
-- The existing SKILL.md file path (from `autoskill-judge` decision's `target_skill_id`)
-- The skill candidate JSON (from `autoskill-extractor`)
+## Input
 
-### Merge Process
+- Path to existing SKILL.md (`target_skill_id` from `autoskill-judge`)
+- Candidate JSON from `autoskill-extractor`
 
-1. **Read Existing Skill**: Parse the target SKILL.md file including frontmatter metadata and body content.
+## Workflow
 
-2. **Apply Merge Principles**:
+### Step 1: Read existing skill
 
-   - **Shared Intent**: Preserve the existing skill's core capability identity
-   - **Diff-Aware**: Import only unique, non-conflicting constraints from the candidate
-   - **Semantic Union**: Combine constraints by meaning, not raw concatenation
-   - **Recency Guard**: When conflicts arise, prefer the candidate's recent-topic intent
-   - **Anti-Duplication**: Never duplicate section headers, bullets, or blocks
+Parse target SKILL.md into frontmatter + body.
 
-3. **Field-Level Merge Rules**:
+### Step 2: Apply merge principles
 
-   | Field | Merge Strategy |
-   |-------|---------------|
-   | `name` | Keep existing unless candidate is clearly more specific |
-   | `description` | Keep existing structure, add new scope if candidate expands usage |
-   | `prompt` / body | Semantic union of Goal, Constraints, Workflow sections |
-   | `triggers` | Union + deduplicate, max 8 |
-   | `tags` | Union + deduplicate, max 8 |
-   | `examples` | Append new examples, max 5 total |
+- **Shared intent**: Preserve core capability identity
+- **Diff-aware**: Take only unique, non-conflicting constraints from the candidate
+- **Semantic union**: Merge by meaning, not string concatenation
+- **Recency guard**: On conflict, prefer the candidate’s recent intent
+- **Anti-duplication**: No duplicate section headers, bullets, or blocks
 
-4. **Version Bump**: Increment the patch version in the SKILL.md frontmatter:
-   - If no version exists, set `v0.1.0`
-   - Otherwise increment: `v0.1.N` → `v0.1.N+1`
+### Step 3: Field-level merge rules
 
-5. **Changelog Entry**: Add a brief changelog comment at the bottom of the SKILL.md:
-   ```
-   <!-- autoskill-merge v0.1.N+1 | YYYY-MM-DD | Merged from candidate: <name> -->
-   ```
+| Field | Strategy |
+|-------|----------|
+| `name` | Change only if the candidate is clearly more specific |
+| `description` | Keep existing shape; extend if the candidate broadens scope |
+| Body | Semantic union of Goal, Constraints, Workflow sections |
+| `triggers` | Union, dedupe, cap at 8 |
+| `tags` | Union, dedupe, cap at 8 |
+| `examples` | Append new examples, max 5 total additions |
 
-6. **Conflict Resolution**:
-   - If candidate contradicts an existing constraint, flag for human review
-   - If candidate adds a constraint that narrows existing scope, include it
-   - If candidate adds a constraint that broadens scope significantly, flag for review
+### Step 4: Version bump
 
-### Output
+Bump patch in frontmatter:
+- Missing version → set `1.0.0`
+- Existing → increment patch: `1.0.N` → `1.0.N+1`
 
-- Updated SKILL.md file written in place
-- Merge report JSON to `outputs/autoskill-merges/<date>-<skill-name>.json`:
+### Step 5: Change log
+
+Append a comment at the bottom of SKILL.md:
+
+```
+<!-- autoskill-merge v1.0.N+1 | YYYY-MM-DD | Merged from candidate: <name> -->
+```
+
+### Step 6: Conflict resolution
+
+- Candidate contradicts existing constraint → flag human review
+- Candidate narrows scope → include
+- Candidate greatly expands scope → flag review
+
+## Output
+
+- Updated SKILL.md in place
+- Merge report JSON: `outputs/autoskill-merges/<date>-<skill-name>.json`
 
 ```json
 {
   "target_skill": "skill-name",
-  "previous_version": "v0.1.5",
-  "new_version": "v0.1.6",
+  "previous_version": "1.0.5",
+  "new_version": "1.0.6",
   "changes": {
     "triggers_added": ["new trigger"],
     "constraints_added": ["new constraint"],
     "conflicts_flagged": []
   },
   "source_candidate": "candidate-name",
-  "merge_date": "2026-03-14"
+  "merge_date": "2026-03-24"
 }
 ```
 
-### Reference Prompts
+## Integration
 
-See `references/merge-prompt.md` for the full adapted merge prompt template.
+- Receive `merge` decisions from `autoskill-judge`
+- Modify files under `.cursor/skills/`
+- Optionally trigger `skill-optimizer` after merge
 
-### Integration
+## Examples
 
-- Receives `merge` decisions from `autoskill-judge`
-- Modifies existing files in `.cursor/skills/`
-- Invoked by `autoskill-evolve` orchestrator
-- Optionally triggers `skill-optimizer` audit after merge
+### Example 1: Trigger merge
 
-### SEFO Integration (CRDT Merge)
+Existing: `policy-text-generator` (8 triggers)  
+Candidate: 2 new Korean triggers + 1 tone constraint
 
-Replace heuristic field-level merging with deterministic CRDT semantics from the FSE module:
+Result:
+- Triggers: remove 1 duplicate from existing 8, add 2 new → trim to 8 by priority
+- Constraints: add to tone guideline section
+- Version: 1.0.0 → 1.0.1
 
-1. **Version vector check**: Before merging, retrieve the existing skill's SEFO representation via `GET /api/v1/sefo/skills?search=<skill_name>`. Compare version vectors to determine merge strategy (accept, keep, LWW, or fork).
-2. **CRDT merge via gossip**: If both skills exist in SEFO, POST the candidate as a `GossipMessage` to `POST /api/v1/sefo/fse/gossip` with `skill_name`, `skill_data`, and `version_vector`. The FSE module handles deterministic merge or fork creation.
-3. **Fork resolution**: If the merge results in a fork (conflicting grammar rules), retrieve the fork via `GET /api/v1/sefo/fse/status` and resolve via `POST /api/v1/sefo/fse/forks/{fork_id}/resolve`.
-4. **Sign merged skill**: After successful merge, sign the updated skill via `POST /api/v1/sefo/tsg/sign` to establish provenance chain continuity.
-5. **Fallback**: If the SEFO backend is unavailable, fall back to the existing heuristic merge process. Log a warning for later reconciliation.
+### Example 2: Workflow extension merge
+
+Existing: `doc-quality-gate` (unified 7 dimensions)  
+Candidate: add “accessibility” dimension
+
+Result:
+- Add dimension or extend an existing dimension (by scope)
+- No conflict → auto-merge
+- Version: 1.0.0 → 1.0.1
+
+## Error Handling
+
+| Error | Response |
+|-------|----------|
+| Target skill missing | Verify path; re-check autoskill-judge decision |
+| Candidate JSON parse error | Validate format; suggest re-running autoskill-extractor |
+| Body exceeds 500 lines after merge | Move large blocks to `references/` |
+| Unresolvable conflict | Flag human review; preserve both versions for review |

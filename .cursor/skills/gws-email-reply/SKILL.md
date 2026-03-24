@@ -16,10 +16,14 @@ description: >-
   gws-gmail directly).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "comms-automation"
 ---
 # GWS Email Reply
+
+## Output language
+
+Match the original email language for the reply body. When Korean is required, follow project norms: all user-visible reply text in natural Korean; technical terms in English where standard. This skill file is English.
 
 AI-drafted email replies via Google Workspace CLI with context retrieval, brand voice, and mandatory sentence polishing.
 
@@ -27,7 +31,7 @@ AI-drafted email replies via Google Workspace CLI with context retrieval, brand 
 
 ```
 Email: hyojung.han@thakicloud.co.kr
-Display Name: 한효정 (Hyojung Han)
+Display Name: Hyojung Han (use workspace-configured Korean display name in signatures when replying in Korean)
 Organization: ThakiCloud
 Default Language: Korean (English for technical terms)
 ```
@@ -124,9 +128,9 @@ For all drafts:
 - Apply `kwp-brand-voice-brand-voice-enforcement` for ThakiCloud professional tone
 - Match the language of the original email (Korean reply to Korean email, English to English)
 - Include proper greeting matching the sender's formality level
-- Sign off with "한효정 드림" (Korean) or "Best regards, Hyojung Han" (English)
+- Sign off with the standard Korean business closing for this sender (name + formal closing) when replying in Korean, or "Best regards, Hyojung Han" in English
 - Prepend "Re: " to subject if not already present
-- **NEVER hallucinate facts**: only reference information present in the original email, recall context, or cognee results. If asked about pricing, features, or capabilities not found in context, write "확인 후 안내드리겠습니다" (Korean) or "I'll confirm and get back to you" (English) instead of inventing details
+- **NEVER hallucinate facts**: only reference information present in the original email, recall context, or cognee results. If asked about pricing, features, or capabilities not found in context, defer politely in the reply language (Korean deferral equivalent of "I'll confirm and get back to you") instead of inventing details
 
 ### Step 5: Polish with sentence-polisher (MANDATORY)
 
@@ -206,7 +210,7 @@ After successful send:
 
 ### Example 2: Batch reply to unread emails
 
-**User says:** "답장 안 한 메일 정리해줘"
+**User says:** "Summarize unread emails I still need to reply to"
 
 **Actions:**
 1. Fetch unread emails: `gws gmail +triage --max 5 --query 'is:unread'`
@@ -238,5 +242,5 @@ After successful send:
 | Send failure after approval | Retry once; if still failing, save as Gmail draft and notify user |
 | Thread ID not found | Fall back to simple reply with "Re: " subject prefix |
 | Very long email chain | Summarize the chain before drafting; focus reply on the latest message |
-| Email has attachments | Acknowledge attachments in the reply (e.g., "첨부 파일 확인했습니다"); do NOT claim to have read files that weren't extracted |
+| Email has attachments | Acknowledge attachments in the reply language (e.g., confirm receipt without claiming review); do NOT claim to have read files that weren't extracted |
 | Email contains URLs | Mention having reviewed the linked content only if actually fetched via defuddle/WebFetch |

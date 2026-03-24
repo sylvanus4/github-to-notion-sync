@@ -1,101 +1,128 @@
 ---
 name: autoskill-extractor
 description: >-
-  Extract reusable skill candidates from Cursor agent transcripts by analyzing
-  user interaction patterns, corrections, and durable preferences. Use when the
-  user asks to "extract skills from sessions", "mine transcripts for skills",
-  "autoskill extract", "find reusable patterns", "스킬 추출", "세션에서 스킬 추출",
-  "트랜스크립트 마이닝", or when invoked by autoskill-evolve. Do NOT use for
-  creating skills from scratch (use create-skill), optimizing existing skills
-  (use skill-optimizer), or general transcript reading (use recall).
+  Cursor 에이전트 트랜스크립트에서 재사용 가능한 스킬 후보를 추출. 사용자 교정
+  패턴, 반복 지시, 지속적 선호를 분석하여 구조화된 스킬 후보 JSON을 생성.
+  Use when the user asks to "extract skills from sessions", "트랜스크립트에서
+  스킬 추출", "autoskill extract", "세션에서 패턴 추출", "스킬 후보 추출",
+  "mine transcripts", "세션 마이닝". Do NOT use for creating skills from
+  scratch (use create-skill), optimizing existing skills (use skill-optimizer
+  or skill-autoimprove), or reading transcripts without extraction (read
+  transcript files directly).
 metadata:
   author: thaki
-  version: "0.1.0"
+  version: "1.0.1"
   category: self-improvement
 ---
 
 # AutoSkill Extractor
 
-Extract reusable skill candidates from Cursor agent transcripts by analyzing user interaction patterns, corrections, and durable preferences. Adapts AutoSkill's P_ext methodology for the Cursor SKILL.md ecosystem.
+Extract reusable skill candidates from Cursor agent transcripts (JSONL). Analyze repeated corrections, explicit instructions, and workflow patterns to produce structured skill candidates.
 
-## Instructions
+## Output language
 
-### Input
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
-The extractor accepts one of:
-- A transcript JSONL file path from `~/.cursor/projects/*/agent-transcripts/*.jsonl`
-- A session ID (UUID) to locate the transcript automatically
-- `--scope recent` to process the 5 most recent transcripts
-- An optional `--hint "focus area"` to guide extraction
+## Input
 
-### Extraction Process
+- Transcript JSONL path: `~/.cursor/projects/*/agent-transcripts/*.jsonl`
+- Session ID (UUID): auto-locate transcript
+- `--scope recent`: process the 5 most recent transcripts
+- `--hint "focus area"` (optional): guide extraction emphasis
 
-1. **Load Transcript**: Read the JSONL file. Each line is a structured JSON event containing user messages, assistant responses, and tool calls.
+## Workflow
 
-2. **Identify User Evidence**: Extract only from USER turns. Assistant turns provide context but are never source-of-truth for skill requirements. Focus on:
-   - Explicit reusable constraints (style, format, audience, conventions)
-   - User corrections that encode durable preferences
-   - Multi-step workflow specifications
-   - Schema/template requirements
-   - Implementation policies and rules
+### Step 1: Load transcripts
 
-3. **Apply Extraction Criteria**:
+Read JSONL and parse structured events. Each line is a JSON event (user message, assistant response, tool calls).
 
-   **DO Extract**:
-   - Repeated corrections across sessions → durable preference
-   - Explicit "always do X" / "never do Y" instructions
-   - Multi-step workflows the user specified
-   - Format/style constraints that apply beyond one task
-   - Tool usage patterns with specific configurations
+### Step 2: Identify user evidence
 
-   **DO NOT Extract**:
-   - One-shot generic tasks ("write a function", "fix this bug")
-   - Requirements that appear only in assistant output
-   - Case-specific facts, entities, or domain claims
-   - Stale constraints from early in a long session
-   - Assistant-invented patterns not confirmed by user
+Extract **from user turns only**. Use assistant turns as context only.
 
-4. **De-identify**: Remove case-specific entities. Replace with placeholders: `<project>`, `<file>`, `<endpoint>`, `<model>`. Focus on HOW (portable rules), not WHAT (instance facts).
+Targets:
+- Explicit reusable constraints (style, format, audience, rules)
+- User corrections that imply lasting preferences
+- Multi-step workflow specifications
+- Schema/template requirements
+- Implementation policies and rules
 
-5. **Generate Skill Candidate**: Output a structured candidate with:
+### Step 3: Apply extraction criteria
+
+**DO extract**:
+- Corrections repeated across 2+ sessions → durable preference
+- Explicit directives like “always do X” / “never do Y”
+- User-specified multi-step workflows
+- Format/style constraints that apply beyond one task
+- Tool-usage patterns with specific settings
+
+**DO NOT extract**:
+- One-off generic tasks (“write one function”)
+- Requirements that appear only in assistant output
+- Case-specific facts, entities, domain claims
+- Stale constraints from early in a long session
+- Assistant-invented patterns the user never confirmed
+
+### Step 4: De-identify
+
+Replace case-specific entities with placeholders: `<project>`, `<file>`, `<endpoint>`, `<model>`. Focus on HOW (portable rules), remove WHAT (instance facts).
+
+### Step 5: Build skill candidates
 
 ```json
 {
   "name": "kebab-case-descriptive-name",
-  "description": "1-2 sentences: WHAT the skill does and WHEN to use it",
-  "prompt": "# Goal\n...\n# Constraints & Style\n...\n# Workflow (optional)\n...",
-  "triggers": ["trigger phrase 1", "trigger phrase 2", "trigger phrase 3"],
+  "description": "1–2 sentences on role and when to use",
+  "prompt": "# Goal\n...\n# Constraints\n...\n# Workflow\n...",
+  "triggers": ["trigger phrase 1", "trigger phrase 2"],
   "tags": ["tag1", "tag2"],
-  "examples": ["example usage scenario"],
+  "examples": ["usage scenario example"],
   "confidence": 0.85,
   "source_transcript": "uuid",
   "source_turns": [12, 15, 23]
 }
 ```
 
-6. **Quality Gate**: Only output candidates with confidence >= 0.6. Maximum 2 candidates per transcript to avoid skill spam.
+### Step 6: Quality gate
 
-### Output
+- Output only candidates with confidence >= 0.6
+- At most 2 candidates per transcript (anti-spam)
 
-Write each candidate to `outputs/autoskill-candidates/<date>-<name>.json`. Return a summary listing all candidates with their confidence scores and source transcripts.
+## Output
 
-### Reference Prompts
+Save each candidate to `outputs/autoskill-candidates/<date>-<name>.json`. Return confidence scores and a source summary report for all candidates.
 
-See `references/extraction-prompt.md` for the full adapted extraction prompt template.
+## Integration
 
-### Integration
+- Pass candidates to `autoskill-judge` → add/merge/discard
+- Invoke via `autoskill-evolve` orchestrator or manually
 
-- Uses `scripts/memory/extract-sessions.py` for transcript preprocessing
-- Feeds candidates to `autoskill-judge` for add/merge/discard decisions
-- Invoked by `autoskill-evolve` orchestrator or manually via `/autoskill-extract`
+## Examples
 
-### SEFO Integration (RSD-HSG)
+### Example 1: Extract from recent sessions
 
-After extracting candidates from transcripts, POST the raw trace data to the SEFO backend for Recursive Skill Distillation:
+User: "Extract skills from recent sessions"
 
-1. **Ingest traces**: POST each processed transcript to `POST /api/v1/sefo/traces/ingest` with `session_id` and `raw_trace` fields. This stores the trace for grammar induction.
-2. **Trigger grammar induction**: After ingesting a batch, call `POST /api/v1/sefo/traces/rsd/induce` with `d_max=3, epsilon=0.1`. This runs Inside-Outside + MDL compression to extract meta-skills with formal grammar rules.
-3. **Compare results**: The SEFO-extracted meta-skills (returned as `skill_ids`) provide formally structured skills with composition DAGs. Compare these with the heuristic candidates from the existing extraction pipeline to identify higher-quality abstractions.
-4. **Enrich candidates**: For each heuristic candidate, check if a corresponding SEFO meta-skill exists via `GET /api/v1/sefo/skills?search=<name>`. If found, enrich the candidate JSON with the SEFO skill's `grammar_rule` and `composition_dag`.
+Actions:
+1. Load 5 most recent transcripts
+2. Analyze user turns → find 3 recurring patterns
+3. De-identify and structure
+4. Emit 2 candidates (confidence 0.78, 0.65)
 
-This dual-path approach preserves backward compatibility while enabling the formal RSD-HSG pipeline.
+### Example 2: Extract from one session with hint
+
+User: "Extract patterns from this session --hint 'document writing'"
+
+Actions:
+1. Load the specified transcript
+2. Focus analysis on document-writing corrections
+3. Emit 1 candidate (confidence 0.82)
+
+## Error Handling
+
+| Error | Response |
+|-------|----------|
+| No transcripts | Verify path; list recent sessions |
+| Fewer than 5 user turns | Warn short session; skip extraction |
+| No patterns | Report “no reusable patterns to extract” |
+| Confidence below 0.6 | Drop candidate; explain why |

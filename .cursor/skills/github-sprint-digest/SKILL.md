@@ -11,10 +11,14 @@ description: >-
   checks (use ci-quality-gate).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "sprint-management"
 ---
 # github-sprint-digest
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 Fetch overnight GitHub activity per user across multiple projects and distribute Korean summaries.
 
@@ -58,8 +62,8 @@ repositories:
 ## Examples
 
 ```
-User: "어제 밤부터 지금까지 깃헙 활동 정리해줘"
-→ Fetches 24h activity across 5 repos → groups by user → creates Notion pages → posts Slack summary
+User: "Summarize GitHub activity from last night to now"
+→ Fetches 24h activity across configured repos → groups by user → creates Notion pages → posts Slack summary
 
 User: "github-sprint-digest"
 → Full pipeline: fetch → aggregate → contextualize → generate → distribute

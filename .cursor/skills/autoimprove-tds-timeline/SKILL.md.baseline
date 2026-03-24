@@ -1,0 +1,233 @@
+---
+name: tds-timeline
+description: >-
+  GitHub 커밋 이력 기반으로 TDS(Thaki Design System) 컴포넌트 변경 타임라인을
+  생성하고 정기 리포트를 발행한다. 누가, 언제, 어떤 컴포넌트를, 어떤 의도로
+  수정했는지 타임라인 형태로 시각화하여 Notion·Slack에 공유한다.
+  Use when the user asks to "TDS 변경 이력", "디자인 시스템 타임라인",
+  "컴포넌트 변경 추적", "TDS changelog", "디자인 시스템 변경 리포트",
+  "tds-timeline", "TDS 리포트", "디자인 시스템 히스토리", "컴포넌트 수정 내역",
+  "TDS 주간 리포트", "디자인 변경 타임라인", or any request to track and
+  visualize design system component changes over time.
+  Do NOT use for code-level PR review (use deep-review or code-reviewer).
+  Do NOT use for general git log viewing (use Shell directly).
+  Do NOT use for design token generation (use visual-explainer).
+  Korean triggers: "TDS 타임라인", "디자인 시스템 이력", "컴포넌트 변경 추적",
+  "TDS 변경 리포트", "디자인 시스템 변경 내역".
+metadata:
+  author: "thaki"
+  version: "1.0.0"
+  category: "design-ops"
+---
+
+# TDS Timeline
+
+GitHub 이력을 기반으로 TDS 컴포넌트 변경 타임라인을 생성하여 디자이너·기획자·개발자 간 변경 이력 공유를 자동화한다.
+
+## Input
+
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `--repo` | Yes | — | GitHub 리포 (`owner/repo` 형식) |
+| `--path` | No | `src/components/` | TDS 컴포넌트 루트 경로 |
+| `--since` | No | 7일 전 | 조회 시작일 (`YYYY-MM-DD`) |
+| `--until` | No | 오늘 | 조회 종료일 (`YYYY-MM-DD`) |
+| `--authors` | No | 전체 | 필터링할 작성자 (쉼표 구분) |
+| `--output` | No | `markdown` | 출력 형식: `markdown`, `notion`, `slack`, `html` |
+| `--group-by` | No | `component` | 그룹 기준: `component`, `author`, `date` |
+| `--parent` | No | — | Notion 부모 페이지 ID (notion 출력 시 필수) |
+| `--channel` | No | — | Slack 채널 ID (slack 출력 시 필수) |
+
+## Workflow
+
+```
+Phase 1: Collect  → GitHub MCP로 커밋 이력 수집
+Phase 2: Classify → 컴포넌트별 변경 분류 및 의도 추론
+Phase 3: Render   → 타임라인 마크다운 생성
+Phase 4: Deliver  → Notion/Slack/파일로 발행
+```
+
+### Phase 1: Collect — 커밋 이력 수집
+
+1. GitHub MCP `list_commits`로 지정 기간의 커밋 목록을 가져온다:
+
+```
+CallMcpTool(
+  server="user-GitHub",
+  toolName="list_commits",
+  arguments={
+    "owner": "<owner>",
+    "repo": "<repo>",
+    "sha": "<default-branch>",
+    "perPage": 100
+  }
+)
+```
+
+2. 각 커밋에 대해 `get_commit`으로 변경 파일 목록을 확인한다:
+
+```
+CallMcpTool(
+  server="user-GitHub",
+  toolName="get_commit",
+  arguments={
+    "owner": "<owner>",
+    "repo": "<repo>",
+    "sha": "<commit-sha>",
+    "include_diff": true
+  }
+)
+```
+
+3. `--path` 아래 파일만 필터링한다. 컴포넌트 디렉토리 구조로 컴포넌트명을 추출한다.
+   - 예: `src/components/Button/Button.tsx` → 컴포넌트명: `Button`
+   - 예: `src/components/Modal/index.ts` → 컴포넌트명: `Modal`
+
+4. `--since`/`--until` 범위 밖 커밋은 제외한다.
+5. `--authors` 필터가 있으면 해당 작성자만 포함한다.
+
+### Phase 2: Classify — 변경 분류 및 의도 추론
+
+수집된 커밋별로 다음을 분류한다:
+
+**변경 유형 (Change Type)**:
+
+| Type | 판단 기준 |
+|------|----------|
+| `신규` | 새 파일 추가 (added) |
+| `수정` | 기존 파일 변경 (modified) |
+| `삭제` | 파일 삭제 (removed) |
+| `리팩토링` | 커밋 메시지에 refactor/리팩토링 포함 |
+| `스타일` | CSS/스타일 파일만 변경 |
+| `접근성` | a11y/accessibility 관련 키워드 |
+
+**변경 의도 추론**: 커밋 메시지 + diff 내용을 분석하여 한국어 1줄 요약을 생성한다.
+
+분류 규칙 상세는 [references/classification-rules.md](references/classification-rules.md) 참조.
+
+### Phase 3: Render — 타임라인 생성
+
+`--group-by` 옵션에 따라 타임라인 마크다운을 생성한다.
+
+**컴포넌트별 그룹 (`component`, 기본값)**:
+
+```markdown
+# TDS 변경 타임라인 — 2026-03-17 ~ 2026-03-24
+
+## Button
+| 날짜 | 작성자 | 유형 | 변경 내용 |
+|------|--------|------|----------|
+| 03-24 | @designer-a | 수정 | hover 상태 색상을 brand-500으로 통일 |
+| 03-20 | @designer-b | 신규 | IconButton 변형 추가 |
+
+## Modal
+| 날짜 | 작성자 | 유형 | 변경 내용 |
+|------|--------|------|----------|
+| 03-22 | @designer-c | 수정 | 닫기 버튼 접근성 개선 (aria-label 추가) |
+```
+
+**작성자별 그룹 (`author`)**: 작성자 > 컴포넌트 > 변경 목록 순.
+
+**날짜별 그룹 (`date`)**: 날짜 > 컴포넌트 > 변경 목록 순.
+
+리포트 하단에 요약 통계를 추가한다:
+
+```markdown
+## 요약
+- 기간: 2026-03-17 ~ 2026-03-24
+- 변경된 컴포넌트: 5개
+- 총 커밋: 12건
+- 작성자: @designer-a (5건), @designer-b (4건), @designer-c (3건)
+- 유형별: 수정 8건, 신규 3건, 삭제 1건
+```
+
+### Phase 4: Deliver — 발행
+
+출력 형식에 따라 발행 방법이 달라진다.
+
+**`markdown` (기본)**: `outputs/tds-timeline/` 폴더에 `tds-timeline-YYYY-MM-DD.md` 저장.
+
+**`notion`**: `md-to-notion` 스킬의 MCP 호출 패턴을 사용하여 Notion 하위 페이지로 발행.
+
+```
+CallMcpTool(
+  server="plugin-notion-workspace-notion",
+  toolName="notion-create-pages",
+  arguments={
+    "parent": {"page_id": "<parent-id>"},
+    "pages": [{
+      "properties": {"title": "[TDS Timeline] YYYY-MM-DD ~ YYYY-MM-DD"},
+      "icon": "🎨",
+      "content": "<generated-markdown>"
+    }]
+  }
+)
+```
+
+**`slack`**: 메인 메시지 + 쓰레드 상세 패턴.
+
+```
+CallMcpTool(
+  server="plugin-slack-slack",
+  toolName="slack_send_message",
+  arguments={
+    "channel_id": "<channel-id>",
+    "text": "🎨 *TDS 주간 변경 리포트* (03-17 ~ 03-24)\n\n변경된 컴포넌트 5개 | 총 커밋 12건\n\n상세 내역은 쓰레드를 확인하세요."
+  }
+)
+```
+
+쓰레드에 컴포넌트별 상세 내역을 순차 전송한다.
+
+**`html`**: `visual-explainer` 스킬 패턴으로 자체 완결 HTML 타임라인 시각화 생성.
+
+## Periodic Report — 정기 리포트
+
+`--schedule` 옵션으로 반복 리포트 지원:
+
+| 주기 | 설명 |
+|------|------|
+| `weekly` | 매주 월요일, 지난 7일 변경 사항 |
+| `biweekly` | 격주 월요일, 지난 14일 변경 사항 |
+| `monthly` | 매월 1일, 지난 30일 변경 사항 |
+
+정기 리포트는 Notion + Slack 동시 발행을 기본으로 한다.
+
+## Examples
+
+### 주간 TDS 리포트 생성
+
+```
+/tds-timeline --repo thaki/ssot-design-system --since 2026-03-17 --output notion --parent abc123...
+```
+
+### 특정 디자이너의 변경 이력 확인
+
+```
+/tds-timeline --repo thaki/ssot-design-system --authors designer-a --group-by date
+```
+
+### Slack에 주간 리포트 공유
+
+```
+/tds-timeline --repo thaki/ssot-design-system --output slack --channel C0123DESIGN
+```
+
+### HTML 시각화 생성
+
+```
+/tds-timeline --repo thaki/ssot-design-system --output html --group-by component
+```
+
+## Error Handling
+
+| Issue | Resolution |
+|-------|------------|
+| GitHub 리포 접근 권한 없음 | `get_me`로 인증 확인 후 안내 |
+| `--path` 경로에 파일 없음 | 경고 후 리포 루트 디렉토리 구조 표시, 올바른 경로 제안 |
+| 커밋 수가 100건 초과 | 자동 페이지네이션 (최대 5페이지) |
+| Notion 부모 페이지 없음 | `--parent` 필수 안내 |
+| Slack 채널 ID 누락 | `--channel` 필수 안내 |
+| 기간 내 TDS 변경 없음 | "해당 기간에 TDS 변경 사항이 없습니다" 메시지 |
+| 커밋 메시지 없음 | diff 내용으로 변경 의도 추론 |
+| GitHub API rate limit | 대기 후 재시도 (exponential backoff) |

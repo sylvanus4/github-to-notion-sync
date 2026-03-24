@@ -13,11 +13,15 @@ description: >
   Korean triggers: "CEO 종합 보고서", "경영진 브리핑", "직무별 종합".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "synthesis"
 ---
 
 # Executive Briefing Generator
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
 Synthesizes analysis documents from multiple role-perspective skills into a comprehensive
 CEO executive briefing with cross-functional insights, consensus mapping, and prioritized actions.
@@ -81,88 +85,19 @@ Create a self-contained HTML dashboard showing:
 - Risk matrix scatter plot
 - Action item timeline
 
-## Output Format
+## Output format
 
-```markdown
-# CEO 종합 브리핑: {Topic}
+Produce the full briefing in Korean. Include: title with topic and date; dashboard summary (topic, participating roles count, overall impact level, one-line decision); per-role summary table; SCQA (Situation, Complication, Question, Answer); consensus list with evidence; conflicts table; prioritized action table; risk matrix; blind spots; appendix with per-role digests. Match tone to executive readers.
 
-## 날짜: {YYYY-MM-DD}
+## Slack delivery format
 
-## 한눈에 보기 (Dashboard)
-- 분석 주제: {Topic}
-- 참여 직무: {N}개 / 10개
-- 종합 영향도: {Critical/High/Medium/Low}
-- 핵심 의사결정: {one-line decision statement}
+Post to the Slack channel the user specifies (do not hard-code channel IDs). Use Korean copy per output rule.
 
-## 직무별 핵심 요약
-| 직무 | 관련도 | 핵심 메시지 |
-|------|--------|-------------|
-| CEO | {N}/10 | {one-line} |
-| CTO | {N}/10 | {one-line} |
-| PM | {N}/10 | {one-line} |
-| ... | ... | ... |
+**Main message**: topic line, participation summary, impact level, headline decision, top agreements, top actions with owners/deadlines.
 
-## SCQA 분석
-### Situation (상황)
-### Complication (핵심 과제)
-### Question (의사결정 포인트)
-### Answer (종합 권고)
+**Thread**: one short message per participating role with relevance score and 3–5 bullets.
 
-## 공통 합의 사항
-- {Agreement 1}: 근거 — {roles that agree}
-- {Agreement 2}: 근거 — {roles that agree}
-
-## 상충되는 관점
-| 쟁점 | 관점 A | 관점 B | 권고 |
-|------|--------|--------|------|
-| ... | ... | ... | ... |
-
-## 우선순위 액션 아이템
-| # | 액션 | 담당 직무 | 기한 | 영향도 | 긴급도 |
-|---|------|-----------|------|--------|--------|
-| 1 | ... | ... | ... | ... | ... |
-
-## 리스크 매트릭스
-| 리스크 | 출처 직무 | 영향 | 확률 | 완화 방안 | 담당 |
-|--------|-----------|------|------|-----------|------|
-| ... | ... | ... | ... | ... | ... |
-
-## 블라인드 스팟 (미분석 영역)
-- {Area not covered by any role}
-
-## 부록: 직무별 상세 분석
-### CEO 관점 (요약)
-### CTO 관점 (요약)
-### ...
-```
-
-## Slack Delivery Format
-
-When posting to Slack `#효정-할일` (ID: `C0AA8NT4T8T`):
-
-**Main message**:
-```
-📋 *CEO 종합 브리핑: {Topic}*
-참여 직무: {N}/10 | 종합 영향도: {Level}
-
-*핵심 의사결정*: {one-line}
-
-*합의 사항*:
-• {agreement 1}
-• {agreement 2}
-
-*우선 액션 아이템*:
-1. {action 1} — {owner} ({deadline})
-2. {action 2} — {owner} ({deadline})
-```
-
-**Thread replies** (one per participating role):
-```
-*{Role} 관점* (관련도: {N}/10)
-{3-5 bullet summary from that role's analysis}
-```
-
-**File upload**: Executive briefing .docx attachment
+**Attachment**: executive briefing `.docx` when generated.
 
 ## Error Handling
 
@@ -170,8 +105,6 @@ When posting to Slack `#효정-할일` (ID: `C0AA8NT4T8T`):
 - If a role document is malformed or missing sections, extract what is available and note gaps
 - If the .docx generation fails, produce markdown-only output and log the failure
 - If Slack posting fails, save all outputs locally and notify the user with file paths
-- Always produce output in Korean regardless of the input language
-
 ## Example
 
 **Input**: 8 role-perspective documents about "New GPU inference service launch"

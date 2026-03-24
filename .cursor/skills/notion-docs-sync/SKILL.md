@@ -2,46 +2,51 @@
 name: notion-docs-sync
 description: Markdown 문서를 Notion 페이지/DB에 동기화합니다. Notion 동기화, .notion-sync.yaml 설정, 문서를 Notion에 올려줘, Notion 연동, 문서 동기화 요청 시 사용합니다. Do NOT use for 화면 기획서 작성(screen-description), GitHub 이슈/PR 관리(github-workflow-automation).
 metadata:
-  version: 1.0.0
+  version: 1.0.1
   category: execution
 ---
 
-# Notion 문서 동기화
+# Notion document sync
 
-## 사전 요구사항
+## Output language
 
-프로젝트에 `.notion-sync.yaml`이 없으면 사용자에게 배치할 폴더를 확인한 뒤(기본: 프로젝트 루트) **반드시** `init.sh`를 실행한다.
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
+
+## Prerequisites
+
+If the project has no `.notion-sync.yaml`, confirm the target folder with the user (default: repo root), then run `init.sh`:
 
 ```bash
 SKILL_DIR/scripts/init.sh <target-dir>
 ```
 
-`init.sh`를 실행해야 하는 이유:
-- `.notion-sync.yaml` 템플릿, `NOTION-SYNC.md`(Notion 제약 규칙)를 프로젝트에 복사한다. 이 파일들이 없으면 에이전트가 동기화 설정과 작성 규칙을 참조할 수 없다.
-- `spec/`, `guide/` 디렉토리를 생성한다. 문서를 넣을 위치가 없으면 작업을 시작할 수 없다.
-- `npm install`로 동기화 스크립트 의존성을 설치한다 (최초 1회). 설치하지 않으면 `sync.mjs` 실행이 실패한다.
+Why `init.sh` matters:
 
-요구사항: Node.js 18+
+- Copies the `.notion-sync.yaml` template and `NOTION-SYNC.md` (Notion authoring constraints) into the project. Without them the agent cannot follow sync config and writing rules.
+- Creates `spec/` and `guide/` (or equivalent) so markdown has a home.
+- Runs `npm install` once for sync script dependencies; without it `sync.mjs` fails.
 
-스크립트(`sync.mjs`)는 스킬 디렉토리에 있으며 프로젝트에 복사하지 않는다. `.notion-sync.yaml`의 `file` 경로는 yaml 파일 기준 상대경로이다.
+Requirements: Node.js 18+.
 
-## Notion 동기화
+`sync.mjs` stays under the skill directory (not copied into the project). Paths in `.notion-sync.yaml` are relative to the YAML file location.
 
-- `docs/` 디렉토리의 `.md` 파일을 `sync.mjs`를 통해 Notion에 동기화한다.
-- 문서 메타데이터는 `.notion-sync.yaml`에서 관리한다.
-- 동기화 시 페이지 내용을 `erase_content`로 초기화한 뒤 블록을 다시 추가한다.
-- 두 가지 동기화 방식을 지원한다:
-  - `databases` — Notion DB 소속 문서. `Sync ID`로 페이지를 검색하고, 없으면 새로 생성한다.
-  - `pages` — 독립 페이지. `page_id`로 직접 콘텐츠를 동기화한다.
+## Sync behavior
 
-### .notion-sync.yaml 구조
+- Sync markdown under `docs/` (or paths declared in YAML) to Notion via `sync.mjs`.
+- Metadata lives in `.notion-sync.yaml`.
+- Each run typically clears page body (`erase_content`) then re-adds blocks.
+- Two modes:
+  - **`databases`** — Rows in a Notion database. Find or create by `Sync ID`.
+  - **`pages`** — Standalone pages. Target by `page_id`.
+
+### `.notion-sync.yaml` shape
 
 ```yaml
 databases:
   - database_id: "<Notion DB ID>"
     pages:
       - file: spec/api-design.md
-        title: "API 설계 규칙"
+        title: "API design guidelines"
         Sync ID: spec-api-design
         Parent: ""
 
@@ -50,69 +55,73 @@ pages:
     page_id: "<Notion Page ID>"
 ```
 
-필드:
-- `file` — `docs/` 기준 상대 경로
-- `title` — Notion 페이지 제목 (필수). 동기화 시 페이지 제목을 업데이트한다
-- `Sync ID` — 고유 식별자. `{분류}-{이름}` 형식 (예: `spec-api-design`, `guide-setup`)
-- `Parent` — 상위 문서의 Sync ID. 빈 문자열이면 최상위
-- `page_id` — Notion 페이지 ID (`pages` 방식에서만 사용)
+Fields:
 
-예시 설정 파일: [templates/.notion-sync.yaml](templates/.notion-sync.yaml)
+- `file` — Path relative to the doc root configured in YAML (often `docs/`).
+- `title` — Notion page title (required); updated on sync.
+- `Sync ID` — Stable key, e.g. `spec-api-design`, `guide-setup`.
+- `Parent` — Parent row’s `Sync ID`; empty string = top level.
+- `page_id` — For `pages` mode only.
 
-### 동기화 실행
+Sample: [templates/.notion-sync.yaml](templates/.notion-sync.yaml)
 
-`SKILL_DIR`은 이 스킬의 디렉토리 경로이다.
+### Run sync
 
-`NOTION_TOKEN` 환경변수가 필요하다. 설정되어 있지 않으면 사용자에게 Notion Integration Token을 요청한다.
+`SKILL_DIR` = this skill’s directory.
+
+Requires `NOTION_TOKEN`. If unset, ask the user for an integration token.
 
 ```bash
-# 전체 동기화 (CWD에 .notion-sync.yaml이 있을 때)
+# Full sync (when CWD contains .notion-sync.yaml)
 node SKILL_DIR/scripts/sync.mjs
 
-# yaml 경로 지정
+# Explicit YAML path
 node SKILL_DIR/scripts/sync.mjs path/to/.notion-sync.yaml
 
-# 특정 파일만
+# Specific files only
 node SKILL_DIR/scripts/sync.mjs .notion-sync.yaml spec/api-design.md guide/setup.md
 ```
 
-### Notion DB 요구 속성
+### Database schema minimum
 
-Notion DB에 최소한 다음 속성이 필요하다:
-- title 타입 속성 1개 (이름 자유, DB 스키마에서 자동 감지)
-- `Sync ID` — rich_text 타입
-- `Parent` — relation 타입 (자기 참조)
+The Notion database needs:
 
-`.notion-sync.yaml`에 추가 속성을 넣으면 DB 스키마를 자동 조회하여 타입에 맞게 동기화한다. 지원 타입: rich_text, select, multi_select, number, checkbox, people, relation, date, url, email, phone_number
+- One **title** property (name auto-detected).
+- `Sync ID` — rich_text.
+- `Parent` — self-referential relation.
 
-## 문서 작성 규칙
+Extra columns in YAML are mapped when types are supported: rich_text, select, multi_select, number, checkbox, people, relation, date, url, email, phone_number.
 
-`init.sh` 실행 시 프로젝트에 복사되는 `NOTION-SYNC.md`에 디렉토리 구조, 문서 구조, 헤딩·파일명·본문 작성 규칙, 파일 첨부 방법이 정리되어 있다. 문서 작성 시 해당 가이드를 참조한다.
+## Authoring rules
+
+After `init.sh`, follow `NOTION-SYNC.md` in the project for folder layout, headings, filenames, body rules, and attachments.
 
 ## Examples
 
-### Example 1: 초기 설정 + 전체 동기화
-User says: "이 프로젝트 문서를 Notion에 동기화해줘"
-Actions:
-1. `.notion-sync.yaml` 존재 확인 → 없으면 `init.sh` 실행
-2. 사용자에게 `NOTION_TOKEN`과 Database ID 요청
-3. `.notion-sync.yaml`에 동기화 대상 문서 등록
-4. `node SKILL_DIR/scripts/sync.mjs` 실행
-Result: docs/ 내 Markdown 문서가 Notion DB에 동기화됨
+### Example 1: First-time setup + full sync
 
-### Example 2: 특정 문서만 동기화
-User says: "API 설계 문서만 Notion에 올려줘"
-Actions:
-1. `.notion-sync.yaml`에서 해당 파일 경로 확인 (spec/api-design.md)
-2. `node SKILL_DIR/scripts/sync.mjs .notion-sync.yaml spec/api-design.md` 실행
-Result: 지정한 문서만 Notion에 동기화됨
+User: "Sync this project’s docs to Notion"
+
+1. Ensure `.notion-sync.yaml` exists → else run `init.sh`.
+2. Collect `NOTION_TOKEN` and database ID from the user.
+3. Register files in `.notion-sync.yaml`.
+4. Run `node SKILL_DIR/scripts/sync.mjs`.
+
+### Example 2: One doc only
+
+User: "Upload only the API design doc"
+
+1. Confirm path in YAML (e.g. `spec/api-design.md`).
+2. `node SKILL_DIR/scripts/sync.mjs .notion-sync.yaml spec/api-design.md`
 
 ## Troubleshooting
 
-### sync.mjs 실행 시 MODULE_NOT_FOUND 에러
-Cause: `init.sh`를 실행하지 않아 의존성이 설치되지 않음
-Solution: `SKILL_DIR/scripts/init.sh <target-dir>` 실행 후 재시도
+### `MODULE_NOT_FOUND` running `sync.mjs`
 
-### Notion API 401 Unauthorized
-Cause: `NOTION_TOKEN` 환경변수가 설정되지 않았거나 만료됨
-Solution: Notion Integration 설정에서 토큰 확인 후 `export NOTION_TOKEN=...` 재설정
+Cause: dependencies not installed.  
+Fix: `SKILL_DIR/scripts/init.sh <target-dir>`, retry.
+
+### Notion API 401
+
+Cause: missing or expired `NOTION_TOKEN`.  
+Fix: Rotate token in Notion integration settings, `export NOTION_TOKEN=...`.

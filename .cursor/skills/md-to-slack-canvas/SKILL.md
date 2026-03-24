@@ -15,11 +15,15 @@ description: >-
   Korean triggers: "슬랙 캔버스", "캔버스 업로드", "마크다운 캔버스", "캔버스에 올려".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.0.1"
   category: "execution"
 ---
 
 # md-to-slack-canvas
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English. Slack status messages follow this rule; canvas body mirrors source markdown.
 
 Lightweight publisher: point at local markdown files and get Slack Canvas
 documents. Handles header depth truncation, blockquote-to-callout conversion,
@@ -217,7 +221,7 @@ Creates one canvas per `.md` file in the folder.
 /md-to-slack-canvas output/plans/release-plan.md --channel C0AA8NT4T8T
 ```
 
-Creates the canvas and posts the link to `#효정-할일`.
+Creates the canvas and posts the link to the target Slack channel (e.g. `#team-tasks`).
 
 ### Update existing canvas (replace)
 
