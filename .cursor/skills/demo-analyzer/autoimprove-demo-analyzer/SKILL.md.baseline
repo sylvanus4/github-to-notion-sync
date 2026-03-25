@@ -112,4 +112,3 @@ Binary eval hooks (pass/fail per run):
 - **E3 — Edge case identification**: Non-destructive edge probes are documented as verified, not verified, or not attempted with reason.
 - **E4 — Screenshot evidence**: Each major state in the matrix references a screenshot name or log reference.
 - **E5 — Actionable open questions**: Every open question names the decision owner domain (PM/Design/Eng/Policy) and a concrete next step.
-

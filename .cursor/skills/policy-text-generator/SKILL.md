@@ -30,10 +30,10 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 
 ## Input
 
-1. **Policy source** (required) — Notion URL, file path, or pasted text  
-2. **Copy type** (required) — `ui-copy` | `error-message` | `terms` | `notice` | `tooltip` | `guide`  
-3. **Context** (optional) — Screen/feature, user scenario  
-4. **Tone** (optional) — formal | friendly | concise (default: formal)  
+1. **Policy source** (required) — Notion URL, file path, or pasted text
+2. **Copy type** (required) — `ui-copy` | `error-message` | `terms` | `notice` | `tooltip` | `guide`
+3. **Context** (optional) — Screen/feature, user scenario
+4. **Tone** (optional) — formal | friendly | concise (default: formal)
 
 ## Workflow
 
@@ -49,19 +49,19 @@ Use Notion MCP to fetch Notion-backed policies when needed.
 
 ### Step 2: Generate copy
 
-- Apply type-specific templates  
-- Respect tone  
-- Insert required disclosures  
-- Avoid forbidden wording  
+- Apply type-specific templates
+- Respect tone
+- Insert required disclosures
+- Avoid forbidden wording
 
 Offer 2–3 variants per string when useful.
 
 ### Step 3: Validate
 
 Check output against [references/policy-checklist.md](references/policy-checklist.md):
-- Pass/fail per item  
-- For failures: violation detail + rewrite suggestion  
-- Overall compliance score (%)  
+- Pass/fail per item
+- For failures: violation detail + rewrite suggestion
+- Overall compliance score (%)
 
 ### Step 4: Traceability table
 
@@ -71,8 +71,8 @@ Check output against [references/policy-checklist.md](references/policy-checklis
 
 ### Step 5: Publish (optional)
 
-- **Notion**: via `md-to-notion`  
-- **Slack**: review request if configured  
+- **Notion**: via `md-to-notion`
+- **Slack**: review request if configured
 
 ## Examples
 

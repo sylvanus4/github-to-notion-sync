@@ -67,8 +67,8 @@ Classify as one or more: **API**, **system design**, **technical spec / protocol
 
 Extract:
 
-- Concepts, acronyms, endpoints, status codes, limits  
-- Dependencies, costs, SLAs, security/compliance hooks  
+- Concepts, acronyms, endpoints, status codes, limits
+- Dependencies, costs, SLAs, security/compliance hooks
 
 Apply [references/state-extraction-guide.md](references/state-extraction-guide.md) for **states**, **exceptions**, and **constraints** → map to planning impact.
 
@@ -78,10 +78,10 @@ Load [references/audience-profiles.md](references/audience-profiles.md) for the 
 
 Apply [references/simplification-rules.md](references/simplification-rules.md) and [references/analogy-patterns.md](references/analogy-patterns.md):
 
-- **Planner**: user-visible behavior, limits, schedule/data implications  
-- **Designer**: UI states, latency feel, field limits, error surfaces  
-- **Ops**: customer impact, comms, where to verify  
-- **Executive**: cost, risk, timeline, strategic tradeoffs  
+- **Planner**: user-visible behavior, limits, schedule/data implications
+- **Designer**: UI states, latency feel, field limits, error surfaces
+- **Ops**: customer impact, comms, where to verify
+- **Executive**: cost, risk, timeline, strategic tradeoffs
 
 ### Phase 4 — Planning implications
 
@@ -99,10 +99,10 @@ List **decision points**: what to decide, options, tradeoffs, technical hint, pl
 
 ### Phase 5 — Enrich
 
-- Minimum **3 FAQ** pairs  
-- **Glossary**: at least 3 terms with non-expert Korean explanations + planning impact (extend with [references/tech-glossary.md](references/tech-glossary.md))  
-- Optional Mermaid / ASCII for flows  
-- **So-what line**: one sentence per major change (use natural Korean heading in deliverable)  
+- Minimum **3 FAQ** pairs
+- **Glossary**: at least 3 terms with non-expert Korean explanations + planning impact (extend with [references/tech-glossary.md](references/tech-glossary.md))
+- Optional Mermaid / ASCII for flows
+- **So-what line**: one sentence per major change (use natural Korean heading in deliverable)
 
 ### Phase 6 — Deliver
 
@@ -114,12 +114,12 @@ Deliver in Korean with sections analogous to: title with audience tag; TL;DR (�
 
 ## Output contract (quality gate)
 
-1. **Accuracy** — no factual distortion  
-2. **Glossary** — ≥3 terms with planning impact  
-3. **TL;DR** — ≤3 lines  
-4. **FAQ** — ≥3 Q&As  
-5. **So-what** — ≥1 explicit impact sentence  
-6. **`--keep-terms`** — originals in parentheses when true  
+1. **Accuracy** — no factual distortion
+2. **Glossary** — ≥3 terms with planning impact
+3. **TL;DR** — ≤3 lines
+4. **FAQ** — ≥3 Q&As
+5. **So-what** — ≥1 explicit impact sentence
+6. **`--keep-terms`** — originals in parentheses when true
 
 ## Skill chain
 
@@ -133,9 +133,9 @@ Deliver in Korean with sections analogous to: title with audience tag; TL;DR (�
 
 ## Examples
 
-**API doc → planner** — Map endpoints to user actions; translate 429/5xx to UX policy.  
-**Architecture → executive** — Microservices → release speed vs cost.  
-**Cloud IAM doc → ops** — Who gets locked out when roles misconfigured.  
+**API doc → planner** — Map endpoints to user actions; translate 429/5xx to UX policy.
+**Architecture → executive** — Microservices → release speed vs cost.
+**Cloud IAM doc → ops** — Who gets locked out when roles misconfigured.
 **Inline code comments → designer** — Derive allowed states for a screen.
 
 ## Error handling

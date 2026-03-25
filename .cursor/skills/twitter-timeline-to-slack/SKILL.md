@@ -111,7 +111,7 @@ degradation. Process each tweet yourself, sequentially, in the main context.
 Process a maximum of **5 tweets per invocation**. This prevents context window
 exhaustion which causes quality degradation in later tweets.
 
-- If more than 5 unposted tweets exist, process the 5 oldest first
+- If more than 5 unposted tweets exist, process the 5 newest first
 - After completing 5 tweets, report: "5/N tweets processed. Re-invoke
   `/twitter-timeline-to-slack` to continue with the next batch."
 - Always pass `--limit 5` to `run_pipeline.js` unless the user explicitly
@@ -123,7 +123,7 @@ The manifest from Phase 2 provides pre-computed fields for each tweet:
 - `classified_channel` / `classified_topic` — from Phase 2 classification
 - `is_thread` / `thread_text` / `thread_count` — thread metadata
 
-For each unposted tweet (oldest first, excluding `skip_reason: "thread_member"`), execute ALL of the following steps:
+For each unposted tweet (newest first, excluding `skip_reason: "thread_member"`), execute ALL of the following steps:
 
 #### Step 3a: FxTwitter API Enrichment
 

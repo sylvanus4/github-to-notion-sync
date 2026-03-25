@@ -80,7 +80,7 @@ Phase 6: Slack notification        → Channel post (--slack)
 4. If Critical/High issues exist, attempt auto-fix per skill
 5. Re-validate after fixes
 
-**Gate**: Proceed only if Critical = 0  
+**Gate**: Proceed only if Critical = 0
 If Critical > 0 → retry `--fix` → if still blocked, stop and ask for manual fixes
 
 **Progress report**:

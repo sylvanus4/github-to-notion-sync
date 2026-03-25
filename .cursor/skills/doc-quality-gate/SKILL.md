@@ -150,13 +150,13 @@ For any failing dimension, also include when helpful:
 
 ## Examples
 
-**Example 1 — PRD gate (Notion)**  
+**Example 1 — PRD gate (Notion)**
 User provides a PRD URL. Fetch → score seven dimensions → overall 78 (B) → 6/7 dimensions ≥ 60 → `approval_min_score` 75 → **APPROVED** with two High follow-ups listed.
 
-**Example 2 — Spec + policy**  
+**Example 2 — Spec + policy**
 User attaches policy doc. Policy dimension scored; contradiction on data collection → Policy dimension 45 → **NEEDS REVISION** despite high overall score if Critical policy conflict exists.
 
-**Example 3 — Design spec + code path**  
+**Example 3 — Design spec + code path**
 Run full dimension scoring plus sync spot-check; report match rates for components/states.
 
 ## References (bundled)

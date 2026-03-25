@@ -168,17 +168,17 @@ Default PRD skeleton (assemble content into Korean per output rule):
 
 ### Example 1: Meeting + policy → PRD
 
-User: "Merge last meeting notes and refund policy into a PRD"  
+User: "Merge last meeting notes and refund policy into a PRD"
 → Load both → extract → assemble → Korean PRD output.
 
 ### Example 2: Three Notion pages
 
-User: "Combine these three Notion pages into one spec"  
+User: "Combine these three Notion pages into one spec"
 → Fetch → detect conflicts → unified doc.
 
 ### Example 3: Gap fill
 
-User: "Assemble and infer missing parts" `--fill-gaps`  
+User: "Assemble and infer missing parts" `--fill-gaps`
 → Merge → detect gaps → infer with inference tags per output language rule.
 
 ## Error Handling

@@ -116,7 +116,7 @@ Record pass/fail in the merge report JSON under `policy_verification`.
 
 ### Example 1: Trigger merge
 
-Existing: `policy-text-generator` (8 triggers)  
+Existing: `policy-text-generator` (8 triggers)
 Candidate: 2 new Korean triggers + 1 tone constraint
 
 Result:
@@ -126,7 +126,7 @@ Result:
 
 ### Example 2: Workflow extension merge
 
-Existing: `doc-quality-gate` (unified 7 dimensions)  
+Existing: `doc-quality-gate` (unified 7 dimensions)
 Candidate: add “accessibility” dimension
 
 Result:

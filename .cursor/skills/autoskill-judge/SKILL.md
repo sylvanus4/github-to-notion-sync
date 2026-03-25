@@ -106,14 +106,14 @@ Persist decisions to `outputs/autoskill-decisions/<date>-<candidate-name>.json`.
 
 ### Example 1: Merge
 
-Candidate: "korean-friendly-tone" (keep Korean-friendly tone)  
+Candidate: "korean-friendly-tone" (keep Korean-friendly tone)
 Similar: "policy-text-generator" (includes tone/voice guidelines)
 
 Decision: **MERGE** — same job-to-be-done (copy generation); candidate adds tone constraints.
 
 ### Example 2: Add
 
-Candidate: "api-changelog-generator" (auto API changelogs)  
+Candidate: "api-changelog-generator" (auto API changelogs)
 Similar: "technical-writer" (similarity 0.45)
 
 Decision: **ADD** — deliverable type (changelog vs general docs) and workflow differ.

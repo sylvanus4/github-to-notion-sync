@@ -123,13 +123,13 @@ For large scopes, sub-prompt patterns live in [references/agent-prompts.md](refe
 
 ## Examples
 
-**Example 1 — React checkout folder**  
+**Example 1 — React checkout folder**
 User provides `src/components/Checkout/`. Scan → extract order/payment states, validation and error paths, price rules → one reverse spec with mermaid state diagram and edge-case table in Korean.
 
-**Example 2 — PR**  
+**Example 2 — PR**
 User provides a GitHub PR URL. Use GitHub MCP → diff-limited reverse spec → list behavioral deltas vs main.
 
-**Example 3 — Backend module**  
+**Example 3 — Backend module**
 User provides API repo path. Use [references/api-scan-patterns.md](references/api-scan-patterns.md) → endpoint inventory → per-endpoint request/response/error tables → combined state transitions for entities that mutate state.
 
 ## Error handling

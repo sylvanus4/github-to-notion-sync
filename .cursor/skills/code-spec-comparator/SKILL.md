@@ -82,10 +82,10 @@ Use the report scaffold in [../code-to-spec/references/diff-report-template.md](
 
 ## Examples
 
-**Example 1** — User: “Check APIs against this Notion spec” + repo path + Notion URL.  
+**Example 1** — User: “Check APIs against this Notion spec” + repo path + Notion URL.
 → Fetch Notion → scan API layer → diff tables → Korean report + Slack + Notion page.
 
-**Example 2** — User: “Compare schemas only” + narrow scope.  
+**Example 2** — User: “Compare schemas only” + narrow scope.
 → Limit diff to request/response DTOs vs spec section 5.
 
 ## Error handling

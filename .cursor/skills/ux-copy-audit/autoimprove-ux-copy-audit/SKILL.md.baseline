@@ -110,4 +110,3 @@ Binary eval hooks (skill-autoimprove / audits). Each: **PASS** if true, **FAIL**
 | **E2** | Severity properly classified (Critical/High/Medium/Low per report rubric). |
 | **E3** | Policy violations link to source policy clause or section. |
 | **E4** | Actionable fix suggestions provided (rewrite, key name, or removal path). |
-

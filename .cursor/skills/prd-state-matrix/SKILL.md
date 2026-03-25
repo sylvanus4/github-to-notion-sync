@@ -30,10 +30,10 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 
 ## Input
 
-1. **PRD/spec** (required) — Notion URL, local file, or pasted description  
-2. **Feature scope** (required) — Feature name to analyze; if missing, stop and ask (inversion gate)  
-3. **Policy doc** (optional) — For policy coverage checks  
-4. **Technical constraints** (optional) — API/platform limits  
+1. **PRD/spec** (required) — Notion URL, local file, or pasted description
+2. **Feature scope** (required) — Feature name to analyze; if missing, stop and ask (inversion gate)
+3. **Policy doc** (optional) — For policy coverage checks
+4. **Technical constraints** (optional) — API/platform limits
 
 **CRITICAL**: Do not proceed without a defined feature scope.
 
@@ -82,7 +82,7 @@ Per state capture:
 
 ### Step 3: Edge cases
 
-Apply [references/edge-case-patterns.md](references/edge-case-patterns.md).  
+Apply [references/edge-case-patterns.md](references/edge-case-patterns.md).
 Label items already in the doc as **existing**; newly found as **new**.
 
 **Spec traceability (E2):** Every edge case MUST cite the PRD **section heading/번호**, requirement ID, or a short quoted anchor. If the gap is not documented in the PRD, mark **신규** and still cite the **closest related section** plus one line on why coverage is missing.
@@ -103,8 +103,8 @@ Deliver as a bullet list. **Every recommendation MUST include (E3):** an explici
 
 ### Step 6: Publish (optional)
 
-- **Notion**: child page under PRD for the matrix  
-- **Slack**: short summary of gaps  
+- **Notion**: child page under PRD for the matrix
+- **Slack**: short summary of gaps
 
 ## Examples
 

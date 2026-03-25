@@ -161,13 +161,13 @@ Produce **both**:
 
 ## Examples
 
-**Example 1 — Figma component change**  
+**Example 1 — Figma component change**
 User shares Button Figma URL → MCP fetch → grep `Button` usages → impact matrix → Notion + Slack.
 
-**Example 2 — Token / primary color**  
+**Example 2 — Token / primary color**
 User asks primary color impact → search `brand-600`, theme files → migration notes in Korean.
 
-**Example 3 — Weekly DS scan**  
+**Example 3 — Weekly DS scan**
 Scan library vs last week snapshot → counts of breaking/visual/additive → changelog + `#design-system` post.
 
 ## Error handling
