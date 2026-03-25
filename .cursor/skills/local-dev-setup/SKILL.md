@@ -86,9 +86,11 @@ docker inspect -f '{{.State.Status}}' ai-platform-nats 2>/dev/null || echo 'miss
 
 | 출력 | 액션 |
 |------|------|
-| `missing` | `docker run -d --name ai-platform-nats -p 4222:4222 -p 6222:6222 -p 8222:8222 nats:2.10-alpine -js -p 4222 -m 8222` |
+| `missing` | `docker run -d --name ai-platform-nats -p 4222:4222 -p 8222:8222 nats:2.10-alpine -js -p 4222 -m 8222` |
 | `exited` | `docker start ai-platform-nats` |
 | `running` | 스킵 |
+
+> **참고:** 로컬 Docker NATS는 인증 없이 실행됩니다. K8s NATS는 멀티 어카운트 인증(`LOCAL`/`AGGREGATOR`/`SHARED`)을 사용하지만, local-only 모드에서는 단순화를 위해 인증을 생략합니다. 6222(클러스터 포트)는 단일 노드에서 불필요하므로 제외합니다.
 
 컨테이너 시작 후 `sleep 3`으로 준비 대기.
 
@@ -332,8 +334,21 @@ new_string: KEY="새값"
 
 ### local-only 모드
 
-.env가 이미 로컬 기본값(`localhost:5432`, `localhost:4222`)이므로 변경 불필요.
 .env 파일이 없었다면 Step 2에서 이미 `cp tkai-backend.env .env` 완료.
+로컬 Docker NATS는 인증 없이 실행되므로 `NATS_URL`을 수정해야 합니다:
+
+`.env` 파일에서 `NATS_URL=`로 시작하는 줄을 찾아 **값이 무엇이든** 아래 값으로 교체합니다:
+
+```
+1. .env에서 NATS_URL="..." 줄 전체를 Read로 확인
+2. StrReplace:
+   old_string: NATS_URL="<현재 값 그대로>"   ← Read에서 확인한 실제 줄
+   new_string: NATS_URL="nats://localhost:4222"
+```
+
+> **주의**: `tkai-backend.env` 템플릿의 기본값은 `NATS_URL="nats://<NATS_USERNAME>:<NATS_PASSWORD>@localhost:4222"`이지만, 이전에 full 모드 셋업이나 수동 편집으로 다른 값이 들어 있을 수 있습니다. 반드시 현재 .env의 실제 줄을 읽어서 old_string으로 사용하세요.
+
+나머지 DB 관련 값(`localhost:5432`)은 기본값 그대로 유지합니다.
 
 ---
 
@@ -489,6 +504,28 @@ grep -c 'thakicloud.net' ai-platform/frontend/rspack.config.mjs
 
 ---
 
+## NATS 아키텍처 참고
+
+K8s 클러스터의 NATS는 **멀티 어카운트 + 3-node StatefulSet** 구조로 운영됩니다.
+
+| 어카운트 | 사용자 | 용도 |
+|----------|--------|------|
+| `LOCAL` | `local` | 백엔드 서비스 (이벤트 발행/소비) |
+| `AGGREGATOR` | `aggregator` | 스트림 수집/집계 |
+| `SHARED` | `shared` | LOCAL/AGGREGATOR 스트림 import (교차 접근) |
+| `$SYS` | `tkai` | NATS 시스템 모니터링 |
+
+- **네임스페이스**: `nats` (전용), 시크릿(`nats-secret`)은 `ai-platform*` 네임스페이스에 위치
+- **인증 정보**: K8s 시크릿 `nats-secret`에서 `NATS_USERNAME`/`NATS_PASSWORD` 키를 자동 조회 (`port-forward-infra.sh`가 처리, 스크립트 내부 셸 변수는 `NATS_USER`/`NATS_PASS`로 축약)
+- **JetStream**: 전 어카운트 활성화, 50Gi 파일 스토리지
+- **Leafnode**: `thakicloud.site:10701`로 cross-cluster 연결 (aggregator 어카운트)
+- **nats-stream-sync**: LOCAL→SHARED/AGGREGATOR 스트림 동기화 워커
+
+> full 모드에서 포트포워딩 시 백엔드는 `LOCAL` 어카운트로 접속합니다.
+> `NATS_URL="nats://<NATS_USERNAME>:<NATS_PASSWORD>@localhost:{forwarded_port}"` — 실제 값은 `port-forward-infra.sh`(Step 5)의 `.env 설정 가이드` 출력을 사용하세요.
+
+---
+
 ## 트러블슈팅
 
 | 증상 | 해결 |
@@ -502,6 +539,8 @@ grep -c 'thakicloud.net' ai-platform/frontend/rspack.config.mjs
 | kubectl `connection refused` / timeout | VPN 연결 확인, 클러스터 API 서버 상태 점검 |
 | 네임스페이스 `NotFound` | `kubectl get namespaces`로 사용 가능한 네임스페이스 목록 확인 후 재선택 |
 | S3 시크릿 `grep` 결과 0건 | 네임스페이스 내 시크릿 전체 목록 확인: `kubectl get secrets -n $NAMESPACE` → 올바른 네임스페이스인지 재확인 |
+| NATS `Authorization Violation` | `NATS_URL`에 인증 정보 확인: full 모드는 포트포워딩 스크립트가 출력한 `NATS_URL` 사용 (`nats://<user>:<pass>@localhost:{forwarded_port}`), local-only 모드는 `nats://localhost:4222` (인증 없음) |
+| NATS `nats-secret` 미발견 | `nats` 네임스페이스에는 없고 `ai-platform*` 네임스페이스에 존재. Step 5의 `port-forward-infra.sh`가 `nats-secret`을 자동 탐색 (스크립트 내부에서 `nats` + `ai-platform*` 네임스페이스를 순회) |
 | S3 `InvalidAccessKeyId` (403) | .env의 `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY`가 K8s 시크릿 값과 일치하는지 확인, Step 5b 재실행 |
 | 브라우저 403 (Caddy → 프론트엔드) | `rspack.config.mjs`의 `devServer.allowedHosts`에 `.thakicloud.net` 미등록 → Step 7-6 확인 |
 | CORS 에러 (Caddy 경유) | 백엔드 `.env`의 `CORS_ALLOW_ORIGIN_PATTERNS`에 `*.thakicloud.net` 설정 확인 |
