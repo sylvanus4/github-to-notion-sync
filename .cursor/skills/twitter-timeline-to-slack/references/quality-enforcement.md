@@ -24,6 +24,15 @@ in a single session (>5), causing the agent to abbreviate later tweets.
 
 Every posted Slack thread MUST pass ALL items below. Check after each tweet.
 
+### Formatting (ALL Messages)
+
+- [ ] NO decorative emojis anywhere (only ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ allowed)
+- [ ] ALL body text in Korean (English only for proper nouns, technical terms, URLs)
+- [ ] Section headers use `*bold*` ONLY — no emojis before/after
+- [ ] Only template-defined headers used (no invented headers)
+- [ ] No decorative separators (═══, ───, ***)
+- [ ] Media uploaded to Slack if tweet has photos/videos (HARD FAILURE if skipped)
+
 ### Message 1 (Title Post)
 
 - [ ] Substantive Korean title with analytical framing (not a literal translation)
@@ -77,6 +86,25 @@ If a message falls below these minimums, go back and:
 2. Expand the analysis with specific data points, dates, and numbers
 3. Add more context from the author's background and the topic's implications
 
+## Formatting Anti-Patterns (QUALITY FAILURE)
+
+These formatting violations have been observed in degraded output. Each is a hard quality failure.
+
+| Pattern | BAD (NEVER do this) | GOOD (ALWAYS do this) |
+|---------|---------------------|----------------------|
+| Emoji in header | `🔍 *핵심 내용*` | `*핵심 내용*` |
+| English header | `💡 Key Insights` | `*핵심 내용*` |
+| Decorative emoji | `🚀 Claude 4.5 출시` | `Claude 4.5 출시` |
+| English body text | `This is a significant development for the AI industry.` | `AI 산업에 중대한 발전이다.` |
+| Mixed language body | `이 모델은 very impressive한 성능을 보여준다.` | `이 모델은 매우 인상적인 성능을 보여준다.` |
+| Decorative separators | `═══════════` or `───────` or `***` | (no separators) |
+| Invented header | `*📊 Data Analysis*` | Use only template-defined headers |
+| Oversized emoji icons | `🔍💡🚀📊🎯✅⚡🔗📌💰🏆` throughout | Only ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ |
+
+**Allowed emojis (exhaustive list)**: ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ — engagement stats and thread numbering only.
+
+**English exceptions**: Proper nouns (Claude, NVIDIA, ThakiCloud), technical terms without Korean equivalent, URLs, code.
+
 ## BAD vs GOOD Output Comparison
 
 ### BAD Output (Subagent Quality — NEVER Acceptable)
@@ -127,6 +155,10 @@ See **Example 2** in the main SKILL.md for the complete reference. Key traits:
 | Copying tweet text without Korean analysis | 핵심 내용 must ADD analytical value, not just translate |
 | Skipping media upload when `has_media === true` | Quality gate requirement |
 | Using `**double asterisks**` in Slack messages | Slack uses `*single asterisks*` for bold |
+| Adding decorative emojis to section headers | Only ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ are allowed — zero others |
+| Writing body text in English or mixed Korean-English | All body text must be Korean; English only for proper nouns/terms/URLs |
+| Adding decorative separators (═══, ───, ***) | No separators — use bold headers and whitespace for structure |
+| Inventing new section headers | Use ONLY template-defined headers (핵심 내용, 추가 조사 결과, etc.) |
 
 ## Anti-Delegation Rationale
 

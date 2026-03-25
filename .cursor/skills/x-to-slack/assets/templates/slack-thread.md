@@ -2,6 +2,14 @@
 
 Three-message thread structure for posting tweet intelligence to Slack.
 
+> **FORMATTING CONSTRAINTS (MANDATORY — violation = quality failure)**
+> - NO decorative emojis in headers or body. ALLOWED: ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ only.
+> - ALL body text in Korean (English only for proper nouns, technical terms, URLs, code).
+> - Section headers = `*bold text*` only, no emojis before/after.
+> - Use ONLY headers defined in templates below. Do NOT invent new ones.
+> - No decorative separators (═══, ───, ***).
+> - Media upload MANDATORY if tweet has photos/videos.
+
 ## Message 1: Title (Channel Post)
 
 ```
@@ -16,7 +24,7 @@ The `>>>` creates a blockquote visual separator. Capture `message_ts` from the r
 
 ```
 *Tweet 요약*
-- 작성자: @{screen_name} ({name})
+- 작성자: @{screen_name} ({name}) — {author bio/description}
 - 반응: ❤️ {likes} | 🔁 {retweets} | 👀 {views}
 - 작성일: {created_at}
 
@@ -61,3 +69,14 @@ The `>>>` creates a blockquote visual separator. Capture `message_ts` from the r
 - No `## headers` — use `*bold text*` on its own line
 - Write content in Korean
 - Limit each message to under 4000 characters
+
+### Anti-Patterns (QUALITY FAILURE)
+
+| BAD | GOOD |
+|-----|------|
+| `🔍 *핵심 내용*` | `*핵심 내용*` |
+| `💡 Key Insights` | `*핵심 내용*` |
+| `🚀 *AI GPU Cloud 서비스 인사이트*` | `*AI GPU Cloud 서비스 인사이트*` |
+| English body text | Korean body text (English only for proper nouns, terms, URLs) |
+| `═══════════` separators | (no separators) |
+| Inventing headers like `*📊 Data Analysis*` | Use only template-defined headers |

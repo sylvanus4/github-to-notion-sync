@@ -1,27 +1,18 @@
 ---
 name: ux-writing-agent
 description: >-
-  Generate, review, audit, and quality-check UX copy for cloud service UIs —
-  labels, tooltips, error messages, descriptions, confirmations, modals, empty
-  states, status messages, CTAs, notifications, and onboarding text — with policy
-  enforcement, cloud tone guides, and a 5-dimension rubric. Native-level English
-  UI strings; Korean for analysis and reports unless copy is English.
-  Use when the user asks to "write UI copy", "generate error message",
-  "review UX writing", "check copy consistency", "audit UI strings",
-  "UX writing quality check", "generate tooltip text", "write modal copy",
-  "create empty state message", "review button labels", "check English UX copy",
-  "UX 라이팅", "UI 문구 생성", "에러 메시지 작성", "문구 교정", "문구 일관성 검사",
-  "UX 카피 검수", "라이팅 정책", "UI 텍스트 리뷰", "톤앤보이스 적용",
-  "모달 메시지 작성", "툴팁 문구", "CTA 버튼 텍스트", "빈 상태 문구",
-  "확인 다이얼로그 문구", "상태 메시지 작성", "라벨 작성".
-  Do NOT use for technical documentation like ADRs, API docs, or changelogs
-  (use technical-writer). Do NOT use for prompt engineering (use prompt-transformer).
-  Do NOT use for presentation scripts (use presentation-strategist). Do NOT use
-  for marketing or landing copy (use pm-marketing-growth). Do NOT use for
-  brand voice guideline creation (use kwp-brand-voice-guideline-generation).
+  Generate, review, audit, and quality-check UX copy for cloud UIs — labels,
+  tooltips, errors, modals, empty states, CTAs, notifications, onboarding — with
+  policy enforcement, cloud tone guides, and a 5-dimension rubric. Native English
+  UI strings; Korean for analysis/reports unless copy is English. Use when:
+  "write UI copy", "audit UI strings", "UX writing", "UX 라이팅", "에러 메시지",
+  "툴팁", "모달", "빈 상태", "CTA", "톤앤보이스", "문구 일관성".
+  Do NOT use for: ADRs/API docs/changelogs (technical-writer); prompts
+  (prompt-transformer); decks (presentation-strategist); marketing/landing copy
+  (pm-marketing-growth); brand voice guidelines (kwp-brand-voice-guideline-generation).
 metadata:
   author: "thaki"
-  version: "2.0.1"
+  version: "2.1.0"
   category: "generation"
 ---
 
@@ -68,8 +59,8 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 
 ## Sub-skill index
 
-| Sub-skill | When to use | Primary references |
-|-----------|-------------|-------------------|
+| Sub-skill | Routing condition | Primary references |
+|-----------|-------------------|-------------------|
 | `generate` | New copy from policy, spec, or flow | cloud-tone-matrix, cloud-copy-patterns, cloud-service-conventions, glossary |
 | `review` | Fix tone, grammar, clarity, naturalness | cloud-tone-matrix, consistency-rules, cloud-validation-checklist |
 | `audit` | Batch consistency (terms, casing, voice) | consistency-rules, quality-rubric, glossary |

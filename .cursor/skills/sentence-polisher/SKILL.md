@@ -10,20 +10,20 @@ description: >-
   "check grammar", "proofread", "sentence polish", "교정", "문장 교정", "문장
   다듬기", "문법 체크", "글 다듬어줘", or when invoked as a pipeline stage by
   other skills (e.g., gws-email-reply). Do NOT use for full document rewriting
-  (use prompt-transformer), brand voice generation from scratch (use
-  kwp-brand-voice-guideline-generation), or translation (handle directly).
+  (use prompt-transformer), brand voice generation from scratch (use brand
+  voice guideline creation tools), or translation (handle directly).
 metadata:
   author: "thaki"
-  version: "1.0.1"
+  version: "1.1.0"
   category: "generation"
 ---
 # Sentence Polisher
 
 ## Output language
 
-All outputs MUST be in Korean (한국어). Technical terms may remain in English.
+**Polished text** preserves the **input language**: Korean input → Korean output; English input → English output.
 
-Polished passages match input language (Korean in → Korean out; English in → English out). Change summaries and tone notes default to Korean for this workspace unless the caller requests otherwise.
+**Change summaries, analysis, and tone notes** default to **Korean** unless the caller specifies otherwise. Technical terms may remain in English.
 
 Bilingual (Korean + English) active text fixer. Unlike pm-toolkit `grammar-check` (which only suggests), this skill APPLIES fixes and returns polished text ready for use.
 
@@ -171,3 +171,14 @@ User pastes informal team Slack text mixing languages. Run bilingual mode; norma
 | Cannot determine language | Default to bilingual mode; apply both rulesets |
 | Ambiguous fix conflicts with context | Mark with `[REVIEW]` and preserve original in parentheses |
 | Very long text (>5000 chars) | Process in chunks by paragraph; maintain cross-paragraph consistency for honorific level, tense, and terminology |
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+- [project-tone-matrix.md](../references/project-overrides/project-tone-matrix.md) (POL-003 — tone by context, signal rules, formatting)
+- [project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md) (POL-001 — product name, domain terms, forbidden terms)
+
+Key constraints:
+- Apply financial/stock-analytics tone: cautious and non-advisory for signals and alerts; professional and consistent for reports and stakeholder copy.
+- Preserve financial abbreviations (RSI, MACD, P/E) in their conventional English forms unless the glossary mandates otherwise.
+- Verify Korean honorific level and audience-appropriate speech style against POL-003 for each surface (Slack, UI, email, reports).

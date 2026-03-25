@@ -183,6 +183,25 @@ All messages use Slack mrkdwn format. Rules:
 - Write content in Korean
 - Limit each message to under 4000 characters
 
+FORMATTING RULES — VIOLATING ANY OF THESE IS A QUALITY FAILURE:
+
+1. NO decorative emojis in section headers or body text.
+   - ALLOWED emojis (exhaustive list): ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ (engagement stats and thread numbering only)
+   - FORBIDDEN: 🔍 💡 🚀 📊 🎯 ✅ ⚡ 🔗 📌 💰 🏆 or ANY other decorative emoji
+2. ALL body text MUST be in Korean. English is allowed ONLY for:
+   - Proper nouns (product names, person names, company names)
+   - Technical terms with no standard Korean translation
+   - URLs and code snippets
+3. Section headers use *bold text* ONLY — no emojis before or after.
+   Correct: *핵심 내용*
+   Wrong:   🔍 *핵심 내용* or 💡 Key Insights
+4. Do NOT invent new section headers. Use ONLY the headers defined in the template:
+   *Tweet 요약*, *핵심 내용*, *인용 트윗*, *추가 조사 결과*, *참고 링크*,
+   *스레드 전문*, *AI GPU Cloud 서비스 인사이트*, *핵심 시사점*, *적용 가능성*,
+   *Action Items*, *{주제} 인사이트*
+5. Do NOT add decorative separators (═══, ───, *** etc.)
+6. Media upload is MANDATORY — if the tweet has photos or videos, upload them. HARD FAILURE if skipped.
+
 **Message 1: Title (Channel Post)**
 
 ```

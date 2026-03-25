@@ -7,6 +7,8 @@ description: >-
   공식 문서를 기반으로 기술 타당성을 독자적으로 분석한다.
   Use when the user asks to "요구사항 수집", "기술 타당성 평가", "기획안 평가",
   "클라우드 요구사항 분석", "cloud requirements analysis",
+  "requirements gathering", "technical feasibility",
+  "planning proposal review", "risk assessment",
   "기술적 현실성 검토", "리스크 평가", "누락 검토", "기술 검증",
   "요구사항 정리해줘", "기획안 기술 검토", "feasibility assessment",
   or needs to evaluate planning proposals from a cloud/technical perspective
@@ -17,7 +19,7 @@ description: >-
   Do NOT use for PRD creation (use pm-execution or prd-research-factory).
 metadata:
   author: thaki
-  version: "1.0.1"
+  version: "1.1.0"
   category: execution
 ---
 
@@ -216,3 +218,14 @@ Result: Full report (5 features, avg 3.8/5, 1 Critical, 6 gaps, phased plan)
 - **Test inputs**: realtime dashboard, marketplace, chat, API Gateway, serverless backend (5 types)
 - **Baseline target**: E1–E5 pass rate ≥ 80%
 - **Mutation focus**: HARD-GATE question precision, cost estimation, mitigation specificity
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+- [project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md) (POL-001 — product name, domain terms, forbidden terms)
+- [project-tech-stack.md](../references/project-overrides/project-tech-stack.md) (POL-001 — frontend/backend libraries)
+
+Key constraints:
+- Frame the “cloud tech team handoff” metaphor as **project technical stack and data-pipeline feasibility** for this monorepo (FastAPI + React + PostgreSQL scripts), not generic hyperscaler account design unless the proposal explicitly targets cloud provisioning.
+- Prioritize requirements analysis for **financial data pipelines, trading workflows, and analytics features** in this codebase over greenfield cloud infrastructure programs.
+- Avoid POL-001 forbidden terms and ThakiCloud-platform wording when the subject is stock analytics product behavior unless the proposal is genuinely about that platform.

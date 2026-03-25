@@ -16,7 +16,7 @@ description: >-
   Korean triggers: "노션 업로드", "마크다운 노션", "노션 페이지", "노션에 올려", "노션에 정리".
 metadata:
   author: "thaki"
-  version: "2.0.1"
+  version: "2.0.2"
   category: "execution"
 ---
 # md-to-notion
@@ -155,6 +155,23 @@ When a file is split (JSON has `"split": true`):
    Use `Part {N}: {subtitle}` as each sub-page title (localized labels in Korean deliverables if required).
 
 3. **Record** the parent page ID from step 1 for verification.
+
+#### Manual multi-part publish (MCP payload safety)
+
+When a single part is still large enough to risk MCP/JSON payload limits, or the
+user supplied **pre-defined** part files (e.g. `part-0.md`, `part-1.md`) instead
+of one monolithic file:
+
+1. Run `notion-create-pages` **per part** (or batch only the smaller parts) using
+   the same `parent` object shape as above—do not pass `parent` as a bare string.
+2. **Order**: create a smaller part first to validate credentials and markdown
+   rendering, then upload heavier parts (mirrors successful production sessions
+   where Part 1 was smaller than Part 0).
+3. Reuse the same intermediate parent page pattern as split uploads so the
+   Notion tree stays navigable (index parent + linked sub-pages).
+
+This path complements automatic H2 splitting; use it when tooling limits or
+editor-authored chunk boundaries apply.
 
 ### Step 4: Verify
 

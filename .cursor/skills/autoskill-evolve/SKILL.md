@@ -13,7 +13,7 @@ description: >-
   Do NOT use for autonomous skill prompt optimization (use skill-autoimprove).
 metadata:
   author: "thaki"
-  version: "1.0.1"
+  version: "1.0.2"
   category: "self-improvement"
 ---
 # AutoSkill Evolve
@@ -27,7 +27,7 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 ## Pipeline Overview
 
 ```
-Transcripts → Extract → Judge → Add/Merge/Discard → Guard → Report
+Transcripts → Extract → Judge → Add/Merge/Discard → Policy compliance → Guard → Report
 ```
 
 ## Input
@@ -66,6 +66,14 @@ Choose transcripts to process from the `--scope` flag:
 - `session <uuid>`: a specific session transcript
 
 Use `processed_transcripts` in the state file to avoid duplicate processing.
+
+### 운영 권장 케이던스
+
+- 이 저장소(**주식·금융 데이터 분석 / 이벤트 스터디**)에서는 트랜스크립트가 쌓인 뒤 **`recent` 스코프로 주 1회**
+  실행하는 것을 권장한다. 과도한 빈도는 중복 후보와 노이즈를 늘린다.
+- `continual-learning`(AGENTS.md 선호·작업공간 사실)과 **역할을 분리**한다:
+  autoskill-evolve는 **SKILL.md**의 트리거·제약·워크플로우 보강에 집중하고,
+  사용자 취향·메타 지침은 continual-learning 쪽에 둔다.
 
 ---
 
@@ -109,7 +117,8 @@ Compare the candidate’s triggers, tags, and description to each existing `.cur
 1. Create `.cursor/skills/<name>/`
 2. Convert the candidate prompt into SKILL.md format and save
 3. Include name, description, and metadata in frontmatter
-4. If `--auto-optimize`, run `skill-optimizer` audit
+4. **Append or preserve** the **Project-Specific Overrides** block (see end of this SKILL.md) in new skills so agents load [.cursor/skills/references/project-overrides/](../references/project-overrides/README.md) context
+5. If `--auto-optimize`, run `skill-optimizer` audit
 
 ### merge
 
@@ -117,11 +126,27 @@ Compare the candidate’s triggers, tags, and description to each existing `.cur
 2. Integrate new elements from the candidate (triggers, workflow steps, examples) into the target
 3. Bump the target skill’s version
 4. Record what changed in the merge
+5. **Preserve** any existing **Project-Specific Overrides** section on the target skill; do not strip project-overrides links when merging
 
 ### discard
 
 1. Log the discard reason
 2. No file changes
+
+---
+
+## Step 4b: Policy compliance check (mandatory before commit)
+
+After **add** or **merge**, validate the resulting `SKILL.md` against project policies (canonical: `docs/policies/`). **Reject or revise** the change if any check fails.
+
+| Policy | Check |
+|--------|--------|
+| **POL-001** (product identity / terminology) | No forbidden product terms; finance/stock domain wording consistent with glossary |
+| **POL-002** (UI/UX design) | UI guidance uses **Tailwind + Radix** for this app; does not **require** Thaki Cloud TDS (`@thakicloud/shared`) or Figma as the design SSOT |
+| **POL-003** (tone and voice) | User-facing output rules match tone policy when the skill defines customer copy |
+| **POL-006** (skill governance) | Frontmatter, triggers, and “Do NOT use” clauses are present; skill does not encode **cloud-platform-only** assumptions (e.g. mandatory internal cloud product) for this self-hosted stock analytics repo |
+
+**Reject** skills that assume a different product (generic cloud control plane, unrelated SaaS) as the default runtime. **Inject** references to [.cursor/skills/references/project-overrides/](../references/project-overrides/README.md) in the skill body or overrides table when the skill touches terminology, UI, or document standards.
 
 ---
 
@@ -178,6 +203,7 @@ CallMcpTool(
 - Minimum confidence 0.6
 - Flag for human review on merge conflicts
 - Use `--dry-run` to preview changes
+- **Policy gate**: Do not finalize add/merge until **Step 4b** passes
 
 ---
 
@@ -191,7 +217,7 @@ Actions:
 1. Select up to 5 recent unprocessed transcripts
 2. Extract 3 candidates (confidence 0.72, 0.85, 0.61)
 3. Judge: 1 add, 1 merge, 1 discard
-4. Create one new skill; update one existing skill
+4. Create one new skill; update one existing skill; run **Step 4b** policy compliance on both
 5. Write evolution report
 
 ### Example 2: Dry-run preview
@@ -226,3 +252,18 @@ Actions:
 | No candidates | Report “no reusable patterns found” |
 | Skill directory creation failed | Report error; continue other decisions |
 | Merge target SKILL.md parse error | Fall back to add as a separate skill |
+| Policy compliance failure (Step 4b) | Revert or edit candidate; log reason; do not ship skill |
+
+---
+
+## Project-Specific Overrides
+
+Applies only in **ai-model-event-stock-analytics**.
+
+| Override | Path |
+|----------|------|
+| Terminology (POL-001) | [.cursor/skills/references/project-overrides/project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md) |
+| Design / UI stack (POL-002) | [.cursor/skills/references/project-overrides/project-design-conventions.md](../references/project-overrides/project-design-conventions.md) |
+| Tone (POL-003) | [.cursor/skills/references/project-overrides/project-tone-matrix.md](../references/project-overrides/project-tone-matrix.md) |
+
+**Constraints:** Evolved skills must remain aligned with **financial analytics** domain defaults; validate against **POL-001–POL-006**; **reject** skills that embed **cloud-platform** or **Thaki Cloud product** assumptions as mandatory for this repo; keep **project-overrides** pointers in SKILL.md where applicable.

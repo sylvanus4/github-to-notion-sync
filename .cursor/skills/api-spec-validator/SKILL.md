@@ -96,3 +96,15 @@ Close the loop between planning documents and shipped HTTP APIs. Surfaces mismat
 - **Version skew** — If spec says v2 but code defaults v1, flag as Critical mismatch.
 - **Undocumented middleware** — Global validators may alter bodies; note possible hidden constraints.
 - **Pagination variants** — cursor vs offset; if both appear, mark `ambiguous` until unified.
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+
+- [../references/project-overrides/project-ssot.md](../references/project-overrides/project-ssot.md) (POL-005 — artifact locations, not-used systems)
+- [../references/project-overrides/project-tech-stack.md](../references/project-overrides/project-tech-stack.md) (POL-001 — frontend/backend libraries)
+
+Key constraints:
+
+- Use FastAPI interactive docs at `/docs` as the live OpenAPI surface; do not require committed `openapi.yaml` / static Swagger files in-repo.
+- Validate routes and schemas against `backend/app/api/v1/` implementations and the stack notes in project tech-stack overrides.

@@ -98,3 +98,16 @@ Make navigable, testable flows explicit for reviews, QA, and onboarding. Convert
 - **Unreadable source** — Request minimal bullet outline from user before mapping.
 - **Mermaid size limits** — Split into `Part A/B` diagrams with a master overview node.
 - **Concurrent edits** — If live collab changes the spec mid-run, timestamp the diagram context.
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+
+- `.cursor/skills/references/project-overrides/project-terminology-glossary.md` (POL-001 — product name, domain terms, forbidden terms)
+- `.cursor/skills/references/project-overrides/project-ssot.md` (POL-005 — artifact locations, not-used systems)
+
+Key constraints:
+
+- Prefer **financial-domain** journey examples when illustrating flows (e.g. stock screening → signal detection → order preview → execution → P&L tracking).
+- Label nodes and branches using POL-001 terminology and forbidden-term rules.
+- When linking artifacts, follow POL-005 for canonical doc and output locations.

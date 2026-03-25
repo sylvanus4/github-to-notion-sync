@@ -50,12 +50,16 @@ If 3+ axes align → treat as **same capability**.
 
 ### Step 3: Apply decision logic
 
+**Policy-based judgment (this repository — ai-model-event-stock-analytics):** Before finalizing `add` / `merge`, score the candidate against **financial analytics** relevance (signals, data pipelines, trading ops, stock UI). **DISCARD** if the candidate **introduces POL-001 forbidden terms** or **requires** Thaki Cloud **TDS** (`@thakicloud/shared`), **Figma**, or **Thaki Cloud platform** runtime as mandatory (this app is React + FastAPI + Tailwind + Radix). Prefer candidates that align with `docs/policies/01-product-identity.md` and [.cursor/skills/references/project-overrides/project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md).
+
 **DISCARD** when:
 - Captures a generic, non-portable task
 - confidence < 0.6
 - Duplicates an existing skill with no new constraints
 - Conflicts with project conventions without user confirmation
 - Scope is too narrow (single file/module only)
+- **Policy**: Introduces disallowed terminology (POL-001) or mandates TDS/Figma/Thaki Cloud product stack for this repo
+- **Domain**: Near-zero financial/stock relevance when the candidate purports to be a product workflow for this codebase
 
 **MERGE** when:
 - Same capability as an existing skill (same job-to-be-done)
@@ -74,6 +78,7 @@ If 3+ axes align → treat as **same capability**.
 - Name collision after normalization → **forbid** `add`
 - Primary deliverable class differs → different capability → `add` OK
 - Intended audience differs materially → different capability → `add` OK
+- **Forbid** `add`/`merge` that would embed **TDS / Figma / Thaki Cloud** as the default design or deployment SSOT for this project; those outcomes must be **discard** or rewritten first
 
 ## Output
 
@@ -127,3 +132,16 @@ Decision: **DISCARD** — one-off task, not reusable.
 | Cannot list existing skills | Verify directory path |
 | Ambiguous capability | Lower confidence; flag human review |
 | Multiple merge targets | Pick highest similarity; log alternatives |
+
+---
+
+## Project-Specific Overrides
+
+Applies only in **ai-model-event-stock-analytics**.
+
+| Override | Path |
+|----------|------|
+| Terminology / POL-001 | [.cursor/skills/references/project-overrides/project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md) |
+| UI stack (Tailwind + Radix) | [.cursor/skills/references/project-overrides/project-design-conventions.md](../references/project-overrides/project-design-conventions.md) |
+
+**Constraints:** Judge candidates against **POL-001** forbidden terms; **reject** skills that **require** TDS, Figma, or Thaki Cloud platform assumptions; include **financial domain relevance** in the rationale when the candidate is workflow-oriented.

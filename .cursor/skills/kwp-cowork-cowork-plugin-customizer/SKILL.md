@@ -154,3 +154,12 @@ Refer to the workflow steps above for usage patterns.
 ## Troubleshooting
 
 If the workflow produces unexpected results, verify inputs and retry with more specific context.
+
+## Not Applicable — AI Stock Analytics
+
+This skill is NOT applicable to the AI Stock Analytics project.
+
+**Reason**: Cowork 미사용
+**Alternative**: 해당 없음
+
+If this skill is invoked in the AI Stock Analytics project context, skip execution and suggest the alternative above.

@@ -123,7 +123,7 @@ Use the channel registry (fast path) or MCP search (fallback):
 
 | Channel Name | Channel ID |
 |---|---|
-| `deep-research-trending` | `C0AN34G4QHK` |
+| `deep-research` | `C0A6X68LTN1` |
 | `research` | `C0A7GBRK2SW` |
 | `press` | `C0A7NCP33LG` |
 | `research-pr` | `C0A7FS8UC66` |

@@ -106,3 +106,16 @@ Use the report scaffold in [../code-to-spec/references/diff-report-template.md](
 | Fix doc quality | `doc-quality-gate` |
 | Publish markdown | `md-to-notion` |
 | Visual diff story | `visual-explainer` |
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+
+- [../references/project-overrides/project-ssot.md](../references/project-overrides/project-ssot.md) (POL-005 — artifact locations, not-used systems)
+- [../references/project-overrides/project-document-standards.md](../references/project-overrides/project-document-standards.md) (POL-004 — quality gate, grading, report standards)
+
+Key constraints:
+
+- Treat specs as local markdown under `docs/policies/`, `docs/*.md`, and related repo paths—not Notion—as the default comparison targets unless the user provides another source.
+- Compare implementation against those documents and POL-004 expectations for structure and completeness.
+- Expect HTTP APIs at `/api/v1/` when diffing backend behavior against written specs.

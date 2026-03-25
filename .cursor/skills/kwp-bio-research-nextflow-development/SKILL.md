@@ -324,3 +324,12 @@ When publishing results, cite the appropriate pipeline. Citations are available 
 | Missing required context | Ask user for specific inputs before proceeding |
 | Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
 | Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |
+
+## Not Applicable — AI Stock Analytics
+
+This skill is NOT applicable to the AI Stock Analytics project.
+
+**Reason**: 바이오 도메인 미해당
+**Alternative**: 해당 없음
+
+If this skill is invoked in the AI Stock Analytics project context, skip execution and suggest the alternative above.

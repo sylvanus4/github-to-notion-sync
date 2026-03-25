@@ -18,7 +18,7 @@ Google Workspace 일일 작업을 순차 파이프라인으로 실행하는 마�
 ## Pipeline
 
 ```
-Calendar → Gmail Triage → Drive Upload → Slack Notify (+ threads) → Memory Sync
+Calendar → Gmail Triage → Drive Upload → Slack Notify (+ threads) → Memory Sync → Orphan Cleanup
 ```
 
 ## Slack Configuration
@@ -229,6 +229,18 @@ Append a daily entry to `MEMORY.md` at the project root following the protocol i
 
 This accumulates context so future sessions can reference past daily patterns, recurring senders, and action item history.
 
+## Phase 6 -- Slack Orphan Cleanup
+
+Run `slack-orphan-cleaner` to delete orphaned thread replies (deleted parent, remaining replies) across #press, #deep-research, #ai-coding-radar, #idea. This phase is non-blocking — failures are logged but do not fail the pipeline.
+
+```bash
+set -a && source .env && set +a
+python backend/scripts/cleanup_orphaned_threads.py --execute --json
+```
+
+Parse the JSON output and include a one-line summary in the Phase 4 Slack thread (if `main_message_ts` is available) or post a brief message to `#효정-할일`:
+`Orphan cleanup: {deleted} deleted, {failed} failed across {N} channels`
+
 ## Error Recovery
 
 | Phase | Failure | Action |
@@ -240,6 +252,7 @@ This accumulates context so future sessions can reference past daily patterns, r
 | Slack | Main message 실패 | 에러 보고, 사용자에게 직접 요약 표시 |
 | Slack | Thread reply 실패 | 에러 보고, 계속 진행 |
 | Memory | MEMORY.md 쓰기 실패 | 에러 보고, 요약은 정상 완료 |
+| Orphan Cleanup | Script error | 에러 로그, 파이프라인 계속 |
 | Any | Auth expired | `gws auth login -s drive,gmail,calendar` 안내 |
 
 ## Security Rules

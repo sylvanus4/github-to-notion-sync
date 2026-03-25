@@ -10,7 +10,7 @@ description: >-
   Do NOT use for production security testing, load testing, or code review; not a
   replacement for formal code-to-spec on private repos without a runnable demo.
 metadata:
-  version: "1.0.0"
+  version: "1.2.0"
   category: analysis
   author: thaki
 ---
@@ -77,6 +77,12 @@ Systematically **walk a demo** (local server or staging URL), **capture evidence
 
 Follow **Procedure step 6**; include an evidence index (screenshot paths or MCP log references).
 
+## Skill chain
+
+- **demo-analyzer** — Runnable demos (local/staging URL): dynamic navigation, live UI states, screenshots.
+- **code-to-spec** — No runnable demo: static code/PR analysis for contracts, flows, and implementation truth.
+- Use **demo-analyzer** when a URL is available; use **code-to-spec** when only repository or diffs are available.
+
 ## Examples
 
 - **Onboarding demo** — 6 screens, 2 error states, 1 empty state → matrix + flow + copy gaps.
@@ -89,9 +95,32 @@ Follow **Procedure step 6**; include an evidence index (screenshot paths or MCP 
 - Empty vs loading is distinguished; if unclear, mark indeterminate **in Korean** in the output.
 - Open questions are **specific** (what decision is needed), not vague.
 
-## Error handling
+## Error Handling
 
-- **Auth wall**: Document repro steps needed; do not guess credentials.
+- **CRITICAL — Scope confirmation**: Before expanding beyond agreed journeys, stop conditions, or non-destructive rules, obtain explicit user confirmation; refuse destructive or out-of-scope execution and list required manual verification **in Korean** in the output.
+- **CRITICAL — Auth wall**: Document repro steps needed; do not guess credentials; stop until test credentials or a pre-authenticated environment is provided.
 - **Flaky UI**: Retry once; then label unstable **in Korean** in the output.
 - **iframe-only content**: Note inaccessible regions per browser tool limits.
 - **Scope creep**: Strictly refuse destructive actions; list them as manual verification required **in Korean** in the output.
+
+## Evolution
+
+Binary eval hooks (pass/fail per run; aligned with `autoimprove-demo-analyzer/eval-criteria.md`):
+
+- **E1 — Screen inventory completeness**: Numbered list/table of all navigable screens/states; descriptive names and entry paths; **fail** if screens only appear ad-hoc in prose.
+- **E2 — State matrix coverage**: Structured matrix/table with **≥3 state types per major screen** (e.g. normal, error, plus loading or empty or permission); **fail** if only happy-path or prose-only.
+- **E3 — Edge case identification**: **≥3** specific edge/boundary items per major feature with trigger and observed behavior; **fail** if generic error-handling only.
+- **E4 — Screenshot evidence**: Findings backed by **visual reference** (screenshot name and/or URL-at-capture + snapshot summary); **fail** if UI assertions lack evidence.
+- **E5 — Open question specificity**: Each question ties to a **specific screen/state** and **concrete behavior**; owner domain + next step; **fail** for vague “needs clarification” only.
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+
+- `.cursor/skills/references/project-overrides/project-design-conventions.md` (POL-002 — Tailwind+Radix, Refined Swiss design system)
+- `.cursor/skills/references/project-overrides/project-tech-stack.md` (POL-001 — frontend/backend libraries)
+
+Key constraints:
+
+- Frame UI state extraction around Tailwind + Radix patterns (this repo does not use TDS); expect financial data views with loading, empty, error, data, and partial states.
+- Treat the frontend as React 19 + Vite 7 when inferring component patterns and build/runtime behavior.

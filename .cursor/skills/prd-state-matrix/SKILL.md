@@ -12,7 +12,7 @@ description: >-
   Do NOT use for general document quality inspection (use doc-quality-gate).
 metadata:
   author: thaki
-  version: "1.0.1"
+  version: "1.2.0"
   category: planning-automation
 ---
 
@@ -37,6 +37,10 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 
 **CRITICAL**: Do not proceed without a defined feature scope.
 
+## Boundaries
+
+**vs `edge-case-generator`:** `prd-state-matrix` extracts and organizes **existing** states into a structured matrix with transitions. `edge-case-generator` hunts for **gaps** and missing scenarios from PRD/spec inputs.
+
 ## Workflow
 
 ### Step 1: Parse PRD
@@ -53,6 +57,16 @@ For Notion pages, fetch via Notion MCP (`notion-fetch` or equivalent).
 ### Step 2: Build state matrix
 
 Use [references/state-matrix-template.md](references/state-matrix-template.md).
+
+**Required table shape (E1):** The 상태값 매트릭스 MUST use the same column headers and order as the reference. **Mini-template (copy structure; replace cells):**
+
+| # | 상태 | 진입 조건 | UI 표시 | 사용자 액션 | 전환 대상 | 비고 |
+|---|------|----------|---------|------------|----------|------|
+| 1 | 예: 초기 (Initial) | … | … | … | … | 엣지·예외 메모 |
+
+Put the **feature scope** in the `## 기능: [기능명]` line above the matrix (per reference). Do not omit **사용자 액션** or **비고**.
+
+**State provenance (E4):** Tag every state in the **상태** column as **[FROM_SPEC]** if it is directly stated or unambiguously named in the PRD/spec, or **[INFERRED]** with a one-line rationale (what context implied it). Never list a state as plain fact without one of these tags.
 
 State families to consider:
 - **UI**: initial, loading, success, failure, empty, disabled
@@ -71,6 +85,8 @@ Per state capture:
 Apply [references/edge-case-patterns.md](references/edge-case-patterns.md).  
 Label items already in the doc as **existing**; newly found as **new**.
 
+**Spec traceability (E2):** Every edge case MUST cite the PRD **section heading/번호**, requirement ID, or a short quoted anchor. If the gap is not documented in the PRD, mark **신규** and still cite the **closest related section** plus one line on why coverage is missing.
+
 ### Step 4: Policy mapping (optional)
 
 If policy provided:
@@ -80,7 +96,7 @@ If policy provided:
 
 ### Step 5: Recommendations
 
-Deliver prioritized (High/Medium/Low):
+Deliver as a bullet list. **Every recommendation MUST include (E3):** an explicit **우선순위: High / Medium / Low** and a **한 줄 근거** (why that severity). Cover:
 - Missing states to add
 - Edge cases to handle
 - Policy gaps to close
@@ -113,3 +129,14 @@ Actions: matrix for payment lifecycle → edge cases (duplicate charge, partial 
 | PRD too thin | Ask for more context |
 | Notion failure | Fall back to local/paste |
 | Too many features (5+) | Offer sequential analysis or prioritization |
+
+## Evolution
+
+Binary eval hooks (skill-autoimprove / audits). Each: **PASS** if true, **FAIL** otherwise.
+
+| Hook | Criterion |
+|------|-----------|
+| **E1** | State matrix includes all required columns per [references/state-matrix-template.md](references/state-matrix-template.md). |
+| **E2** | Edge cases reference linked spec sections (or explicit “new” with source rationale). |
+| **E3** | Priority ratings (e.g. High/Medium/Low) provided for recommendations. |
+| **E4** | No hallucinated states: every state/trace ties to PRD/spec text or is labeled as inferred with evidence. |

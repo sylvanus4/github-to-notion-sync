@@ -4,22 +4,16 @@ description: >-
   Unified planning-document quality gate: scores PRDs, feature specs, policy docs,
   and design docs on seven weighted dimensions, assigns A–D grades, and auto-approves
   or rejects using a configurable threshold with actionable, severity-ranked feedback.
-  Korean triggers: "문서 품질 점검", "기획서 검토", "PRD 검수", "문서 완전성 점검",
-  "doc quality check", "spec review", "기획서 빠진 거 없는지 확인", "상태 커버리지 체크",
-  "Edge Case 누락 점검", "정책 정합성 검증", "문서 리뷰 자동화", "문서 품질 검사",
-  "기획서 품질 게이트", "문서 품질 점수", "doc quality gate", "PRD 품질 리뷰",
-  "스펙 문서 검수", "inspect document quality", "기획서 점검", "문서 검수",
-  "품질 체크", "document inspection", "기획서 완성도", "문서 누락 점검", "QA 문서",
-  "check document quality", "review PRD quality". Do NOT use for document review
-  workflow orchestration (use doc-review-orchestrator), cross-artifact design/code
-  sync audits (use cross-domain-sync-checker), code review
-  (use deep-review or code-reviewer), PRD state-matrix extraction only (use
-  prd-state-matrix), policy copy compliance only (use policy-text-generator), meeting
-  notes (use meeting-digest), or content marketing quality (use an appropriate
-  content gate skill).
+  Korean triggers: "문서 품질 점검", "PRD 검수", "기획서 완성도", "상태 커버리지",
+  "Edge Case 누락", "정책 정합성", "doc quality gate", "spec review",
+  "inspect document quality", "review PRD quality".
+  Do NOT use for: doc-review-orchestrator (review workflows); cross-domain-sync-checker
+  (design/code sync audits); code review tools or agents; prd-state-matrix only;
+  policy-text-generator (copy compliance only); meeting-digest; content marketing
+  quality (appropriate content gate skill).
 metadata:
   author: thaki
-  version: "2.0.1"
+  version: "2.1.0"
   category: review
 ---
 
@@ -29,7 +23,7 @@ metadata:
 
 All outputs MUST be in Korean (한국어). Technical terms may remain in English.
 
-Single skill combining weighted 7-dimension scoring (formerly `doc-quality-checker`), binary sub-checks and gate workflow (formerly `doc-quality-gate`), and checklist / sync / collaboration guidance (formerly `doc-quality-inspector`). Use this skill whenever any of those capabilities was previously invoked.
+Single skill combining weighted 7-dimension scoring (formerly `doc-quality-checker`), binary sub-checks and gate workflow (formerly `doc-quality-gate`), and checklist / sync / collaboration guidance (formerly `doc-quality-inspector`).
 
 ## Inputs
 

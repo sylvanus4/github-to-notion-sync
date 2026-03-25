@@ -1,0 +1,2 @@
+cycle_id	skill	version_before	version_after	lines_after	e1_change	e2_change	e3_change	e4_change	mutations_summary
+code-explorer-autoimprove-2025-03-24	code-explorer	1.1.0	1.2.0	201	strengthened: checklist + anti-pattern + jargon rows	strengthened: mandatory path:line per claim	unchanged: Step 4 template preserved	unchanged: boundary unchanged	translation_table;anti_patterns;pre_output_checklist;citations_mandatory;examples_e2;e2_evolution_row

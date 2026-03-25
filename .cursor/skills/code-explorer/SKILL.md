@@ -5,7 +5,9 @@ description: >-
   탐색 도구입니다. 기술 용어를 기획 용어로 번역하여 설명합니다.
   Use when the user asks "이 버튼 누르면 뭐가 돼?", "에러 상태일 때 뭐가 보여?",
   "이 기능 어떻게 동작해?", "코드 설명해줘", "이 컴포넌트 뭐 하는 거야?",
-  "이 API 뭐 하는 거야?", "code explorer", "코드 탐색", "코드 질문",
+  "이 API 뭐 하는 거야?", "code explorer", "explain code behavior",
+  "what does this component do", "how does this feature work", "코드 탐색",
+  "코드 질문",
   "기능 동작 설명", "화면 동작 설명", or asks natural-language questions about
   code behavior from a planner/designer perspective. Do NOT use for generating
   full planning documents from code (use code-to-spec). Do NOT use for code
@@ -14,7 +16,7 @@ description: >-
   탐색", "코드 질문", "동작 설명", "기능 설명", "뭐가 보여", "어떻게 동작".
 metadata:
   author: "thaki"
-  version: "1.0.1"
+  version: "1.2.0"
   category: "execution"
 ---
 # Code Explorer — Code behavior Q&A
@@ -102,8 +104,28 @@ git blame <file>
 | `infinite scroll` | Load more on scroll |
 | `cache`, `stale` | Cached data |
 | `optimistic update` | Optimistic UI update |
+| `callback`, callback fn | 후속 처리, 이어서 실행되는 처리 |
+| `props` | 부모 화면에서 넘어온 전달 데이터 |
+| mutating state / `setState` | 화면 상태 변경(갱신) |
+| `ref` | 화면 밖 저장값 / DOM·컴포넌트 고정 참조 |
+| `key` (list) | 목록에서 항목 식별용 표식 |
+| `memo` / `useMemo` | 불필요한 재계산 줄이기 |
+| `try` / `catch` | 오류 잡아서 분기 처리 |
+
+### Anti-patterns (E1 / clarity)
+
+- **Do NOT** lead explanations with raw code syntax, hook names, or variable names as if they were user-facing concepts (e.g. "`handleSubmit`가…", "`res`는…"). **Do** use descriptive Korean roles: "제출 시 실행되는 처리", "서버 응답 본문".
+- **Do NOT** paste blocks of code as the answer unless the user explicitly asked for code; default is planning-language prose plus **file:line** citations.
 
 ### Step 4: Answer structure
+
+**Pre-output — translation checklist (complete before sending):**
+
+- [ ] Main narrative uses **planning language**; any English technical term is either a stable product term or paired with a short Korean gloss.
+- [ ] No unexplained `use*` / API jargon in body text; map through Step 3 table or an explicit gloss.
+- [ ] Sentences name **roles and outcomes**, not internal identifiers (`foo`, `data2`).
+
+**Citations (E2 — mandatory):** For **every** code-backed claim (what runs on click, which branch shows, which API fires), include **`path:line`**, or a single fenced citation block whose fence label is `startLine:endLine:filepath` (Cursor-style). If lines are unknown after search, say so once and give the smallest traceable path + symbol to find.
 
 ```markdown
 ## Answer: [question summary]
@@ -115,7 +137,7 @@ git blame <file>
 - [Screen]: [role]
 
 ### Code locations
-- `[path]`: [what this code does]
+- `path:line` — [what this code does in planning terms]
 
 ### Related capabilities
 - [Linked features or screens]
@@ -133,15 +155,15 @@ git blame <file>
 User: "What happens when I tap delete on the order list?"
 
 Answer (illustrative):
-- Confirmation dialog → DELETE request → success removes row + toast; failure shows error toast.
-- Cite `OrderList.tsx`, `orders` API module, admin-only visibility if applicable.
+- 확인 팝업 → 서버에 삭제 요청 → 성공 시 행 제거 + 알림; 실패 시 오류 알림.
+- 근거마다 `OrderList.tsx:42`처럼 **파일:줄**로 인용; 주문 API 모듈·관리자만 노출 등은 동일 규칙 적용.
 
 ### Example 2: State question
 
 User: "What does the payment screen show on error?"
 
 Answer (illustrative):
-- Network vs card decline vs server error branches with distinct copy and CTAs; cite `PaymentForm.tsx`.
+- 네트워크 오류·카드 거절·서버 오류 등 분기별 문구·버튼이 다름; `PaymentForm.tsx:줄번호` 형태로 인용.
 
 ### Example 3: History question
 
@@ -166,3 +188,25 @@ Answer (illustrative):
 - **Answer too technical**: Re-run through the translation table
 - **Cannot locate code**: Try filename/symbol search, then semantic search
 - **No git history**: State that history cannot be verified from git
+
+## Evolution
+
+Binary eval hooks (skill-autoimprove / audits). Each: **PASS** if true, **FAIL** otherwise.
+
+| Hook | Criterion |
+|------|-----------|
+| **E1** | Output uses planning terminology (not dev jargon). |
+| **E2** | Every code-backed claim has **`path:line`** or a line-range code citation block; not merely a file path. |
+| **E3** | Answer follows the Step 4 template (sections present and ordered). |
+| **E4** | Boundary respected: no full planning-doc generation (no code-to-spec scope creep). |
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+- [project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md) (POL-001 — product name, domain terms, forbidden terms)
+- [project-tech-stack.md](../references/project-overrides/project-tech-stack.md) (POL-001 — frontend/backend libraries)
+
+Key constraints:
+- Translate financial and trading technical terms into planner-friendly Korean using POL-001 glossary mappings; avoid unexplained jargon in answers.
+- Describe the frontend stack as **React 19 + TypeScript** (Vite app under `frontend/`) when explaining UI behavior.
+- Describe backend behavior as **Python FastAPI** under `backend/app/` when tracing APIs and services.

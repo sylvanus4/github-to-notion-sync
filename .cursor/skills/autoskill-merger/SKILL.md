@@ -71,6 +71,16 @@ Append a comment at the bottom of SKILL.md:
 - Candidate narrows scope → include
 - Candidate greatly expands scope → flag review
 
+### Step 7: Post-merge policy verification (mandatory)
+
+After writing the merged `SKILL.md`, validate:
+
+1. **POL-001 / terminology** — Scan body for forbidden or deprecated product terms per `docs/policies/01-product-identity.md` and [.cursor/skills/references/project-overrides/project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md). If new violations appear, **revert** the merge or patch before completing.
+2. **Design system references** — Instructions must point to **Tailwind CSS + Radix UI** and local conventions (see [.cursor/skills/references/project-overrides/project-design-conventions.md](../references/project-overrides/project-design-conventions.md)). **Fail** if the merged skill **requires** Thaki **TDS** or **Figma** as mandatory for this app.
+3. **Project-Specific Overrides** — If the target skill already had a **Project-Specific Overrides** section, **preserve** it; merge candidate content around it without deleting override links.
+
+Record pass/fail in the merge report JSON under `policy_verification`.
+
 ## Output
 
 - Updated SKILL.md in place
@@ -87,7 +97,12 @@ Append a comment at the bottom of SKILL.md:
     "conflicts_flagged": []
   },
   "source_candidate": "candidate-name",
-  "merge_date": "2026-03-24"
+  "merge_date": "2026-03-24",
+  "policy_verification": {
+    "pol_001_ok": true,
+    "tailwind_radix_only": true,
+    "overrides_section_preserved": true
+  }
 }
 ```
 
@@ -127,3 +142,17 @@ Result:
 | Candidate JSON parse error | Validate format; suggest re-running autoskill-extractor |
 | Body exceeds 500 lines after merge | Move large blocks to `references/` |
 | Unresolvable conflict | Flag human review; preserve both versions for review |
+| Post-merge policy check fails | Revert or fix SKILL.md; do not mark merge complete |
+
+---
+
+## Project-Specific Overrides
+
+Applies only in **ai-model-event-stock-analytics**.
+
+| Override | Path |
+|----------|------|
+| Terminology (POL-001) | [.cursor/skills/references/project-overrides/project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md) |
+| Design / UI stack | [.cursor/skills/references/project-overrides/project-design-conventions.md](../references/project-overrides/project-design-conventions.md) |
+
+**Constraints:** Run **post-merge validation** against POL-001 terminology; ensure design system references are **Tailwind+Radix**, not TDS; **preserve** the **Project-Specific Overrides** section when present.

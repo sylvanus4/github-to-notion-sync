@@ -1,6 +1,6 @@
 # UI/UX 품질 리뷰 체크리스트
 
-Thaki Cloud 제품의 UI/UX 품질 평가를 위한 표준 체크리스트. Module 2(UI/UX 품질 피드백)에서 사용.
+**AI Stock Analytics** UI/UX 품질 평가용 표준 체크리스트. Module 2(UI/UX 품질 피드백)에서 사용. 컴포넌트·토큰 기준: `.cursor/rules/design-system.mdc` (Tailwind CSS v4 + Radix UI).
 
 ## 목차
 
@@ -57,14 +57,14 @@ Thaki Cloud 제품의 UI/UX 품질 평가를 위한 표준 체크리스트. Modu
 
 ## 4. 컴포넌트 일관성 (Component Consistency)
 
-- [ ] 동일 기능에 동일 TDS 컴포넌트를 사용하는가
-- [ ] 컴포넌트 variant가 올바르게 적용되는가
-- [ ] 커스텀 컴포넌트 대신 TDS 대안이 있는가
-- [ ] 컴포넌트 사용 방식이 TDS 가이드라인과 일치하는가
+- [ ] 동일 기능에 동일 **Radix + Tailwind** 패턴을 사용하는가 (`design-system.mdc`)
+- [ ] variant(버튼·배지 등)가 올바르게 적용되는가
+- [ ] 문서화된 패턴이 있는데 임의 커스텀으로 우회하지 않는가
+- [ ] 컴포넌트 사용이 `design-system.mdc` 가이드와 일치하는가
 
 | 심각도 | 기준 |
 |--------|------|
-| Critical | TDS 컴포넌트 존재하는데 직접 구현 |
+| Critical | 문서화된 패턴이 있는데 불필요하게 직접 구현 |
 | Critical | 동일 기능에 다른 컴포넌트 사용 |
 | Major | variant 오용 (예: primary 대신 secondary) |
 | Minor | 가이드라인 내 권장 사용법과 미세한 차이 |

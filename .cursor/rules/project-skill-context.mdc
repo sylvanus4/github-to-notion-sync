@@ -1,0 +1,98 @@
+# Project Skill Context — AI Stock Analytics
+
+> This rule injects project-specific context into **generic skills** at runtime.
+> Skills remain universal; this file provides the local overrides.
+
+## Product Identity
+
+| Key | Value |
+|-----|-------|
+| **Name** | AI Stock Analytics (AI 주식 분석 플랫폼) |
+| **Abbreviation** | ASA |
+| **Domain** | Financial data analysis · Event studies · Trading strategies |
+| **Target Users** | Individual investors, quant traders, financial data analysts |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19 · TypeScript 5.9 · Vite 7 · Tailwind CSS 4 · Radix UI · Recharts · TanStack Query/Table |
+| Backend | Python 3.12 · FastAPI · SQLAlchemy 2.0 · Alembic · Pydantic v2 |
+| Database | PostgreSQL 16 |
+| Testing | Vitest (unit) · Playwright (E2E) · pytest (backend) |
+| Icons | lucide-react only |
+
+## Design System
+
+This project uses the **Refined Swiss** theme via **Tailwind CSS v4 + Radix UI**.
+
+- Token definitions: `.cursor/rules/design-system.mdc`
+- CSS variables: `frontend/src/index.css`
+- Fonts: Inter (body), Fira Code (numbers/code)
+- Dark mode: CSS Custom Properties auto-switch
+
+**Not used in this project:**
+- `@thakicloud/shared` (TDS) — do not import or reference
+- Figma — no design files; specs are in code and markdown
+- Storybook — not configured
+- Go backend — Python only
+- Kubernetes / Helm / Terraform — not deployed to K8s
+
+## Terminology Rules
+
+When skills produce output for this project:
+- Use "AI Stock Analytics" or "ASA", not "AI Platform", "Thaki Cloud", or "ai-platform-webui"
+- Use "종목" for stock ticker, "시그널" for trading signal, "스크리닝" for screening
+- Use "분석 리포트" for analysis report, "매매 전략" for trading strategy
+- Full glossary: `.cursor/skills/references/project-overrides/project-terminology-glossary.md`
+
+## SSoT Locations
+
+| Artifact | Location |
+|----------|----------|
+| Frontend code | `frontend/src/` |
+| Backend code | `backend/app/` |
+| API schemas | `backend/app/schemas/` (Pydantic) |
+| DB migrations | `backend/alembic/versions/` |
+| Policy docs | `docs/policies/` (POL-001 to POL-006) |
+| i18n translations | `frontend/src/locales/{lang}/` |
+| Ticker constants | `backend/app/core/constants.py` |
+| Daily outputs | `outputs/` |
+| E2E tests | `e2e/tests/` |
+| Unit tests | `frontend/src/**/__tests__/` |
+
+## Tone & Voice
+
+- All AI-generated reports, Slack posts, and UI copy: Korean (기술 용어는 영어 허용)
+- Skill definitions and rule files: English
+- Tone: 전문적, 간결, 데이터 기반 — 투자 분석 도메인에 맞는 신뢰감 있는 어조
+- Copy patterns: `.cursor/skills/references/project-overrides/project-copy-patterns.md`
+
+## Policy References
+
+Skills operating in this project should consult these policies:
+
+| Policy | Path | Scope |
+|--------|------|-------|
+| POL-001 Product Identity | `docs/policies/01-product-identity.md` | Naming, tech stack, forbidden terms |
+| POL-002 UI/UX Design | `docs/policies/02-uiux-design-policy.md` | Design tokens, components, patterns |
+| POL-003 Tone & Voice | `docs/policies/03-tone-and-voice.md` | Writing style, signal language |
+| POL-004 Document Quality | `docs/policies/04-document-quality-standards.md` | Report grading, quality gates |
+| POL-005 SSoT Mapping | `docs/policies/05-ssot-mapping.md` | Canonical artifact locations |
+| POL-006 Skill Governance | `docs/policies/06-skill-governance.md` | Skill lifecycle, audit cadence |
+
+## Project Override Files
+
+Detailed overrides for each policy area:
+
+| File | Scope |
+|------|-------|
+| `project-terminology-glossary.md` | Domain-specific term mappings |
+| `project-design-conventions.md` | Refined Swiss component patterns |
+| `project-tone-matrix.md` | Tone rules by context and audience |
+| `project-copy-patterns.md` | UI copy templates for financial domain |
+| `project-document-standards.md` | Report structure and grading criteria |
+| `project-ssot.md` | SSoT mapping for this project |
+| `project-tech-stack.md` | Full dependency versions |
+
+All located under `.cursor/skills/references/project-overrides/`.

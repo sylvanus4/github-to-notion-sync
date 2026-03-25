@@ -208,3 +208,16 @@ User: "Assemble and infer missing parts" `--fill-gaps`
 - **Test inputs**: meeting+policy, three Notion pages, code+design (3 scenarios)
 - **Baseline target**: E1–E5 pass rate ≥ 80%
 - **Mutation focus**: extraction patterns, conflict rules, template shape
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+
+- `.cursor/skills/references/project-overrides/project-document-standards.md` (POL-004 — quality gate, grading, report standards)
+- `.cursor/skills/references/project-overrides/project-terminology-glossary.md` (POL-001 — product name, domain terms, forbidden terms)
+
+Key constraints:
+
+- Target the **POL-004 PRD template** (10 sections) when assembling the merged document.
+- Pull sources from **local** paths: `docs/`, `tasks/`, meeting notes, and repo markdown—not Notion-by-default.
+- Apply **financial / trading** domain wording per POL-001 across the assembled PRD.

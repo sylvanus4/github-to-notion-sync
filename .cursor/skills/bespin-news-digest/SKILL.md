@@ -6,7 +6,7 @@ description: >-
   extraction + WebSearch + AI GPU Cloud classification + 3-message Slack thread)
   to EACH article sequentially, generate a rich DOCX with all findings, upload
   to Google Drive, and post a summary to #효정-할일. ALL articles are posted to
-  #press — channel routing from x-to-slack is NOT used. Use when the user runs /bespin-news, asks to
+  #bespin-news — channel routing from x-to-slack is NOT used. Use when the user runs /bespin-news, asks to
   "process Bespin news", "뉴스 클리핑 분석", "bespin-news-digest", "베스핀 뉴스",
   or wants a detailed analysis of the latest Bespin Global news clipping.
   Do NOT use for general Gmail triage (use gmail-daily-triage).
@@ -19,7 +19,7 @@ metadata:
 # Bespin News Digest
 
 Fetch the latest Bespin News email, research each article with the full x-to-slack
-pipeline, post a 3-message Slack thread per article to `#press`, generate a
+pipeline, post a 3-message Slack thread per article to `#bespin-news`, generate a
 comprehensive DOCX, and post a Drive-linked summary to `#효정-할일`.
 
 > **Pattern**: mirrors `twitter-timeline-to-slack` — sequential processing with
@@ -29,7 +29,7 @@ comprehensive DOCX, and post a Drive-linked summary to `#효정-할일`.
 
 | Channel | ID | Purpose |
 |---|---|---|
-| `press` | `C0A7NCP33LG` | Per-article threads (news/media) |
+| `bespin-news` | `C0ANL38CBPG` | Per-article threads (news/media) |
 | `효정-할일` | `C0AA8NT4T8T` | Final summary post |
 | `효정-insight` | `C0A8SSPC9RU` | (optional override for high-impact articles) |
 | `효정-의사결정` | `C0ANBST3KDE` | Personal decision items (decision-router) |
@@ -132,10 +132,10 @@ print(f"Found {len(articles)} articles")
 
 ## Phase 3 — Per-Article Pipeline
 
-> **CRITICAL — CHANNEL ROUTING**: ALL articles MUST be posted to `#press` (`C0A7NCP33LG`).
+> **CRITICAL — CHANNEL ROUTING**: ALL articles MUST be posted to `#bespin-news` (`C0ANL38CBPG`).
 > Do NOT use x-to-slack topic classification for channel selection. The x-to-slack
 > pipeline is used ONLY for its content extraction and research methodology, NOT for
-> its channel routing. Never route articles to any channel other than `#press`.
+> its channel routing. Never route articles to any channel other than `#bespin-news`.
 
 **CRITICAL**: Process each article SEQUENTIALLY. Do NOT parallelize. Each article
 MUST go through ALL sub-steps below. Never shortcut to a quick summary.
@@ -198,7 +198,7 @@ All messages use Slack mrkdwn. Rules:
 - Korean content
 - Under 4000 characters per message
 
-**Message 1 — Title (post to `#press` = `C0A7NCP33LG`)**
+**Message 1 — Title (post to `#bespin-news` = `C0ANL38CBPG`)**
 
 ```
 {1-2 line Korean title capturing the core insight of the article}
@@ -379,7 +379,7 @@ Post a final summary to `#효정-할일` (`C0AA8NT4T8T`):
 - 총 기사: {N}건
 - AI/GPU Cloud 관련: {N}건
 - 기타 주제: {N}건
-- 각 기사별 3-message 쓰레드: #press 채널
+- 각 기사별 3-message 쓰레드: #bespin-news 채널
 
 *핵심 테마*
 {Top 3 themes from today's news — 1 line each}
@@ -387,7 +387,7 @@ Post a final summary to `#효정-할일` (`C0AA8NT4T8T`):
 *상세 문서*
 <{DRIVE_LINK}|bespin-news-{YYYY-MM-DD}.docx>
 
-_각 기사 상세 분석은 #press 채널에서 확인하세요_
+_각 기사 상세 분석은 #bespin-news 채널에서 확인하세요_
 ```
 
 ## Phase 6.5 — Decision Summary Post (skip if `skip-decisions`)
@@ -420,7 +420,7 @@ C. 보류 / 추가 조사 필요
 {recommended option with rationale}
 
 *긴급도*: {HIGH / MEDIUM / LOW}
-*원본*: <{slack_thread_link}|{article title} (#press)>
+*원본*: <{slack_thread_link}|{article title} (#bespin-news)>
 ```
 
 If there are 3+ decision items, also post a summary header message first:
@@ -466,7 +466,7 @@ Actions:
    a. WebFetch Jina Reader for full content
    b. WebSearch 2-3 queries per article
    c. Classify: AI GPU Cloud or topic-specific
-   d. Post 3-message Slack thread to #press
+   d. Post 3-message Slack thread to #bespin-news
    e. Wait 12s
 4. Generate DOCX with all articles + research + insights
 5. Upload to Google Drive
@@ -476,7 +476,7 @@ Actions:
 
 For article "아마존, 세레브라스 AI칩 도입":
 
-**Message 1 (#press):**
+**Message 1 (#bespin-news):**
 ```
 아마존 AWS가 세레브라스 웨이퍼급 AI칩 도입 — 엔비디아 독점 균열과 추론 인프라 판도 변화
 https://www.yna.co.kr/view/AKR20260314003200091

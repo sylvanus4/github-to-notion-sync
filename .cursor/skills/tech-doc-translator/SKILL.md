@@ -161,3 +161,16 @@ Deliver in Korean with sections analogous to: title with audience tag; TL;DR (�
 | E6 | States/constraints extracted when doc implies them (or explicit N/A) |
 
 **Autoimprove test inputs:** REST API doc, microservice architecture, AWS Lambda overview, schema migration notes, OAuth2 summary.
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+
+- `.cursor/skills/references/project-overrides/project-terminology-glossary.md` (POL-001 — product name, domain terms, forbidden terms)
+- `.cursor/skills/references/project-overrides/project-tone-matrix.md` (POL-003 — tone by context, signal rules, formatting)
+
+Key constraints:
+
+- Translate financial/trading technical terms using the POL-001 glossary; default audience is planners and analysts (not cloud ops).
+- Preserve standard English abbreviations (RSI, MACD, CAR) per project conventions.
+- Align tone and formatting with POL-003 when explaining specs for non-engineering readers.

@@ -11,12 +11,12 @@ description: >-
   "what does this API actually do", "구현에서 스펙", "코드 기획서", "배포된 기능 문서화",
   or needs planning documentation from existing code without comparing to a canonical Notion spec
   (for spec-vs-code gap analysis use code-spec-comparator). Do NOT use for code review
-  (use deep-review). Do NOT use for writing new PRDs from scratch (use pm-execution or
+  (use code review tools). Do NOT use for writing new PRDs from scratch (use pm-execution or
   prd-auto-generator). Do NOT use for formal API reference docs (use technical-writer).
   Do NOT use for test scenarios only (use pm-execution test-scenarios).
 metadata:
   author: thaki
-  version: "2.0.1"
+  version: "2.1.0"
   category: analysis
 ---
 

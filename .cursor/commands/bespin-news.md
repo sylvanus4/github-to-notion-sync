@@ -1,7 +1,7 @@
 ## Bespin News Digest
 
 최신 Bespin Global 뉴스클리핑 이메일을 가져와 각 기사에 대해 전체 연구 파이프라인을
-적용합니다. Jina Reader 콘텐츠 추출 → 웹 검색 → AI GPU Cloud 분류 → #press에
+적용합니다. Jina Reader 콘텐츠 추출 → 웹 검색 → AI GPU Cloud 분류 → #bespin-news에
 3-message Slack 쓰레드 게시 → DOCX 생성 → Google Drive 업로드 → #효정-할일 요약 게시.
 
 ### Usage
@@ -23,7 +23,7 @@ Read and follow the `bespin-news-digest` skill:
    - Jina Reader(`r.jina.ai`)로 본문 전문 추출
    - WebSearch 2-3회 — 배경, 트렌드, AI/클라우드 영향 조사
    - AI GPU Cloud 관련 여부 분류 (5가지 기준)
-   - `#press` 채널에 3-message Slack 쓰레드 게시
+   - `#bespin-news` 채널에 3-message Slack 쓰레드 게시
    - 기사 간 12초 대기 (Slack rate limit 준수)
 4. **DOCX 생성**: 전체 기사 + 조사 결과 + 인사이트 포함 상세 문서
 5. **Drive 업로드**: `Google Daily - YYYY-MM-DD` 폴더에 DOCX 저장
@@ -42,5 +42,5 @@ Read and follow the `bespin-news-digest` skill:
 
 | Channel | Purpose |
 |---------|---------|
-| `#press` | 기사별 3-message 쓰레드 |
+| `#bespin-news` | 기사별 3-message 쓰레드 |
 | `#효정-할일` | 최종 요약 (건수 + 테마 + Drive 링크) |

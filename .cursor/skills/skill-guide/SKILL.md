@@ -10,7 +10,7 @@ description: >-
   Do NOT use for creating new skills (use create-skill), auditing skill quality
   (use skill-optimizer), or transcript-based skill mining (use autoskill-extractor).
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
   category: meta
   author: thaki
 ---
@@ -27,8 +27,30 @@ Help the user pick the **right** skill from `.cursor/skills/` by intent, surface
 
 ## Prerequisites
 
-- Workspace root is the planning automation repository.
+- Workspace root is the **ai-model-event-stock-analytics** repository (stock analytics, event study, trading pipelines).
 - Skills live under `.cursor/skills/<skill-name>/SKILL.md`.
+
+## Repository conventions (ai-model-event-stock-analytics)
+
+When **authoring** skills or explaining how this repo expects agents to behave:
+
+| Topic | Convention |
+|-------|------------|
+| SKILL.md body | English (workflows, headings, technical steps). |
+| User-facing deliverables | Korean (한국어) unless the user explicitly asks otherwise. |
+| Korean triggers | Keep in YAML `description` / trigger lists; do not strip in favor of English-only. |
+| Domain | Prioritize **financial data analysis**, **trading / screening**, **pipeline automation** (`today`, `daily-stock-check`, DB sync, FastAPI tabs) when intent is ambiguous. |
+| UI guidance | **Tailwind CSS + Radix UI** per local rules; do not default to Thaki Cloud **TDS** or **Figma** as mandatory. |
+| Integrations | Prefer **Notion MCP**, **Slack MCP**, and **Google Workspace CLI (`gws`)** when the task is publishing or notify workflows—aligned with `AGENTS.md`. |
+
+Use this block when the user asks for “skills in English but outputs in Korean”, or when routing tasks tied to stock reports, Slack trading channels, or stakeholder documentation.
+
+### Tier-aware recommendations
+
+1. Read [docs/policies/skill-assessment-matrix.md](../../../docs/policies/skill-assessment-matrix.md) for **tier classification** (A–E).
+2. **Exclude Tier D** skills from default recommendations for this project (not applicable here unless the user explicitly names a Tier D use case).
+3. **Prioritize** trading and financial analysis skills (e.g. `today`, `daily-stock-check`, `weekly-stock-update`, `tab-*`, `trading-*`, `alphaear-*`) when intent matches markets or portfolio workflows.
+4. When a skill includes **Project-Specific Overrides** (bottom of its SKILL.md) or points to [.cursor/skills/references/project-overrides/](../references/project-overrides/README.md), **say so** in the rationale so the user knows policy-aligned context is available.
 
 ## Procedure
 
@@ -36,7 +58,7 @@ Help the user pick the **right** skill from `.cursor/skills/` by intent, surface
 
 2. **Inventory skills** — List directories under `.cursor/skills/`. For each `SKILL.md`, read YAML `name`, `description` (first ~400 chars), and `metadata.category` if present. Build a table: `skill-name` | one-line capability | category.
 
-3. **Match** — Score candidates against intent using: trigger phrases in `description`, explicit “Use when” / “Korean triggers”, and negation clauses (“Do NOT use for …”). Prefer **one primary** skill; list **2 alternates** with one-line rationale.
+3. **Match** — Score candidates against intent using: trigger phrases in `description`, explicit “Use when” / “Korean triggers”, and negation clauses (“Do NOT use for …”). Prefer **one primary** skill; list **2 alternates** with one-line rationale. **Filter out Tier D** skills unless the user explicitly needs them (see `skill-assessment-matrix.md`). **Boost** financial / trading / data-pipeline skills when intent involves stocks, signals, backtests, or `outputs/` reports.
 
 4. **Recommend usage** — For the primary skill, output:
    - **Invocation hint**: natural-language prompt the user can paste (Korean).
@@ -77,15 +99,31 @@ Help the user pick the **right** skill from `.cursor/skills/` by intent, surface
 
 - **Intent**: Today’s work summary to Slack → Recommend `planning-daily-briefing` when Notion + Calendar are in scope; otherwise Slack-only summary with explicit data gaps.
 
+- **Intent**: Daily stock pipeline / screener / report → Recommend `today` or `daily-stock-check`; chain `daily-db-sync` when persisting `outputs/` to PostgreSQL.
+
 ## Quality checklist (before responding)
 
 - Primary recommendation has **one** clear owner skill (not a vague list).
 - Alternates explain **trade-offs**, not duplicates.
 - User-facing prompt is **paste-ready** Korean.
 - “Do NOT use” conflicts are explicitly called out when relevant.
+- **Tier D** skills are not recommended unless the user asked for that tier explicitly.
 
 ## Error handling
 
 - **Missing `.cursor/skills/`**: Report path missing; ask user to confirm workspace root.
 - **Unreadable SKILL.md**: Skip file; list it under “Files excluded from scan”.
 - **Ambiguous intent**: Ask up to **3** clarifying questions (source system, final destination, code vs doc only).
+
+---
+
+## Project-Specific Overrides
+
+Applies only in **ai-model-event-stock-analytics**.
+
+| Override | Path |
+|----------|------|
+| SSOT / repo facts | [.cursor/skills/references/project-overrides/project-ssot.md](../references/project-overrides/project-ssot.md) |
+| Terminology (POL-001) | [.cursor/skills/references/project-overrides/project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md) |
+
+**Constraints:** **Exclude Tier D** from default picks; **prioritize** trading / financial analysis skills; **note** when recommended skills ship **Project-Specific Overrides**; use [docs/policies/skill-assessment-matrix.md](../../../docs/policies/skill-assessment-matrix.md) for tier labels.

@@ -8,13 +8,14 @@ description: >-
   sync", "연쇄 수정", "PRD 변경 전파", "요구사항 변경됐어", "스펙 변경 영향
   분석", "cascade update", "PRD 수정 반영", "의존 노드 업데이트", "기획서
   변경 전파", "PRD 파이프라인 동기화", or when a change in one PRD node
-  should propagate to related nodes. Do NOT use for initial PRD creation
-  (use pm-execution or prd-research-factory), dependency visualization only
-  (use dependency-radar), or document quality checks only (use
-  doc-quality-gate).
+  should propagate to related nodes.   Do NOT use for initial PRD creation
+  (use pm-execution or prd-research-factory), repository/project dependency
+  visualization only (use dependency-radar — code/service graphs, not PRD node
+  DAG; PRD edges use Notion relations plus this skill's internal DAG), or
+  document quality checks only (use doc-quality-gate).
 metadata:
   author: "thaki"
-  version: "1.0.1"
+  version: "1.1.0"
   category: "orchestration"
 ---
 
@@ -231,7 +232,7 @@ flowchart TD
 | Step | Skill | Purpose |
 |------|-------|---------|
 | 1 | Notion MCP | Fetch page content, detect changes, apply updates |
-| 2 | dependency-radar | Provide dependency graph infrastructure |
+| 2 | dependency-radar | Optional: project/repo code and service dependency graphs — not PRD pipeline DAG (PRD nodes: Notion relations + dependency-map.json + internal DAG traversal) |
 | 3 | doc-quality-gate | Post-cascade quality verification |
 | 4 | md-to-notion | Publish cascade report |
 | 5 | Slack MCP | Notification and approval requests |

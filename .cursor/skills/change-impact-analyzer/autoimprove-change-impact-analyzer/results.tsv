@@ -1,0 +1,5 @@
+cycle_id	skill	version	date	eval_id	mutation_summary	expected_eval_shift
+1	change-impact-analyzer	1.1.1	2026-03-24	E1	Mandatory Mermaid (named nodes, direction, edge types); frontier on diagram; anti-pattern vs list-only	pass_rate_up_graph_completeness
+1	change-impact-analyzer	1.1.1	2026-03-24	E2	Risk/effort tied to impact-criteria.md signals; criterion column in node table; procedure step 6 explicit	pass_rate_up_criteria_backing
+1	change-impact-analyzer	1.1.1	2026-03-24	E3	Team|Channel|When|What table template in Output Structure; success criteria forbid placeholder-only	pass_rate_up_comms_specificity
+1	change-impact-analyzer	1.1.1	2026-03-24	E4	Anti-patterns + boundaries analysis-only; optional Notion/Slack only on user request	pass_rate_up_no_auto_apply

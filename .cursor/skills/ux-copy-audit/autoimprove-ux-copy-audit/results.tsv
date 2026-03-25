@@ -1,0 +1,10 @@
+skill	ux-copy-audit
+baseline_version	1.1.0
+mutated_version	1.2.0
+date	2025-03-24
+eval_id	criterion	mutation_summary	expected_pass
+E1	File-line / key reference per finding	Added mandatory Location rule; disallowed screen-only refs; template column Location	yes
+E2	Severity Critical/High/Medium/Low	Added inline severity rubric table with definitions	yes
+E3	Specific policy rule cited	Added Policy linkage MUST + fail condition for vague wording	yes
+E4	Actionable fix per finding	Added Actionable fix MUST + template column Suggested Fix	yes
+meta	line_count_post_mutation	140	under_500_lines

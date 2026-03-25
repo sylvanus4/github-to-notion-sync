@@ -174,3 +174,16 @@ Result: 3 policy violations identified with exact file locations and fix instruc
 | Ambiguous spec language | Flag as "untestable" with explanation; suggest clarifying the spec |
 | Code in unsupported language | Report limitation; process supported files and skip others |
 | No gaps found | Report 100% coverage with congratulatory summary |
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+
+- `.cursor/skills/references/project-overrides/project-document-standards.md` (POL-004 — quality gate, grading, report standards)
+- `.cursor/skills/references/project-overrides/project-terminology-glossary.md` (POL-001 — product name, domain terms, forbidden terms)
+
+Key constraints:
+
+- Include **trading-specific** lifecycle states where relevant: signal detected, order pending, executed, cancelled, partially filled.
+- Validate against **local spec files** (markdown under `docs/` etc.), not Notion as the default canon.
+- Use POL-004 expectations when judging whether spec state definitions are complete enough to test.

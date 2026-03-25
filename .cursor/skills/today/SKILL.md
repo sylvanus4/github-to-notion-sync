@@ -303,18 +303,19 @@ On failure: **Continue** — agent desk is optional; the pipeline proceeds witho
 
 ### Phase 5: Report and Post
 
-**Step 5a — Generate report content:**
+**Step 5a — Generate report content (반드시 한국어로 작성):**
 
-Use the `alphaear-reporter` skill workflow with the daily-stock-check JSON as input signals:
+Use the `alphaear-reporter` skill workflow with the daily-stock-check JSON as input signals.
+**모든 리포트 텍스트, 섹션 제목, 분석 내용, 요약은 반드시 한국어로 작성한다.** 종목 코드(ticker)와 고유명사(회사명 영문)만 영어를 허용한다.
 
-1. **Cluster Signals**: Group the stock signals into 3–5 themes (e.g., "Tech momentum", "KRX recovery", "Defensive positions")
-2. **Write Sections**: For each theme, write analysis covering signal rationale, price context, and risk factors
-3. **Final Assembly**: Compile into a report with these sections:
-   - Date and Market Overview
-   - Signal Summary (BUY/NEUTRAL/SELL counts)
-   - Theme Analysis (from clustered signals)
-   - Top Movers (strongest BUY and SELL signals with rationale)
-   - Risk Notes and Disclaimer
+1. **시그널 클러스터링**: 종목 시그널을 3–5개 테마로 그룹핑 (예: "기술주 모멘텀", "KRX 반등", "방어주 포지션")
+2. **섹션 작성**: 각 테마별로 시그널 근거, 가격 맥락, 리스크 요인을 분석
+3. **최종 조립**: 다음 섹션으로 리포트를 구성:
+   - 날짜 및 시장 개요
+   - 시그널 요약 (매수/중립/매도 종목 수)
+   - 테마별 분석 (클러스터링된 시그널 기반)
+   - 주요 종목 (가장 강한 매수/매도 시그널과 근거)
+   - 리스크 노트 및 면책 조항
 
 **Step 5b — Generate Korean .docx report (skip if `skip-docx` flag is set):**
 

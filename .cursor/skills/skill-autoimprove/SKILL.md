@@ -42,10 +42,10 @@ Take any existing skill, define what "good output" looks like as binary yes/no c
 
 ## Recommended Workflow (Integration with Existing Skills)
 
-For best results in thaki-planning-automation:
+For best results in **ai-model-event-stock-analytics** (stock analytics / trading data platform):
 
 1. **Pre-flight** — Run `skill-optimizer` in audit mode on the target skill to fix structural issues first (formatting, missing sections, dead triggers). Fix those before entering the mutation loop.
-2. **Eval design** — Define 3-6 binary evals guided by [references/eval-guide.md](references/eval-guide.md). Optionally mirror patterns from `skill-optimizer` [references/eval-framework.md](../skill-optimizer/references/eval-framework.md) for runtime grading style.
+2. **Eval design** — Define 3-6 binary evals guided by [references/eval-guide.md](references/eval-guide.md) and **[references/eval-criteria.md](references/eval-criteria.md)** (financial terminology, signal expression, Tailwind+Radix vs TDS, POL-004 document quality, POL-001 forbidden terms). Optionally mirror patterns from `skill-optimizer` [references/eval-framework.md](../skill-optimizer/references/eval-framework.md) for runtime grading style.
 3. **Autoresearch loop** — This skill's autonomous mutation cycle (the core).
 4. **Post-verification** — Run `skill-optimizer` in benchmark mode with **fresh test inputs** (not the ones used during autoresearch) to verify improvements generalize and detect overfitting.
 
@@ -57,7 +57,7 @@ For best results in thaki-planning-automation:
 
 1. **Target skill** — Which skill to optimize? (need the exact path to SKILL.md under `.cursor/skills/`)
 2. **Test inputs** — 3-5 different prompts/scenarios to test the skill with. Variety matters — pick inputs that cover different use cases to avoid overfitting.
-3. **Eval criteria** — 3-6 binary yes/no checks that define a good output. See [references/eval-guide.md](references/eval-guide.md) for how to write good evals.
+3. **Eval criteria** — 3-6 binary yes/no checks that define a good output. See [references/eval-guide.md](references/eval-guide.md) and [references/eval-criteria.md](references/eval-criteria.md). **Scope**: optimize **project-specific** skills for this repo unless the user explicitly names another skill; evals must include finance/domain accuracy and POL-001 forbidden-term checks when the skill produces user-facing or domain copy.
 4. **Runs per experiment** — How many times to run the skill per mutation. Default: 5. More runs = more reliable scores, but slower. 5 is the sweet spot.
 5. **Budget cap** — Optional. Max number of experiment cycles before stopping. Default: no cap (runs until stopped or ceiling hit).
 
@@ -80,6 +80,8 @@ Do NOT skip this. Understanding the skill is required before improving it.
 
 Convert the user's eval criteria into a structured test. Every check must be binary — pass or fail, no scales.
 
+**Project defaults (this repository):** When the user does not supply enough evals, merge their list with [references/eval-criteria.md](references/eval-criteria.md) so each run tests **financial terminology accuracy** (POL-001 / glossary), **signal/analytics expression** where relevant, **Tailwind+Radix** design guidance (no TDS/Figma as mandatory), **POL-004** document shape for spec/report skills, and **no new POL-001 forbidden terms** in the mutated skill body.
+
 **Format each eval as:**
 
 ```
@@ -95,7 +97,7 @@ Fail condition: [What triggers a "no"]
 - Not so narrow that the skill games the eval. "Contains fewer than 200 words" will make the skill optimize for brevity at the expense of everything else.
 - 3-6 evals is the sweet spot. More than that and the skill starts parroting eval criteria back instead of actually improving.
 
-See [references/eval-guide.md](references/eval-guide.md) for detailed examples of good vs bad evals across text, visual, code, and document skills.
+See [references/eval-guide.md](references/eval-guide.md) for detailed examples of good vs bad evals across text, visual, code, and document skills. For this repo’s domain and policy hooks, see [references/eval-criteria.md](references/eval-criteria.md).
 
 **Max score calculation:**
 ```
@@ -318,3 +320,17 @@ A good autoresearch run:
 7. **Ran autonomously** — did not stop to ask permission between experiments
 
 If the skill "passes" all evals but the actual output quality has not improved — the evals are bad, not the skill. Go back to step 2 and write better evals.
+
+---
+
+## Project-Specific Overrides
+
+Applies only in **ai-model-event-stock-analytics**. Canonical policy text: `docs/policies/`.
+
+| Override | Path |
+|----------|------|
+| Document standards (POL-004 alignment) | [.cursor/skills/references/project-overrides/project-document-standards.md](../references/project-overrides/project-document-standards.md) |
+| Terminology / forbidden terms (POL-001) | [.cursor/skills/references/project-overrides/project-terminology-glossary.md](../references/project-overrides/project-terminology-glossary.md) |
+| UI stack (Tailwind + Radix, not TDS) | [.cursor/skills/references/project-overrides/project-design-conventions.md](../references/project-overrides/project-design-conventions.md) |
+
+**Constraints:** Eval suites must include financial-domain checks when the skill touches markets, signals, or reports; verify **POL-001** forbidden terms are not introduced by mutations; **eval scope** defaults to **project-specific** skills under `.cursor/skills/` for this repository unless the user expands scope.

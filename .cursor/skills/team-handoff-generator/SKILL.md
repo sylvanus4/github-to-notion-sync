@@ -92,3 +92,16 @@ Deliver in Korean: complete Notion page body; Slack summary for copy-paste; shor
 
 - Do not commit to delivery dates not present in source material.
 - Flag **policy-sensitive** items for review with **policy-text-generator** or legal if indicated by user.
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+
+- `.cursor/skills/references/project-overrides/project-ssot.md` (POL-005 — artifact locations, not-used systems)
+- `.cursor/skills/references/project-overrides/project-document-standards.md` (POL-004 — quality gate, grading, report standards)
+
+Key constraints:
+
+- Cite POL-005 SSoT mapping for where PRDs, policies, and code live; handoffs should point to repo paths, not assumed Notion parents.
+- Design references = `.cursor/rules/design-system.mdc` (no Figma handoff pack).
+- Specs and requirements = local markdown (`docs/`, `tasks/`, etc.) unless the user explicitly provides external links.

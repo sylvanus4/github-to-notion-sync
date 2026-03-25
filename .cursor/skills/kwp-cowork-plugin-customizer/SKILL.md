@@ -170,3 +170,12 @@ If no knowledge MCPs were available in Phase 1, and the user had to answer at le
 | Missing required context | Ask user for specific inputs before proceeding |
 | Skill output doesn't match expectations | Re-read the workflow section; verify inputs are correct |
 | Conflict with another skill's scope | Check the "Do NOT use" clauses and redirect to the appropriate skill |
+
+## Not Applicable — AI Stock Analytics
+
+This skill is NOT applicable to the AI Stock Analytics project.
+
+**Reason**: Cowork 미사용
+**Alternative**: 해당 없음
+
+If this skill is invoked in the AI Stock Analytics project context, skip execution and suggest the alternative above.

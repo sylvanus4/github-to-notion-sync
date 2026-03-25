@@ -1,0 +1,5 @@
+eval_id	eval_name	baseline_pass	expected_pass_after_mutation	notes
+E1	Required matrix columns	FAIL (implicit — template only in reference)	PASS	Inline mini-template + explicit column/order match to state-matrix-template.md; feature in ## 기능: heading
+E2	Edge case spec traceability	PARTIAL	PASS	Every edge case must cite section/req/anchor; 신규 + closest section + gap rationale
+E3	Priority ratings	PARTIAL	PASS	Each recommendation: 우선순위 + 한 줄 근거 mandated in Step 5
+E4	No hallucinated states	PARTIAL	PASS	[FROM_SPEC] / [INFERRED]+rationale required on every state row

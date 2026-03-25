@@ -11,7 +11,7 @@ description: >-
   (use accessibility-focused skills).
 metadata:
   author: thaki
-  version: "1.0.1"
+  version: "1.2.0"
   category: review
 ---
 
@@ -36,6 +36,34 @@ Systematically surface UI string debt: inconsistency, policy risk, i18n gaps, an
 - Every **Critical** finding ties to an explicit policy clause or accessibility/legal risk.
 - Hardcoded strings are listed with **file:line** or build-time key path.
 - Recommendations are **implementable** (suggested key name, Korean rewrite, or removal of duplicate).
+
+## Finding requirements (binary eval compliance)
+
+**Location (E1)** — Every finding MUST include a traceable reference: repository **`path/to/file.tsx:42`** (file:line) **or** a build-time / i18n locator such as **`namespace:key`** or **`ComponentName.i18nKey`**. Screen-only labels (“설정 화면”) without file, line, or key path are **not** acceptable.
+
+**Severity (E2)** — Assign exactly one level per finding using this rubric:
+
+| Severity | When to use |
+|----------|-------------|
+| **Critical** | Policy violation with direct user impact (misleading copy, PII/legal wording risk, or accessibility copy failure **as defined in policy**). |
+| **High** | Same user intent expressed inconsistently **across multiple screens or flows**; systemic term or tone drift. |
+| **Medium** | Single-instance tone mismatch, clarity issue, or isolated inconsistency. |
+| **Low** | Minor phrasing polish; optional consistency improvement with low risk if deferred. |
+
+**Policy linkage (E3)** — Any policy- or guideline-related finding MUST cite the **specific** breached rule: section title, rule ID, or quotable clause from the UX writing / brand / error-message source. Generic phrases like “정책 위반” or “가이드 미준수” without naming the rule **fail** E3.
+
+**Actionable fix (E4)** — Each row MUST include a **concrete** remediation: exact replacement string (Korean where applicable), i18n key name / extraction step, or “remove duplicate; keep canonical key X.” Problem-only descriptions **fail** E4.
+
+### Finding table template (required shape)
+
+Reports MUST use a markdown table with exactly these columns (row cells in Korean except paths/keys):
+
+| Severity | Location | Issue | Policy Rule | Suggested Fix |
+|----------|----------|-------|-------------|---------------|
+| Medium | `src/ui/Toast.tsx:88` | … | … | … |
+
+- **Policy Rule** — Use `N/A (i18n/structure only)` when the finding is not policy-backed but still needs a fix.
+- **Location** — Always the file:line or key path from E1.
 
 ## Inputs
 
@@ -99,3 +127,14 @@ Systematically surface UI string debt: inconsistency, policy risk, i18n gaps, an
 - **Third-party components** — Exclude vendor-owned copy unless product overrides; document exclusions.
 - **Encrypted or minified assets** — Skip with explicit note; request source maps or dev builds.
 - **Plural/gender grammar** — If i18n ICU messages are required, flag as implementation follow-up, not a single static string fix.
+
+## Evolution
+
+Binary eval hooks (skill-autoimprove / audits). Each: **PASS** if true, **FAIL** otherwise.
+
+| Hook | Criterion |
+|------|-----------|
+| **E1** | Audit report includes file:line (or agreed key-path) references for findings. |
+| **E2** | Severity properly classified (Critical/High/Medium/Low per report rubric). |
+| **E3** | Policy violations link to source policy clause or section. |
+| **E4** | Actionable fix suggestions provided (rewrite, key name, or removal path). |

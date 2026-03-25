@@ -97,3 +97,14 @@ Actions: parse PIPA/telecom rules as provided → consent copy → verify mandat
 | Unsupported copy type | List supported types |
 | Validation failures | Show failures + suggested fixes |
 | Notion MCP down | Fall back to local/paste |
+
+## Project-Specific Overrides (AI Stock Analytics)
+
+This skill operates under project-specific policies:
+- [project-tone-matrix.md](../references/project-overrides/project-tone-matrix.md) (POL-003 — tone by context, signal rules, formatting)
+- [project-copy-patterns.md](../references/project-overrides/project-copy-patterns.md) (POL-003 — UI copy, errors, empty states, Slack)
+
+Key constraints:
+- All trading or signal-related generated text must include the project’s mandatory disclaimer and must not read as personalized investment advice.
+- Follow POL-003 signal-expression rules: informational framing only; no promises of returns or imperative buy/sell language unless policy explicitly allows a fixed legal phrase.
+- Use financial-domain number formatting for moves and metrics (e.g. `±#0.00%`) as defined in project copy and tone standards.

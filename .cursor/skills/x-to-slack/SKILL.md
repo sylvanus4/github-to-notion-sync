@@ -105,6 +105,25 @@ All messages use Slack mrkdwn format. Rules:
 - Write content in Korean
 - Limit each message to under 4000 characters
 
+FORMATTING RULES — VIOLATING ANY OF THESE IS A QUALITY FAILURE:
+
+1. NO decorative emojis in section headers or body text.
+   - ALLOWED emojis (exhaustive list): ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ (engagement stats and thread numbering only)
+   - FORBIDDEN: 🔍 💡 🚀 📊 🎯 ✅ ⚡ 🔗 📌 💰 🏆 or ANY other decorative emoji
+2. ALL body text MUST be in Korean. English is allowed ONLY for:
+   - Proper nouns (product names, person names, company names)
+   - Technical terms with no standard Korean translation
+   - URLs and code snippets
+3. Section headers use *bold text* ONLY — no emojis before or after.
+   Correct: *핵심 내용*
+   Wrong:   🔍 *핵심 내용* or 💡 Key Insights
+4. Do NOT invent new section headers. Use ONLY the headers defined in the template:
+   *Tweet 요약*, *핵심 내용*, *인용 트윗*, *추가 조사 결과*, *참고 링크*,
+   *AI GPU Cloud 서비스 인사이트*, *핵심 시사점*, *적용 가능성*,
+   *Action Items*, *{주제} 인사이트*
+5. Do NOT add decorative separators (═══, ───, *** etc.)
+6. Media upload is MANDATORY — if the tweet has photos or videos, upload them. HARD FAILURE if skipped.
+
 #### Message 1: Title (Channel Post)
 
 Send to the channel using `slack_send_message`:
@@ -133,7 +152,7 @@ Format:
 
 ```
 *Tweet 요약*
-- 작성자: @{screen_name} ({name})
+- 작성자: @{screen_name} ({name}) — {author bio/description}
 - 반응: ❤️ {likes} | 🔁 {retweets} | 👀 {views}
 - 작성일: {created_at}
 
@@ -172,6 +191,26 @@ Format:
 
 *적용 가능성*
 {구체적으로 우리 서비스에 어떻게 적용하거나 대응할 수 있는지}
+```
+
+#### Message 3B: Topic-specific (Thread Reply) — when NOT AI GPU Cloud related
+
+If the tweet topic is not directly related to AI GPU Cloud / AI platform services, use this topic-specific template instead of Message 3A:
+
+```
+*{주제} 인사이트*
+
+{이 트윗 주제에 대한 심층 분석 — 시장 영향, 기술적 의미, 전략적 시사점 등}
+
+*핵심 시사점*
+- {해당 분야/주제 관점에서의 인사이트}
+- {산업/시장에 미칠 영향}
+- {관련 트렌드 및 향후 전망}
+
+*Action Items*
+- {구체적이고 실행 가능한 후속 조치}
+- {모니터링해야 할 사항}
+- {추가 리서치가 필요한 영역}
 ```
 
 ## Examples
