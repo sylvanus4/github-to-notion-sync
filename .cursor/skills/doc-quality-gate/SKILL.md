@@ -13,7 +13,7 @@ description: >-
   quality (appropriate content gate skill).
 metadata:
   author: thaki
-  version: "2.1.0"
+  version: "2.2.0"
   category: review
 ---
 
@@ -42,15 +42,15 @@ Single skill combining weighted 7-dimension scoring (formerly `doc-quality-check
 
 Each dimension is scored **0–100**. Compute a **weighted overall score** (0–100) using the weights below. Dimensions marked **N/A** (e.g. policy source missing for policy compliance) are **omitted from the weight denominator**; renormalize remaining weights to sum to 100%.
 
-| # | Dimension | Weight | What to verify |
-|---|-----------|--------|----------------|
-| 1 | **Required sections** | 20% | Type-specific mandatory sections present and non-placeholder; includes clarity/actionability expectations (unambiguous requirements, owners/deadlines where applicable, acceptance criteria for specs). See [references/completeness-checklist.md](references/completeness-checklist.md), [references/checklist.md](references/checklist.md), [references/quality-rubric.md](references/quality-rubric.md). |
-| 2 | **State coverage** | 20% | UI/flows: default, loading, error, empty; plus disabled/success where relevant; state transitions and permission variants. See checker-style state matrix expectations in [references/quality-rubric.md](references/quality-rubric.md). |
-| 3 | **Edge cases** | 15% | Input/network/concurrency/permission/data/environment edge cases addressed. |
-| 4 | **Policy compliance** | 15% | Copy and data practices vs supplied policy; contradictions; legal/consent alignment. N/A if no policy supplied. |
-| 5 | **Terminology consistency** | 10% | One concept → one term; acronym rules; KR/EN consistency; contradictions across sections. |
-| 6 | **API alignment** | 10% | API contracts referenced or specified; endpoints, errors, versioning; alignment with data model mentions; traceability to technical sources. |
-| 7 | **Design references** | 10% | Figma/design links, components/tokens, related PRD/spec links, test/QA doc links, decision/version history. |
+| # | Dimension | Weight | What to verify | N/A condition |
+|---|-----------|--------|----------------|---------------|
+| 1 | **Required sections** | 20% | Type-specific mandatory sections present and non-placeholder; includes clarity/actionability expectations (unambiguous requirements, owners/deadlines where applicable, acceptance criteria for specs). See [references/completeness-checklist.md](references/completeness-checklist.md), [references/checklist.md](references/checklist.md), [references/quality-rubric.md](references/quality-rubric.md). | Never N/A |
+| 2 | **State coverage** | 20% | UI/flows: default, loading, error, empty; plus disabled/success where relevant; state transitions and permission variants. See checker-style state matrix expectations in [references/quality-rubric.md](references/quality-rubric.md). | N/A for pure policy docs without UI |
+| 3 | **Edge cases** | 15% | Input/network/concurrency/permission/data/environment edge cases addressed. | Never N/A |
+| 4 | **Policy compliance** | 15% | Copy and data practices vs supplied policy; contradictions; legal/consent alignment. N/A if no policy supplied. | No policy source provided |
+| 5 | **Terminology consistency** | 10% | One concept → one term; acronym rules; KR/EN consistency; contradictions across sections. | Never N/A |
+| 6 | **API alignment** | 10% | API contracts referenced or specified; endpoints, errors, versioning; alignment with data model mentions; traceability to technical sources. | N/A if document has no API/technical references and no comparison code path provided. Score based on internal consistency only. |
+| 7 | **Design references** | 10% | Figma/design links, components/tokens, related PRD/spec links, test/QA doc links, decision/version history. | N/A if no design tool (Figma) is used in the project. Score based on PRD/spec cross-links and version history only. |
 
 **Sub-rubric (legacy gate, binary hints):** Use the six pass/fail lenses from [references/quality-rubric.md](references/quality-rubric.md) (Completeness, Clarity, Consistency, Actionability, Traceability, Compliance) as *signals* when arguing scores for dimensions 1, 5, 6, and 7 — they are not separate scored axes in v2.
 
@@ -82,13 +82,20 @@ overall_score = (sum of (dimension_score × weight)) / W
 
 ## Workflow
 
-### Step 1 — Load document
+### Step 1 — Load and validate document
 
 - **Notion:** read page via Notion MCP (e.g. `read_page` / workspace fetch tools per your environment).
 - **File:** read from workspace.
 - **Inline:** use pasted text.
 
-If the document is empty, stop with an error message. If very short (&lt; ~100 characters), run a limited structural check and warn. If very long (&gt; ~10k words), sample by major sections and state that full pass may require follow-up.
+**Early exit rules:**
+
+| Condition | Action |
+|---|---|
+| Document is empty | Stop with error message |
+| Very short (< ~100 chars) | Limited structural check + warn |
+| Very long (> ~10k words) | Sample by major sections; state follow-up may be needed |
+| **Non-document content detected** (>50% code blocks, function definitions, import statements, or class declarations) | **Stop with warning**: "이 파일은 기획 문서가 아닌 코드/스크립트로 판단됩니다. doc-quality-gate는 PRD, 기획서, 정책 문서를 대상으로 합니다." Suggest `code-to-spec` for reverse-engineering a spec from code. |
 
 ### Step 2 — Score all applicable dimensions
 
@@ -133,7 +140,7 @@ For any failing dimension, also include when helpful:
 |-----------|--------|
 | Document not found | Ask for correct path or URL. |
 | Unknown type | Default to `general` or `custom`; note uncertainty. |
-| Policy unavailable | Score policy dimension **N/A**; renormalize weights. |
+| Policy unavailable | Score policy dimension **N/A**; renormalize weights. When N/A dimensions exist, adjust `approval_min_dimensions` proportionally: if default is 6/7, reduce to `floor(6 × applicable_count / 7)` (e.g. 6 applicable → min 5). Document this adjustment in the report. |
 | Checklist override missing | Fall back to bundled references; warn user. |
 | Mixed languages | Score in primary language; note secondary sections. |
 | Notion/Slack not configured | Complete report locally; say what would be posted. |

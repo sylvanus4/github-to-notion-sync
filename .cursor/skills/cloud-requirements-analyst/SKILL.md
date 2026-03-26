@@ -19,7 +19,7 @@ description: >-
   Do NOT use for PRD creation (use pm-execution or prd-research-factory).
 metadata:
   author: thaki
-  version: "1.1.0"
+  version: "1.2.0"
   category: execution
 ---
 
@@ -28,6 +28,8 @@ metadata:
 Pipeline + inversion skill: collect and refine requirements without a direct cloud-tech team handoff, and independently assess technical feasibility of proposals. AI performs first-pass analysis and explicitly tags items that still need engineering confirmation.
 
 **Core principle**: This skill does not replace the tech team. It raises readiness before those conversations and surfaces the key questions to ask engineering.
+
+> **Project override (AI Stock Analytics)**: In this monorepo (FastAPI + React + PostgreSQL scripts), frame "cloud tech team handoff" as **project technical stack and data-pipeline feasibility**, not generic hyperscaler account design — unless the proposal explicitly targets cloud provisioning. Prioritize requirements analysis for **financial data pipelines, trading workflows, and analytics features**. See [Project-Specific Overrides](#project-specific-overrides-ai-stock-analytics) at the end of this document for full details.
 
 ## Output language
 

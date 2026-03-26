@@ -140,7 +140,7 @@ Skip entirely if `skip-news` AND `skip-sentiment` are set. Each sub-step is inde
 3. Run the report generator:
 
 ```bash
-cd outputs
+cd outputs/scripts
 node generate-report.js {date}
 ```
 

@@ -78,7 +78,7 @@ Every stage has:
 | Price prediction | Skill | `alphaear-predictor` |
 | Signal tracking | Skill | `alphaear-signal-tracker` |
 | Report generation | Skill | `alphaear-reporter` |
-| DOCX creation | Skill + Script | `anthropic-docx` / `outputs/generate-report.js` |
+| DOCX creation | Skill + Script | `anthropic-docx` / `outputs/scripts/generate-report.js` |
 | Slack posting | MCP | `plugin-slack-slack` |
 | Web research | Tool | `WebSearch` |
 | Tweet analysis | Skill | `x-to-slack` |

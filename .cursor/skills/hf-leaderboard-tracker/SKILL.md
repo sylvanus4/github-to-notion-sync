@@ -24,6 +24,10 @@ metadata:
 Track AI model leaderboard positions, detect rank changes and new entries,
 and distribute structured delta reports to Slack.
 
+## 출력 언어
+
+**모든 출력물은 한국어로 작성한다.** 리포트(markdown), Slack 메시지 모두 한글로 작성. 모델명, 벤치마크명 등 고유명사는 원어 그대로 유지.
+
 ## Prerequisites
 
 - `hf` CLI installed and authenticated (see `hf-hub` skill)
@@ -148,32 +152,32 @@ output/hf-leaderboard/archive/{LEADERBOARD}-{DATE}.json
 Generate a structured markdown report.
 
 ```markdown
-# AI Leaderboard Tracker — {DATE}
+# AI 리더보드 트래커 — {DATE}
 
-## Summary
-{1-2 sentences: leaderboards checked, notable movers, new entries}
+## 요약
+{확인한 리더보드, 주요 변동, 신규 진입을 1-2문장으로 요약}
 
-## Open LLM Leaderboard
+## Open LLM 리더보드
 
-### Top 10
-| Rank | Model | Avg Score | Params | Change |
-|------|-------|-----------|--------|--------|
+### TOP 10
+| 순위 | 모델 | 평균 점수 | 파라미터 | 변동 |
+|------|------|----------|---------|------|
 | 1 | {model} | {score} | {params}B | {status_icon} {delta} |
 
-### Notable Movers
-- {model}: #{old} -> #{new} ({delta_explanation})
+### 주요 변동
+- {model}: #{old} → #{new} ({변동 설명})
 
-### New Entries
-- {model}: debuted at #{rank} ({score})
+### 신규 진입
+- {model}: #{rank}위 데뷔 ({score})
 
 ## Chatbot Arena
-(same structure)
+(동일 구조)
 
-## Video Generation
-(same structure)
+## 비디오 생성
+(동일 구조)
 
-## Cross-Leaderboard Insights
-{Models performing well across multiple leaderboards}
+## 교차 리더보드 인사이트
+{여러 리더보드에서 동시에 상위에 오른 모델 분석}
 ```
 
 **Output:** `output/hf-leaderboard/{DATE}-leaderboard-report.md`

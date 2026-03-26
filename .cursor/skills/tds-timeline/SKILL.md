@@ -16,13 +16,24 @@ description: >-
   "TDS 변경 리포트", "디자인 시스템 변경 내역".
 metadata:
   author: "thaki"
-  version: "1.0.1"
+  version: "1.1.0"
   category: "design-ops"
 ---
 
 # TDS Timeline
 
-Build a TDS component change timeline from GitHub history for design, planning, and engineering visibility.
+Build a component change timeline from GitHub commit history for design, planning, and engineering visibility. Works with any component-based frontend — TDS (`@thakicloud/shared`), Radix + Tailwind, shadcn/ui, or custom component libraries.
+
+## Scope adaptation
+
+| Project type | `--path` default | Component detection |
+|---|---|---|
+| TDS (`@thakicloud/shared`) | `src/shared/ui/` or `packages/shared/` | TDS component registry |
+| Radix + Tailwind (e.g. `ai-model-event-stock-analytics`) | `frontend/src/components/` | Directory-based (1st child = component name) |
+| shadcn/ui | `src/components/ui/` | File-based (each `.tsx` = component) |
+| Custom | User-specified | Directory or file-based |
+
+When the project does **not** use `@thakicloud/shared`, omit TDS-specific token/design-system language in the output and use generic "component change timeline" framing.
 
 ## Output language
 

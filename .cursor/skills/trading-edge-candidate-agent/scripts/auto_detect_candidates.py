@@ -1561,8 +1561,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ohlcv", required=True, help="Path to OHLCV parquet")
     parser.add_argument(
         "--output-dir",
-        default="reports/edge_candidate_auto",
-        help="Output directory for reports/tickets (default: reports/edge_candidate_auto)",
+        default="outputs/reports/trading/edge_candidate_auto",
+        help="Output directory for reports/tickets",
     )
     parser.add_argument(
         "--as-of", default=None, help="Target date YYYY-MM-DD (default: latest date)"

@@ -46,7 +46,7 @@ Run:
 uv run python -m pipeline.runner.cli \
   --strategy <candidate_id> \
   --data-dir data \
-  --output-dir reports/<candidate_id>
+  --output-dir outputs/reports/trading/<candidate_id>
 ```
 
 Dry-run first:

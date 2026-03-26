@@ -16,13 +16,19 @@ description: >-
   "UX 피드백", "디자인 정책", "UI 통일성", "크로스 프로덕트", "디자인 리뷰 공유".
 metadata:
   author: "thaki"
-  version: "1.0.1"
+  version: "1.1.0"
   category: "review"
 ---
 
 # UI/UX Expert
 
-Manage UI/UX quality across Thaki Cloud products and keep cross-product consistency. Automates weekly progress sharing and alignment rituals for planning and design teams.
+Manage UI/UX quality across products and keep cross-product consistency. Automates weekly progress sharing and alignment rituals for planning and design teams.
+
+> **Single-product mode**: When only one product is specified (or the project is a standalone app rather than a multi-product suite), the skill automatically adapts:
+> - **Module 3 (cross-product consistency)** is skipped — there is nothing to compare.
+> - **Module 1 (progress rollup)** focuses on internal screens/components instead of cross-product tracking.
+> - **Module 4 (policy review)** uses project-local design rules (e.g. `.cursor/rules/design-system.mdc`, Tailwind config, Radix patterns) when TDS (`@thakicloud/shared`) is not present.
+> - **"Thaki Cloud 제품군"** framing is replaced with the actual product name in all outputs.
 
 ## Output language
 
@@ -33,7 +39,7 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 | Input | Description | Required |
 |------|-------------|----------|
 | **Module** | Which module(s) to run (default: all) | Optional |
-| **Product name(s)** | Thaki Cloud products to cover | **Yes** |
+| **Product name(s)** | Product(s) to cover (single product or multi-product; Module 3 auto-skips for single) | **Yes** |
 | **Figma URL** | Design file link | Optional |
 | **Notion page/DB** | Progress source | Optional |
 | **Policy path** | Design policy / guidelines file | Optional |
@@ -169,6 +175,6 @@ Actions: pull Figma context, run checklist + heuristics → Korean report with P
 | Quality review without Figma | Use code/screenshots only; note visual parity limits |
 | Notion unavailable | Write local markdown; instruct manual upload |
 | No policy doc | Use heuristics + general TDS principles; invite policy for stricter review |
-| Only one product | Skip Module 3 |
+| Only one product | Skip Module 3; adapt Module 1/4 per single-product mode |
 | Slack unavailable | Notion-only share |
 | Truncated Figma MCP | Split nodes; use `get_metadata` to traverse |

@@ -248,8 +248,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output-dir",
-        default="reports/",
-        help="Output directory for reports (default: reports/)",
+        default="outputs/reports/trading/",
+        help="Output directory for reports",
     )
     parser.add_argument(
         "--top",

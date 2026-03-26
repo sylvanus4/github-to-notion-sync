@@ -104,7 +104,7 @@ def _build_analysis(
     return {
         "metadata": {
             "generated_at": "2026-02-19 12:00:00",
-            "reports_dir": "reports/",
+            "reports_dir": "outputs/reports/trading/",
             "max_age_hours": 72,
             "skills_loaded": 8 if include_optional else 5,
             "required_count": 5,

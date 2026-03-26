@@ -44,7 +44,7 @@ def parse_arguments():
         description="Uptrend Analyzer - Market Breadth Health Diagnosis"
     )
     parser.add_argument(
-        "--output-dir", default="reports/", help="Output directory for reports (default: reports/)"
+        "--output-dir", default="outputs/reports/trading/", help="Output directory for reports"
     )
     return parser.parse_args()
 

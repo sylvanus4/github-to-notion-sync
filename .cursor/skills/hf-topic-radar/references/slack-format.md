@@ -33,7 +33,7 @@ One thread reply per topic with non-empty results:
 1. `{item_id}` ({type}) — score {SCORE}
    {KEY_METRIC}
 
-_Full report: `output/hf-intelligence/{DATE}-topic-radar.md`_
+_Full report: `outputs/hf-trending/{DATE}-topic-radar.md`_
 ```
 
 ## Thread Reply — Cross-Topic & Insights

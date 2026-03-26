@@ -250,7 +250,7 @@ Lists files and extracted titles without creating any canvases.
 ### With title prefix
 
 ```
-/md-to-slack-canvas output/research/ --title-prefix "[Research] " --skip-meta
+/md-to-slack-canvas outputs/research/ --title-prefix "[Research] " --skip-meta
 ```
 
 All canvas titles are prefixed with `[Research] `.

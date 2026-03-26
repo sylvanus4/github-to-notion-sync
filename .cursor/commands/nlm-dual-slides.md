@@ -40,12 +40,12 @@ MCP tools used: `notebook_create`, `source_add`, `studio_create`, `studio_status
 
 Generate dual slides from a paper:
 ```
-/nlm-dual-slides output/papers/sefo-v3/SEFO-v3-EN.md
+/nlm-dual-slides outputs/papers/sefo-v3/SEFO-v3-EN.md
 ```
 
 Expert slides only, skip Slack:
 ```
-/nlm-dual-slides output/papers/sefo-v3/SEFO-v3-EN.md --skip-elementary --skip-slack
+/nlm-dual-slides outputs/papers/sefo-v3/SEFO-v3-EN.md --skip-elementary --skip-slack
 ```
 
 From an arXiv URL with Drive folder:

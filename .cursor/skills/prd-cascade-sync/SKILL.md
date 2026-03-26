@@ -15,7 +15,7 @@ description: >-
   document quality checks only (use doc-quality-gate).
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "1.2.0"
   category: "orchestration"
 ---
 
@@ -73,8 +73,40 @@ Compare `last_edited_time` of tracked Notion pages against the last known state 
 
 Query each tracked page via Notion MCP. If `last_edited_time > last_synced`, flag as changed.
 
-**Method C — Manual Diff Input**:
+**Method C — Local Markdown File Change Detection**:
+When PRD/spec documents live as local `.md` files (not Notion), detect changes via:
+1. Run `git diff HEAD~1 -- '*.md'` (or user-specified commit range) on document directories.
+2. Parse diff hunks to identify which document sections changed.
+3. Map changed files to nodes using `dependency-map.json` `source_path` field.
+4. If a changed file is not in the dependency map, prompt the user to add it or skip.
+
+This method is essential for repos like `ai-model-event-stock-analytics` where specs are `.md` files versioned in git rather than Notion pages.
+
+**Method D — Manual Diff Input**:
 User provides before/after content directly.
+
+### Step 1.5: Dependency Map Bootstrap
+
+If `references/dependency-map.json` does not exist when the skill is invoked:
+
+1. **Auto-scan** the workspace for PRD/spec-like files:
+   - Glob `docs/**/*.md`, `specs/**/*.md`, `outputs/papers/**/*.md`
+   - Filter by content heuristics (contains "요구사항", "기능", "user story", "acceptance criteria", heading patterns like `## FR-`, `## REQ-`)
+2. **Generate a starter map** with discovered nodes and inferred relationships:
+   ```json
+   {
+     "nodes": [
+       { "id": "auto-1", "title": "Detected from filename", "type": "requirement", "source": "notion|file", "source_path": "docs/requirements.md" }
+     ],
+     "edges": [],
+     "_seeded": true,
+     "_seed_date": "YYYY-MM-DD"
+   }
+   ```
+3. **Present to user** for review: "dependency-map.json이 없어 자동 시드를 생성했습니다. 노드 N개가 감지되었습니다. 확인 후 엣지(의존 관계)를 추가해 주세요."
+4. Save to `references/dependency-map.json`.
+
+The `_seeded` flag indicates auto-generated content that needs human curation. Edge relationships are intentionally left empty — the user must define which nodes depend on which.
 
 ### Step 2: Dependency Graph Resolution
 
@@ -289,7 +321,7 @@ Actions:
 
 | Situation | Action |
 |-----------|--------|
-| Dependency map not found | Create a starter template and ask user to configure |
+| Dependency map not found | Run auto-seed (Step 1.5) to bootstrap from workspace files |
 | Changed node not in dependency map | Ask user to add the node or provide manual dependency list |
 | Notion page not accessible | Report access error, suggest page sharing |
 | Circular dependency detected | Report cycle path, ask user to resolve before cascading |

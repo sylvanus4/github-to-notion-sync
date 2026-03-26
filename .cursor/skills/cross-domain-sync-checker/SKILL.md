@@ -15,7 +15,7 @@ description: >-
   Do NOT use for reverse spec from code only (use code-to-spec).
 metadata:
   author: thaki
-  version: "1.0.1"
+  version: "1.1.0"
   category: review
 ---
 
@@ -61,6 +61,16 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 
 **Minimum:** either a valid **mapping** for SSoT mode, or **at least two** of
 `--prd`, `--design`, `--code`, `--policy` / `--spec` for matrix mode.
+
+### Figma-absent projects
+
+When the project does not use Figma (no `--design` provided and no Figma MCP configured):
+
+- Skip all Figma-related scan steps (Phase B1 Figma node fetch, Phase B2 design extraction).
+- Omit design-axis columns from the sync matrix and six-axis gap table.
+- Recalculate weighted scores with design weight redistributed proportionally to remaining axes.
+- Note in the report header: "디자인 도구(Figma) 미사용 프로젝트 — 디자인 축 제외됨."
+- Focus on **PRD ↔ code**, **PRD ↔ policy**, and **code ↔ policy** axes instead.
 
 ## Mode selection
 

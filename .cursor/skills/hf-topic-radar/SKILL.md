@@ -25,6 +25,10 @@ Scan HuggingFace Hub for trending models, spaces, and papers filtered by
 configurable AI topics. Produces a deduplicated, scored report and distributes
 to Slack.
 
+## 출력 언어
+
+**모든 출력물은 한국어로 작성한다.** 리포트(markdown), Slack 메시지 모두 한글로 작성. 모델명, 데이터셋명, 논문 제목 등 고유명사는 원어 그대로 유지.
+
 ## Prerequisites
 
 - `hf` CLI installed and authenticated (see `hf-hub` skill)
@@ -146,34 +150,34 @@ sorted by score descending (highest first).
 a source returned 0 results. Use "(0 models found)" rather than omitting the row.
 
 ```markdown
-# HF Topic Radar — {DATE}
+# HF 토픽 레이더 — {DATE}
 
-## Summary
-{1-2 sentences: topics scanned, total items found, HOT count}
-Sources: {N} models, {N} spaces, {N} papers scanned
+## 요약
+{스캔된 토픽, 총 항목 수, HOT 개수를 1-2문장으로 요약}
+소스: 모델 {N}개, 스페이스 {N}개, 논문 {N}편 스캔
 
 ## {TOPIC_NAME}
 
-### HOT Items (sorted by score, highest first)
-| Rank | Item | Type | Score | Key Metric | Links |
-|------|------|------|-------|------------|-------|
-| 1 | {item_id} | model | 0.85 | 12K downloads | paper, space |
+### HOT 항목 (점수 내림차순)
+| 순위 | 항목 | 유형 | 점수 | 주요 지표 | 연결 |
+|------|------|------|------|----------|------|
+| 1 | {item_id} | 모델 | 0.85 | 12K 다운로드 | 논문, 스페이스 |
 
-### WARM Items (sorted by score, highest first)
-(same table format)
+### WARM 항목 (점수 내림차순)
+(동일 테이블 형식)
 
-## Cross-Topic Highlights
-{Items appearing across multiple topics — indicate convergence trends}
+## 교차 토픽 하이라이트
+{여러 토픽에 걸쳐 등장하는 항목 — 수렴 트렌드 분석}
 
-## Actionable Insights
-Each insight MUST follow this structure:
-1. **[Action verb] [specific thing]** — [evidence from data] → [expected outcome]
-   Example: "Evaluate Qwen3-VL for internal use" — trending #1 in Multi-LLM with 3 linked papers → potential 30% improvement in document understanding
+## 실행 제언
+각 인사이트는 반드시 다음 구조를 따른다:
+1. **[동사] [구체적 대상]** — [데이터 근거] → [기대 효과]
+   예시: "Qwen3-VL 내부 활용 검토" — Multi-LLM 트렌딩 1위, 관련 논문 3편 → 문서 이해 30% 개선 가능
 
-Do NOT include vague insights like "keep monitoring" or "this area is growing."
+"계속 모니터링"이나 "이 분야는 성장 중" 같은 모호한 인사이트 금지.
 ```
 
-**Output:** `output/hf-intelligence/{DATE}-topic-radar.md`
+**Output:** `outputs/hf-trending/{DATE}-topic-radar.md`
 
 ### Phase 7 — Distribute to Slack
 
@@ -193,7 +197,7 @@ Follow `references/slack-format.md` for mrkdwn formatting.
 
 ## Output Summary
 
-- **Topic Radar Report** (markdown) — `output/hf-intelligence/{DATE}-topic-radar.md`
+- **Topic Radar Report** (markdown) — `outputs/hf-trending/{DATE}-topic-radar.md`
 - **Slack Thread** — in `#deep-research-trending`
 
 ## Examples
@@ -207,7 +211,7 @@ Actions:
 2. Run Phases 1-7 with all 3 topics
 3. Post 4-message Slack thread: summary + 1 reply per topic
 
-Result: Report at `output/hf-intelligence/2026-03-20-topic-radar.md`, Slack thread in #deep-research-trending
+Result: Report at `outputs/hf-trending/2026-03-20-topic-radar.md`, Slack thread in #deep-research-trending
 
 ### Example 2: Single topic scan
 

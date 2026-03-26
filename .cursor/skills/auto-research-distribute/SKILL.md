@@ -170,7 +170,7 @@ Post a structured 3-message thread to `#deep-research-trending` (`C0AN34G4QHK`).
 - PPTX: `<artifacts-dir>/deliverables/presentation.pptx`
 - Notion pages: under parent `3209eddc34e6801b8921f55d85153730`
 - Slack: `#deep-research-trending` channel (`C0AN34G4QHK`)
-- Paper archive: `output/papers/` index
+- Paper archive: `outputs/papers/` index
 
 ## Skills Composed
 

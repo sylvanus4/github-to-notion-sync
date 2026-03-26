@@ -4,7 +4,7 @@
 
 | Channel | Skill Used | Target | Skip Flag |
 |---|---|---|---|
-| Paper Archive | `paper-archive` | `output/papers/` index | N/A (always runs) |
+| Paper Archive | `paper-archive` | `outputs/papers/` index | N/A (always runs) |
 | Notion | `md-to-notion` | Parent: `3209eddc34e6801b8921f55d85153730` | `--skip-notion` |
 | PPTX | `anthropic-pptx` | `<artifacts>/deliverables/presentation.pptx` | `--skip-pptx` |
 | NotebookLM | `notebooklm` + `notebooklm-studio` | New NLM notebook | `--skip-nlm` |

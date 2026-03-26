@@ -12,7 +12,7 @@ description: >-
   Do NOT use for general document quality inspection (use doc-quality-gate).
 metadata:
   author: thaki
-  version: "1.2.0"
+  version: "1.3.0"
   category: planning-automation
 ---
 
@@ -67,6 +67,11 @@ Use [references/state-matrix-template.md](references/state-matrix-template.md).
 Put the **feature scope** in the `## 기능: [기능명]` line above the matrix (per reference). Do not omit **사용자 액션** or **비고**.
 
 **State provenance (E4):** Tag every state in the **상태** column as **[FROM_SPEC]** if it is directly stated or unambiguously named in the PRD/spec, or **[INFERRED]** with a one-line rationale (what context implied it). Never list a state as plain fact without one of these tags.
+
+**INFERRED ratio guideline:** When `[INFERRED]` states exceed 60% of the matrix, add a note at the end of the matrix:
+> ⚠ INFERRED 비율 높음 (N/M). 기획서 원본의 상태 정의가 부족하여 추론된 항목이 많습니다. 기획자 확인이 필요합니다.
+
+This prevents the matrix from appearing more authoritative than the source spec warrants. When the PRD is thin (< 500 words or < 3 features), proactively warn that most states will be inferred and ask if the user wants to proceed or provide more context first.
 
 State families to consider:
 - **UI**: initial, loading, success, failure, empty, disabled

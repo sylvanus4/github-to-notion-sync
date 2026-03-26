@@ -591,7 +591,7 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **Volume metrics**: `backend/app/services/llm_agents/data/financial_data_service.py` (RVOL, OBV, Volume SMA)
 - **Report workflow**: `alphaear-reporter` skill (Cluster → Write → Assemble)
 - **DOCX generation**: `anthropic-docx` skill (docx-js, tables, formatting)
-- **Report generator**: `outputs/generate-report.js`
+- **Report generator**: `outputs/scripts/generate-report.js`
 - **Report prompt**: `.cursor/skills/today/references/report-prompt.md`
 - **Report output**: `outputs/reports/daily-{date}.docx`
 - **Analysis output**: `outputs/analysis-{date}.json`

@@ -12,7 +12,7 @@ description: >-
   (pm-marketing-growth); brand voice guidelines (kwp-brand-voice-guideline-generation).
 metadata:
   author: "thaki"
-  version: "2.1.0"
+  version: "2.2.0"
   category: "generation"
 ---
 
@@ -55,6 +55,7 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 | 10-point validation | [references/cloud-validation-checklist.md](references/cloud-validation-checklist.md) |
 | Legacy patterns (optional) | [references/ux-copy-patterns.md](references/ux-copy-patterns.md) |
 | Terminology / casing consistency | [references/consistency-rules.md](references/consistency-rules.md) |
+| Financial domain tone | [references/financial-domain-tone-guide.md](references/financial-domain-tone-guide.md) |
 | 5-dimension scoring | [references/quality-rubric.md](references/quality-rubric.md) |
 
 ## Sub-skill index
@@ -89,7 +90,10 @@ and [references/cloud-validation-checklist.md](references/cloud-validation-check
 #### generate — policy-based generation
 
 1. Classify category (label, tooltip, error, modal, empty state, etc.).
-2. Apply [references/cloud-tone-matrix.md](references/cloud-tone-matrix.md) for formality, urgency, depth.
+2. Select tone source:
+   - **Financial/trading domain** (stock signals, portfolio, market data, trading quality): use [references/financial-domain-tone-guide.md](references/financial-domain-tone-guide.md) as primary, cloud matrix as fallback.
+   - **General cloud/SaaS domain**: use [references/cloud-tone-matrix.md](references/cloud-tone-matrix.md).
+3. Apply the selected tone matrix for formality, urgency, depth.
 3. Use [references/cloud-copy-patterns.md](references/cloud-copy-patterns.md) structure and length limits.
 4. Apply [references/cloud-service-conventions.md](references/cloud-service-conventions.md) for lifecycle, async ops, quotas, permissions.
 5. Replace disallowed terms per glossary.

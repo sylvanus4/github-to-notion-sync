@@ -33,7 +33,7 @@ Run the full 7-phase pipeline as specified in the skill:
 3. Paper Scan (filtered by topic keywords)
 4. Deduplication and Cross-Linking
 5. Scoring
-6. Report Generation → `output/hf-intelligence/{DATE}-topic-radar.md`
+6. Report Generation → `outputs/hf-trending/{DATE}-topic-radar.md`
 7. Distribute to Slack `#deep-research-trending`
 
 ### Step 4: Report Results

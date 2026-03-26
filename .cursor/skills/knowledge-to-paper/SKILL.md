@@ -45,7 +45,7 @@ Aggregate the day's Cognee-indexed knowledge, select the highest-signal topic, r
 | No topic scores above relevance threshold | Present top-3 candidate topics to user for manual selection |
 | auto-research pipeline fails at a stage | Report failed stage, offer to retry or skip to presentation with partial results |
 | PPTX generation fails | Fall back to markdown-only output, upload markdown to Drive |
-| Google Drive upload fails | Save files locally in `output/papers/`, notify user of local path |
+| Google Drive upload fails | Save files locally in `outputs/papers/`, notify user of local path |
 | Slack posting fails | Log error, ensure files are uploaded to Drive as primary distribution |
 
 ## Examples

@@ -230,11 +230,11 @@ Where `{id}` is a slug derived from the document title (e.g., `sefo-v3`, `gpu-cl
 ### Example 1: Markdown file — full pipeline
 
 ```
-/nlm-dual-slides output/papers/sefo-v3/SEFO-v3-EN.md
+/nlm-dual-slides outputs/papers/sefo-v3/SEFO-v3-EN.md
 ```
 
 This will:
-1. Read `output/papers/sefo-v3/SEFO-v3-EN.md`
+1. Read `outputs/papers/sefo-v3/SEFO-v3-EN.md`
 2. Split into sections by `##` headings
 3. Rewrite each section into 4 variants (expert EN/KO + elementary EN/KO)
 4. Create two NotebookLM notebooks ("SEFO v3 - Elementary Slides", "SEFO v3 - Expert Slides")

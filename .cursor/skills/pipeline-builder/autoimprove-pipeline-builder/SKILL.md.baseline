@@ -33,7 +33,7 @@ These are the building blocks for pipelines:
 | CSV import | `backend/scripts/import_csv.py` | Import CSV files into DB | `PATH --directory` |
 | Daily stock check | `backend/scripts/daily_stock_check.py` | Run technical analysis | `--source db`, `--dir DIR`, `--tickers T` |
 | Hot stock discovery | `backend/scripts/discover_hot_stocks.py` | Find trending untracked stocks | (none) |
-| Report generator | `outputs/generate-report.js` | Generate .docx report | `{date}` |
+| Report generator | `outputs/scripts/generate-report.js` | Generate .docx report | `{date}` |
 
 ## Existing Pipelines
 
