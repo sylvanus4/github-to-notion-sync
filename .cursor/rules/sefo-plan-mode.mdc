@@ -1,0 +1,97 @@
+---
+description: "SEFO skill routing + DAG composition for Plan Mode — auto-discovers relevant skills and generates execution phases before plan creation"
+alwaysApply: true
+---
+
+# SEFO Plan Mode Routing
+
+> **Activation guard:** Apply this rule ONLY when Plan Mode is active (i.e., the system reminder "Plan mode is active" is present). On normal (Agent/Ask/Debug) interactions, ignore this rule entirely.
+
+This rule supplements `plan-mode-review.mdc` and `workflow-planning.mdc` — it does NOT replace them. SEFO routing runs **before** the review process and plan creation to inform skill selection and execution ordering.
+
+## When to Run SEFO Routing
+
+Run SEFO routing when the user's request involves:
+- Multi-step tasks that could benefit from multiple skills
+- Pipeline or workflow design
+- Any task where the optimal skill combination is non-obvious
+
+Skip SEFO routing for:
+- Simple single-skill tasks (e.g., "fix this lint error")
+- Clarifying questions before understanding the task
+- Tasks that explicitly name the single skill to use
+
+## Routing Procedure
+
+### Step 1: Run the Router
+
+Execute the SEFO plan router with the user's task description:
+
+```bash
+python scripts/sefo_plan_router.py "<user_task_description>" --top-k 10
+```
+
+If the corpus needs rebuilding (first run or skills changed), add `--rebuild`:
+
+```bash
+python scripts/sefo_plan_router.py --rebuild "<user_task_description>" --top-k 10
+```
+
+### Step 2: Parse Results
+
+The script outputs JSON with:
+- `results`: Ranked list of recommended skills with scores
+- `dag.phases`: Execution phases (topologically ordered, with parallel flags)
+- `dag.mermaid`: Mermaid DAG diagram for visual inclusion
+
+### Step 3: Integrate into Plan
+
+When creating a plan (via `CreatePlan` or manual plan structure):
+
+1. **Skill Selection**: Use the ranked results as the recommended skill set. Present the top skills to the user with their relevance ranking.
+
+2. **Execution Phases**: Structure the plan's implementation steps following the DAG phase ordering:
+   - Phase 1 skills (no dependencies) execute first, potentially in parallel
+   - Phase 2 skills depend on Phase 1 outputs
+   - Continue until all phases complete
+
+3. **Mermaid Diagram**: Include the `dag.mermaid` output in the plan for visual reference of skill dependencies and execution flow.
+
+4. **User Confirmation**: Present the SEFO-recommended plan structure and ask the user to confirm or adjust before finalizing.
+
+## Handling Failures
+
+If the SEFO router script fails (missing dependencies, corpus errors):
+
+1. Log the error in the plan as a note: "SEFO routing unavailable: <reason>"
+2. Fall back to manual skill selection using the agent's built-in skill knowledge
+3. Do not block plan creation — SEFO is advisory, not mandatory
+
+## Output Format in Plans
+
+When SEFO results are available, include this section in the plan:
+
+```markdown
+## SEFO Skill Routing
+
+**Query**: <user task description>
+**Method**: hybrid | bm25
+**Corpus size**: N skills
+
+### Recommended Skills (ranked)
+
+| Rank | Skill | Category | Composable With |
+|------|-------|----------|----------------|
+| 1 | skill-name | category | dep1, dep2 |
+| ... | ... | ... | ... |
+
+### Execution DAG
+
+<mermaid diagram from dag.mermaid>
+
+### Phases
+
+- **Phase 1** (parallel): skill-a, skill-b
+- **Phase 2** (sequential): skill-c
+- **Phase 3** (parallel): skill-d, skill-e
+```
