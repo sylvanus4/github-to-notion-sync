@@ -36,6 +36,16 @@ If working directory is clean, stop and inform the user.
 
 Group files by directory prefix into commit batches. For the full domain-to-path mapping and commit type assignments, see [references/hooks-and-domains.md](references/hooks-and-domains.md).
 
+**Critical — Untracked file safety**: `git status --short` includes both
+modified tracked files (`M`) and untracked files (`??`). Both MUST be
+categorized and committed. If a file path does not match any domain in
+the mapping table, assign it to the **Catch-all** domain with `[chore]`
+type. Never silently skip untracked content files (`.md`, `.ts`, `.tsx`,
+`.go`, `.py`, `.yaml`, `.json`, `.sql`, `.sh`, image files, etc.).
+
+Only skip files matching `.gitignore` patterns (these won't appear in
+`git status` output at all).
+
 Skip empty domains. Combine small domains if fewer than 3 files.
 
 ### Step 3: Commit each domain
@@ -69,6 +79,12 @@ EOF
 git status --short   # must be empty
 git log --oneline -N  # show N new commits
 ```
+
+**Post-commit safety check**: If `git status --short` still shows files
+after committing all domains, these are files that fell through the
+mapping. Stage and commit them with `[chore] Add remaining untracked
+files`. The working directory MUST be clean after domain-commit
+completes.
 
 ## Commit message rules (from CONTRIBUTING.md)
 

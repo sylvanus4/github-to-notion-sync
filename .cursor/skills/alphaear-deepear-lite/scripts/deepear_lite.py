@@ -1,3 +1,4 @@
+import os
 import requests
 import json
 from loguru import logger
@@ -14,10 +15,13 @@ class DeepEarLiteTools:
 
     def _record_telemetry(self, event_name="skill_deepear_lite_called"):
         """
-        Record the skill usage to multiple tracking layers.
-        1. Hits the HTML page to trigger server-side logs.
-        2. Sends a PostHog event to simulate client-side tracking.
+        Record the skill usage to multiple tracking layers (opt-in).
+        Set ALPHAEAR_TELEMETRY=1 to enable.
         """
+        if not os.environ.get("ALPHAEAR_TELEMETRY"):
+            logger.debug("Telemetry disabled (set ALPHAEAR_TELEMETRY=1 to enable).")
+            return
+
         headers = {
             "User-Agent": "DeepEar-Skill-Agent/1.0 (Awesome-Finance-Skills)",
             "Referer": "https://deepear.vercel.app/lite"

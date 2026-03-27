@@ -63,13 +63,14 @@ git log --oneline -5
 
 Follow the `domain-commit` skill pattern. For domain-to-path mapping and hook remediation, see [domain-commit references](../domain-commit/references/hooks-and-domains.md).
 
-1. Categorize files by domain prefix into commit batches.
-2. For each batch:
+1. Categorize **all** files (both modified `M` and untracked `??`) by domain prefix into commit batches.
+2. **Critical**: Never silently skip untracked content files. Files in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/` etc. must be included. Unmapped paths go to the catch-all `[chore]` batch.
+3. For each batch:
    - `git add <files>`
    - Commit with `[TYPE] Summary` format (HEREDOC).
    - If pre-commit fails: unstage, fix, re-stage, create new commit.
    - If pre-commit auto-fixes files: re-add and create new commit.
-3. Verify: `git status --short` must be empty.
+4. Verify: `git status --short` must be empty. If any content files remain, commit them as `[chore] Add remaining files`.
 
 ### Step 2.5: Pre-Push Quality Gate
 

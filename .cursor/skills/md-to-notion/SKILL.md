@@ -79,13 +79,20 @@ Determine what `<path>` points to:
 
 ### Step 2: Parse Each File
 
-For each markdown file, run the bundled conversion script:
+Create a temporary directory for intermediate files, then run the bundled
+conversion script:
 
 ```bash
+TMPDIR=$(mktemp -d /tmp/notion-upload-XXXXXX)
+
 python .cursor/skills/md-to-notion/scripts/convert_tables.py \
   --threshold <split-threshold> \
+  --outdir "$TMPDIR" \
   <file1.md> [file2.md ...]
 ```
+
+The script prints `OUTDIR=<path>` to stdout. If `--outdir` is omitted, the
+script auto-creates a unique `/tmp/notion-upload-*/` directory.
 
 The script performs these steps per file:
 
@@ -99,7 +106,7 @@ The script performs these steps per file:
    See [references/table-conversion.md](references/table-conversion.md).
 5. **Size check**: If converted content exceeds `--split-threshold` characters,
    split by H2 sections into multiple parts
-6. **Output JSON** to `/tmp/notion_page_N.json` with fields:
+6. **Output JSON** to `$TMPDIR/notion_page_N.json` with fields:
    - `title`: extracted page title
    - `content`: converted markdown body (if not split)
    - `split`: boolean flag
@@ -189,6 +196,18 @@ Check that each created title appears in the response. Report any missing pages.
 
 For split documents, also fetch the intermediate parent page to confirm all
 sub-pages are present.
+
+### Step 5: Cleanup Temporary Files
+
+After all pages are verified (or on any error after the temporary directory was
+created), delete the temporary directory and all its contents:
+
+```bash
+rm -rf "$TMPDIR"
+```
+
+This prevents leftover intermediate JSON files from accumulating in `/tmp/`.
+This cleanup step is **mandatory** — never leave temporary files behind.
 
 ## Error Handling
 

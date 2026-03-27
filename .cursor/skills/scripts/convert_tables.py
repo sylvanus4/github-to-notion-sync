@@ -193,20 +193,34 @@ def _pipe_table_to_notion(table_lines: list[str]) -> str:
 
 
 if __name__ == "__main__":
+    import tempfile
+
     threshold = 15000
+    outdir = ""
     files = []
     i = 1
     while i < len(sys.argv):
         if sys.argv[i] == "--threshold" and i + 1 < len(sys.argv):
             threshold = int(sys.argv[i + 1])
             i += 2
+        elif sys.argv[i] == "--outdir" and i + 1 < len(sys.argv):
+            outdir = sys.argv[i + 1]
+            i += 2
         else:
             files.append(sys.argv[i])
             i += 1
 
     if not files:
-        print("Usage: convert_tables.py [--threshold N] <file1.md> [file2.md ...]")
+        print(
+            "Usage: convert_tables.py [--threshold N] [--outdir DIR] <file1.md> [file2.md ...]"
+        )
         sys.exit(1)
+
+    if not outdir:
+        outdir = tempfile.mkdtemp(prefix="notion-upload-")
+
+    os.makedirs(outdir, exist_ok=True)
+    print(f"OUTDIR={outdir}")
 
     results = []
     for f in files:
@@ -216,7 +230,7 @@ if __name__ == "__main__":
         print(f"[{status}] {r['title']}  ({r['content_length']} chars)  ← {f}")
 
     for idx, r in enumerate(results):
-        outfile = f"/tmp/notion_page_{idx}.json"
+        outfile = os.path.join(outdir, f"notion_page_{idx}.json")
         with open(outfile, "w", encoding="utf-8") as fout:
             json.dump(r, fout, ensure_ascii=False, indent=2)
         print(f"  → {outfile}")

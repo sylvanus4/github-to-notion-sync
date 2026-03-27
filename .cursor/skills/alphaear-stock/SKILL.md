@@ -6,9 +6,12 @@ description: >-
   info, or ad-hoc historical price queries. Do NOT use for routine weekly price
   updates (use weekly-stock-update). Do NOT use for CSV downloads from
   investing.com (use stock-csv-downloader). Do NOT use for technical indicator
-  analysis (use daily-stock-check). Korean triggers: "주식", "체크", "검색".
+  analysis (use daily-stock-check). Do NOT use for news aggregation (use
+  alphaear-news). Do NOT use for finance-specific web search (use
+  alphaear-search). Korean triggers: "종목 검색", "주가 조회", "OHLCV", "티커".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  last_updated: "2026-03-27"
   category: "data-collection"
   author: "alphaear"
 ---
@@ -16,13 +19,13 @@ metadata:
 
 ## Overview
 
-Search A-Share, HK, and US stock tickers by code or name, and retrieve historical OHLCV price data. Optimized for ad-hoc lookups and historical queries. The project also tracks 21 tickers in `data/latest/` and PostgreSQL — for routine updates, use `weekly-stock-update`; for CSV imports from investing.com, use `stock-csv-downloader`.
+Search A-Share, HK, and US stock tickers by code or name, and retrieve historical OHLCV price data. Optimized for ad-hoc lookups and historical queries. The skill caches data in SQLite (`data/signal_flux.db`). The project also tracks 21 tickers in `data/latest/` and the project PostgreSQL backend — for routine updates, use `weekly-stock-update`; for CSV imports from investing.com, use `stock-csv-downloader`.
 
 ## Prerequisites
 
 - Python 3.10+
 - `pandas`, `requests`, `akshare`, `yfinance`
-- `scripts/database_manager.py` (PostgreSQL or SQLite for local cache)
+- `scripts/database_manager.py` (SQLite — `data/signal_flux.db`)
 - Network access for akshare/yfinance
 
 ## Workflow

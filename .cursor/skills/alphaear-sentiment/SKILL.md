@@ -5,10 +5,11 @@ description: >-
   Use when the user needs to determine sentiment (positive/negative/neutral) and
   score of financial text. Do NOT use for news aggregation (use alphaear-news).
   Do NOT use for trading signal generation (use daily-stock-check). Do NOT use
-  for market prediction (use alphaear-predictor). Korean triggers: "감성", "분석",
-  "체크", "주식".
+  for market prediction (use alphaear-predictor). Korean triggers: "감성 분석",
+  "감성 점수", "긍정 부정", "FinBERT".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  last_updated: "2026-03-27"
   category: "analysis"
   author: "alphaear"
 ---
@@ -16,13 +17,13 @@ metadata:
 
 ## Overview
 
-Analyze financial text sentiment with a score from -1.0 (negative) to 1.0 (positive). Default mode is LLM-only — no torch/transformers required. Optional FinBERT mode provides fast local batch analysis when `torch` and `transformers` are installed. Results are persisted to PostgreSQL via `scripts/database_manager.py`.
+Analyze financial text sentiment with a score from -1.0 (negative) to 1.0 (positive). Default mode is LLM-only — no torch/transformers required. Optional FinBERT mode provides fast local batch analysis when `torch` and `transformers` are installed. Results are persisted to SQLite (`data/signal_flux.db`) via `scripts/database_manager.py`.
 
 ## Prerequisites
 
 - **Minimal (LLM-only)**: `loguru`, `scripts/database_manager.py`, LLM API credentials.
 - **Full (FinBERT)**: `torch`, `transformers`, plus minimal deps.
-- PostgreSQL configured for `daily_news` table (or compatible backend).
+- SQLite (`data/signal_flux.db`) with `daily_news` table (auto-created by `DatabaseManager`).
 
 ## Workflow
 
@@ -59,14 +60,14 @@ Text: {text}
 |-------|----------|----------|
 | BERT not installed | `analyze_sentiment` returns error dict | Use LLM prompt; or install torch, transformers |
 | LLM parse failure | Returns `{score: 0.0, label: "error"}` | Retry with stricter JSON instruction |
-| DB update failure | `update_single_news_sentiment` returns False | Check PostgreSQL connection and `news_id` |
+| DB update failure | `update_single_news_sentiment` returns False | Check SQLite file access and `news_id` |
 | Invalid score range | Depends on implementation | Clamp to [-1.0, 1.0] before persist |
 
 ## Troubleshooting
 
 - **"BERT pipeline not initialized"**: Default is LLM-only; use the prompt above. For FinBERT, set `SENTIMENT_MODE=bert` and install transformers.
 - **Batch returns 0**: In LLM-only mode, batch does nothing; run Agent loop with prompt + `update_single_news_sentiment` per item.
-- **json_set on PostgreSQL**: If `meta_data` is JSONB, SQL may differ from SQLite; check `database_manager` for dialect.
+- **json_set**: SQLite uses `json_set` for updating JSONB-like fields in `meta_data`; check `database_manager` for exact SQL.
 
 ## AlphaEar Quality Standards (auto-improved)
 

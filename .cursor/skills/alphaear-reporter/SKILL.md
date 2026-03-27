@@ -6,10 +6,13 @@ description: >-
   assembling signals into reports, or producing Executive Summary + Risk Factors
   + References. Do NOT use for daily trading signals (use daily-stock-check). Do
   NOT use for ADRs or technical documentation (use technical-writer). Do NOT use
-  for logic chain diagrams (use alphaear-logic-visualizer). Korean triggers:
-  "생성", "체크", "계획", "리포트".
+  for logic chain diagrams (use alphaear-logic-visualizer). Do NOT use for
+  news aggregation (use alphaear-news). Do NOT use for sentiment scoring (use
+  alphaear-sentiment). Korean triggers:
+  "금융 보고서", "리포트 작성", "시그널 요약", "보고서 조립".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  last_updated: "2026-03-27"
   category: "generation"
   author: "alphaear"
 ---

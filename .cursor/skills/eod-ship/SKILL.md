@@ -126,7 +126,8 @@ If a project directory does not exist, warn and skip it. Continue with remaining
 Before posting to Slack, verify shipping integrity:
 
 - [ ] **No unintended files staged** — Check that no `.env`, credentials, or large binary files were committed across any project
-- [ ] **All repos clean** — Every shipped project should have a clean `git status` after release-ship (no leftover unstaged changes)
+- [ ] **All repos clean** — Every shipped project should have a clean `git status` after release-ship (no leftover unstaged changes including untracked files)
+- [ ] **No orphaned untracked content** — Verify no `.md`, `.ts`, `.go`, `.py`, `.yaml`, `.json`, `.sql` files remain untracked in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/`, or any content directory. If any exist, run one more `git add` + commit round to catch them.
 - [ ] **Branch consistency** — Current project pushed to correct remote branch (ai-platform-webui uses `tmp`, others use standard)
 
 If any criterion fails, log the issue in the Slack message as a warning. Do NOT suppress the notification — post with warnings.

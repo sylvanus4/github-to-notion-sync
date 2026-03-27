@@ -5,7 +5,7 @@ Usage:
     python convert_for_notion.py <file.md> [file2.md ...]
 
 Outputs converted content to stdout (single file) or writes to
-/tmp/notion_<basename>.md (multiple files).
+<outdir>/notion_<basename>.md (multiple files via --outdir).
 
 Preserves:
   - Tables inside fenced code blocks (```)
@@ -138,20 +138,39 @@ def process_file(filepath: str) -> tuple[str, str]:
 
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        print("Usage: convert_for_notion.py <file.md> [file2.md ...]", file=sys.stderr)
+    import tempfile
+
+    outdir = ""
+    files: list[str] = []
+    i = 1
+    while i < len(sys.argv):
+        if sys.argv[i] == "--outdir" and i + 1 < len(sys.argv):
+            outdir = sys.argv[i + 1]
+            i += 2
+        else:
+            files.append(sys.argv[i])
+            i += 1
+
+    if not files:
+        print(
+            "Usage: convert_for_notion.py [--outdir DIR] <file.md> [file2.md ...]",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
-    files = sys.argv[1:]
-
-    if len(files) == 1:
+    if len(files) == 1 and not outdir:
         _title, body = process_file(files[0])
         print(body)
     else:
+        if not outdir:
+            outdir = tempfile.mkdtemp(prefix="notion-upload-")
+        Path(outdir).mkdir(parents=True, exist_ok=True)
+        print(f"OUTDIR={outdir}")
+
         for filepath in files:
             title, body = process_file(filepath)
             out_name = Path(filepath).stem
-            out_path = Path(f"/tmp/notion_{out_name}.md")
+            out_path = Path(outdir) / f"notion_{out_name}.md"
             out_path.write_text(body, encoding="utf-8")
             print(f"[OK] {title} → {out_path}")
 

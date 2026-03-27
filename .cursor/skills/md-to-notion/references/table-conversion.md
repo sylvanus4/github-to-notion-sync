@@ -62,10 +62,13 @@ The conversion is automated by `scripts/convert_tables.py`. The script:
 Usage:
 
 ```bash
-python scripts/convert_tables.py [--threshold 15000] file1.md file2.md
+python scripts/convert_tables.py [--threshold 15000] [--outdir DIR] file1.md file2.md
 ```
 
-Outputs JSON files to `/tmp/notion_page_N.json` with converted content.
+Outputs JSON files to a temporary directory. The script prints `OUTDIR=<path>` to
+stdout so callers can locate the files. When `--outdir` is omitted, a unique
+directory under `/tmp/notion-upload-*/` is created automatically. Callers must
+delete the directory after upload completes.
 
 ## Edge Cases
 

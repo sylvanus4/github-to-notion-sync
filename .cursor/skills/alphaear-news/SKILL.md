@@ -6,9 +6,11 @@ description: >-
   needs hot finance news, unified trend reports from multiple sources, or
   Polymarket finance prediction data. Do NOT use for stock price data (use
   weekly-stock-update or alphaear-stock). Do NOT use for sentiment scoring (use
-  alphaear-sentiment). Korean triggers: "뉴스", "리포트", "주식", "시장".
+  alphaear-sentiment). Do NOT use for finance-specific web search queries (use
+  alphaear-search). Korean triggers: "핫뉴스", "뉴스 수집", "폴리마켓", "뉴스 트렌드".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  last_updated: "2026-03-27"
   category: "data-collection"
   author: "alphaear"
 ---
@@ -16,23 +18,23 @@ metadata:
 
 ## Overview
 
-Fetch real-time hot financial news from 10+ sources (CN, US, KR-relevant), generate unified trend reports, and retrieve Polymarket prediction market data. News is stored in PostgreSQL via `scripts/database_manager.py`.
+Fetch real-time hot financial news from 10+ sources (CN, US, KR-relevant), generate unified trend reports, and retrieve Polymarket prediction market data. News is stored in SQLite (`data/signal_flux.db`) via `scripts/database_manager.py`.
 
 ## Prerequisites
 
 - Python 3.10+
 - `requests`, `loguru`
-- `scripts/database_manager.py` (PostgreSQL connection)
+- `scripts/database_manager.py` (SQLite — `data/signal_flux.db`)
 - Network access to NewsNow API and Polymarket gamma-api
 
 ## Workflow
 
-1. **Initialize**: Create `DatabaseManager` with PostgreSQL connection, then instantiate `NewsNowTools(db)` or `PolymarketTools(db)`.
+1. **Initialize**: Create `DatabaseManager` (auto-creates SQLite DB at `data/signal_flux.db`), then instantiate `NewsNowTools(db)` or `PolymarketTools(db)`.
 2. **Fetch hot news**: Call `NewsNowTools.fetch_hot_news(source_id, count)` — see `references/sources.md` for valid `source_id` values.
 3. **Unified trends**: Call `NewsNowTools.get_unified_trends(sources)` to aggregate top news from multiple sources.
 4. **Polymarket data**: Call `PolymarketTools.get_market_summary(limit)` for prediction market summaries.
 5. **US/KR fallback**: If Reuters, Bloomberg, or CNBC content is needed and not available via NewsNow, use the `parallel-web-search` skill to supplement with web search results.
-6. **Storage**: Fetched news is saved to PostgreSQL `daily_news` table by the tools.
+6. **Storage**: Fetched news is saved to the SQLite `daily_news` table by the tools.
 
 ## Examples
 
@@ -58,7 +60,7 @@ Full source list: `references/sources.md`. Key IDs:
 |-------|----------|----------|
 | NewsNow API timeout | Returns empty or stale cache | Retry after 5 min; cache expires in 300s |
 | Polymarket 4xx/5xx | Returns `[]` | Check gamma-api status; retry later |
-| DB connection failure | Exception raised | Verify PostgreSQL is running and credentials |
+| DB connection failure | Exception raised | Verify `data/signal_flux.db` is writable and not locked |
 | Invalid `source_id` | Empty items | Check `references/sources.md` for valid IDs |
 
 ## Troubleshooting

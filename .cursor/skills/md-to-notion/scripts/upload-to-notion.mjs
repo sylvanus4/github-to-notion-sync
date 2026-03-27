@@ -7,7 +7,7 @@
  *   NOTION_TOKEN=xxx node upload-to-notion.mjs <json-path> <parent-page-id>
  *
  * Example:
- *   NOTION_TOKEN=xxx node upload-to-notion.mjs /tmp/notion_page_0.json 3209eddc34e6801b8921f55d85153730
+ *   NOTION_TOKEN=xxx node upload-to-notion.mjs $TMPDIR/notion_page_0.json 3209eddc34e6801b8921f55d85153730
  */
 import { Client } from "@notionhq/client";
 import { markdownToBlocks } from "@tryfabric/martian";

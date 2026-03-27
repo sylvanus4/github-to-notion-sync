@@ -5,10 +5,12 @@ description: >-
   transmission flows. Use when explaining investment theses, signal transmission
   chains, or complex finance logic flows as diagrams. Do NOT use for general
   architecture diagrams or system design visuals (use visual-explainer). Do NOT
-  use for slide decks or data tables (use visual-explainer). Korean triggers:
-  "생성", "설계", "슬라이드", "데이터".
+  use for slide decks or data tables (use visual-explainer). Do NOT use for
+  written financial reports (use alphaear-reporter). Korean triggers:
+  "논리 흐름", "전달 체인", "Draw.io", "투자 다이어그램".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  last_updated: "2026-03-27"
   category: "visualization"
   author: "alphaear"
 ---

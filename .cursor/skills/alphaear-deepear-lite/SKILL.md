@@ -7,9 +7,10 @@ description: >-
   prediction, logic, report). Do NOT use for single-domain analysis (use
   individual alphaear-* skills). Do NOT use for daily stock checks (use
   daily-stock-check). Do NOT use for routine stock price updates (use
-  weekly-stock-update). Korean triggers: "분석", "체크", "리포트", "주식".
+  weekly-stock-update). Korean triggers: "종합 분석", "멀티도메인", "시장 영향", "AlphaEar".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  last_updated: "2026-03-27"
   category: "orchestration"
   author: "alphaear"
 ---
@@ -17,15 +18,32 @@ metadata:
 
 ## Overview
 
-Coordinates alphaear-search, alphaear-news, alphaear-sentiment, alphaear-signal-tracker, alphaear-predictor, alphaear-logic-visualizer, alphaear-reporter, and project data sources (daily-stock-check, weekly-stock-update) into a single workflow for comprehensive finance queries.
+Operates in two distinct modes depending on the query:
+
+### Mode A — Sub-skill Orchestration (default)
+
+Coordinates alphaear-search, alphaear-news, alphaear-sentiment, alphaear-signal-tracker, alphaear-predictor, alphaear-logic-visualizer, alphaear-reporter, and project data sources (daily-stock-check, weekly-stock-update) into a single workflow for comprehensive finance queries. No external API call is made; each sub-skill runs independently and results are synthesized.
+
+### Mode B — DeepEar Lite API Fetch
+
+Calls `scripts/deepear_lite.py` → `DeepEarLiteTools.fetch_latest_signals()` to pull pre-computed signals from the DeepEar Lite remote endpoint (`https://deepear.vercel.app/latest.json`). Returns a formatted signal report with titles, sentiment scores, confidence, intensity, reasoning, and source links. Use this mode when the user asks for "latest DeepEar signals", "DeepEar Lite signals", or wants a quick signal snapshot without running the full orchestration chain.
+
+### Mode Selection
+
+| User intent | Mode | Rationale |
+|-------------|------|-----------|
+| Broad multi-domain analysis ("Analyze how X affects the market") | A — Orchestration | Requires combining news, sentiment, prediction, and reporting |
+| Quick signal snapshot ("Latest DeepEar signals") | B — API Fetch | Pre-computed signals are sufficient |
+| Specific domain + synthesis ("NVDA impact with sentiment and prediction") | A — Orchestration | Multi-step sub-skill chain needed |
 
 ## Prerequisites
 
-- All 8 alphaear sub-skills available
-- `scripts/deepear_lite.py` for orchestration logic
-- No heavy runtime dependencies (orchestration only)
+- All 8 alphaear sub-skills available (Mode A)
+- `scripts/deepear_lite.py` for API fetch logic (Mode B)
+- `requests`, `loguru` Python packages (Mode B)
+- No heavy runtime dependencies for orchestration (Mode A)
 
-## Workflow
+## Workflow (Mode A — Orchestration)
 
 1. **Parse intent**: Analyze user query to identify needed domains (news, analysis, prediction, signals, diagrams, report).
 2. **Delegate sequence**:
@@ -36,6 +54,13 @@ Coordinates alphaear-search, alphaear-news, alphaear-sentiment, alphaear-signal-
    - alphaear-logic-visualizer for transmission-chain diagrams
    - alphaear-reporter for final report assembly
 3. **Synthesize**: Combine sub-skill outputs into a comprehensive response.
+
+## Workflow (Mode B — API Fetch)
+
+1. Run `python scripts/deepear_lite.py` or call `DeepEarLiteTools().fetch_latest_signals()`.
+2. The script fetches `latest.json` from the DeepEar Lite endpoint.
+3. Returns a formatted markdown report with per-signal details (title, sentiment, confidence, intensity, reasoning, sources).
+4. Optionally combine with project data (daily-stock-check) for local context.
 
 ## Examples
 

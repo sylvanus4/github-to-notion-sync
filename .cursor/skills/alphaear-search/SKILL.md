@@ -6,9 +6,11 @@ description: >-
   (daily_news DB), or multi-engine aggregation. Do NOT use for general web
   research (use parallel-web-search). Do NOT use for stock price data (use
   alphaear-stock or weekly-stock-update). Do NOT use for news aggregation (use
-  alphaear-news). Korean triggers: "검색", "주식", "뉴스", "문서".
+  alphaear-news). Do NOT use for sentiment scoring (use alphaear-sentiment).
+  Korean triggers: "금융 검색", "웹 검색", "로컬 RAG", "Jina 검색".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  last_updated: "2026-03-27"
   category: "data-collection"
   author: "alphaear"
 ---
@@ -69,7 +71,7 @@ Finance-specific web and local search. Supports Jina, DuckDuckGo, and Baidu engi
 
 ### Data source attribution (required)
 
-Tag each result batch: `(출처: Jina Search)`, `(출처: DuckDuckGo)`, `(출처: Baidu)`, `(출처: PostgreSQL daily_news 로컬 RAG)`, `(출처: 검색 캐시)`. Multi-engine: list each engine’s contribution.
+Tag each result batch: `(출처: Jina Search)`, `(출처: DuckDuckGo)`, `(출처: Baidu)`, `(출처: SQLite daily_news 로컬 RAG)`, `(출처: 검색 캐시)`. Multi-engine: list each engine’s contribution.
 
 ### Korean output
 

@@ -89,12 +89,13 @@ If `dirty: true`:
 
 1. `cd PROJECT_PATH`
 2. Follow the `domain-commit` pattern:
-   - `git status --short | sort` to list all changes
-   - Categorize files by directory prefix into domain batches
+   - `git status --short | sort` to list all changes (both modified `M` AND untracked `??` files)
+   - Categorize files by directory prefix into domain batches using the mapping in [domain-commit references](../domain-commit/references/hooks-and-domains.md)
+   - **Critical**: Include ALL untracked content files (`??` entries) — especially `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/` directories. Files not matching any domain go to `[chore]` catch-all batch. Never silently skip untracked files.
    - For each batch, `git add <files>` and commit with `[TYPE] Summary` format (HEREDOC)
    - If pre-commit hooks fail: fix lint errors, re-stage, create new commit (never amend)
    - For projects without `.pre-commit-config.yaml`: simple `git add -A && git commit`
-3. Verify: `git status --short` must be empty
+3. Verify: `git status --short` must be empty. If any files remain, stage and commit them as `[chore] Add remaining files`
 
 #### Step 2b: Push unpushed commits
 

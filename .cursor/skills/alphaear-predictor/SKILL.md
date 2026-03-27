@@ -5,10 +5,12 @@ description: >-
   Use when user needs finance market time-series forecasting, multi-day price
   predictions, or news-informed forecast adjustments. Do NOT use for technical
   indicator analysis like SMA/Bollinger (use daily-stock-check). Do NOT use for
-  backtesting strategies (use backtest service). Korean triggers: "테스트", "체크",
-  "주식", "시장".
+  backtesting strategies (use backtest service). Do NOT use for sentiment
+  scoring (use alphaear-sentiment). Do NOT use for news aggregation (use
+  alphaear-news). Korean triggers: "가격 예측", "시계열 예측", "Kronos", "예측 모델".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
+  last_updated: "2026-03-27"
   category: "analysis"
   author: "alphaear"
 ---
@@ -22,13 +24,13 @@ Uses the Kronos model to generate time-series forecasts (OHLCV K-line points) an
 
 - Python 3.10+
 - `torch`, `transformers`, `sentence-transformers`, `pandas`, `numpy`, `scikit-learn`
-- Stock data from project PostgreSQL (via existing backend services or `scripts/utils/database_manager.py`)
+- Stock data from SQLite (`data/signal_flux.db`) via `scripts/utils/database_manager.py`, or from the project PostgreSQL backend
 - Model weights at `scripts/predictor/exports/models/kronos_news_v1_20260101_0015.pt` (~1.2MB)
 - Env vars: `EMBEDDING_MODEL` (default: `sentence-transformers/all-MiniLM-L6-v2`), `KRONOS_MODEL_PATH` (optional override)
 
 ## Workflow
 
-1. **Load OHLCV data**: Fetch from PostgreSQL via project backend or `scripts/utils/database_manager.py` — ensure DataFrame has columns `date`, `open`, `high`, `low`, `close`, `volume`.
+1. **Load OHLCV data**: Fetch from SQLite via `scripts/utils/database_manager.py` (or project PostgreSQL backend) — ensure DataFrame has columns `date`, `open`, `high`, `low`, `close`, `volume`.
 2. **Generate base forecast**: Call `KronosPredictorUtility.get_base_forecast(df, lookback, pred_len, news_text)` from `scripts/kronos_predictor.py`. Returns `List[KLinePoint]`.
 3. **Adjust with news**: Use the **Forecast Adjustment** prompt from `references/PROMPTS.md` — agent applies LLM to adjust technical forecast based on latest intelligence/news.
 4. **Return adjusted forecast**: Combine base + adjusted points and rationale for downstream use.
@@ -54,7 +56,7 @@ Uses the Kronos model to generate time-series forecasts (OHLCV K-line points) an
 
 - **No trained news weights**: If `news_proj_state_dict` missing in `.pt`, model runs in base-only mode.
 - **CUDA/MPS**: Predictor auto-selects device (cuda > mps > cpu).
-- **PostgreSQL integration**: Reference project's stock services for OHLCV; ensure date range covers required `lookback` days.
+- **Data source**: `database_manager.py` uses SQLite by default; ensure OHLCV date range covers required `lookback` days.
 
 ## AlphaEar Quality Standards (auto-improved)
 
@@ -69,7 +71,7 @@ Uses the Kronos model to generate time-series forecasts (OHLCV K-line points) an
 
 ### Data source attribution (required)
 
-State: historical input `(출처: PostgreSQL OHLCV / 프로젝트 DB)`, base forecast `(출처: Kronos 모델, 가중치 경로 명시)`, adjustment `(출처: LLM 뉴스 반영 조정)` or `조정 생략(뉴스 없음)`.
+State: historical input `(출처: SQLite OHLCV / signal_flux.db)`, base forecast `(출처: Kronos 모델, 가중치 경로 명시)`, adjustment `(출처: LLM 뉴스 반영 조정)` or `조정 생략(뉴스 없음)`.
 
 ### Korean output
 

@@ -288,17 +288,21 @@ Use this spec as reference for Notion-flavored markdown syntax in later steps.
 
 **Step 1: Convert tables for Notion compatibility**
 
-Run the shared `convert_tables.py` script on both output files:
+Create a temporary directory, then run the shared `convert_tables.py` script on
+both output files:
 
 ```bash
+TMPDIR=$(mktemp -d /tmp/notion-upload-XXXXXX)
+
 python .cursor/skills/md-to-notion/scripts/convert_tables.py \
+  --outdir "$TMPDIR" \
   output/meetings/{date}/summary.md \
   output/meetings/{date}/action-items.md
 ```
 
 This converts pipe tables to Notion `<table header-row="true">` HTML blocks,
-extracts H1 titles, and outputs JSON to `/tmp/notion_page_0.json` and
-`/tmp/notion_page_1.json`.
+extracts H1 titles, and outputs JSON to `$TMPDIR/notion_page_0.json` and
+`$TMPDIR/notion_page_1.json`.
 
 Each JSON file has either `"content"` (single page) or `"split": true` with
 `"parts"` (array of `{subtitle, body}`) for documents exceeding the
@@ -308,8 +312,8 @@ the split protocol in `.cursor/skills/md-to-notion/SKILL.md` Step 3.
 
 **Step 2: Create two Notion sub-pages**
 
-**MANDATORY**: Use the Read tool to load `/tmp/notion_page_0.json` and
-`/tmp/notion_page_1.json`. Parse each JSON and extract the `content` field
+**MANDATORY**: Use the Read tool to load `$TMPDIR/notion_page_0.json` and
+`$TMPDIR/notion_page_1.json`. Parse each JSON and extract the `content` field
 value. Pass that value **verbatim** as the `content` argument below.
 NEVER manually type, summarize, abbreviate, or replace any portion of the
 content with "see local file" or similar references. The `content` must be
@@ -325,12 +329,12 @@ CallMcpTool(
       {
         "properties": {"title": "[{YYYY-MM-DD}] {meeting-title} — summary report (Korean title per template)"},
         "icon": "📋",
-        "content": "<FULL content from /tmp/notion_page_0.json>"
+        "content": "<FULL content from $TMPDIR/notion_page_0.json>"
       },
       {
         "properties": {"title": "[{YYYY-MM-DD}] action items dashboard (Korean title per template)"},
         "icon": "✅",
-        "content": "<FULL content from /tmp/notion_page_1.json>"
+        "content": "<FULL content from $TMPDIR/notion_page_1.json>"
       }
     ]
   }
@@ -359,6 +363,15 @@ pages.
 summary page and compare with the original `summary.md`. If the Notion page
 has fewer `##` headings (difference > 1), the upload is INCOMPLETE — delete
 and re-upload using the full JSON content.
+
+**Step 4: Cleanup temporary files**
+
+After upload verification completes (or on any error after the temporary
+directory was created), delete the temporary directory:
+
+```bash
+rm -rf "$TMPDIR"
+```
 
 ### 5.3 PPTX Generation (--pptx flag)
 

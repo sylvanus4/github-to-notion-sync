@@ -336,13 +336,20 @@ output/prd/{date}/
 
 ### 7.3 Notion Upload (default, unless --no-notion)
 
-Run table conversion and create Notion sub-pages:
+Create a temporary directory, run table conversion, create Notion sub-pages,
+and clean up:
 
 ```bash
+TMPDIR=$(mktemp -d /tmp/notion-upload-XXXXXX)
+
 python .cursor/skills/md-to-notion/scripts/convert_tables.py \
+  --outdir "$TMPDIR" \
   output/prd/{date}/prd-final.md \
   output/prd/{date}/fidelity-report.md
 ```
+
+Upload JSON files from `$TMPDIR/notion_page_N.json` via Notion MCP.
+After upload verification, clean up: `rm -rf "$TMPDIR"`.
 
 Create 3 sub-pages under `--notion-parent`:
 1. `[{date}] {title} PRD` — Final PRD
