@@ -1,0 +1,3 @@
+experiment	mutation	T1_score	T2_score	T3_score	T4_score	T5_score	total	max	pass_rate	decision	notes
+baseline	none	5	4	5	3	5	22	25	88%	baseline	Mode 2 lacks artifact; overview lacks next steps; no vague routing
+exp1	Add Step 4 to Mode 2 (artifact + next steps)	5	5	5	5	5	25	25	100%	KEEP	+3 points; all evals pass; Mode 2 now produces skill-map-{date}.md and explicit next steps
