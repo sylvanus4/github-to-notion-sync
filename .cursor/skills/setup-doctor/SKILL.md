@@ -19,7 +19,7 @@ metadata:
 
 # Setup Doctor
 
-Diagnose and fix missing prerequisites across all project skill groups. Organizes checks by **capability group** (21 functional clusters) rather than 400+ individual skills.
+Diagnose and fix missing prerequisites across all project skill groups. Organizes checks by **capability group** (25 functional clusters) rather than 400+ individual skills.
 
 ## Input
 
@@ -57,6 +57,10 @@ The user provides:
 | security-scanning | `gitleaks` CLI | security-expert |
 | document-generation | pdfplumber, python-docx, pypdf, pillow, Node `docx`/`pptxgenjs`, pandoc | paper-review, anthropic-docx, anthropic-pptx, anthropic-pdf, bespin-news-digest |
 | scrapling | `scrapling` Python pkg | scrapling |
+| tossinvest | `tossctl`, Go ≥1.21, Playwright, Chromium | tossinvest-setup, tossinvest-cli, tossinvest-trading |
+| dev-browser | `dev-browser` CLI (npm), Chromium | dev-browser |
+| expect-qa | `expect-cli` (npm), Agent (cursor/claude/codex), Chromium | expect-qa |
+| website-cloner | Node ≥18, npm, Playwright Chromium, Git, `cursor-ide-browser` MCP | clone-website |
 
 For full details on each group (install commands, env vars, verification), see [references/capability-map.md](references/capability-map.md).
 
@@ -69,7 +73,7 @@ For the complete env var registry, see [references/env-var-registry.md](referenc
 Check each tool via `command -v`:
 
 ```bash
-for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser pandoc jq cognee; do
+for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go; do
   command -v "$tool" >/dev/null 2>&1 && echo "PASS $tool" || echo "FAIL $tool"
 done
 ```
@@ -89,7 +93,7 @@ done
 **Node global packages** — check via `npm list -g --depth=0`:
 
 ```bash
-for pkg in "@googleworkspace/cli" docx pptxgenjs agent-browser; do
+for pkg in "@googleworkspace/cli" docx pptxgenjs agent-browser dev-browser expect-cli; do
   npm list -g --depth=0 2>/dev/null | grep -q "$pkg" && echo "PASS $pkg" || echo "FAIL $pkg"
 done
 ```
@@ -210,6 +214,7 @@ Capability Group Status:
   security-scanning: PARTIAL (gitleaks missing)
   document-generation: PARTIAL (pdfplumber missing, docx npm missing)
   scrapling:         NOT READY (scrapling missing)
+  expect-qa:         NOT READY (expect-cli missing)
 
 Missing Items:
   google-workspace  CLI   gws       — Install: npm install -g @googleworkspace/cli
@@ -217,6 +222,7 @@ Missing Items:
   huggingface       ENV   HF_TOKEN  — Add to .env (get from https://huggingface.co/settings/tokens)
   media             CLI   yt-dlp    — Install: brew install yt-dlp
   twitter           ENV   TWITTER_COOKIE — Add to .env (extract from x.com browser cookies)
+  expect-qa         CLI   expect-cli — Install: npm install -g expect-cli@latest
 ```
 
 ### Example 2: Check single group

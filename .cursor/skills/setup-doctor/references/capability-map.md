@@ -26,6 +26,9 @@ Detailed prerequisites for each capability group: CLI tools, packages, env vars,
 20. [security-scanning](#20-security-scanning) — Secret and vulnerability scanning
 21. [scrapling](#21-scrapling) — Web scraping framework
 22. [tossinvest](#22-tossinvest) — Toss Securities CLI (tossctl)
+23. [dev-browser](#23-dev-browser) — Sandboxed browser automation (QuickJS WASM + Playwright)
+24. [expect-qa](#24-expect-qa) — AI agent browser QA testing (expect-cli)
+25. [website-cloner](#25-website-cloner) — AI website cloning pipeline
 
 ---
 
@@ -717,3 +720,106 @@ tossctl doctor 2>/dev/null
 ```
 
 **Dependent Skills:** tossinvest-setup, tossinvest-cli, tossinvest-trading
+
+---
+
+## 23. dev-browser
+
+**Purpose:** Sandboxed browser automation via heredoc JavaScript scripts with QuickJS WASM runtime and full Playwright Page API access, persistent named pages.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | dev-browser | `npm install -g dev-browser` |
+| Browser binaries | Chromium | `dev-browser install` |
+
+**Quick Setup:**
+
+```bash
+npm install -g dev-browser
+dev-browser install
+```
+
+**Verification:**
+
+```bash
+command -v dev-browser && echo "PASS dev-browser" || echo "FAIL dev-browser"
+dev-browser --version 2>/dev/null
+```
+
+**Dependent Skills:** dev-browser
+
+---
+
+## 24. expect-qa
+
+**Purpose:** AI agent-driven browser QA testing. Scans git changes, generates adversarial test plans, and executes them in a real Playwright browser with rrweb session recording.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | expect-cli | `npm install -g expect-cli@latest` |
+| CLI | One of: cursor, claude, codex | (agent must be available) |
+| Browser binaries | Chromium (via Playwright) | `npx playwright install chromium` |
+| Env (optional) | `EXPECT_BASE_URL` | Target app URL (default: http://localhost:3000) |
+
+**Quick Setup:**
+
+```bash
+npm install -g expect-cli@latest
+npx playwright install chromium
+expect-cli init -y
+```
+
+**Verification:**
+
+```bash
+command -v expect-cli && echo "PASS expect-cli" || echo "FAIL expect-cli"
+expect-cli --version 2>/dev/null
+(command -v cursor || command -v claude || command -v codex) && echo "PASS agent" || echo "WARN no agent detected"
+```
+
+**Dependent Skills:** expect-qa
+
+---
+
+## 25. website-cloner
+
+**Purpose:** Reverse-engineer and rebuild websites as pixel-perfect Next.js 16 clones using browser automation, CSS extraction, and parallel builder subagents.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | node (>= 18) | `brew install node` |
+| CLI | npm | Bundled with Node.js |
+| CLI | git | `brew install git` (usually pre-installed) |
+| Browser binaries | Chromium (Playwright) | `npx playwright install chromium` |
+| MCP | cursor-ide-browser | Built into Cursor — enable in MCP settings |
+
+**Quick Setup:**
+
+```bash
+brew install node
+npx playwright install chromium
+```
+
+The `cursor-ide-browser` MCP is built into Cursor and must be enabled in the MCP server settings.
+
+**Verification:**
+
+```bash
+node -v 2>/dev/null | grep -qE "^v(1[89]|[2-9][0-9])" && echo "PASS node >= 18" || echo "FAIL node < 18"
+command -v npm && echo "PASS npm" || echo "FAIL npm"
+command -v git && echo "PASS git" || echo "FAIL git"
+npx playwright --version 2>/dev/null && echo "PASS playwright" || echo "FAIL playwright"
+```
+
+For `cursor-ide-browser` MCP, verify by checking:
+```bash
+[ -d "$HOME/.cursor/projects/$(basename $PWD)/mcps/cursor-ide-browser" ] && echo "PASS cursor-ide-browser MCP" || echo "FAIL cursor-ide-browser MCP (enable in Cursor MCP settings)"
+```
+
+**Dependent Skills:** clone-website
