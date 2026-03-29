@@ -37,6 +37,12 @@
 - All scheduled workflows: weekday-only (Mon–Fri), no weekend runs
 - code-quality.yml and qa-issues-sync.yml: backed up and disabled
 
+## GitHub org project & daily ship
+
+- Cross-repo tracking board: ThakiCloud org GitHub Project #5 — `https://github.com/orgs/ThakiCloud/projects/5`
+- `/sod-ship` and `/eod-ship` handle git sync, cursor-sync, release-ship, and Slack; they do not create issues by themselves. Items appear on Project #5 when the ship path runs `commit-to-issue` (use pipeline mode in automation so confirmation gates do not skip issue creation).
+- On weekends, when running sod/eod ship workflows, also move Done column items to Archive on that org project as board hygiene (user preference).
+
 ## Key People
 
 - 전승훈 (Seung-Hun Jeon): Global CTO / Co-Founder, ThakiCloud
