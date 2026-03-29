@@ -79,15 +79,18 @@ Return to original directory after this step.
 
 ### Phase 2: Release Ship (Current Project)
 
-Run the `release-ship` skill on the current working directory.
+Run the `release-ship` skill on the current working directory **in pipeline mode**.
+
+**CRITICAL — Pipeline Mode**: When invoking release-ship from eod-ship, issue creation must be auto-confirmed (no user prompt). The user approved the entire pipeline by running `/eod-ship`. Do NOT skip issue creation steps. If release-ship's safety rules mention "user confirmation for issue plan", treat the eod-ship invocation as that confirmation.
 
 ```bash
 git status --short
 ```
 
 1. If clean, record `{project: "current", status: "clean"}` and skip to Phase 3
-2. If dirty, execute release-ship pipeline (domain-commit → push → issue → PR → merge)
-3. Capture result: `{commits: [...], issues: [...], pr_url: "...", merged: bool}`
+2. If dirty, execute release-ship pipeline (domain-commit → push → **issue** → PR → merge)
+3. Issue creation is MANDATORY for shipped commits — do not skip Step 4 of release-ship
+4. Capture result: `{commits: [...], issues: [...], pr_url: "...", merged: bool}`
 
 ### Phase 3: Release Ship (Managed Projects)
 
@@ -105,9 +108,10 @@ git status --short
 ```
 
 1. If clean, record `{project: ALIAS, status: "clean"}` and move to next
-2. If dirty, execute the release-ship pipeline:
+2. If dirty, execute the release-ship pipeline **in pipeline mode**:
    - Follow all release-ship rules (ai-platform-webui uses tmp-only mode)
-   - Domain-split commits → push → issue → PR → merge
+   - Domain-split commits → push → **issue** → PR → merge
+   - Issue creation is MANDATORY — auto-confirm the issue plan (pipeline mode)
 3. Capture result per project
 4. `cd` back to original directory before processing next project
 

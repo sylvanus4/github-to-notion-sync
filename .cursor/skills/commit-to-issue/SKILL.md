@@ -146,6 +146,7 @@ Solution: Re-query the project fields to get the current sprint iteration ID. Se
 ## Safety Rules
 
 - **Never push to upstream** unless the user explicitly requests it
-- **Never create issues** without user confirmation of the issue plan
+- **Standalone mode**: Show issue plan and confirm with user before creating issues
+- **Pipeline mode** (invoked by release-ship, eod-ship, or any batch pipeline): Auto-confirm issue creation — the pipeline caller has already been approved by the user
 - **Always set assignee** to `@me`
 - **Reference local guides** in the `references/` directory for issue templates, project config, and Epic patterns

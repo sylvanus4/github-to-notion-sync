@@ -378,7 +378,8 @@ User runs `/release-ship --no-issue` to ship without creating issues.
 - **Never amend** failed commits; create new ones
 - **Never commit** `.env`, credentials, or secret files
 - **Only push to origin**, never upstream
-- **Never create issues** without user confirmation of the issue plan
+- **Standalone mode**: Show issue plan and confirm with user before creating issues
+- **Pipeline mode** (invoked by eod-ship, sod-ship, morning-ship, or any batch pipeline): Auto-confirm issue creation — do NOT skip this step. The pipeline caller has already been approved by the user.
 - **Reference local guides**: [commit-to-issue/references/](../commit-to-issue/references/) for issue config, [references/pr-template.md](references/pr-template.md) for PR format
 - **Never merge** without a successfully created PR in the same pipeline run
 - **ai-platform-webui**: Never create PRs or merge to other branches — `tmp` is the only working branch
