@@ -515,6 +515,14 @@ User runs `/sod-ship` and every project is already up to date.
 | cursor-sync fails (Phase 8) | Warn and continue; git sync results are unaffected |
 | cursor-sync target directory missing | Skip that target; sync remaining targets |
 
+## Automation Rules (Pipeline Mode)
+
+- **No confirmation prompts**: This is an automated pipeline. Do NOT ask the user to confirm commit creation, push operations, or issue creation. Just execute.
+- **Dirty repos**: If a repo has uncommitted changes, auto-commit using domain-commit conventions. Do NOT ask "shall I commit these?".
+- **Unpushed commits**: If a repo has unpushed commits, push automatically. Do NOT ask "shall I push?".
+- **Issues**: If issues are created (e.g., via commit-to-issue), set ALL 5 project fields automatically using the GraphQL script from project-config.md.
+- **No blocking**: If any step fails, log the warning and continue to the next project/phase.
+
 ## Safety Rules
 
 - **Never force push** (`--force`) to any branch in any project

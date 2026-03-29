@@ -45,16 +45,18 @@ Determine for each issue:
 - **Body**: Use the issue body template from [references/issue-templates.md](references/issue-templates.md)
 - **Estimate**: Story points as specified by the user (default 0.5)
 
-### Step 3: Confirm with user
+### Step 3: Issue Plan
 
-Present the issue plan as a table before creating:
+Present the issue plan as a table:
 
 ```
 | # | Title | Files | Estimate |
 |---|-------|-------|----------|
 ```
 
-Wait for user approval. Adjust grouping or estimates if requested.
+**Standalone mode**: Wait for user approval. Adjust grouping or estimates if requested.
+
+**Pipeline mode** (invoked by release-ship, eod-ship, sod-ship, or any batch pipeline): AUTO-CONFIRM. Do NOT wait for user input. Proceed immediately to Step 4 with default estimates.
 
 ### Step 4: Create issues
 
@@ -69,13 +71,22 @@ EOF
 
 Collect all issue URLs and numbers.
 
-### Step 5: Add to project and set fields
+### Step 5: Add to project and set ALL fields (MANDATORY)
 
-Add each issue to the target project and configure fields. For project field IDs, option IDs, and GraphQL queries, see [references/project-config.md](references/project-config.md).
+Add each issue to the target project and configure ALL 5 fields. This step is NOT optional — every issue MUST have Status, Priority, Size, Sprint, and Estimate set. For field IDs, option IDs, and the ready-to-use Python script, see [references/project-config.md](references/project-config.md).
 
 1. `gh project item-add PROJECT_NUM --owner ORG --url ISSUE_URL`
-2. Query project for item IDs via GraphQL
-3. Set fields: Status, Priority, Size, Sprint, Estimate
+2. Query current sprint iteration ID via GraphQL (sprint IDs rotate weekly)
+3. Query project item ID for the newly added issue
+4. Set ALL 5 fields using the `set_all_fields()` function from project-config.md:
+   - **Status**: Done (for completed work) or In Progress (for ongoing)
+   - **Priority**: P2 (default), P1 (critical), P0 (urgent)
+   - **Size**: S (default), M (multi-file), L (multi-domain)
+   - **Sprint**: Current sprint (always query, never hardcode)
+   - **Estimate**: 0.5 SP (1-3 files), 1 SP (4-8 files), 2 SP (9+ files)
+5. Verify: if any field set fails, retry once before reporting partial failure
+
+**CRITICAL**: Do NOT skip this step. Do NOT set only Status. ALL 5 fields are required.
 
 ### Step 6: Report
 

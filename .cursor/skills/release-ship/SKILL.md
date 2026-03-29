@@ -144,7 +144,7 @@ EOF
 
 Collect all created issue URLs and numbers for Step 5 (PR body).
 
-#### 4c. Add issues to Project #5 and set fields
+#### 4c. Add issues to Project #5 and set ALL fields (MANDATORY)
 
 For each created issue:
 
@@ -152,14 +152,25 @@ For each created issue:
 gh project item-add 5 --owner ThakiCloud --url $ISSUE_URL
 ```
 
-Then query the project item ID and set fields (Status=Done, Priority, Size, Sprint, Estimate) using the GraphQL patterns and field IDs from [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md).
+Then set ALL 5 project fields using the `set_all_fields()` Python script from [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md). This step is NOT optional.
 
-Default field values:
-- **Status**: Done (`98236657`)
-- **Priority**: P2 (`473ded73`)
-- **Size**: S (`434b26a1`)
-- **Estimate**: 0.5
-- **Sprint**: Query current sprint iteration before setting
+**Procedure:**
+
+1. Query current sprint iteration ID (sprint IDs rotate weekly — never hardcode)
+2. For each issue: query project item ID, then call `set_all_fields(item_id, sprint_id, estimate, label)`
+3. Verify all fields were set successfully
+
+**Default field values:**
+
+| Field | Default | Override When |
+|-------|---------|--------------|
+| Status | Done (`98236657`) | Use In Progress for WIP |
+| Priority | P2 (`473ded73`) | P1 for critical, P0 for urgent |
+| Size | S (`434b26a1`) | M for multi-file, L for multi-domain |
+| Sprint | Current (query) | Never override |
+| Estimate | 0.5 SP | 1 for 4-8 files, 2 for 9+ files |
+
+**CRITICAL**: Do NOT skip this step. Do NOT set only Status. ALL 5 fields are required for every issue. If a field set fails, retry once before reporting partial failure.
 
 ### Step 5: PR Create or Update
 
@@ -221,19 +232,25 @@ EOF
 
 For the full PR body template, see [references/pr-template.md](references/pr-template.md).
 
-### Step 6: Merge PR
+### Step 6: Merge PR (Auto-Merge by Default)
 
 **Skip this step** if `IS_WEBUI` is true (ai-platform-webui works on `tmp` only — no merges).
 
 If `--no-pr` or `--no-merge` flag is set, skip to Step 7 (Report).
 
-Auto-merge the PR created or updated in Step 5.
+Auto-merge the PR created or updated in Step 5. This is the DEFAULT behavior — do NOT ask the user whether to merge. Just merge it.
 
 ```bash
 gh pr merge $PR_NUMBER --squash --delete-branch
 ```
 
-If merge fails (CI required, review required, conflicts), report the error with the PR URL so the user can merge manually later. Do NOT block the Report step.
+If merge fails due to CI or review requirements, try admin merge:
+
+```bash
+gh pr merge $PR_NUMBER --squash --delete-branch --admin
+```
+
+If admin merge also fails, report the error with the PR URL. Do NOT block the Report step.
 
 #### 6a. Switch to base branch after merge
 

@@ -133,6 +133,7 @@ Before posting to Slack, verify shipping integrity:
 - [ ] **All repos clean** — Every shipped project should have a clean `git status` after release-ship (no leftover unstaged changes including untracked files)
 - [ ] **No orphaned untracked content** — Verify no `.md`, `.ts`, `.go`, `.py`, `.yaml`, `.json`, `.sql` files remain untracked in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/`, or any content directory. If any exist, run one more `git add` + commit round to catch them.
 - [ ] **Branch consistency** — Current project pushed to correct remote branch (ai-platform-webui uses `tmp`, others use standard)
+- [ ] **Issue field completeness** — Every issue created in Phase 2/3 MUST have ALL 5 project fields set (Status, Priority, Size, Sprint, Estimate). If any issue is missing fields, run the `set_all_fields()` script from [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md) to fix it before posting to Slack.
 
 If any criterion fails, log the issue in the Slack message as a warning. Do NOT suppress the notification — post with warnings.
 
@@ -265,6 +266,13 @@ User runs `/eod-ship --dry-run` to preview.
 | Push rejected on a project | Report error with remediation; continue with others |
 | Dev merge conflict (ai-platform-webui) | Attempt auto-resolve (theirs for simple, rm for deleted); if unresolvable, abort merge and report conflict files; continue with shipping |
 | Dev branch not found | Skip dev merge step; continue with shipping |
+
+## Automation Rules (Pipeline Mode)
+
+- **No confirmation prompts**: This is an automated pipeline. Do NOT ask the user to confirm issue creation, PR creation, or PR merging. Just execute.
+- **Issues**: Create issues automatically for all commits. Set ALL 5 project fields (Status, Priority, Size, Sprint, Estimate) using the GraphQL script from project-config.md.
+- **PRs**: Create PRs automatically. Merge via `--squash --delete-branch` by default. If merge fails, try `--admin` flag. If still fails, report and continue.
+- **No blocking**: If any step fails, log the warning and continue to the next project/phase. Never block the entire pipeline for a single failure.
 
 ## Safety Rules
 
