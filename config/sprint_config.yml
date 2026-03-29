@@ -9,7 +9,7 @@
 # 형식: {YY}-{MM}-Sprint{N}
 # 예시: 25-10-Sprint4, 25-11-Sprint1
 
-current_sprint: 26-03-Sprint4
+current_sprint: 26-04-Sprint1
 
 # GitHub 설정
 github_org: ThakiCloud
