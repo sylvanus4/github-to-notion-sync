@@ -141,13 +141,13 @@ def chunk_document(content):
     boundaries = find_section_headers(content)
     boundaries += find_paragraph_breaks(content)
     boundaries += find_logical_breaks(content)
-    
+
     chunks = []
     for i in range(len(boundaries) - 1):
         chunk = content[boundaries[i]:boundaries[i+1]]
         if len(chunk) > MIN_CHUNK_SIZE and len(chunk) < MAX_CHUNK_SIZE:
             chunks.append(chunk)
-    
+
     return chunks
 ```
 
@@ -215,7 +215,7 @@ def mask_observation(output, max_length=500):
     """Replace long observations with compact references."""
     if len(output) <= max_length:
         return output
-    
+
     reference_id = store_observation(output)
     return f"[Previous observation elided. Full content stored at reference {reference_id}]"
 ```
@@ -256,12 +256,12 @@ Monitor actual usage during development to establish baseline allocations.
 def activate_skill_context(skill_name, task_description):
     """Load skill context when task matches skill description."""
     skill_metadata = load_all_skill_metadata()
-    
+
     relevant_skills = []
     for skill in skill_metadata:
         if skill_matches_task(skill, task_description):
             relevant_skills.append(skill)
-    
+
     # Load full content only for most relevant skills
     for skill in relevant_skills[:MAX_CONCURRENT_SKILLS]:
         skill_context = load_skill_content(skill)
@@ -280,4 +280,3 @@ def get_reference(file_reference):
 ```
 
 This pattern ensures files are loaded once and cached for the session.
-

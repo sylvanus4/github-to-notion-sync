@@ -9,7 +9,7 @@ Core ontology design patterns for Belief-Desire-Intention mental state modeling.
 ```
 bdi:MentalEntity
 ├── bdi:Belief          # Informational dimension
-├── bdi:Desire          # Motivational dimension  
+├── bdi:Desire          # Motivational dimension
 ├── bdi:Intention       # Deliberative dimension
 ├── bdi:Goal            # Description of desired end state
 └── bdi:Plan            # Structured action sequence
@@ -182,7 +182,7 @@ The BDI ontology aligns with DOLCE Ultra Lite (DUL) foundational ontology:
 ### EventCore Pattern
 Used for mental processes with temporal aspects and participant roles.
 
-### Situation Pattern  
+### Situation Pattern
 Used for world state configurations that mental states reference.
 
 ### TimeIndexedSituation Pattern
@@ -204,4 +204,3 @@ Used for justification tracking and evidential chains.
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 ```
-
