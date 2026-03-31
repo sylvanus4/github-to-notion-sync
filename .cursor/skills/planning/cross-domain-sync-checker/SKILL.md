@@ -24,10 +24,10 @@ metadata:
 Unified sync verification across **policy (Notion)**, **design (Figma)**,
 **code (GitHub / local)**, and **PRD / specs (Notion or files)**. Combines:
 
-1. **SSoT mapping + parallel domain scans** — drift, staleness, cascade updates  
-2. **Cross-matrix comparison** — normalized elements across 2+ artifacts  
-3. **Six-axis gap analysis** — design ↔ code ↔ spec ↔ policy (when sources exist)  
-4. **Team action items + Slack alerts** — structured handoffs  
+1. **SSoT mapping + parallel domain scans** — drift, staleness, cascade updates
+2. **Cross-matrix comparison** — normalized elements across 2+ artifacts
+3. **Six-axis gap analysis** — design ↔ code ↔ spec ↔ policy (when sources exist)
+4. **Team action items + Slack alerts** — structured handoffs
 
 ## Output language
 
@@ -114,10 +114,10 @@ For each mapped row:
 
 Minimum two sources. Extract comparable elements:
 
-- **PRD/spec:** features, states, edge cases, flows, business rules  
-- **Design:** screens, variants, error/empty/loading, text layers  
-- **Code:** enums, branches, APIs, validation, errors  
-- **Policy:** mandatory rules, prohibitions, legal/consent, data rules  
+- **PRD/spec:** features, states, edge cases, flows, business rules
+- **Design:** screens, variants, error/empty/loading, text layers
+- **Code:** enums, branches, APIs, validation, errors
+- **Policy:** mandatory rules, prohibitions, legal/consent, data rules
 
 Use Notion/Figma/GitHub MCP tools as available; fall back to local reads.
 
@@ -189,8 +189,8 @@ Deliver in Korean: executive summary (scope, drift/mismatch counts, SYNCED/DRIFT
 
 ### Slack
 
-- **Parent:** Korean headline with feature/area, summary, score/label (per team format).  
-- **Thread:** Critical/High items + team action bullets.  
+- **Parent:** Korean headline with feature/area, summary, score/label (per team format).
+- **Thread:** Critical/High items + team action bullets.
 
 ### Notion
 

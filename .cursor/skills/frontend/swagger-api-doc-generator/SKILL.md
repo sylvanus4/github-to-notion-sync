@@ -104,10 +104,10 @@ Actions: resolve JSON URL (often `/swagger/doc.json`) → list tags → generate
 
 ### Download fails
 
-Cause: bad URL, server down, or auth required.  
+Cause: bad URL, server down, or auth required.
 Fix: normalize to `/swagger/doc.json`, verify server, add auth headers if needed.
 
 ### Empty `definitions`
 
-Cause: OpenAPI 3 uses `components.schemas`.  
+Cause: OpenAPI 3 uses `components.schemas`.
 Fix: also read `data.get('components', {}).get('schemas', {})` and branch by spec version.

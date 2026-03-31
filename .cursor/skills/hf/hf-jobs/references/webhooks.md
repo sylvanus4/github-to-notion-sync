@@ -15,7 +15,7 @@ webhook = create_webhook(
         {"type": "org", "name": "your-org-name"}
     ],
     domains=["repo", "discussion"],
-    secret="your-secret"
+    secret="your-secret"  # pragma: allowlist secret
 )
 ```
 

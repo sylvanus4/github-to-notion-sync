@@ -96,5 +96,5 @@ agent = Agent(
 )
 ```
 
-Tested with: `google-adk==1.27.2`, Python 3.12.8, macOS Darwin 25.3.0  
+Tested with: `google-adk==1.27.2`, Python 3.12.8, macOS Darwin 25.3.0
 Test date: 2026-03-19

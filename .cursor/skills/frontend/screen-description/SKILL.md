@@ -27,8 +27,8 @@ ai-platform/frontend/docs/screens/
 └── ...
 ```
 
-- Folder: page domain (kebab-case)  
-- File: `{domain}-{screen}.md`  
+- Folder: page domain (kebab-case)
+- File: `{domain}-{screen}.md`
 
 ## Workflow
 
@@ -36,22 +36,22 @@ ai-platform/frontend/docs/screens/
 
 Only if a Figma URL is provided. Reuse `figma-to-tds` Steps 1–3 pattern:
 
-1. Figma MCP: `get_design_context` + `get_screenshot` in parallel  
-2. Extract layout, components, tokens  
-3. Feed Step 2 sections **Layout** and **Components**  
+1. Figma MCP: `get_design_context` + `get_screenshot` in parallel
+2. Extract layout, components, tokens
+3. Feed Step 2 sections **Layout** and **Components**
 
 ### Step 1 — Analyze input
 
-1. Identify target screen and core intent  
-2. Check existing docs under `ai-platform/frontend/docs/screens/{domain}/`  
-3. If code exists, read `src/pages/{domain}/` for as-built hints  
-4. If Swagger/OpenAPI is provided, pre-fill **API integration**  
+1. Identify target screen and core intent
+2. Check existing docs under `ai-platform/frontend/docs/screens/{domain}/`
+3. If code exists, read `src/pages/{domain}/` for as-built hints
+4. If Swagger/OpenAPI is provided, pre-fill **API integration**
 
 ### Step 2 — Create or update
 
-- **New**: scaffold from [references/document-template.md](references/document-template.md)  
-- **Update**: patch only affected sections + changelog  
-- **With Figma**: fill layout/component sections from Step 0  
+- **New**: scaffold from [references/document-template.md](references/document-template.md)
+- **Update**: patch only affected sections + changelog
+- **With Figma**: fill layout/component sections from Step 0
 
 ### Step 3 — Confirm with user
 
@@ -70,21 +70,21 @@ Show a short summary and ask if further edits are needed.
 | i18n | Optional | i18n mentioned |
 | Accessibility | Optional | a11y mentioned |
 
-Rough inputs → fill required + recommended; others use `{TODO: define later}`.  
+Rough inputs → fill required + recommended; others use `{TODO: define later}`.
 Rich inputs → fill every applicable section.
 
 ## Naming
 
-- **Folder**: align with route (e.g. `src/pages/workload/` → `docs/screens/workloads/`)  
-- **File**: `{domain}-{action}.md` (e.g. `workloads-list.md`)  
-- **Composite screens**: tabs/modals as subsections inside the main file  
+- **Folder**: align with route (e.g. `src/pages/workload/` → `docs/screens/workloads/`)
+- **File**: `{domain}-{action}.md` (e.g. `workloads-list.md`)
+- **Composite screens**: tabs/modals as subsections inside the main file
 
 ## Update rules
 
-1. Do **not** delete existing content unless the user explicitly asks  
-2. Touch only changed sections  
-3. Append **changelog** table rows  
-4. Refresh `last updated` date  
+1. Do **not** delete existing content unless the user explicitly asks
+2. Touch only changed sections
+3. Append **changelog** table rows
+4. Refresh `last updated` date
 
 ## Cross-reference
 
@@ -96,11 +96,11 @@ Rich inputs → fill every applicable section.
 
 ## Checklist
 
-- [ ] Target screen identified  
-- [ ] Save path confirmed (`docs/screens/{domain}/{file}.md`)  
-- [ ] Checked for existing doc  
-- [ ] Required overview section present  
-- [ ] Changelog updated on edits  
+- [ ] Target screen identified
+- [ ] Save path confirmed (`docs/screens/{domain}/{file}.md`)
+- [ ] Checked for existing doc
+- [ ] Required overview section present
+- [ ] Changelog updated on edits
 
 ## Examples
 
@@ -120,10 +120,10 @@ Actions: read existing doc + Figma MCP → update layout/components → changelo
 
 ### Accidental overwrite
 
-Cause: rewrote entire file.  
+Cause: rewrote entire file.
 Fix: follow update rules — delta edits only, never drop prior sections without explicit approval.
 
 ### Figma not reflected
 
-Cause: skipped Step 0 or MCP error.  
+Cause: skipped Step 0 or MCP error.
 Fix: always run Step 0 when URL exists; on MCP failure, continue text-only and state the gap.

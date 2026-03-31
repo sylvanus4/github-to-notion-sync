@@ -64,10 +64,10 @@ Phase 4: Deliver  → Notion / Slack / file / HTML
 
 ### Phase 1: Collect
 
-1. `list_commits` for the window  
-2. `get_commit` per SHA with diffs when needed  
-3. Keep files under `--path`; derive component names from paths (e.g. `.../Button/Button.tsx` → `Button`)  
-4. Apply date and author filters  
+1. `list_commits` for the window
+2. `get_commit` per SHA with diffs when needed
+3. Keep files under `--path`; derive component names from paths (e.g. `.../Button/Button.tsx` → `Button`)
+4. Apply date and author filters
 
 ### Phase 2: Classify
 
@@ -82,7 +82,7 @@ Phase 4: Deliver  → Notion / Slack / file / HTML
 | `style` | Style-only edits |
 | `a11y` | Accessibility-related keywords |
 
-**Intent line**: One-line **Korean** summary for stakeholders (per output rule).  
+**Intent line**: One-line **Korean** summary for stakeholders (per output rule).
 Details: [references/classification-rules.md](references/classification-rules.md).
 
 ### Phase 3: Render
@@ -91,10 +91,10 @@ Group by `--group-by`. Render tables and summaries in Korean (date, author, chan
 
 ### Phase 4: Deliver
 
-- **`markdown`**: `outputs/tds-timeline/tds-timeline-YYYY-MM-DD.md`  
-- **`notion`**: `md-to-notion` / Notion MCP create-pages pattern with `--parent`  
-- **`slack`**: Main post + thread details (Korean)  
-- **`html`**: `visual-explainer`-style standalone HTML  
+- **`markdown`**: `outputs/tds-timeline/tds-timeline-YYYY-MM-DD.md`
+- **`notion`**: `md-to-notion` / Notion MCP create-pages pattern with `--parent`
+- **`slack`**: Main post + thread details (Korean)
+- **`html`**: `visual-explainer`-style standalone HTML
 
 ## Periodic reports (`--schedule`)
 

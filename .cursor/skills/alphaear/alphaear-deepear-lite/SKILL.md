@@ -22,7 +22,9 @@ Operates in two distinct modes depending on the query:
 
 ### Mode A — Sub-skill Orchestration (default)
 
-Coordinates alphaear-search, alphaear-news, alphaear-sentiment, alphaear-signal-tracker, alphaear-predictor, alphaear-logic-visualizer, alphaear-reporter, and project data sources (daily-stock-check, weekly-stock-update) into a single workflow for comprehensive finance queries. No external API call is made; each sub-skill runs independently and results are synthesized.
+**Recommended**: Use `alphaear-orchestrator` (`.cursor/skills/alphaear/alphaear-orchestrator/SKILL.md`) for formal 3-layer pipeline orchestration with parallel execution, proper data flow, and file-based intermediate artifacts. The orchestrator replaces the ad-hoc sequential delegation below with a structured DAG.
+
+**Legacy (inline orchestration)**: Coordinates alphaear-search, alphaear-news, alphaear-sentiment, alphaear-signal-tracker, alphaear-predictor, alphaear-logic-visualizer, alphaear-reporter, and project data sources (daily-stock-check, weekly-stock-update) into a single workflow for comprehensive finance queries. No external API call is made; each sub-skill runs independently and results are synthesized.
 
 ### Mode B — DeepEar Lite API Fetch
 

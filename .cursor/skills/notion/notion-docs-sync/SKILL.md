@@ -118,10 +118,10 @@ User: "Upload only the API design doc"
 
 ### `MODULE_NOT_FOUND` running `sync.mjs`
 
-Cause: dependencies not installed.  
+Cause: dependencies not installed.
 Fix: `SKILL_DIR/scripts/init.sh <target-dir>`, retry.
 
 ### Notion API 401
 
-Cause: missing or expired `NOTION_TOKEN`.  
+Cause: missing or expired `NOTION_TOKEN`.
 Fix: Rotate token in Notion integration settings, `export NOTION_TOKEN=...`.

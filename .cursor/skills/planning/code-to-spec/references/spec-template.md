@@ -17,9 +17,9 @@
 ```markdown
 # Reverse spec: {feature or module name}
 
-**Generated:** YYYY-MM-DD  
-**Sources:** {paths, PR URL, or demo notes}  
-**Scope:** {scope} ({file count} files)  
+**Generated:** YYYY-MM-DD
+**Sources:** {paths, PR URL, or demo notes}
+**Scope:** {scope} ({file count} files)
 
 ---
 
@@ -119,7 +119,7 @@ stateDiagram-v2
 | Code / key | When | User-visible message |
 |------------|------|----------------------|
 
-**State transition (if any)**  
+**State transition (if any)**
 {before} → {after} when {trigger}
 
 ---

@@ -202,14 +202,14 @@ date in `YYYY-MM-DD` format.
 
 Use Korean headings and labels in the saved file. Logical outline:
 
-1. **Title** — meeting summary report  
-2. **Metadata** — generated date, sync scope, meeting count  
-3. **Meeting overviews** — per meeting: title, datetime, attendees, topic line  
-4. **Key discussion** — per topic: discussion, conclusion, participants  
-5. **Decisions** — table (decision, rationale, impact, owner)  
-6. **Open issues** — table (issue, owner, expected resolution)  
-7. **Action summary** — high-level table (priority, owner, action, due); full detail in Phase 4 doc  
-8. **Next steps** — numbered follow-ups  
+1. **Title** — meeting summary report
+2. **Metadata** — generated date, sync scope, meeting count
+3. **Meeting overviews** — per meeting: title, datetime, attendees, topic line
+4. **Key discussion** — per topic: discussion, conclusion, participants
+5. **Decisions** — table (decision, rationale, impact, owner)
+6. **Open issues** — table (issue, owner, expected resolution)
+7. **Action summary** — high-level table (priority, owner, action, due); full detail in Phase 4 doc
+8. **Next steps** — numbered follow-ups
 
 ### Quality Checklist
 
@@ -233,8 +233,8 @@ Save to `output/meetings/{date}/action-items.md`.
 
 Use Korean headings in the file. Structure:
 
-- **Document title** and metadata (date, source meeting titles).  
-- **Priority sections** — urgent / normal / low; each action: ID, title, owner, due date, priority, status, related meeting, background, numbered steps, success criteria, dependencies, notes.  
+- **Document title** and metadata (date, source meeting titles).
+- **Priority sections** — urgent / normal / low; each action: ID, title, owner, due date, priority, status, related meeting, background, numbered steps, success criteria, dependencies, notes.
 - **Dashboard table** — all actions with ID, summary, owner, due, priority, status, dependencies.
 
 ### Action Item Extraction Rules
@@ -329,12 +329,12 @@ CallMcpTool(
 
 **Message format** (adapt content from `summary.md`; Korean labels in the posted message):
 
-- Header: summary report title + date  
-- Line: sync scope + meeting count  
-- Meeting list: title, datetime, participants per row  
-- Key decisions: numbered list  
-- Open issues: numbered list  
-- Footer: pointer to thread for detail  
+- Header: summary report title + date
+- Line: sync scope + meeting count
+- Meeting list: title, datetime, participants per row
+- Key decisions: numbered list
+- Open issues: numbered list
+- Footer: pointer to thread for detail
 
 Keep this message under 4000 characters. If the summary is too long,
 truncate discussion details and refer to the thread.

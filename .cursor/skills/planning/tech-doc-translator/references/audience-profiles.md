@@ -155,7 +155,7 @@ Use during **Transform** and **Enrich** phases of `tech-doc-translator`. Map CLI
 
 For each open decision:
 
-- **Decision** — what must be chosen  
-- **Options** — A/B with pros/cons  
-- **Technical hint** — neutral recommendation  
-- **Planning note** — extra PM considerations  
+- **Decision** — what must be chosen
+- **Options** — A/B with pros/cons
+- **Technical hint** — neutral recommendation
+- **Planning note** — extra PM considerations

@@ -7,10 +7,10 @@ Use for **code-spec-comparator** outputs. **Write the final report in Korean**; 
 ```markdown
 # Gap Analysis Report — {Feature/Module}
 
-**생성일:** YYYY-MM-DD  
-**코드 소스:** {repo path or PR URL}  
-**기획 소스:** {Notion page title + URL}  
-**분석 범위:** {scope description}  
+**생성일:** YYYY-MM-DD
+**코드 소스:** {repo path or PR URL}
+**기획 소스:** {Notion page title + URL}
+**분석 범위:** {scope description}
 
 ---
 

@@ -19,6 +19,8 @@ metadata:
 
 One command to take code from "feature complete" to "release-ready PR" with comprehensive validation. Orchestrates 10 specialized skills across 4 sequential groups.
 
+> **Note**: For a unified quality gate view of Group A + B scans (security, dependency, performance + CI), consider using `/quality-gate` (`quality-gate-orchestrator`) as a standalone check. The quality gate orchestrator provides deduplicated findings with a PASS/FAIL dashboard. `release-commander` retains its own group pipeline for the full release lifecycle.
+
 ## Usage
 
 ```

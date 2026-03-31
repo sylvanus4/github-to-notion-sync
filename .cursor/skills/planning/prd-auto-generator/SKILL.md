@@ -64,19 +64,19 @@ Default if unspecified: infer from user wording (implementation / dev handoff / 
 
 From sources, extract:
 
-1. Problem statement  
-2. Goals / objectives / success metrics  
-3. Functional requirements (flows, interactions)  
-4. Non-functional requirements (performance, security, accessibility)  
-5. Assumptions  
-6. Open questions / conflicts  
+1. Problem statement
+2. Goals / objectives / success metrics
+3. Functional requirements (flows, interactions)
+4. Non-functional requirements (performance, security, accessibility)
+5. Assumptions
+6. Open questions / conflicts
 
 For meetings, reuse `meeting-digest`-style cues: decisions, action items, requirements.
 
 ### Step 2: Strategic mode additions
 
-- Add **market context** (segment, problem urgency, trends) at appropriate depth from sources + light web research if user allows.  
-- Add **competitive analysis** summary (table: competitor / positioning / gap / implication).  
+- Add **market context** (segment, problem urgency, trends) at appropriate depth from sources + light web research if user allows.
+- Add **competitive analysis** summary (table: competitor / positioning / gap / implication).
 - Keep state/edge matrices **abbreviated** unless user requests implementation-ready.
 
 ### Step 3: State and edge coverage
@@ -85,8 +85,8 @@ Always use [references/state-edge-case-checklist.md](references/state-edge-case-
 
 For **`implementation-ready`**, also generate full artifacts from:
 
-- [references/edge-case-matrix-template.md](references/edge-case-matrix-template.md)  
-- [references/state-spec-template.md](references/state-spec-template.md)  
+- [references/edge-case-matrix-template.md](references/edge-case-matrix-template.md)
+- [references/state-spec-template.md](references/state-spec-template.md)
 
 Flag uncovered states and missing edge categories explicitly in a **gap section** (Korean heading in deliverable).
 
@@ -109,11 +109,11 @@ Flag uncovered states and missing edge categories explicitly in a **gap section*
 
 When `mode: implementation-ready`:
 
-1. Build PRD skeleton using `pm-execution` PRD patterns (problem, stories, NFRs, metrics).  
-2. Attach **edge-case matrix** and **state spec** per feature/screen.  
-3. If **Figma URL** present: compare design variants vs state spec; list missing error/empty/loading.  
-4. Run **`doc-quality-gate`** on the assembled doc; append scores/findings as an **appendix** (Korean section title in deliverable).  
-5. Publish **Notion** via `md-to-notion`; generate **DOCX** via `anthropic-docx` when requested.  
+1. Build PRD skeleton using `pm-execution` PRD patterns (problem, stories, NFRs, metrics).
+2. Attach **edge-case matrix** and **state spec** per feature/screen.
+3. If **Figma URL** present: compare design variants vs state spec; list missing error/empty/loading.
+4. Run **`doc-quality-gate`** on the assembled doc; append scores/findings as an **appendix** (Korean section title in deliverable).
+5. Publish **Notion** via `md-to-notion`; generate **DOCX** via `anthropic-docx` when requested.
 6. Optional: `design-system-tracker` only if the user needs DS change linkage (not default).
 
 ```text
@@ -126,16 +126,16 @@ Functional requirements → PRD skeleton → edge matrix → state spec
 
 Use [references/prd-template.md](references/prd-template.md). For implementation-ready, ensure sections include:
 
-- Functional requirements (per item: state matrix, linked APIs, design components)  
-- **Edge-case matrix** (dedicated section or appendix)  
-- **State specification**  
-- **Policy compliance** table + validation summary  
+- Functional requirements (per item: state matrix, linked APIs, design components)
+- **Edge-case matrix** (dedicated section or appendix)
+- **State specification**
+- **Policy compliance** table + validation summary
 
 ### Step 7: Publish
 
-1. Write markdown locally.  
-2. `md-to-notion` under the agreed PRD parent.  
-3. Optional Slack summary (high-level goals + open questions + gap count).  
+1. Write markdown locally.
+2. `md-to-notion` under the agreed PRD parent.
+3. Optional Slack summary (high-level goals + open questions + gap count).
 
 ## Integration
 

@@ -81,7 +81,7 @@ Use these as **PASS/FAIL hints** inside narrative scoring; they do not replace t
 
 ### 1. Completeness
 
-**Pass:** Required sections for type present and non-empty.  
+**Pass:** Required sections for type present and non-empty.
 **Fail:** Missing or placeholder-only sections.
 
 | Document Type | Required Sections (minimum) |
@@ -95,29 +95,29 @@ Use these as **PASS/FAIL hints** inside narrative scoring; they do not replace t
 
 ### 2. Clarity
 
-**Pass:** Unambiguous language; terms defined; no passive-voice mush in requirements.  
+**Pass:** Unambiguous language; terms defined; no passive-voice mush in requirements.
 **Fail:** Vague terms, undefined acronyms, agentless requirements.
 
 Red flags: "적절한/appropriate" (undefined), "필요 시/if necessary" (no condition), "등/etc." in requirements, "가능한/as possible" (no constraint), "일반적으로/generally" in rules.
 
 ### 3. Consistency
 
-**Pass:** One term per concept; no cross-section contradictions.  
+**Pass:** One term per concept; no cross-section contradictions.
 **Fail:** Synonym drift; conflicting numbers/dates/status values.
 
 ### 4. Actionability
 
-**Pass:** Action items have owner, deadline, measurable outcome; stories have acceptance criteria.  
+**Pass:** Action items have owner, deadline, measurable outcome; stories have acceptance criteria.
 **Fail:** Floating tasks; unmeasurable outcomes.
 
 ### 5. Traceability
 
-**Pass:** Links to related docs; decision context; change history where appropriate.  
+**Pass:** Links to related docs; decision context; change history where appropriate.
 **Fail:** Isolated doc; broken links.
 
 ### 6. Compliance
 
-**Pass:** Follows template, naming, metadata, language rules (Korean body, English technical terms).  
+**Pass:** Follows template, naming, metadata, language rules (Korean body, English technical terms).
 **Fail:** Template/metadata violations.
 
 **Legacy binary score:** `Total = sum of six PASS (1) / FAIL (0)` → max 6. Optional diagnostic only; map results into dimensions 1, 5, 6, 7.
@@ -128,11 +128,11 @@ Red flags: "적절한/appropriate" (undefined), "필요 시/if necessary" (no co
 
 Categories from the former inspector `quality-rubric.md` can inform dimension scores:
 
-1. **Structure completeness** — section coverage × quality of structure.  
-2. **State coverage** — mean coverage across features × 10 (scale to 0–100).  
-3. **Edge cases** — addressed / applicable × 10.  
-4. **Policy reflection** — qualitative 1–10 scale → map to dimension 4.  
-5. **Terminology** — `10 - 2 × inconsistency_count`, cap 0–10 → map to dimension 5.  
+1. **Structure completeness** — section coverage × quality of structure.
+2. **State coverage** — mean coverage across features × 10 (scale to 0–100).
+3. **Edge cases** — addressed / applicable × 10.
+4. **Policy reflection** — qualitative 1–10 scale → map to dimension 4.
+5. **Terminology** — `10 - 2 × inconsistency_count`, cap 0–10 → map to dimension 5.
 6. **Testability** — testable requirements / total → maps into dimensions 1 and 3.
 
 ---

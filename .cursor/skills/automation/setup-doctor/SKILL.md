@@ -61,6 +61,7 @@ The user provides:
 | dev-browser | `dev-browser` CLI (npm), Chromium | dev-browser |
 | expect-qa | `expect-cli` (npm), Agent (cursor/claude/codex), Chromium | expect-qa |
 | website-cloner | Node ≥18, npm, Playwright Chromium, Git, `cursor-ide-browser` MCP | clone-website |
+| atg-gateway | Docker, ATG container healthy at `http://localhost:4000/api/v1/health`, `.env` with NOTION_API_TOKEN + SLACK_BOT_TOKEN + GITHUB_TOKEN | atg-client (accelerates all Notion/Slack/GitHub skills) |
 
 For full details on each group (install commands, env vars, verification), see [references/capability-map.md](references/capability-map.md).
 
@@ -119,6 +120,27 @@ for server in user-notebooklm-mcp plugin-notion-workspace-notion plugin-slack-sl
 done
 ```
 
+### Phase 4.5: ATG Gateway Probe
+
+Check if the Agent Tool Gateway Docker container is running and healthy:
+
+```bash
+# 1. Check Docker is available and ATG container exists
+docker ps --filter "name=agent-tool-gateway" --format "{{.Names}} {{.Status}}" 2>/dev/null | grep -q "Up" \
+  && echo "PASS atg-container-running" || echo "WARN atg-container-not-running (optional)"
+
+# 2. Health check endpoint
+curl -sf --max-time 3 http://localhost:4000/api/v1/health >/dev/null 2>&1 \
+  && echo "PASS atg-health-endpoint" || echo "WARN atg-health-unreachable (optional)"
+```
+
+ATG is an **accelerator**, not a dependency. Mark failures as WARN (not FAIL) — skills work without ATG but benefit from caching, deduplication, and compression when it's running.
+
+If ATG is healthy, additionally verify connector env vars are set for its native connectors:
+- `NOTION_API_TOKEN` — required for ATG Notion connector
+- `SLACK_BOT_TOKEN` — required for ATG Slack connector
+- `GITHUB_TOKEN` — required for ATG GitHub connector
+
 ### Phase 5: Report and Fix
 
 **Report format:**
@@ -133,6 +155,7 @@ Python Packages:  [N]/[T] passed
 Node Packages:    [N]/[T] passed
 Environment Vars: [N]/[T] set
 MCP Servers:      [N]/[T] configured
+ATG Gateway:      [HEALTHY/UNREACHABLE] (optional accelerator)
 
 Capability Group Status:
   core-platform:     READY / PARTIAL / NOT READY
@@ -191,6 +214,7 @@ Python Packages:  20/26 passed
 Node Packages:    1/4 passed
 Environment Vars: 10/25 set
 MCP Servers:      9/11 configured
+ATG Gateway:      HEALTHY (caching Notion/Slack/GitHub calls)
 
 Capability Group Status:
   core-platform:     READY
@@ -215,6 +239,7 @@ Capability Group Status:
   document-generation: PARTIAL (pdfplumber missing, docx npm missing)
   scrapling:         NOT READY (scrapling missing)
   expect-qa:         NOT READY (expect-cli missing)
+  atg-gateway:       HEALTHY (optional accelerator)
 
 Missing Items:
   google-workspace  CLI   gws       — Install: npm install -g @googleworkspace/cli

@@ -46,12 +46,12 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 
 ### Module flags
 
-- `--all` (default): run the full pipeline  
-- `--progress`: Module 1 only (progress rollup)  
-- `--quality`: Module 2 only (UX quality feedback)  
-- `--consistency`: Module 3 only (cross-product consistency)  
-- `--policy`: Module 4 only (policy/pattern review)  
-- `--share`: Module 5 only (share-ready packaging)  
+- `--all` (default): run the full pipeline
+- `--progress`: Module 1 only (progress rollup)
+- `--quality`: Module 2 only (UX quality feedback)
+- `--consistency`: Module 3 only (cross-product consistency)
+- `--policy`: Module 4 only (policy/pattern review)
+- `--share`: Module 5 only (share-ready packaging)
 
 ---
 
@@ -63,16 +63,16 @@ Collect structured UI/UX status per product.
 
 **1-1: Sources (parallel)**
 
-- Notion DB: tasks In Progress / In Review  
-- Figma: recently changed pages (`get_metadata`)  
-- Slack: summarize recent design threads  
+- Notion DB: tasks In Progress / In Review
+- Figma: recently changed pages (`get_metadata`)
+- Slack: summarize recent design threads
 
 **1-2: Structure per product**
 
-- In-flight screens/components  
-- Completed since last share  
-- Blockers / dependencies  
-- Next-week plan  
+- In-flight screens/components
+- Completed since last share
+- Blockers / dependencies
+- Next-week plan
 
 ### Module 2: UX quality feedback
 
@@ -80,9 +80,9 @@ Evaluate screen-level quality.
 
 **2-1: Context (parallel)**
 
-- Figma: `get_design_context` + `get_screenshot`  
-- Implementation code when available  
-- Browser screenshots when shipped  
+- Figma: `get_design_context` + `get_screenshot`
+- Implementation code when available
+- Browser screenshots when shipped
 
 **2-2: Assessment**
 
@@ -137,8 +137,8 @@ Load design policies (e.g. `.cursor/rules/design-*.mdc`), TDS guidelines, and an
 
 Create sub-page via Notion MCP:
 
-- Title format: Korean title per output rule and team naming (category + product + date)  
-- Structure from [references/sharing-templates.md](references/sharing-templates.md)  
+- Title format: Korean title per output rule and team naming (category + product + date)
+- Structure from [references/sharing-templates.md](references/sharing-templates.md)
 
 **5-2: Slack**
 
