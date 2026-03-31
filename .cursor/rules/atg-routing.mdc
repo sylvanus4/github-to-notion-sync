@@ -1,0 +1,72 @@
+# ATG Tool Routing
+
+Route Notion, Slack, and GitHub tool calls through the Agent Tool Gateway (ATG) when available. All other tools use their MCP servers directly.
+
+## Routing Rules
+
+### ATG-Routable Tools (when ATG is healthy at `http://localhost:4000`)
+
+| Prefix | Connector | ATG Status | MCP Fallback |
+|--------|-----------|------------|--------------|
+| `notion_*` | notion | Implemented | `plugin-notion-workspace-notion` |
+| `slack_*` | slack | Implemented | `plugin-slack-slack` |
+| `github_*` | github | Implemented | `user-GitHub` |
+
+### Direct MCP Tools (always bypass ATG)
+
+- `figma_*` → `plugin-figma-figma`
+- `browser_*` → `cursor-ide-browser`
+- `daiso_*` → `user-daiso-mcp`
+- `context7_*` → `plugin-context7-plugin-context7`
+- `notebooklm_*` → `user-notebooklm-mcp`
+- Shell/CLI tools → Shell tool directly
+- File operations → Read/Write/Glob tools
+
+### Future ATG Connectors (use MCP now, ATG when available)
+
+- `gws_*` → Shell + `gws` CLI (ATG P1, planned)
+- `nlm_*` → `user-notebooklm-mcp` (ATG P1, planned)
+- `hf_*` → Shell + `hf` CLI (ATG P2, planned)
+
+## Decision Flow
+
+```
+1. Is the tool prefix notion_*, slack_*, or github_*?
+   → NO: Use the tool's MCP server directly. STOP.
+   → YES: Continue.
+
+2. Is ATG healthy? (GET http://localhost:4000/api/v1/health returns 200)
+   → NO: Fall back to MCP server. Log "ATG unavailable". STOP.
+   → YES: Route through ATG (POST http://localhost:4000/api/v1/tools/call).
+
+3. Set compress: true for read-only calls.
+4. Set agent_id to the calling skill name for audit trail.
+```
+
+## Fallback Guarantee
+
+ATG is an **accelerator**, not a **dependency**. Skills MUST work identically when ATG is offline — only performance differs. Never hard-fail a pipeline because ATG is unreachable.
+
+## ATG Call Format
+
+```json
+{
+  "tool": "notion_search",
+  "connector": "notion",
+  "arguments": {"query": "search term"},
+  "agent_id": "pipeline-skill-name",
+  "compress": true
+}
+```
+
+## Benefits When Routed Through ATG
+
+- **Caching**: Repeated reads return in <100ms instead of 2-3s
+- **Deduplication**: Concurrent identical requests collapsed to one API call
+- **Compression**: 85-96% response size reduction
+- **Schema Filtering**: Request only needed connector schemas (60-90% token savings)
+- **Audit Trail**: All tool calls logged with agent_id and latency
+
+## Reference
+
+For full tool inventory and optimization patterns, see the `atg-client` skill and `atg-skill-engineer` skill.

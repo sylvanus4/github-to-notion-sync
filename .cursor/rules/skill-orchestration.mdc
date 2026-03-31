@@ -1,5 +1,5 @@
 ---
-description: "Skill registry (78 project skills), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+description: "Skill registry (86 project skills + 8 harness orchestrators), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
 alwaysApply: false
 ---
 
@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (78 project skills + 68 agency agents)
+## Skill Registry (86 project skills + 8 harness orchestrators + 68 agency agents)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -123,6 +123,16 @@ When both apply, Superpowers process skills run first, then delegate domain work
 **Orchestrator**:
 - `mission-control` — Decomposes goals, delegates to skills, aggregates results
 
+**Harness Orchestrators** (multi-agent team architectures):
+- `trading-intel-orchestrator` — 4-analyst fan-out/fan-in market intelligence (macro, sector, news, technical + synthesis)
+- `quality-gate-orchestrator` — CI gate + 3 parallel AI scans (security, deps, perf) + unified dashboard
+- `toss-ops-orchestrator` — Composite 8-skill Toss Securities workflow (snapshot → monitor → signal → report)
+- `alphaear-orchestrator` — 3-layer AlphaEar pipeline (collection → analysis → generation)
+- `paper-lifecycle-orchestrator` — Pipeline + expert pool: classify → scout → review/slides → archive → distribute
+- `prd-lifecycle-orchestrator` — Pipeline with quality gates: research → quality loop → cascade → review
+- `review-team-orchestrator` — 3-way fan-out (deep-review, simplify, test-suite) + dedup merge
+- `autoresearch-orchestrator` — 2-stage pipeline: AutoResearchClaw CLI → multi-channel distribution
+
 **Agency Agents** (68 personality-driven AI specialists from [agency-agents](https://github.com/msitarzewski/agency-agents)):
 - `agency-roster` — Manage and orchestrate 68 agency agents across 9 divisions (engineering, design, marketing, product, PM, testing, support, spatial-computing, specialized)
 - See `agency-commands.mdc` for `/agency-roster`, `/agency-team`, `/agency-activate`, `/agency-review` commands
@@ -186,6 +196,14 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/agency-team <scenario>` | agency-roster, agency-commands | Sequential (select agents for scenario) |
 | `/agency-activate <name>` | agency-commands | Sequential (adopt agent persona) |
 | `/agency-review [scope]` | agency-commands, 3-4 agency-* skills | Parallel (multi-agent review) |
+| `/trading-intel` | trading-intel-orchestrator (market-environment, sector, news, technical, us-stock-analysis) | Fan-out (4 parallel) → Fan-in (synthesis) → Conditional (deep-dive) |
+| `/quality-gate` | quality-gate-orchestrator (ci-quality-gate, security-expert, dependency-auditor, performance-profiler) | Pipeline (CI gate) → Fan-out (3 parallel) → Merge (dashboard) |
+| `/toss-ops` | toss-ops-orchestrator (8 toss-* skills) | Composite: Pipeline → Fan-out (4 parallel) → Pipeline tail |
+| `/alphaear-intel` | alphaear-orchestrator (8 alphaear-* skills) | Pipeline: Fan-out (3 collect) → Fan-out (3 analyze) → Sequential (report) |
+| `/paper-lifecycle` | paper-lifecycle-orchestrator (classifier, scout, paper-review/nlm-slides, archive) | Pipeline → Expert Pool routing → Sequential (archive+distribute) |
+| `/prd-lifecycle` | prd-lifecycle-orchestrator (prd-research-factory, doc-quality-gate, cascade-sync, review) | Pipeline → Eval-Opt (quality loop) → Sequential (cascade+review) |
+| `/review-team` | review-team-orchestrator (deep-review, simplify, test-suite) | Fan-out (3 parallel, ~12 total agents) → Dedup → Unified report |
+| `/autoresearch` | autoresearch-orchestrator (auto-research, auto-research-distribute) | Pipeline: CLI (23 stages) → Distribution (6 channels) |
 
 ## Orchestration Rules
 

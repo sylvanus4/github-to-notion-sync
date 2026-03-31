@@ -54,6 +54,31 @@ Arguments can be combined freely. Defaults: pull all, run Google daily, run stoc
 
 ## Workflow
 
+### Phase 0: ATG Gateway Probe (Optional)
+
+Check if the Agent Tool Gateway is running and attempt to start it if Docker is available. ATG accelerates Notion, Slack, and GitHub tool calls used in later phases (calendar, Gmail, stock pipeline, Slack notifications).
+
+```bash
+# 1. Health check
+curl -sf --max-time 3 http://localhost:4000/api/v1/health >/dev/null 2>&1
+```
+
+If healthy: record `{atg: "HEALTHY"}` and proceed.
+
+If unhealthy and Docker is available:
+
+```bash
+# 2. Attempt to start ATG
+cd AI_PLATFORM_WEBUI_PATH/ai-platform/agent-tool-gateway
+docker compose -f docker-compose.monitoring.yml up -d agent-tool-gateway 2>/dev/null
+sleep 3
+curl -sf --max-time 3 http://localhost:4000/api/v1/health >/dev/null 2>&1 \
+  && echo "ATG started" || echo "ATG unavailable"
+cd -
+```
+
+Record `{atg: "HEALTHY"|"UNREACHABLE"}`. This phase **never blocks** the pipeline — ATG is an accelerator, not a dependency. Skills work identically without it; only latency and token usage improve when ATG is healthy.
+
 ### Phase 1: Git Sync (Pull All Managed Projects)
 
 **Skip if** `--skip-pull` or `--dry-run` flag is set.
@@ -202,6 +227,9 @@ Post a consolidated morning briefing to `#효정-할일` using the `slack_send_m
 - 총 자산: ₩N / 전일 대비: +₩N (+N%)
 - 리스크: 🟢 GREEN
 - 보유 종목 N개
+
+*ATG Gateway*
+- {✅ HEALTHY — Notion/Slack/GitHub 캐싱 활성 | ⚠️ UNREACHABLE — MCP 직접 호출 사용}
 
 *합계*
 - N개 프로젝트 동기화, 일정 N건, 메일 N건 처리, N개 종목 분석
@@ -389,6 +417,8 @@ User runs `/morning-ship --no-slack` to execute Phases 1–3 and 3.5 locally but
 | `slack_send_message` MCP error (any call) | Log tool error; retry once after 5s; if still failing, skip remaining Slack thread posts, display full report in chat with `[SLACK_FAIL]` |
 | Slack message fails | Report error; still display report in chat |
 | No changes in any project | Report "all projects up to date" |
+| ATG health check fails | Record `atg: "UNREACHABLE"`; continue — skills fall back to MCP automatically |
+| ATG Docker start fails | Warn and continue; ATG is optional |
 
 ## Safety Rules
 

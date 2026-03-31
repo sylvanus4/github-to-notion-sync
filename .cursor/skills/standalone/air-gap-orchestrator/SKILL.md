@@ -91,15 +91,15 @@ def route_llm_request(prompt, task_type, sensitivity):
     else:
         model = MODEL_ROUTING_TABLE[task_type]["cloud"]
         base_url = "https://api.anthropic.com"
-    
+
     # Audit logging
     log_request(prompt_hash, task_type, model, sensitivity)
-    
+
     response = call_llm(base_url, model, prompt)
-    
+
     # Audit response
     log_response(response_hash, token_count, latency)
-    
+
     return response
 ```
 

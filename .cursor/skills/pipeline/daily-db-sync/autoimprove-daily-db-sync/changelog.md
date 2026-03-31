@@ -61,4 +61,3 @@ Autonomous skill prompt optimization log.
 1. (Experiment 1) Added dry-run/status/DB-connection error guidance — fixed the only failing eval
 2. (Experiment 2) Added idempotency note — operational clarity improvement
 3. (Experiment 3) Added Korean date parsing guide — edge-case prevention
-

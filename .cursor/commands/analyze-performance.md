@@ -98,16 +98,6 @@ EXPLAIN ANALYZE SELECT ...
 SHOW SLOW LOG;
 ```
 
-#### Frontend
-
-```bash
-# React performance
-grep -r "useMemo\|useCallback" . --include="*.jsx"
-
-# Resource analysis
-find ./src -name "*.png" -o -name "*.jpg" | xargs ls -lh
-```
-
 ### Keep Improving
 
 - **Weekly checks**: Run performance tests regularly

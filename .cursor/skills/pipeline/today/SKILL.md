@@ -82,27 +82,19 @@ Read the `setup-doctor` skill and run Phase 1-3 checks for `--group core-platfor
 - If critical items fail (DB connection, missing packages) → report the failures and halt
 - If only warnings (optional items missing) → report and proceed
 
-### Phase 1.5: Toss Daily Snapshot (Optional)
+### Phase 1.5: Toss Snapshot + Monitoring (Optional — via toss-ops-orchestrator)
 
-Archive the current Toss Securities account state for historical tracking. Skip with `skip-toss`.
+Delegates to `toss-ops-orchestrator` (`.cursor/skills/trading/toss-ops-orchestrator/SKILL.md`) for the snapshot and monitoring phases. Skip with `skip-toss`.
 
-**Step 1.5a — Check tossctl auth:**
+**Step 1.5a — Invoke toss-ops-orchestrator (Phase 1+2 only):**
 
-```bash
-tossctl auth status --output json
-```
+Launch a Task with `toss-ops-orchestrator` using `--mode monitor-only` to run:
+1. Account snapshot → `outputs/toss/summary-{date}.json`
+2. Parallel monitoring (FX, risk, portfolio recon, watchlist sync)
 
-If session is active, proceed. If expired or `tossctl` not installed, skip Phase 1.5 and log a warning.
+The orchestrator handles tossctl availability checks internally — if tossctl is unavailable, it returns gracefully.
 
-**Step 1.5b — Run snapshot:**
-
-Follow the `toss-daily-snapshot` skill (`.cursor/skills/trading/toss-daily-snapshot/SKILL.md`):
-
-1. `tossctl account summary --output json` → save to `outputs/toss/summary-{date}.json`
-2. `tossctl portfolio positions --output json` → save to `outputs/toss/positions-{date}.json`
-3. `tossctl watchlist list --output json` → save to `outputs/toss/watchlist-{date}.json`
-
-On failure: **Continue** — Toss snapshot is optional; the pipeline proceeds without it.
+On failure: **Continue** — Toss operations are optional; the pipeline proceeds without them.
 
 ### Phase 1: Data Freshness Check
 
@@ -265,17 +257,24 @@ This analyzes all tickers stored in PostgreSQL (52+) instead of just CSV-mapped 
   - `overall_signal`: 3-way combined signal (STRONG_BUY/BUY/NEUTRAL/SELL/STRONG_SELL) from turtle + bollinger + oscillator scores
 - `summary`: signal distribution counts
 
-### Phase 4.5: Market Context (Optional)
+### Phase 4.5: AlphaEar Intelligence (Optional — via alphaear-orchestrator)
 
-Fetch market news and sentiment to add qualitative context. Skip with `skip-news` and/or `skip-sentiment`.
+Delegates to `alphaear-orchestrator` (`.cursor/skills/alphaear/alphaear-orchestrator/SKILL.md`) for comprehensive market context. Skip with `skip-news` and/or `skip-sentiment`.
 
-**Step 4.5a — Market news (skip if `skip-news`):**
+**Step 4.5a — Invoke alphaear-orchestrator:**
 
-Use the `alphaear-news` skill to fetch latest financial news from multiple sources. Filter for news relevant to tracked tickers and categories. Save top 3-5 headlines as `outputs/news-{date}.json`. If the skill fails or times out, the pipeline continues — the report gracefully handles missing news data.
+Launch a Task with `alphaear-orchestrator` to run the full 3-layer pipeline:
+1. Data collection (news, stock data, search) — parallel
+2. Analysis (sentiment, prediction, signal tracking) — parallel
+3. Report generation
 
-**Step 4.5b — Sentiment scoring (skip if `skip-sentiment`):**
+The orchestrator consolidates the previously separate `alphaear-news`, `alphaear-sentiment`, and `alphaear-reporter` calls into a single coordinated pipeline with proper data flow between layers.
 
-Use the `alphaear-sentiment` skill to score news sentiment for stocks with BUY or SELL signals. Add sentiment score (-1.0 to 1.0) and summary to the analysis JSON. If the skill fails, the report shows "N/A" for sentiment.
+Skip flags are forwarded: `skip-news` → `--skip news`, `skip-sentiment` → `--skip sentiment`.
+
+Output: `outputs/alphaear/intel-{date}.md` and individual artifacts in `_workspace/alphaear/`.
+
+On failure: **Continue** — AlphaEar is optional. The report shows "N/A" for market context if the orchestrator fails.
 
 ### Phase 4.8: Agent Trading Desk (Optional)
 
@@ -458,31 +457,20 @@ C. 보류 / 추가 조사 필요
 
 Post each decision as a separate message (not threaded) to `#효정-의사결정`.
 
-### Phase 5.5: Toss Signal Bridge + Risk Monitor (Optional)
+### Phase 5.5: Toss Signal Bridge + Reporting (Optional — via toss-ops-orchestrator)
 
-Translate pipeline signals into tossctl order previews and run portfolio risk assessment. Skip with `skip-toss`.
+Delegates to `toss-ops-orchestrator` (`.cursor/skills/trading/toss-ops-orchestrator/SKILL.md`) for the signal bridge and reporting phases. Skip with `skip-toss`.
 
-**Step 5.5a — Signal Bridge (skip if no tossctl or `skip-toss`):**
+**Step 5.5a — Invoke toss-ops-orchestrator (Phase 3+4 only):**
 
-Follow the `toss-signal-bridge` skill (`.cursor/skills/trading/toss-signal-bridge/SKILL.md`):
+Launch a Task with `toss-ops-orchestrator` using `--skip snapshot,fx,risk,recon,watchlist` to run only:
+1. Signal bridge (reads screener + analysis outputs, generates dry-run order previews)
+2. Trade journal (log recent trades)
+3. Morning briefing (consolidated Slack post to `#h-daily-stock-check`)
 
-1. Load today's `outputs/screener-{date}.json` and `outputs/analysis-{date}.json`
-2. Filter to symbols tradeable on Toss Securities
-3. Fetch current quotes via `tossctl quote get`
-4. Check existing exposure via `tossctl portfolio positions --output json`
-5. Apply position sizing logic with account buying power
-6. Generate order previews (dry-run only — no execution)
-7. Present ranked trade candidates in Korean
+The orchestrator uses the snapshot data from Phase 1.5 (if available) and the screener/analysis outputs from Phases 3.5/4.
 
-**Step 5.5b — Risk Monitor (skip if no tossctl or `skip-toss`):**
-
-Follow the `toss-risk-monitor` skill (`.cursor/skills/trading/toss-risk-monitor/SKILL.md`):
-
-1. Run 6-dimension risk assessment (concentration, sector, buying power, drawdown, correlation, profit factor)
-2. Generate composite risk scorecard (GREEN/YELLOW/RED)
-3. If any RED conditions → auto-post alert to `#h-daily-stock-check`
-
-**Step 5.5c — Include in Slack thread (if Phase 5c runs):**
+**Step 5.5b — Include in Slack thread (if Phase 5c runs):**
 
 Add a "Toss 실행 가능 시그널" section to the Slack thread reply containing:
 - Top 3 trade candidates with signal strength and estimated cost
@@ -741,6 +729,6 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **Slack decision channel**: `#효정-의사결정` (`C0ANBST3KDE`) — personal trading decisions (Step 5d)
 - **Agent desk**: `backend/app/services/agent_desk/desk.py` (`AgentDesk`) — multi-agent debate pipeline (Phase 4.8)
 - **Agent desk output**: `outputs/agent-desk/{date}/desk-decisions.json`
-- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`, `decision-router`, `trading-agent-desk`, `toss-daily-snapshot`, `toss-signal-bridge`, `toss-risk-monitor`
+- **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`, `decision-router`, `trading-agent-desk`, `toss-ops-orchestrator` (delegates to 8 toss-* skills), `alphaear-orchestrator` (delegates to 8 alphaear-* skills)
 - **Tab skills**: `tab-stock-sync`, `tab-event-detect`, `tab-fundamental-sync`, `tab-hot-stock-discovery`, `tab-technical-analysis`, `tab-turtle-refresh`, `tab-bollinger-refresh`, `tab-dualma-refresh`, `tab-screening`, `tab-llm-agents`, `tab-genai-features`, `tab-analysis-run`
 - **GitHub Actions**: `.github/workflows/daily-today.yml` (independent pipeline, uses its own API keys via GitHub Secrets)

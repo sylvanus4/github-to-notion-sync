@@ -56,7 +56,7 @@ Reference patterns for runtime semantic security validation.
 | Type | Pattern | Example |
 |------|---------|---------|
 | OpenAI | `sk-[A-Za-z0-9]{20,}` | sk-proj-abc123... |
-| AWS Access Key | `AKIA[0-9A-Z]{16}` | AKIAIOSFODNN7EXAMPLE |
+| AWS Access Key | `AKIA[0-9A-Z]{16}` | AKIAIOSFODNN7EXAMPLE | <!-- pragma: allowlist secret -->
 | AWS Secret | `(?i)aws_secret_access_key\s*=\s*['\"]?[A-Za-z0-9/+=]{40}` | aws_secret_access_key=... |
 | GitHub | `ghp_[A-Za-z0-9]{36}` | ghp_xxxxxxxxxxxx |
 | JWT | `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+` | eyJhbGc... |

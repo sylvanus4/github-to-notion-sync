@@ -29,6 +29,7 @@ Bidirectional git sync for all managed projects: commit dirty repos, push unpush
 
 ```
 /sod-ship                          # full pipeline (commit + push + pull + Slack)
+/sod-ship --skip-doctor            # skip Phase 0 environment pre-flight diagnostics
 /sod-ship --skip-push              # pull only, skip committing/pushing local changes
 /sod-ship --skip-pull              # commit and push only, skip pulling remote
 /sod-ship --targets research       # process specific projects only (comma-separated)
@@ -37,9 +38,138 @@ Bidirectional git sync for all managed projects: commit dirty repos, push unpush
 /sod-ship --dry-run                # preview only (show status, no git operations)
 ```
 
-Arguments can be combined freely. Defaults: commit+push+pull all, post to Slack, update canvas.
+Arguments can be combined freely. Defaults: commit+push+pull all, run pre-flight, post to Slack, update canvas.
 
 ## Workflow
+
+### Phase 0: Environment Pre-flight
+
+**Skip if** `--skip-doctor` flag is set.
+
+Run lightweight environment diagnostics and live MCP connectivity probes before starting git operations. Results are stored in a `preflight` map and surfaced in the Slack notification (Phase 5) and Chat Report (Phase 6).
+
+#### Step 0a: CLI & Environment Checks
+
+Verify critical CLI tools exist on `$PATH`:
+
+```bash
+which git && git --version
+which rsync
+which node
+which python3
+```
+
+Check essential environment variables:
+
+```bash
+test -n "$GITHUB_TOKEN" && echo "GITHUB_TOKEN set" || echo "GITHUB_TOKEN missing"
+test -n "$SLACK_USER_TOKEN" && echo "SLACK_USER_TOKEN set" || echo "SLACK_USER_TOKEN missing"
+```
+
+Record results: `{cli: {git: "2.44.0", rsync: true, node: true, python3: true}, env: {GITHUB_TOKEN: true, SLACK_USER_TOKEN: false}}`.
+
+#### Step 0b: Live MCP Connectivity Probes
+
+Probe all 13 registered MCP servers by calling a lightweight read-only tool on each. Run probes **in parallel batches** (max 4 concurrent) using the Task tool with `model: "fast"`.
+
+Each probe calls `CallMcpTool` with the parameters below. If the call returns a successful response, classify as `CONNECTED`. If it throws an error or times out, classify as `DISCONNECTED`.
+
+| # | MCP Server | Probe Tool | Arguments | Priority |
+|---|------------|-----------|-----------|----------|
+| 1 | `plugin-slack-slack` | `slack_search_channels` | `{"query": "general", "limit": 1}` | Critical |
+| 2 | `plugin-notion-workspace-notion` | `mcp_auth` | `{}` | Critical |
+| 3 | `user-Notion` | `mcp_auth` | `{}` | Critical |
+| 4 | `user-GitHub` | `get_me` | `{}` | Critical |
+| 5 | `user-notebooklm-mcp` | `notebook_list` | `{"max_results": 1}` | Normal |
+| 6 | `user-Context7` | `resolve-library-id` | `{"query": "test", "libraryName": "react"}` | Normal |
+| 7 | `plugin-context7-plugin-context7` | `resolve-library-id` | `{"query": "test", "libraryName": "react"}` | Normal |
+| 8 | `user-Figma` | `whoami` | `{}` | Normal |
+| 9 | `plugin-figma-figma` | `whoami` | `{}` | Normal |
+| 10 | `cursor-ide-browser` | `browser_tabs` | `{"action": "list"}` | Normal |
+| 11 | `user-daiso-mcp` | `daiso_search_products` | `{"query": "test"}` | Normal |
+| 12 | `user-public-apis` | `get_category_list` | `{}` | Normal |
+| 13 | `plugin-huggingface-skills-huggingface-skills` | `mcp_auth` | `{}` | Normal |
+
+**Classification logic**: Any response (even an empty list or auth prompt) counts as `CONNECTED`. Only errors (connection refused, timeout, server not found) count as `DISCONNECTED`.
+
+#### Step 0b-2: ATG Gateway Probe
+
+Check if the Agent Tool Gateway Docker container is running and healthy:
+
+```bash
+curl -sf --max-time 3 http://localhost:4000/api/v1/health >/dev/null 2>&1 \
+  && echo "CONNECTED" || echo "DISCONNECTED"
+```
+
+ATG is an **optional accelerator** — classify as `CONNECTED` or `DISCONNECTED` but never block the pipeline. When healthy, Notion/Slack/GitHub tool calls benefit from caching, deduplication, and compression via the `atg-routing` rule.
+
+Add ATG status to the preflight map under `atg: {status: "CONNECTED"|"DISCONNECTED"}`.
+
+If `DISCONNECTED` and Docker is available, optionally attempt to start ATG:
+
+```bash
+cd ai-platform/agent-tool-gateway
+docker compose -f docker-compose.monitoring.yml up -d agent-tool-gateway 2>/dev/null
+sleep 3
+curl -sf --max-time 3 http://localhost:4000/api/v1/health >/dev/null 2>&1 \
+  && echo "ATG started successfully" || echo "ATG start failed (non-blocking)"
+cd -
+```
+
+#### Step 0c: Build Pre-flight Report
+
+Aggregate results into a `preflight` map:
+
+```
+preflight:
+  cli:
+    git: "2.44.0"
+    rsync: true
+    node: true
+    python3: true
+  env:
+    GITHUB_TOKEN: true
+    SLACK_USER_TOKEN: false
+  mcp:
+    connected: ["plugin-slack-slack", "user-GitHub", ...]
+    disconnected: ["user-notebooklm-mcp", "user-Notion"]
+    connected_count: 11
+    disconnected_count: 2
+  atg:
+    status: "CONNECTED"  # or "DISCONNECTED"
+  work_items:
+    - "⚠️ SLACK_USER_TOKEN 환경 변수 미설정 — orphan cleaner, file upload 불가"
+    - "❌ user-notebooklm-mcp 연결 끊김 — NLM 스킬 사용 불가, MCP 서버 재시작 필요"
+    - "❌ user-Notion 연결 끊김 — Notion 스킬 사용 불가, MCP 서버 재시작 필요"
+```
+
+**Work item generation rules**:
+- Missing CLI tool → `"❌ {tool} 미설치 — {impact}"`
+- Missing env var → `"⚠️ {var} 환경 변수 미설정 — {impact}"`
+- Disconnected Critical MCP → `"❌ {server} 연결 끊김 — {impact}, MCP 서버 재시작 필요"`
+- Disconnected Normal MCP → `"⚠️ {server} 연결 끊김 — {feature} 사용 불가"`
+
+Display a summary table in the chat:
+
+```
+SOD 환경 Pre-flight
+=====================
+CLI: git=2.44.0  rsync=✅  node=✅  python3=✅
+ENV: GITHUB_TOKEN=✅  SLACK_USER_TOKEN=❌
+
+MCP 연결 상태 (11/13 연결됨):
+  ✅ plugin-slack-slack, user-GitHub, plugin-notion-workspace-notion, ...
+  ❌ user-notebooklm-mcp, user-Notion
+
+ATG Gateway: ✅ HEALTHY (Notion/Slack/GitHub 캐싱 활성)
+
+작업 필요 항목:
+  1. ⚠️ SLACK_USER_TOKEN 환경 변수 미설정
+  2. ❌ user-notebooklm-mcp 연결 끊김
+  3. ❌ user-Notion 연결 끊김
+```
+
+**Phase 0 does NOT block** the pipeline. Even if all MCPs are disconnected, proceed to Phase 1. Diagnostic results are advisory and surfaced in Phase 5/6 reports.
 
 ### Phase 1: Pre-flight Scan
 
@@ -254,6 +384,13 @@ Call `CallMcpTool` with:
 ```
 **🔄 SOD Git 동기화 리포트** (YYYY-MM-DD)
 
+{if Phase 0 ran:
+**🩺 환경 Pre-flight**
+- MCP 연결: ✅ N/13 연결 {if disconnected_count > 0: | ❌ M/13 끊김}
+- ATG Gateway: {✅ HEALTHY | ⚠️ UNREACHABLE} (선택적 가속기)
+{if work_items non-empty: - ⚠️ 작업 필요 항목 N건 (쓰레드 참조)}
+}
+
 **로컬 → 리모트 (커밋 & 푸시)**
 - project-a: N개 커밋 생성, 푸시 완료
 - project-b: 변경사항 없음
@@ -276,7 +413,43 @@ Call `CallMcpTool` with:
 
 **Save** the returned `message.ts` timestamp from the response — it is needed for threaded replies.
 
-#### Step 5b: Threaded Details
+#### Step 5b: Pre-flight Work Items Thread
+
+**Skip if** Phase 0 was skipped (`--skip-doctor`) or `work_items` list is empty.
+
+Post a threaded reply with the full pre-flight diagnostics:
+
+```json
+{
+  "server": "plugin-slack-slack",
+  "toolName": "slack_send_message",
+  "arguments": {
+    "channel_id": "C0AA8NT4T8T",
+    "thread_ts": "<ts from Step 5a>",
+    "message": "<pre-flight details>"
+  }
+}
+```
+
+**Pre-flight thread template**:
+
+```
+**🩺 SOD 환경 Pre-flight 상세**
+
+**CLI 도구**: git={version}  rsync={✅|❌}  node={✅|❌}  python3={✅|❌}
+**환경 변수**: GITHUB_TOKEN={✅|❌}  SLACK_USER_TOKEN={✅|❌}
+
+**MCP 연결 상태** ({connected_count}/{total} 연결됨)
+✅ 연결됨: server1, server2, ...
+{if disconnected: ❌ 끊김: server-a, server-b, ...}
+
+**작업 필요 항목**
+{for each work_item:
+{number}. {work_item}
+}
+```
+
+#### Step 5c: Per-Project Threaded Details
 
 For each project that had activity (not "변경사항 없음" / "이미 최신"), post a threaded reply with details:
 
@@ -316,12 +489,25 @@ Omit thread replies for projects with no activity on either direction (push or p
 
 ### Phase 6: Chat Report
 
-Display the consolidated summary in the chat as a formatted Korean report, using the Phase 4 verification table as the base.
+Display the consolidated summary in the chat as a formatted Korean report, using the Phase 4 verification table as the base. If Phase 0 ran, prepend the environment diagnostics section.
 
 ```
 SOD 동기화 리포트
 ==================
 날짜: YYYY-MM-DD
+
+{if Phase 0 ran:
+환경 Pre-flight:
+  CLI:  git={version}  rsync=✅  node=✅  python3=✅
+  ENV:  GITHUB_TOKEN=✅  SLACK_USER_TOKEN=❌
+  MCP:  11/13 연결됨
+    ✅ plugin-slack-slack, user-GitHub, plugin-notion-workspace-notion, ...
+    ❌ user-notebooklm-mcp, user-Notion
+  작업 필요 항목:
+    1. ⚠️ SLACK_USER_TOKEN 환경 변수 미설정
+    2. ❌ user-notebooklm-mcp 연결 끊김
+    3. ❌ user-Notion 연결 끊김
+}
 
 로컬 → 리모트:
   github-to-notion-sync:          변경사항 없음
@@ -496,6 +682,10 @@ User runs `/sod-ship` and every project is already up to date.
 
 | Scenario | Action |
 |----------|--------|
+| MCP probe times out (>5s) | Classify as `DISCONNECTED`; add to work items; continue probing other servers |
+| All MCP probes fail | Report all as disconnected; add blanket reconnection work item; do NOT block git sync |
+| setup-doctor prerequisites missing | Add each missing item to work items list; continue with git sync phases |
+| Phase 0 itself errors unexpectedly | Log error; skip pre-flight section in Slack/chat report; continue with Phase 1 |
 | Project directory does not exist | Warn and skip; continue with remaining projects |
 | Pre-commit hook fails | Fix lint errors, re-stage, create new commit (never amend) |
 | Push rejected (diverged history) | Defer push; pull first in Phase 3, then retry push |
