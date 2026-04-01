@@ -257,6 +257,111 @@ This analyzes all tickers stored in PostgreSQL (52+) instead of just CSV-mapped 
   - `overall_signal`: 3-way combined signal (STRONG_BUY/BUY/NEUTRAL/SELL/STRONG_SELL) from turtle + bollinger + oscillator scores
 - `summary`: signal distribution counts
 
+#### Post-Analysis Parallel Fan-Out (Phases 4.2 / 4.3 / 4.5 / 4.6)
+
+After Phase 4 stock analysis completes, launch the following four optional phases as **parallel subagents** (max 4 concurrent). Each is independent and produces its own output artifact. If any subagent fails, the others continue unaffected.
+
+| Subagent | Phase | Output | Skip Flag |
+|----------|-------|--------|-----------|
+| Regime Diagnosis | 4.2 | `outputs/market-regime-{date}.json` | `skip-regime` |
+| Top Risk Overlay | 4.3 | `outputs/top-risk-{date}.json` | `skip-top-risk` |
+| AlphaEar Intelligence | 4.5 | AlphaEar pipeline outputs | `skip-news` / `skip-sentiment` |
+| Market Environment | 4.6 | `outputs/market-env-{date}.json` | `skip-market-env` |
+
+Wait for all four subagents to complete (or be skipped) before proceeding to Phase 4.8 (Agent Trading Desk) and Phase 5 (Report).
+
+### Phase 4.2: Market Regime Diagnosis (Optional — parallel fan-out)
+
+Diagnose the macro market environment before interpreting individual stock signals. Runs 3 independent analyses in parallel using free TraderMonty CSV data (no API key required). Skip with `skip-regime`.
+
+**Step 4.2a — Launch parallel regime subagents:**
+
+Launch 3 parallel Task subagents (model: fast):
+
+1. **Breadth Health** — read the `trading-market-breadth-analyzer` skill and run:
+
+```bash
+python3 .cursor/skills/trading/trading-market-breadth-analyzer/scripts/analyze_market_breadth.py --json --save
+```
+
+Output: `outputs/breadth-{date}.json` (6-component score, 0-100, higher = healthier)
+
+2. **Uptrend Ratios** — read the `trading-uptrend-analyzer` skill and run:
+
+```bash
+python3 .cursor/skills/trading/trading-uptrend-analyzer/scripts/analyze_uptrend.py --json --save
+```
+
+Output: `outputs/uptrend-{date}.json` (5-component score, 0-100, higher = healthier)
+
+3. **Sector Rotation** — read the `trading-sector-analyst` skill and run:
+
+```bash
+python3 .cursor/skills/trading/trading-sector-analyst/scripts/analyze_sector_rotation.py --json --save
+```
+
+Output: `outputs/sector-rotation-{date}.json` (sector rankings, cyclical/defensive ratio, market cycle phase)
+
+**Step 4.2b — Synthesize regime summary:**
+
+After all 3 subagents complete, compute the Market Regime Summary:
+- Composite regime score = breadth (40%) + uptrend (30%) + sector cyclical/defensive tilt (30%)
+- Classification: **RISK-ON** (70+) / **CAUTIOUS** (40–69) / **RISK-OFF** (0–39)
+- Exposure guidance: `full` / `reduced` / `defensive`
+
+Save to `outputs/market-regime-{date}.json`:
+
+```json
+{
+  "date": "2026-04-01",
+  "breadth_score": 72,
+  "uptrend_score": 65,
+  "sector_phase": "mid-cycle",
+  "cyclical_defensive_ratio": 1.4,
+  "composite_regime_score": 68,
+  "regime": "CAUTIOUS",
+  "exposure_guidance": "reduced",
+  "summary_ko": "시장 브레드스 72점, 업트렌드 65점으로 참여도 양호하나 섹터 순환 중기 단계. 익스포저 소폭 축소 권장."
+}
+```
+
+On failure: **Continue** — regime data is optional. If any subagent fails, use available scores only. If all fail, report shows "N/A" for regime.
+
+### Phase 4.3: Market Top Risk Overlay (Optional — conditional on FMP_API_KEY)
+
+Detect whether a market top is forming using the O'Neil/Minervini/Monty methodology. Skip with `skip-top-risk`. Auto-skipped if `FMP_API_KEY` is not set in `.env`.
+
+**Step 4.3a — Check API key availability:**
+
+Verify `FMP_API_KEY` exists in the environment or `.env` file. If missing, log "FMP_API_KEY not set, skipping market top detection" and skip this phase entirely.
+
+**Step 4.3b — Run top detector:**
+
+Read the `trading-market-top-detector` skill and execute the 6-component scoring system:
+1. Distribution Day accumulation (O'Neil methodology)
+2. Leading stock deterioration (Minervini pattern)
+3. Defensive sector rotation (Monty signal)
+4. Volume distribution analysis
+5. Breadth divergence detection
+6. VIX term structure assessment
+
+Save to `outputs/top-risk-{date}.json`:
+
+```json
+{
+  "date": "2026-04-01",
+  "top_probability": 35,
+  "risk_level": "MODERATE",
+  "distribution_day_count": 3,
+  "leadership_deterioration": false,
+  "defensive_rotation_active": false,
+  "action": "monitor",
+  "summary_ko": "천정 확률 35% — 분배일 3일 누적, 선도주 건재. 모니터링 유지."
+}
+```
+
+On failure: **Continue** — top risk detection is optional. Report shows "N/A" if unavailable.
+
 ### Phase 4.5: AlphaEar Intelligence (Optional — via alphaear-orchestrator)
 
 Delegates to `alphaear-orchestrator` (`.cursor/skills/alphaear/alphaear-orchestrator/SKILL.md`) for comprehensive market context. Skip with `skip-news` and/or `skip-sentiment`.
@@ -275,6 +380,43 @@ Skip flags are forwarded: `skip-news` → `--skip news`, `skip-sentiment` → `-
 Output: `outputs/alphaear/intel-{date}.md` and individual artifacts in `_workspace/alphaear/`.
 
 On failure: **Continue** — AlphaEar is optional. The report shows "N/A" for market context if the orchestrator fails.
+
+### Phase 4.6: Market Environment Context (Optional)
+
+Collect a global market snapshot (US indices, VIX, FX, commodities, Treasury yields) to provide macro context for the report narrative. Uses web search — no API key required. Skip with `skip-market-env`.
+
+**Step 4.6a — Collect global market data:**
+
+Read the `trading-market-environment-analysis` skill. Run the web-search-based data collection covering:
+1. US indices: S&P 500, NASDAQ Composite, Dow Jones
+2. Volatility: VIX level and term structure
+3. FX: USD/JPY, EUR/USD, USD/KRW
+4. Commodities: WTI crude oil, Gold
+5. Yields: US 2Y and 10Y Treasury yields
+6. Risk sentiment classification: risk-on / risk-off / mixed
+
+**Step 4.6b — Structure and save:**
+
+Save to `outputs/market-env-{date}.json`:
+
+```json
+{
+  "date": "2026-04-01",
+  "us_markets": {
+    "sp500": { "level": 5250, "change_pct": 0.3 },
+    "nasdaq": { "level": 16500, "change_pct": 0.5 },
+    "dow": { "level": 39800, "change_pct": 0.1 }
+  },
+  "vix": 18.5,
+  "risk_sentiment": "risk-on",
+  "fx": { "usd_jpy": 150.2, "eur_usd": 1.08, "usd_krw": 1350 },
+  "commodities": { "wti": 82.5, "gold": 2350 },
+  "yields": { "us_2y": 4.6, "us_10y": 4.2 },
+  "summary_ko": "S&P 500 소폭 상승, VIX 18.5로 안정적. 원달러 1350원대. 유가·금 보합. 리스크온 분위기."
+}
+```
+
+On failure: **Continue** — market environment data is optional. Report shows "N/A" for global context.
 
 ### Phase 4.8: Agent Trading Desk (Optional)
 
@@ -312,9 +454,42 @@ Use the `alphaear-reporter` skill workflow with the daily-stock-check JSON as in
 3. **최종 조립**: 다음 섹션으로 리포트를 구성:
    - 날짜 및 시장 개요
    - 시그널 요약 (매수/중립/매도 종목 수)
+   - **시장 체제 대시보드** (Phase 4.2 데이터 사용, 없으면 생략): 복합 체제 점수(0-100), 체제 분류(RISK-ON/CAUTIOUS/RISK-OFF), 브레드스·업트렌드·섹터 로테이션 하위 점수, 1-2줄 체제 내러티브
+   - **시장 천정 리스크** (Phase 4.3 데이터 사용, 없으면 생략): 천정 확률(%), 리스크 레벨(LOW/MODERATE/HIGH/CRITICAL), 분배일 수, 핵심 경고 사항
+   - **글로벌 시장 스냅샷** (Phase 4.6 데이터 사용, 없으면 생략): 미국 지수(S&P/NASDAQ/Dow), VIX, 주요 환율(USD/KRW 포함), 원자재, 국채 수익률, 리스크 센티먼트
    - 테마별 분석 (클러스터링된 시그널 기반)
    - 주요 종목 (가장 강한 매수/매도 시그널과 근거)
+   - **엣지 후보 리서치 티켓** (Phase 5.1 데이터 사용, 없으면 생략): 발견된 이상 징후 요약, 심각도별 분류, 후속 조사 워치리스트
    - 리스크 노트 및 면책 조항
+
+**Step 5a-DQ — Data Quality Check (automatic, skip if `skip-dq`):**
+
+Before generating the report, validate data consistency across all analysis outputs:
+
+1. **Date alignment**: Verify all output files reference the same trading date.
+2. **Price consistency**: Cross-check that ticker prices in `analysis-{date}.json` match `screener-{date}.json` within ±1% tolerance.
+3. **Signal coherence**: Flag contradictions (e.g., a stock marked BUY in screener but SELL in analysis without an explanation).
+4. **Stale data detection**: If any ticker's latest price is >2 trading days old, flag as potentially stale.
+5. **Completeness**: Ensure all tracked tickers appear in the analysis output.
+
+Read the `trading-data-quality-checker` skill for validation methodology.
+
+Save to `outputs/dq-{date}.json`:
+
+```json
+{
+  "date": "2026-04-01",
+  "checks_passed": 4,
+  "checks_failed": 1,
+  "warnings": ["AAPL price stale by 3 days"],
+  "errors": [],
+  "overall": "PASS_WITH_WARNINGS"
+}
+```
+
+If `overall` is `FAIL` (errors found): halt report generation and notify user.
+If `overall` is `PASS_WITH_WARNINGS`: continue but include warnings in the report appendix.
+If `overall` is `PASS`: continue normally.
 
 **Step 5b — Generate Korean .docx report (skip if `skip-docx` flag is set):**
 
@@ -326,10 +501,13 @@ cd outputs
 node generate-report.js {date}
 ```
 
-The generator also reads `outputs/news-{date}.json` for market context and `outputs/screener-{date}.json` for screening results (if available).
+The generator also reads `outputs/news-{date}.json` for market context, `outputs/screener-{date}.json` for screening results, `outputs/market-regime-{date}.json` for regime data, `outputs/top-risk-{date}.json` for top risk data, `outputs/market-env-{date}.json` for global market context, and `outputs/edge-candidates/{date}/anomalies.json` for edge candidates (all optional — sections omitted when data unavailable).
 It produces a Korean expert report (`outputs/reports/daily-{date}.docx`) with:
    - 표지 (제목, 날짜, 분석 종목 수)
    - 요약 (시그널 분포표, 정배열 종목 수, 스퀴즈 종목, 골든/데스크로스, RSI 과매수/과매도, MACD 크로스)
+   - **시장 체제 대시보드** (복합 점수, 체제 분류, 하위 점수 테이블, 체제 내러티브 — `market-regime-{date}.json` 사용)
+   - **시장 천정 리스크** (천정 확률, 리스크 레벨, 분배일 수, 핵심 경고 — `top-risk-{date}.json` 사용)
+   - **글로벌 시장 스냅샷** (미국 지수, VIX, 환율, 원자재, 국채, 리스크 센티먼트 — `market-env-{date}.json` 사용)
    - 시장 동향 (alphaear-news 뉴스 헤드라인, if available)
    - **스크리너 결과** (STRONG BUY/BUY 종목 요약, composite score, 필터 통과 현황)
    - **펀더멘탈 스냅샷** (종목별 P/E, FCF Yield, ROE, Debt/Equity, Revenue Growth)
@@ -338,8 +516,10 @@ It produces a Korean expert report (`outputs/reports/daily-{date}.docx`) with:
    - 주요 종목 상세 분석 (BUY/SELL 종목별 이동평균선·볼린저·오실레이터 분석 + 감성 점수 + 펀더멘탈 메트릭스 + 매매 판단 근거)
    - 전체 종목 시그널 일람표 (터틀/볼린저/오실레이터/스크리너/종합 5열)
    - **어닝 캘린더** (14일 내 실적 발표 예정 종목)
+   - **엣지 후보 리서치 티켓** (이상 징후 요약, 심각도 분류, 워치리스트 — `edge-candidates/{date}/anomalies.json` 사용)
    - 핫 종목 (미추적 종목 발견 결과)
    - 기술적 지표 상세표 (이동평균선, 볼린저, 오실레이터 3개 테이블)
+   - 데이터 품질 부록 (DQ 경고가 있는 경우 — `dq-{date}.json` 사용)
    - 리스크 노트 및 면책 조항
 
 **Step 5b½ — Quality Gate (Evaluator-Optimizer, skip if `skip-quality-gate`):**
@@ -375,8 +555,12 @@ If `ai-quality-evaluator` skill is not available, log a warning and skip the gat
 ```
 :newspaper: *일간 분석 보고서 — {date}*
 {total_stocks}개 종목 분석 | :green_circle: 매수 {buy_count} | :white_circle: 중립 {neutral_count} | :red_circle: 매도 {sell_count}
+{regime_badge} {regime_label} (점수 {regime_score}/100) | {top_risk_badge} 천정 리스크 {top_risk_level}
 
 ---
+
+:globe_with_meridians: *시장 환경*
+> S&P {sp500_change}% | NASDAQ {nasdaq_change}% | VIX {vix} | USD/KRW {usdkrw} | 센티먼트: {risk_sentiment}
 
 :chart_with_upwards_trend: *주요 매수 종목*
 > :large_green_circle: *{ticker}* `{price}` (+{change}%) — {korean_rationale}
@@ -397,6 +581,13 @@ If `ai-quality-evaluator` skill is not available, log a warning and skip the gat
 _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) + 오실레이터(RSI/MACD/Stoch/ADX) | 본 보고서는 투자 권유가 아닙니다._
 ```
 
+**Slack main message dynamic fields (from new phases — omit entire line/section if data unavailable):**
+- `{regime_badge}`: `:large_green_circle:` RISK-ON / `:large_orange_circle:` CAUTIOUS / `:red_circle:` RISK-OFF (from `market-regime-{date}.json`)
+- `{regime_label}`, `{regime_score}`: regime classification and composite score
+- `{top_risk_badge}`: `:white_check_mark:` LOW / `:warning:` MODERATE / `:rotating_light:` HIGH / `:no_entry:` CRITICAL (from `top-risk-{date}.json`)
+- `{top_risk_level}`: top risk classification string
+- Market environment fields (`sp500_change`, `nasdaq_change`, `vix`, `usdkrw`, `risk_sentiment`): from `market-env-{date}.json`
+
 **Slack thread reply template (MUST always post):**
 
 ```
@@ -416,6 +607,14 @@ _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) +
 
 :bulb: {과매도_종목}는 RSI {rsi}로 과매도 구간, 반등 가능성 모니터링 필요
 
+---
+
+:dart: *엣지 후보 ({edge_count}건)* _(Phase 5.1 결과, 없으면 생략)_
+> :small_orange_diamond: [{severity}] *{ticker}* — {anomaly_type}: {description}
+...
+
+---
+
 _본 스레드 및 본 분석은 투자 권유가 아니며 참고용입니다._
 ```
 
@@ -429,6 +628,9 @@ Detection criteria:
 - Multiple correlated BUY signals in same sector → post as sector rebalancing decision (urgency: MEDIUM)
 - RSI extreme (> 80 or < 20) with ADX > 25 → post as risk alert decision (urgency: MEDIUM)
 - Screener STRONG BUY stocks not currently in portfolio → post as new position decision (urgency: MEDIUM)
+- Market regime shift detected (RISK-ON → CAUTIOUS or CAUTIOUS → RISK-OFF) → post as exposure adjustment decision (urgency: HIGH) — from `market-regime-{date}.json`
+- Market top probability >= 60% → post as risk reduction decision (urgency: HIGH) — from `top-risk-{date}.json`
+- Edge candidate with severity HIGH or CRITICAL → post as investigation decision (urgency: MEDIUM) — from `edge-candidates/{date}/anomalies.json`
 
 For each detected signal, format using the DECISION template:
 
@@ -456,6 +658,36 @@ C. 보류 / 추가 조사 필요
 ```
 
 Post each decision as a separate message (not threaded) to `#효정-의사결정`.
+
+### Phase 5.1: Edge Candidate Discovery (Optional)
+
+After all analysis is complete, automatically detect anomalies and generate research tickets for potential new trading edges. Converts daily observations into a persistent research pipeline. Skip with `skip-edge`.
+
+**Step 5.1a — Feed analysis data:**
+
+Collect inputs from earlier phases:
+- Phase 4 analysis JSON (`outputs/analysis-{date}.json`) — individual stock signals
+- Phase 4.2 regime data (`outputs/market-regime-{date}.json`, if available) — macro context
+- Phase 3 discovery JSON (`outputs/discovery-{date}.json`, if available) — hot stocks
+
+**Step 5.1b — Run edge candidate detection:**
+
+Read the `trading-edge-candidate-agent` skill. Run in daily auto-detect mode:
+1. Scan for volume anomalies (RVOL > 3x with no news catalyst)
+2. Detect unusual price action (gap > 2% against sector direction)
+3. Identify sector divergences from Phase 4.2 data
+4. Flag cross-market correlation breaks
+
+**Step 5.1c — Save research tickets:**
+
+Output to `outputs/edge-candidates/{date}/`:
+- `daily_report.md` — human-readable summary of anomalies
+- `anomalies.json` — structured anomaly list with severity scores
+- `watchlist.csv` — tickers warranting follow-up research
+
+Log the count of new edge candidates in the pipeline summary.
+
+On failure: **Continue** — edge candidate discovery is optional. The pipeline proceeds without research tickets.
 
 ### Phase 5.5: Toss Signal Bridge + Reporting (Optional — via toss-ops-orchestrator)
 
@@ -532,7 +764,12 @@ Report the number of tweets fetched, classified, and posted with channel distrib
 | `skip-screener` | off | Skip Phase 3.5, no multi-factor screening | `/today skip-screener` |
 | `skip-news` | off | Skip Phase 4.5a, no market news context | `/today skip-news` |
 | `skip-sentiment` | off | Skip Phase 4.5b, no sentiment scoring | `/today skip-sentiment` |
+| `skip-regime` | off | Skip Phase 4.2, no market regime diagnosis | `/today skip-regime` |
+| `skip-top-risk` | off | Skip Phase 4.3, no market top risk overlay | `/today skip-top-risk` |
+| `skip-market-env` | off | Skip Phase 4.6, no global market environment context | `/today skip-market-env` |
 | `skip-agent-desk` | off | Skip Phase 4.8, no multi-agent debate analysis | `/today skip-agent-desk` |
+| `skip-edge` | off | Skip Phase 5.1, no edge candidate discovery | `/today skip-edge` |
+| `skip-dq` | off | Skip Phase 5a-DQ, no data quality check | `/today skip-dq` |
 | `skip-docx` | off | Skip Step 5b `.docx` generation | `/today skip-docx` |
 | `skip-quality-gate` | off | Skip Step 5b½ (`ai-quality-evaluator`) | `/today skip-quality-gate` |
 | `skip-report` | off | Stop after Phase 3 (Phases 1+2+3); no 3.5 / 4 / 5 / 6 | `/today skip-report` |
@@ -562,9 +799,11 @@ Actions (execute in order; each depends on the previous completing successfully 
 4. **Phase 3** — `discover_hot_stocks.py` + per-ticker price fetch (unless `skip-discover`).
 5. **Phase 3.5** — `stock_screener.py --all --json` → `outputs/screener-{date}.json` (unless `skip-screener`; optional `--no-sentiment` on script).
 6. **Phase 4** — `daily_stock_check --source db`.
-7. **Phase 4.5** — `alphaear-news` + `alphaear-sentiment` (unless `skip-news` / `skip-sentiment`).
+7. **Phase 4.2–4.6** — Parallel fan-out: market regime (`skip-regime`), top risk (`skip-top-risk`), AlphaEar (`skip-news`/`skip-sentiment`), market environment (`skip-market-env`).
 7.5. **Phase 4.8** — `AgentDesk.run()` multi-agent debate on top BUY/SELL tickers (unless `skip-agent-desk`).
 8. **Phase 5a** — `alphaear-reporter` clustering and narrative sections.
+8.1. **Phase 5.1** — `trading-edge-candidate-agent` anomaly discovery (unless `skip-edge`).
+8.2. **Phase 5a-DQ** — `trading-data-quality-checker` validation (unless `skip-dq`; FAIL → halt report).
 9. **Phase 5b** — Persist JSON artifacts + `node generate-report.js` (unless `skip-docx`).
 10. **Phase 5b½** — `ai-quality-evaluator` loop (unless `skip-quality-gate` or evaluator unavailable → warn and continue).
 11. **Phase 5½** — Manual checklist (data consistency, signals, completeness, date) — flag discrepancies in Slack if any fail.
@@ -618,6 +857,38 @@ Actions:
 5. Generate report and post (Phase 5)
 
 Result: Standard pipeline without hot stock discovery section in the report.
+
+### Example 5: Lightweight pipeline — skip all new market intelligence phases
+
+User says: "today skip-regime skip-top-risk skip-market-env skip-edge skip-dq"
+
+Actions:
+1. Check data freshness (Phase 1)
+2. Sync data (Phase 2)
+3. Discover hot stocks (Phase 3)
+4. Run stock analysis (Phase 4)
+5. Skip Phases 4.2, 4.3, 4.6, 5.1, 5a-DQ
+6. Run AlphaEar news + sentiment (Phase 4.5) — still active unless separately skipped
+7. Generate report and post (Phase 5) — regime/top-risk/environment/edge sections show "N/A"
+
+Result: Faster pipeline equivalent to the pre-enhancement baseline, useful when market intelligence APIs are down or during weekends/holidays.
+
+### Example 6: Full pipeline with regime and edge, no trading desk debate
+
+User says: "today skip-agent-desk"
+
+Actions:
+1. Check data freshness (Phase 1)
+2. Sync data (Phase 2)
+3. Discover hot stocks (Phase 3)
+4. Run stock analysis (Phase 4)
+5. Parallel fan-out: market regime (4.2) + top risk (4.3) + AlphaEar (4.5) + market environment (4.6)
+6. Skip Phase 4.8 (agent desk)
+7. Edge candidate discovery (Phase 5.1)
+8. Data quality check (Phase 5a-DQ)
+9. Generate report with all market intelligence sections and post (Phase 5)
+
+Result: Complete market intelligence pipeline without the computationally expensive multi-agent debate phase. Report includes regime dashboard, top risk, global market snapshot, and edge candidates.
 
 ## Troubleshooting
 

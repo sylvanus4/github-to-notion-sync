@@ -6,7 +6,7 @@ description: "Run daily data sync, hot stock discovery, analysis, and report pip
 
 ## Skill Reference
 
-Read and follow the skill at `.cursor/skills/today/SKILL.md`.
+Read and follow the skill at `.cursor/skills/pipeline/today/SKILL.md`.
 
 ## Your Task
 
@@ -24,6 +24,11 @@ Determine the **mode** from user input:
 - **skip-slack**: keyword → skip Slack posting (Step 6c)
 - **skip-news**: keyword → skip Phase 4.5a (market context from alphaear-news)
 - **skip-sentiment**: keyword → skip Phase 4.5b (sentiment scoring for BUY/SELL stocks)
+- **skip-regime**: keyword → skip Phase 4.2 (market regime diagnosis)
+- **skip-top-risk**: keyword → skip Phase 4.3 (market top risk overlay)
+- **skip-market-env**: keyword → skip Phase 4.6 (global market environment context)
+- **skip-edge**: keyword → skip Phase 5.1 (edge candidate discovery)
+- **skip-dq**: keyword → skip Phase 5a-DQ (data quality check)
 - **skip-report**: keyword → run Phase 1 + 2 + 3 only (no analysis or report)
 - **No arguments**: run the full pipeline
 
@@ -103,7 +108,25 @@ python -m scripts.daily_stock_check --source db
 
 Capture the JSON output with per-stock signals. The output now includes `oscillators` (RSI, MACD, Stochastic, ADX) alongside `turtle` and `bollinger` signals. The `overall_signal` is a 3-way combination of all three signal groups.
 
-### Step 5.5: Market Context (Phase 4.5) — Optional
+### Step 5.2–5.6: Post-Analysis Parallel Fan-Out (Phases 4.2, 4.3, 4.5, 4.6) — Optional
+
+These four phases run as **parallel subagents** since they are independent of each other. Each can be individually skipped. Wait for all to complete before proceeding.
+
+**Step 5.2 — Market Regime Diagnosis (skip if `skip-regime`):**
+
+1. Read the `trading-market-breadth-analyzer`, `trading-uptrend-analyzer`, and `trading-sector-analyst` skills
+2. Compute a 0-100 composite breadth score and classify the regime as RISK-ON / CAUTIOUS / RISK-OFF
+3. Save result to `outputs/market-regime-{date}.json`
+4. If any skill fails, continue — report shows "N/A" for regime
+
+**Step 5.3 — Market Top Risk Overlay (skip if `skip-top-risk`):**
+
+1. Read the `trading-market-top-detector` skill
+2. Compute market top probability via O'Neil Distribution Days, Minervini deterioration, and defensive sector rotation
+3. Save result to `outputs/top-risk-{date}.json`
+4. Requires `FMP_API_KEY` for market data; if missing, skip and log warning
+
+**Step 5.5 — Market Context (Phase 4.5) — Optional:**
 
 Skip entirely if `skip-news` AND `skip-sentiment` are set. Each sub-step is independent and optional.
 
@@ -123,6 +146,33 @@ Skip entirely if `skip-news` AND `skip-sentiment` are set. Each sub-step is inde
 4. Merge sentiment scores into the analysis JSON results: add `"sentiment": { "score": 0.72, "summary": "..." }` to each scored stock
 5. Save updated analysis JSON back to `outputs/analysis-{date}.json`
 6. If the skill fails, continue — the report shows "N/A" for sentiment
+
+**Step 5.6 — Market Environment Context (skip if `skip-market-env`):**
+
+1. Read the `trading-market-environment-analysis` skill
+2. Analyze global markets: US indices, European, Asian, forex, commodities, economic indicators
+3. Save result to `outputs/market-env-{date}.json`
+4. If the skill fails, continue — report shows "N/A" for market environment
+
+### Step 5.7: Edge Candidate Discovery (Phase 5.1) — Optional
+
+Skip if `skip-edge` is set.
+
+1. Read the `trading-edge-candidate-agent` skill
+2. Feed today's analysis JSON and screener JSON as EOD observations
+3. Generate ranked anomaly/hypothesis cards
+4. Save result to `outputs/edge-candidates/{date}/anomalies.json`
+5. If the skill fails, continue — report omits edge section
+
+### Step 5.8: Data Quality Check (Phase 5a-DQ) — Optional
+
+Skip if `skip-dq` is set.
+
+1. Read the `trading-data-quality-checker` skill
+2. Run validation on today's analysis, screener, and report draft documents
+3. Save result to `outputs/dq-{date}.json`
+4. **If result is `FAIL`**: HALT report generation. Post a Slack warning to `#h-report` and stop.
+5. **If result is `PASS_WITH_WARNINGS`**: Continue, but include Data Quality Appendix in report.
 
 ### Step 6: Report and Post (Phase 5)
 
@@ -165,9 +215,14 @@ Summarize what was done:
 - Phase 2: Records imported and fetched (if run)
 - Phase 3: Hot stocks discovered (index, ticker, turnover) — or skipped
 - Phase 4: Stocks analyzed with Turtle + Bollinger + Oscillator signals, signal distribution
+- Phase 4.2: Market regime diagnosis — regime label and score (or skipped)
+- Phase 4.3: Market top risk overlay — probability and level (or skipped)
 - Phase 4.5a: Market news context fetched (or skipped)
 - Phase 4.5b: Sentiment scoring for BUY/SELL stocks (or skipped)
+- Phase 4.6: Market environment context — global indices, VIX, FX (or skipped)
 - Phase 5a: Report content generated
+- Phase 5.1: Edge candidate discovery — anomaly count and severity (or skipped)
+- Phase 5a-DQ: Data quality check — PASS/FAIL/WARNINGS (or skipped)
 - Phase 5b: .docx report saved to `outputs/reports/daily-{date}.docx` (or skipped)
 - Phase 5c: Summary posted to Slack (or skipped if dry-run)
 
