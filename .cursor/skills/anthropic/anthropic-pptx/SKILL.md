@@ -249,6 +249,23 @@ pdftoppm -jpeg -r 150 -f N -l N output.pdf slide-fixed
 **Actions:** Gather requirements, apply the document creation workflow, and produce the artifact.
 **Result:** Professional-quality output file in the specified format.
 
+---
+
+## Output Discipline
+
+- Do not add slides beyond what was requested — a 5-slide topic does not need 15 slides
+- Do not pad slides with generic placeholder text or empty layouts
+- Match slide count to content depth; fewer polished slides beat many thin ones
+- Do not add decorative elements that distract from the content (accent lines under titles are explicitly forbidden)
+- Try the simplest layout that serves the content first
+
+## Honest Reporting
+
+- If slide generation fails or visual QA reveals issues, report them with specifics
+- Never claim "presentation created successfully" when QA reveals overlapping elements or broken layouts
+- If thumbnail generation or PDF conversion fails, report the failure — do not silently skip
+- When QA passes with no issues, state it plainly without unnecessary disclaimers
+
 ## Error Handling
 
 | Issue | Resolution |

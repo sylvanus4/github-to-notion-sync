@@ -323,6 +323,38 @@ with open("encrypted.pdf", "wb") as output:
 - If you need to fill out a PDF form, follow the instructions in FORMS.md
 - For troubleshooting guides, see REFERENCE.md
 
+---
+
+## Output Discipline
+
+- Do not add pages or sections beyond what was requested
+- Match PDF complexity to the task — simple text extraction does not need reportlab
+- Try pypdf or pdfplumber first; escalate to reportlab only when creating new PDFs with complex layouts
+- Do not add watermarks, headers, footers, or formatting elements unless explicitly requested
+
+## Verification
+
+Before returning any created or modified PDF:
+
+1. **Page count**: `python -c "from pypdf import PdfReader; print(len(PdfReader('output.pdf').pages))"`
+2. **Text extraction**: `pdftotext output.pdf - | head -30` — confirm key content is present
+3. **Visual check** (for created PDFs): `pdftoppm -jpeg -r 150 -l 1 output.pdf preview` — inspect first page
+
+Report format:
+
+```
+### Check: PDF output verification
+**Command run:** [exact command]
+**Output observed:** [actual output]
+**Result:** PASS or FAIL
+```
+
+## Honest Reporting
+
+- If PDF creation fails or text extraction shows missing content, report it with the error output
+- Never claim "PDF created successfully" without verifying page count and content
+- If OCR or image extraction fails due to missing dependencies, report the specific missing tool
+
 ## Examples
 
 ### Example 1: Create artifact

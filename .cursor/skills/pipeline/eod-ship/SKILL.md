@@ -283,3 +283,32 @@ User runs `/eod-ship --dry-run` to preview.
 - **ai-platform-webui**: Never create PRs or merge — tmp-only mode
 - **Always return** to original working directory after processing each project
 - **Always post** Slack message as the authenticated user, never impersonate
+
+## Coordinator Synthesis
+
+When delegating to subagents:
+
+- **Never use lazy delegation.** Provide specific inputs (file paths, data, context) to every subagent — not "based on your findings, do X."
+- **Purpose statement required:** Every subagent prompt must include why the task matters and how its output is used downstream.
+- **Continue vs Spawn decision:**
+  - Continue (resume) when worker context overlaps with the next task or fixing a previous failure
+  - Spawn fresh when verifying another worker's output or when previous approach was fundamentally wrong
+- Use `model: "fast"` for exploration/read-only subagents; default model for generation/analysis
+
+## Honest Reporting
+
+- Report phase outcomes faithfully: if a phase fails, say so with the error output
+- Never claim "pipeline complete" when phases were skipped or failed
+- Never suppress failing phases to manufacture a green summary
+- When a phase succeeds, state it plainly without unnecessary hedging
+- The Slack summary must accurately reflect what happened — not what was hoped
+
+## Subagent Contract
+
+Subagent prompts must include:
+- Always use absolute file paths (subagent cwd may differ)
+- Return `{ status, file, summary }` for orchestrator context efficiency
+- Include code snippets only when exact text is load-bearing
+- Do not recap files merely read — summarize findings
+- Final response: concise report of what was done, key findings, files changed
+- Do not use emojis

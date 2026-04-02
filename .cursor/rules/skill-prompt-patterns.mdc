@@ -1,0 +1,178 @@
+---
+description: "Reusable prompt engineering patterns for SKILL.md files, distilled from Claude Code system prompt architecture. Reference this rule when creating or upgrading skills."
+globs:
+  - ".cursor/skills/**/*.md"
+alwaysApply: false
+---
+
+# Skill Prompt Engineering Patterns
+
+8 patterns extracted from Claude Code's internal prompt architecture. Apply when creating or upgrading SKILL.md files.
+
+## Pattern 1: Sectioned Prompt Structure
+
+Organize skill instructions into distinct sections. Each section has a clear purpose and boundary.
+
+```
+## Role
+[Expert identity and domain — 1-2 sentences]
+
+## Constraints
+[What NOT to do — boundaries, anti-patterns, safety]
+
+## Domain Behavior
+[Step-by-step task execution — the core workflow]
+
+## Tools
+[Which tools to use and when — prioritize dedicated tools over Bash]
+
+## Output Format
+[Expected deliverables — file types, structure, naming]
+
+## Verification
+[How to prove the work is correct — commands to run, checks to pass]
+```
+
+Do NOT mix role definition with constraints. Do NOT embed tool guidance inside domain behavior. Each section is self-contained.
+
+## Pattern 2: Anti-Gold-Plating
+
+Add to any skill that generates code, documents, or artifacts:
+
+- Do not add features, sections, or embellishments beyond what was asked
+- Do not add error handling for scenarios that cannot happen in this context
+- Do not create abstractions or templates for one-time operations
+- Try the simplest approach first; escalate complexity only when simple fails
+- Three similar lines are better than a premature abstraction
+
+For document generation skills specifically:
+- Do not add placeholder sections with "[TBD]" or "[Insert here]"
+- Do not pad documents with generic boilerplate unrelated to the content
+- Match document length to content depth — a 2-page topic does not need 10 pages
+
+## Pattern 3: Verification-Before-Completion
+
+Before reporting any task complete, verify it actually works. Structure verification as:
+
+```
+### Check: [what you are verifying]
+**Command run:** [exact command executed]
+**Output observed:** [actual output — copy-paste, not paraphrased]
+**Result:** PASS or FAIL (with Expected vs Actual if FAIL)
+```
+
+For document generation: render or open the output and confirm structure, formatting, page count.
+For pipeline skills: confirm each phase produced its expected output file.
+For code changes: run tests, lint, type-check.
+
+End verification with: `VERDICT: PASS`, `VERDICT: FAIL`, or `VERDICT: PARTIAL` (environmental limitation only).
+
+A check without a command-run block is not a PASS — it is a skip.
+
+## Pattern 4: Coordinator Synthesis
+
+For orchestrator skills that delegate to subagents:
+
+**Never use lazy delegation.** The coordinator must synthesize findings into specific specs before dispatching work.
+
+Anti-patterns (NEVER use):
+- "Based on your findings, implement the fix"
+- "Based on the research, write the report"
+- "Take the results and generate the output"
+
+Required pattern: Include file paths, line numbers, exact changes, or concrete data points in every delegation prompt.
+
+Add a **purpose statement** to every subagent prompt:
+- "This analysis feeds into the daily Slack briefing. Focus on actionable signals."
+- "This review gates a PR merge. Flag only issues that block shipping."
+
+**Continue vs Spawn decision:**
+
+| Situation | Action |
+|-----------|--------|
+| Worker context overlaps with next task | Continue (SendMessage) |
+| Investigation was broad, implementation is narrow | Spawn fresh |
+| Fixing a failure from a previous attempt | Continue |
+| Verifying another worker's output | Spawn fresh |
+| Previous approach was fundamentally wrong | Spawn fresh |
+
+## Pattern 5: Honest Reporting
+
+Add to any skill that produces status reports, quality scores, or pass/fail results:
+
+- Report outcomes faithfully: if a step fails, say so with the relevant output
+- Never claim "all checks pass" when output shows failures
+- Never suppress or simplify failing checks to manufacture a green result
+- Equally, when a check passes, state it plainly — do not hedge confirmed results with unnecessary disclaimers
+- Never characterize incomplete or broken work as done
+- The goal is an accurate report, not a defensive one
+
+## Pattern 6: Subagent Contract
+
+Add to any skill that spawns Task tool subagents:
+
+```
+Subagent instructions must include:
+- Always use absolute file paths (subagent cwd resets between tool calls)
+- Share file paths relevant to the task in the final response
+- Include code snippets only when the exact text is load-bearing (a bug found, a signature needed)
+- Do not recap code merely read — summarize what was learned
+- Final response: concise report of what was done, key findings, and files changed
+- Do not use emojis
+```
+
+## Pattern 7: Rationalization Detection
+
+Add to review, audit, and quality-gate skills:
+
+Recognize these rationalizations and do the opposite:
+
+| Rationalization | Reality |
+|----------------|---------|
+| "The code looks correct based on my reading" | Reading is not verification. Run it. |
+| "The implementer's tests already pass" | The implementer is an LLM. Verify independently. |
+| "This is probably fine" | Probably is not verified. Run it. |
+| "I don't have access to test this" | Did you check all available tools? |
+| "This would take too long" | Not your call. Run the check. |
+| "Let me check the code structure" | No. Start the server and hit the endpoint. |
+
+If you catch yourself writing an explanation instead of running a command, stop. Run the command.
+
+Before issuing PASS: must include at least one adversarial probe (boundary input, concurrent request, missing data, permission edge case).
+
+Before issuing FAIL: check if the issue is already handled elsewhere, intentional by design, or not actionable without breaking an external contract.
+
+## Pattern 8: Domain Memory
+
+For skills that run repeatedly and accumulate knowledge, add domain-specific memory update instructions:
+
+```
+**Update memory** as you discover [domain-specific items].
+Write concise notes about what you found, where, and why it matters.
+
+Examples of what to record:
+- [domain item 1]
+- [domain item 2]
+- [domain item 3]
+```
+
+Domain-specific examples:
+
+| Skill Domain | Memory Items |
+|-------------|-------------|
+| Code review | Patterns, style conventions, common issues, architectural decisions |
+| Trading | Signal accuracy, false positive patterns, ticker-specific behaviors |
+| Paper review | Research themes, methodology patterns, institution quality signals |
+| Pipeline ops | Failure modes, timing patterns, API rate limit behaviors |
+| Document generation | Template preferences, formatting conventions, content depth expectations |
+
+## Application Guide
+
+| Skill Type | Required Patterns | Optional Patterns |
+|-----------|------------------|-------------------|
+| Document generation | 1, 2, 3, 5 | 8 |
+| Pipeline orchestrator | 1, 4, 5 | 6, 8 |
+| Code review / audit | 1, 3, 5, 7 | 6 |
+| Multi-agent orchestrator | 1, 4, 5, 6 | 7 |
+| Subagent-heavy skill | 1, 6 | 5 |
+| Knowledge-accumulating skill | 1, 8 | 5 |

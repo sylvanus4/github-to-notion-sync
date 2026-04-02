@@ -453,6 +453,40 @@ const doc = new Document({
 
 ---
 
+## Output Discipline
+
+- Do not add sections, chapters, or formatting elements beyond what was requested
+- Do not pad documents with placeholder text ("[TBD]", "[Insert here]") or generic boilerplate
+- Match document length to content depth — a 2-page topic does not need 10 pages
+- Try the simplest document structure first; add complexity only when content requires it
+- Three paragraphs of substance are better than ten pages of filler
+
+## Verification
+
+Before returning any generated or edited .docx file, verify it:
+
+1. **Validate**: Run `python scripts/office/validate.py <output.docx>` — must pass without errors
+2. **Content check**: Run `pandoc <output.docx> -o /dev/stdout --to plain | head -50` — confirm headings, sections, and key content are present
+3. **Visual check** (for complex documents): Convert to images and inspect layout
+
+```text
+### Check: Document validation
+**Command run:** `python scripts/office/validate.py output.docx`
+**Output observed:** [paste actual output]
+**Result:** PASS or FAIL
+```
+
+Report outcomes faithfully. If validation fails, say so with the error output. Never claim "document created successfully" without running validation.
+
+## Honest Reporting
+
+- If a step fails (validation error, XML corruption, missing dependency), report it with the relevant output
+- Never claim "document created successfully" when validation shows errors
+- If LibreOffice conversion fails, report the failure — do not silently skip the step
+- When a check passes, state it plainly without unnecessary hedging
+
+---
+
 ## Dependencies
 
 - **pandoc**: Text extraction

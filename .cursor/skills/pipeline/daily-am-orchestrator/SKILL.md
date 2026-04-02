@@ -11,7 +11,7 @@ description: >-
   or evening pipeline (use daily-pm-orchestrator).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "orchestration"
 ---
 # Daily AM Orchestrator — Morning Pipeline (7:00 AM)
@@ -24,7 +24,58 @@ Orchestrate 8 phases of morning automation across 15+ skills with parallel execu
 - **Stock Slack**: `#h-report` (Channel ID: `C0AKHQWJBLZ`)
 - **Research Slack**: `#deep-research-trending` (Channel ID: `C0AN34G4QHK`)
 - **Design doc**: `docs/daily-automation-guide.md`
-- **Pipeline state**: `outputs/pipeline-state/YYYY-MM-DD-am.json`
+- **Pipeline state (canonical)**: `outputs/daily-am/{date}/manifest.json` per Pipeline Output Protocol; optional compact snapshot: `outputs/pipeline-state/YYYY-MM-DD-am.json`
+
+## Pipeline Output Protocol (File-First)
+
+This orchestrator uses **file-first persistence** so parallel phases, resumability, and Phase 8 stay context-lean.
+
+- **Output directory**: `outputs/daily-am/{date}/` where `{date}` is `YYYY-MM-DD` (project root).
+- **Per-phase files**: Each phase writes exactly one JSON file: `outputs/daily-am/{date}/phase-{N}-{label}.json` (e.g. `phase-0-preflight.json`, `phase-4-market-intelligence.json`).
+- **Manifest**: `outputs/daily-am/{date}/manifest.json` tracks the full run: pipeline name, date, start/end timestamps, every phase entry (status, output filename, timing, one-line summary), flags, overall status, warnings.
+- **Subagent return contract**: Subagents and parallel phase runners return **only** `{ "status": "...", "file": "<path to phase JSON>", "summary": "<one line>" }` to the orchestrator. Large payloads live in the file, not in chat context.
+- **Phase 8 rule**: The consolidated Slack briefing **must** assemble content by **reading** `manifest.json` and each `phase-*.json` under that `{date}` — **not** from conversation memory, prior inline summaries, or unstored subagent prose.
+
+### manifest.json schema
+
+```json
+{
+  "pipeline": "daily-am",
+  "date": "YYYY-MM-DD",
+  "started_at": "ISO timestamp",
+  "completed_at": null,
+  "phases": [
+    {
+      "id": "phase-{N}",
+      "label": "{label}",
+      "status": "completed|skipped|failed",
+      "output_file": "phase-{N}-{label}.json",
+      "started_at": "ISO timestamp",
+      "elapsed_ms": 5200,
+      "summary": "one-line summary"
+    }
+  ],
+  "flags": [],
+  "overall_status": "completed|completed_with_warnings|failed",
+  "warnings": []
+}
+```
+
+On completion, set `completed_at`, `overall_status`, and append the Phase 8 entry. Optionally write a compact duplicate to `outputs/pipeline-state/YYYY-MM-DD-am.json` for tools that expect the legacy path.
+
+### Output artifacts (phase JSON files)
+
+| Phase | Label | Output file |
+| --- | --- | --- |
+| 0 | preflight | `phase-0-preflight.json` |
+| 1 | git-sync | `phase-1-git-sync.json` |
+| 2 | google-workspace | `phase-2-google-workspace.json` |
+| 3 | email-intelligence | `phase-3-email-intelligence.json` |
+| 4 | market-intelligence | `phase-4-market-intelligence.json` |
+| 5 | news-content | `phase-5-news-content.json` |
+| 6 | ai-research | `phase-6-ai-research.json` |
+| 7 | dev-intelligence | `phase-7-dev-intelligence.json` |
+| 8 | consolidated-briefing | `phase-8-consolidated-briefing.json` |
 
 ## Usage
 
@@ -43,8 +94,9 @@ Orchestrate 8 phases of morning automation across 15+ skills with parallel execu
 
 ### Initialization
 
-1. Record start time: `pipeline_start = now()`
-2. Initialize results tracker:
+1. Record start time: `pipeline_start = now()`; set `out_dir = outputs/daily-am/{date}/` and create `out_dir` if missing.
+2. Initialize `manifest.json` at `out_dir/manifest.json` with `pipeline: "daily-am"`, `date`, `started_at` (ISO), `completed_at: null`, `phases: []`, `flags` (parsed CLI flags), `overall_status: "running"`, `warnings: []`.
+3. Initialize in-memory results tracker (for writing phase files only — Phase 8 does not trust this for Slack text):
    ```python
    results = {
      "date": "YYYY-MM-DD",
@@ -55,9 +107,9 @@ Orchestrate 8 phases of morning automation across 15+ skills with parallel execu
      "status": "running"
    }
    ```
-3. Determine if today is a trading day (skip market on weekends/KRX holidays)
-4. Determine if it's Friday (for any Friday-specific behavior)
-5. Parse flags (`--skip-phase`, `--only-phase`, `--skip-market`, etc.)
+4. Determine if today is a trading day (skip market on weekends/KRX holidays)
+5. Determine if it's Friday (for any Friday-specific behavior)
+6. Parse flags (`--skip-phase`, `--only-phase`, `--skip-market`, etc.) and merge into `manifest.json` → `flags`
 
 ---
 
@@ -82,6 +134,11 @@ Read and follow the `setup-doctor` skill (`.cursor/skills/automation/setup-docto
 results["phases"]["phase0"] = {"status": "pass|fail", "checks": {...}, "duration_s": N}
 ```
 
+**Persist & manifest**:
+1. Write full phase payload to `outputs/daily-am/{date}/phase-0-preflight.json` (include `results["phases"]["phase0"]` and any check details).
+2. Update `manifest.json`: append phase entry `id: phase-0`, `label: preflight`, `status` mapped to `completed|failed`, `output_file: phase-0-preflight.json`, `started_at`, `elapsed_ms`, `summary` (one line).
+3. Subagent/orchestrator return to parent: `{ "status", "file": ".../phase-0-preflight.json", "summary" }` only.
+
 ---
 
 ### Phase 1: Git Sync (sod-ship)
@@ -104,6 +161,11 @@ results["phases"]["phase1"] = {
 ```
 
 **On failure**: Log per-project errors, continue (non-critical phases can still run).
+
+**Persist & manifest**:
+1. Write full phase payload to `outputs/daily-am/{date}/phase-1-git-sync.json`.
+2. Update `manifest.json` with `phase-1` / `git-sync` entry and timing/summary.
+3. Return only `{ "status", "file", "summary" }` upstream.
 
 ---
 
@@ -131,6 +193,11 @@ results["phases"]["phase2"] = {
 }
 ```
 
+**Persist & manifest**:
+1. Write full phase payload to `outputs/daily-am/{date}/phase-2-google-workspace.json`.
+2. Update `manifest.json` with `phase-2` / `google-workspace` entry.
+3. Return only `{ "status", "file", "summary" }` upstream. Phase 3 sub-skills should read reply-needed counts/paths from this file or from skills’ own outputs — not from orchestrator chat history.
+
 ---
 
 ### Phase 3: Email Intelligence
@@ -145,7 +212,7 @@ Run 4 email intelligence sub-skills sequentially:
 
 Read and follow `email-auto-reply` skill (`.cursor/skills/pipeline/email-auto-reply/SKILL.md`).
 
-- Read reply-needed emails from Phase 2 output
+- Read reply-needed emails from Phase 2 persisted output (`phase-2-google-workspace.json` or paths recorded there; do not rely on unstored orchestrator context)
 - Retrieve context from Cognee knowledge graph and recall memory
 - Generate 2-3 draft reply options per email
 - Post drafts to Slack `#효정-할일` for async human approval
@@ -185,6 +252,11 @@ results["phases"]["phase3"] = {
 }
 ```
 
+**Persist & manifest**:
+1. Write full phase payload to `outputs/daily-am/{date}/phase-3-email-intelligence.json`.
+2. Update `manifest.json` with `phase-3` / `email-intelligence` entry (`status: skipped` if phase skipped).
+3. Return only `{ "status", "file", "summary" }` upstream.
+
 ---
 
 ### Phase 4: Market Intelligence (today)
@@ -216,6 +288,11 @@ results["phases"]["phase4"] = {
   "duration_s": N
 }
 ```
+
+**Persist & manifest**:
+1. Write full phase payload to `outputs/daily-am/{date}/phase-4-market-intelligence.json` (if skipped, file still contains `{ "skipped": true, "reason": "..." }`).
+2. Update `manifest.json` with `phase-4` / `market-intelligence` entry.
+3. Return only `{ "status", "file", "summary" }` upstream.
 
 ---
 
@@ -258,6 +335,11 @@ results["phases"]["phase5"] = {
 }
 ```
 
+**Persist & manifest**:
+1. Write full phase payload to `outputs/daily-am/{date}/phase-5-news-content.json`.
+2. Update `manifest.json` with `phase-5` / `news-content` entry.
+3. Return only `{ "status", "file", "summary" }` upstream.
+
 ---
 
 ### Phase 6: AI Research Intelligence
@@ -296,6 +378,11 @@ results["phases"]["phase6"] = {
 }
 ```
 
+**Persist & manifest**:
+1. Write full phase payload to `outputs/daily-am/{date}/phase-6-ai-research.json`.
+2. Update `manifest.json` with `phase-6` / `ai-research` entry.
+3. Return only `{ "status", "file", "summary" }` upstream.
+
 ---
 
 ### Phase 7: Dev Intelligence
@@ -332,6 +419,11 @@ results["phases"]["phase7"] = {
 }
 ```
 
+**Persist & manifest**:
+1. Write full phase payload to `outputs/daily-am/{date}/phase-7-dev-intelligence.json`.
+2. Update `manifest.json` with `phase-7` / `dev-intelligence` entry.
+3. Return only `{ "status", "file", "summary" }` upstream.
+
 ---
 
 ### Phase 8: Consolidated Morning Briefing
@@ -340,9 +432,11 @@ results["phases"]["phase7"] = {
 
 **Skip if** `--no-slack` is set.
 
+**Input source (mandatory)**: Do **not** build the briefing from orchestrator memory or prior chat turns. **Read** `outputs/daily-am/{date}/manifest.json`, then **read** each `phase-0-preflight.json` … `phase-7-dev-intelligence.json` under the same directory. Derive all counts, status lines, and `[INCOMPLETE]` markers **only** from these files (and from explicit paths referenced inside them, e.g. report paths).
+
 Post a master summary to `#효정-할일` using `slack_send_message` MCP tool.
 
-**Main message** (Slack mrkdwn):
+**Main message** (Slack mrkdwn) — field values must be filled from phase files, not from recall:
 
 ```
 *☀️ Morning Pipeline 완료* (YYYY-MM-DD, Nm Ns)
@@ -358,9 +452,12 @@ Post a master summary to `#효정-할일` using `slack_send_message` MCP tool.
 {[INCOMPLETE] sections if any phase failed}
 ```
 
-**Thread replies** for each phase with detailed results.
+**Thread replies** for each phase with detailed results — each reply body should be composed from the corresponding `phase-{N}-*.json` contents.
 
-Save pipeline state to `outputs/pipeline-state/YYYY-MM-DD-am.json`.
+**Persist & manifest**:
+1. Write `outputs/daily-am/{date}/phase-8-consolidated-briefing.json` containing: pointers to posted Slack timestamps (if any), `main_message_text`, per-thread summaries, and `sources: ["manifest.json", "phase-0-...json", ...]`.
+2. Update `manifest.json`: append `phase-8` / `consolidated-briefing`, set `completed_at` to ISO now, set `overall_status` to `completed`, `completed_with_warnings`, or `failed` based on phase statuses in the manifest.
+3. Optionally duplicate a compact snapshot to `outputs/pipeline-state/YYYY-MM-DD-am.json` for legacy consumers.
 
 ---
 
@@ -380,6 +477,8 @@ After Phase 1 (Git Sync) completes, launch the following as parallel subagents:
 Total max concurrent subagents: 4 (Phases 4, 5, 6, 7 running in parallel).
 
 Phase 2 → Phase 3 runs sequentially as a chain, concurrent with Phases 4-7.
+
+Each parallel phase runner **persists** its own `phase-{N}-{label}.json` and updates `manifest.json` when complete; the orchestrator collects only `{ status, file, summary }` from each subagent.
 
 ---
 
@@ -412,6 +511,8 @@ Detection: Use Python `datetime.today().weekday()` (5=Sat, 6=Sun) or `is_trading
 | All phases fail | Post minimal alert: "Morning pipeline failed — check logs" |
 
 Each phase catches its own errors and never propagates failures to other parallel phases.
+
+**Recovery / debugging**: Use `outputs/daily-am/{date}/manifest.json` to see phase order and status; inspect the latest successful `phase-{N}-{label}.json` files to resume mentally or re-run from a failed phase. If Phase 8 fails after posts, Slack content can be reconstructed from phase JSON files without relying on session context.
 
 ---
 
@@ -464,5 +565,34 @@ Full pipeline but results only shown in chat, not posted to Slack.
 - Never delete calendar events
 - Never accept meeting proposals automatically — propose for human approval
 - Never commit to production branches without human confirmation
-- Pipeline state is always persisted for debugging
+- Pipeline state is always persisted for debugging (`manifest.json` + per-phase JSON under `outputs/daily-am/{date}/`)
 - Individual phase failures never cascade to other phases
+
+## Coordinator Synthesis
+
+When delegating to subagents:
+
+- **Never use lazy delegation.** Provide specific inputs (file paths, data, context) to every subagent — not "based on your findings, do X."
+- **Purpose statement required:** Every subagent prompt must include why the task matters and how its output is used downstream — e.g., "This work feeds the consolidated AM Slack briefing; phase outputs must match `outputs/daily-am/{date}/manifest.json` and `phase-{N}-{label}.json` so the final post reflects real phase status."
+- **Continue vs Spawn decision:**
+  - Continue (resume) when worker context overlaps with the next task or fixing a previous failure
+  - Spawn fresh when verifying another worker's output or when previous approach was fundamentally wrong
+- Use `model: "fast"` for exploration/read-only subagents; default model for generation/analysis
+
+## Honest Reporting
+
+- Report phase outcomes faithfully: if a phase fails, say so with the error output
+- Never claim "pipeline complete" when phases were skipped or failed
+- Never suppress failing phases to manufacture a green summary
+- When a phase succeeds, state it plainly without unnecessary hedging
+- The Slack summary must accurately reflect what happened — not what was hoped
+
+## Subagent Contract
+
+Subagent prompts must include:
+- Always use absolute file paths (subagent cwd may differ)
+- Return `{ status, file, summary }` for orchestrator context efficiency
+- Include code snippets only when exact text is load-bearing
+- Do not recap files merely read — summarize findings
+- Final response: concise report of what was done, key findings, files changed
+- Do not use emojis

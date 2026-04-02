@@ -295,3 +295,13 @@ Phase 완료 후 다음을 확인한다:
 | `references/skill-authoring.md` | 스킬 작성 가이드 + 테스트 방법론 |
 | `references/team-examples.md` | 실제 하네스 구성 예시 3종 (코드 리뷰, 문서 생성, 리서치) |
 | `references/qa-guide.md` | QA 에이전트 설계 가이드 (경계면 교차 비교) |
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

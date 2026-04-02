@@ -50,6 +50,31 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
 
+---
+
+## Output Discipline
+
+- Build what was asked for — do not add extra pages, routes, or components beyond the request
+- Do not add error handling for scenarios that cannot occur in the requested context
+- Match implementation complexity to the aesthetic vision; do not over-engineer simple components
+- If the request is for a single component, deliver a single component — not a full application
+
+## Verification
+
+Before delivering frontend code:
+
+1. **Syntax check**: Ensure the code runs without errors (open HTML in browser, or `npx tsc --noEmit` for TypeScript)
+2. **Visual check**: Take a screenshot or describe the rendered result against the design intent
+3. **Responsiveness**: Confirm the layout works at mobile (375px), tablet (768px), and desktop (1280px) widths
+
+Report issues found during verification honestly — do not claim "pixel-perfect" without evidence.
+
+## Honest Reporting
+
+- If the generated code has visual defects, report them with specifics
+- Never claim "production-ready" without running at least a syntax check
+- If a requested animation or effect is not feasible with the chosen approach, say so
+
 ## Examples
 
 ### Example 1: Create artifact

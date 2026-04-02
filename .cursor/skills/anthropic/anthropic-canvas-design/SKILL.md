@@ -138,6 +138,38 @@ Take a second pass. Go back to the code and refine/polish further to make this a
 
 To create additional pages when requested, create more creative pages along the same lines as the design philosophy but distinctly different as well. Bundle those pages in the same .pdf or many .pngs. Treat the first page as just a single page in a whole coffee table book waiting to be filled. Make the next pages unique twists and memories of the original. Have them almost tell a story in a very tasteful way. Exercise full creative freedom.
 
+---
+
+## Output Discipline
+
+- Create what was requested — do not add extra pages unless the user explicitly asks for a multi-page piece
+- Do not add decorative elements that dilute the philosophical coherence
+- Match output format to request: one .pdf or .png unless multi-page is specified
+- Do not create template-style outputs — every piece must be a unique expression of the design philosophy
+
+## Verification
+
+Before returning the final artwork:
+
+1. **File exists**: Confirm the .pdf or .png file was written successfully
+2. **Visual inspection**: Open or render the output — confirm nothing overlaps, all elements are within canvas boundaries, and the piece is cohesive
+3. **Philosophy alignment**: Verify the output expresses the design philosophy, not generic clipart
+
+Report format:
+
+```text
+### Check: Canvas output
+**File:** [path to output]
+**Visual inspection:** [description of what was observed]
+**Result:** PASS or FAIL
+```
+
+## Honest Reporting
+
+- If the rendering has visual defects (overlapping text, elements off-canvas), report them before declaring done
+- Never claim "masterpiece" without having verified the output visually
+- If font loading or PDF generation fails, report the failure with the specific error
+
 ## Examples
 
 ### Example 1: Create artifact

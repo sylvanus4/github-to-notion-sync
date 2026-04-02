@@ -141,6 +141,34 @@ python3 scripts/validate_docx.py \
 
 Expected output: `{"passed": true, "hard_violations": 0, ...}`
 
+## Output Discipline
+
+- Generate content for defined slots ONLY — do not invent new sections or appendices
+- Do not pad slot content with filler text to meet character limits
+- Match content depth to the slot's purpose — a 3-sentence executive summary does not need 500 words
+- If a slot is optional and there is no meaningful content for it, leave it empty
+
+## Verification
+
+After generating the populated DOCX, verify before returning:
+
+1. **Validation script**: `python3 scripts/validate_docx.py <output.docx> assets/placeholder-maps/<template_id>.json`
+2. **Content spot-check**: `pandoc <output.docx> -o /dev/stdout --to plain | head -30` — confirm key slot content appears
+
+Report format:
+```text
+### Check: Template compliance
+**Command run:** `python3 scripts/validate_docx.py output.docx ...`
+**Output observed:** [paste actual JSON output]
+**Result:** PASS (0 hard violations) or FAIL (N hard violations)
+```
+
+## Honest Reporting
+
+- If validation reports hard violations, do NOT return the file — report the violations and regenerate
+- Never claim "document generated successfully" when the validation JSON shows `hard_violations > 0`
+- If the template file is missing or corrupt, report it — do not attempt to create a document without a template
+
 ## Prohibited Actions
 
 - Creating styles not in the `allowed_styles` list

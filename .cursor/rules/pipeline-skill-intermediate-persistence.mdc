@@ -1,0 +1,120 @@
+---
+description: "Enforce intermediate result file persistence when creating or modifying pipeline-type skills. Applied during skill generation via create-skill, anthropic-skill-creator, or harness."
+globs: .cursor/skills/**/SKILL.md
+---
+
+# Pipeline Skill Intermediate Result Persistence
+
+When creating or modifying a skill that follows a **pipeline pattern** (Sequential, Parallel + Aggregation, or any multi-phase workflow with 2+ stages), every stage that produces output MUST persist its results to a file before the next stage consumes them.
+
+## Why This Matters
+
+- **Debuggability**: When a later stage fails, all prior outputs are on disk for inspection.
+- **Resumability**: A failed pipeline can restart from the last successful checkpoint instead of re-running everything.
+- **Context efficiency**: Subagents write results to files instead of passing huge payloads through context windows.
+- **Auditability**: Pipeline runs leave a dated artifact trail for quality checks and historical comparison.
+
+## Detection: Is This a Pipeline Skill?
+
+A skill is a **pipeline skill** if ANY of the following are true:
+
+- The SKILL.md describes 2+ sequential phases/steps where one depends on another's output
+- The workflow section uses numbered phases (Phase 1, Phase 2, ...) or sequential steps (Step 1a, Step 1b, ...)
+- The skill composes 2+ other skills in a defined execution order
+- The skill description mentions "pipeline", "orchestrator", "multi-phase", "sequential", or "workflow"
+- The SKILL.md references workflow-patterns (Sequential or Parallel+Sequential combination)
+
+If any condition matches, apply ALL rules below during skill authoring.
+
+## Mandatory Requirements
+
+### 1. Define an Output Directory Convention
+
+Every pipeline skill MUST specify where intermediate files go. Use one of these patterns:
+
+```
+outputs/<skill-name>/{date}/                     # Date-partitioned (preferred for daily pipelines)
+outputs/<skill-name>/                            # Flat (for on-demand pipelines)
+_workspace/<skill-name>/                         # Ephemeral workspace (for temp artifacts)
+```
+
+Document the output directory in the skill's Prerequisites or Workflow section.
+
+### 2. Each Stage MUST Persist Its Output to a File
+
+For every stage that produces data consumed by a later stage:
+
+- **Specify the output file path** with a predictable naming pattern:
+  ```
+  outputs/<skill-name>/{date}/<stage-name>.json
+  outputs/<skill-name>/{date}/<stage-name>.md
+  ```
+- **Use the Write tool** (or a script that writes to disk) — never pass large results solely through context.
+- **Include the file path in the stage description** so the next stage knows where to read from.
+
+Example pattern to follow (from `today` skill):
+
+```
+Phase 3: Screening    → outputs/screener-{date}.json
+Phase 4: Analysis     → outputs/analysis-{date}.json
+Phase 4.5: News       → outputs/news-{date}.json
+Phase 5: Report       → outputs/reports/daily-{date}.docx
+```
+
+### 3. Document the File Flow in a Table
+
+Include an **output artifacts table** in the SKILL.md that maps each stage to its output file:
+
+```markdown
+## Output Artifacts
+
+| Phase | Stage Name         | Output File                                | Skip Flag       |
+| ----- | ------------------ | ------------------------------------------ | --------------- |
+| 1     | Data Collection    | `outputs/<skill>/{date}/collected.json`    | `skip-collect`  |
+| 2     | Analysis           | `outputs/<skill>/{date}/analysis.json`     | `skip-analysis` |
+| 3     | Report Generation  | `outputs/<skill>/{date}/report.md`         | `skip-report`   |
+```
+
+### 4. Error Recovery References Output Files
+
+The error recovery section MUST reference the last successfully written file as the recovery point. Example:
+
+```
+If Phase 3 fails, Phase 2 output at outputs/<skill>/{date}/analysis.json 
+remains valid. Fix the issue and re-run from Phase 3.
+```
+
+### 5. Final Stage Reads from Files, Not Context
+
+The final aggregation or reporting stage MUST read its inputs from the intermediate files, not from in-memory context or prior subagent responses. This ensures the pipeline works even when run across separate sessions or with context compaction.
+
+## Anti-Patterns (NEVER Do These)
+
+| Anti-Pattern | Why It Fails | Correct Pattern |
+| --- | --- | --- |
+| Pass stage output only through context/variables | Context window overflow, lost on compaction | Write to file, read from file |
+| Use hardcoded `/tmp/` paths for intermediate results | Not auditable, lost on restart | Use `outputs/<skill>/` or `_workspace/<skill>/` |
+| Skip file persistence for "simple" 2-stage pipelines | Debugging becomes guesswork | Always persist, even for 2 stages |
+| Write all stage outputs to a single monolithic file | Hard to resume from mid-pipeline | One file per stage |
+| Omit date/run-id from filenames | Overwrites prior runs | Always include `{date}` or `{run-id}` |
+
+## Exemptions
+
+This rule does NOT apply to:
+
+- Single-stage skills (no pipeline structure)
+- Skills that only read data without producing intermediate results
+- Skills where the sole output is a Slack message or API call (no data pipeline)
+- Evaluator-Optimizer loops where the same artifact is refined in place (but the final artifact must still be persisted)
+
+## Verification Checklist
+
+Before declaring a pipeline skill complete, verify:
+
+- [ ] Output directory documented in Prerequisites or Workflow
+- [ ] Every stage that produces data has a specified output file path
+- [ ] Output artifacts table exists in the SKILL.md
+- [ ] Error recovery section references checkpoint files
+- [ ] Final stage reads from files, not from prior context
+- [ ] File naming includes `{date}` or `{run-id}` for traceability
+- [ ] Anti-patterns list is not violated

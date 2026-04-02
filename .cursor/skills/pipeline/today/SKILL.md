@@ -35,6 +35,92 @@ Orchestrates a multi-phase pipeline: optional setup-doctor pre-flight, data fres
 
 > **Note**: No API keys (Claude, Slack, etc.) are required. API keys are only needed by the separate GitHub Actions pipeline.
 
+## Pipeline Output Protocol
+
+All intermediate results are persisted to `outputs/today/{date}/` with a manifest file tracking completion status. The report generation phase (Phase 5) reads **exclusively** from these files — never from in-context conversation history. This prevents context window degradation from causing incomplete reports.
+
+### Output Directory Structure
+
+```
+outputs/today/{date}/
+  manifest.json                # pipeline status tracker
+  phase-0-doctor.json          # Phase 0 output (setup-doctor)
+  phase-1-freshness.json       # Phase 1 output
+  phase-1.5-toss-monitor.json  # Phase 1.5 output (toss snapshot)
+  phase-2-sync.json            # Phase 2 output
+  phase-2.5-fundamentals.json  # Phase 2.5 output
+  phase-3-discovery.json       # Phase 3 output
+  phase-3.5-screener.json      # Phase 3.5 output
+  phase-4-analysis.json        # Phase 4 main analysis
+  phase-4.2-regime.json        # Phase 4.2 market regime
+  phase-4.3-top-risk.json      # Phase 4.3 market top risk
+  phase-4.5-alphaear.json      # Phase 4.5 AlphaEar intelligence
+  phase-4.6-market-env.json    # Phase 4.6 market environment
+  phase-4.8-agent-desk.json    # Phase 4.8 agent desk decisions
+  phase-5a-dq.json             # Phase 5a-DQ data quality
+  phase-5.1-edge.json          # Phase 5.1 edge candidates
+  phase-5-report-content.json  # Phase 5 structured report sections for DOCX
+  phase-5.5-toss-signal.json   # Phase 5.5 toss signal bridge
+```
+
+### Manifest Schema
+
+```json
+{
+  "pipeline": "today",
+  "date": "2026-04-01",
+  "started_at": "2026-04-01T07:00:00Z",
+  "completed_at": null,
+  "phases": [
+    {
+      "id": "phase-1",
+      "label": "data-freshness",
+      "status": "completed",
+      "output_file": "phase-1-freshness.json",
+      "started_at": "2026-04-01T07:00:05Z",
+      "elapsed_ms": 5200,
+      "summary": "52 tickers checked, 3 stale gaps found"
+    },
+    {
+      "id": "phase-4.2",
+      "label": "market-regime",
+      "status": "skipped",
+      "skip_reason": "skip-regime flag set",
+      "output_file": null
+    }
+  ],
+  "flags": ["skip-twitter", "dry-run"],
+  "overall_status": "completed_with_warnings",
+  "warnings": ["Phase 4.3 skipped: FMP_API_KEY not set"]
+}
+```
+
+### Manifest Update Pattern (apply after every phase)
+
+After each phase completes:
+1. Read the current manifest (create with pipeline metadata if Phase 0/1 is the first phase)
+2. Append or update the phase entry with `status`, `output_file`, `elapsed_ms`, `summary`
+3. Write back the manifest
+
+### Subagent Return Contract
+
+When a phase runs as a Task subagent, instruct it:
+> "Save full results to `outputs/today/{date}/{output_file}`. Return ONLY: `{ status, file_path, one_line_summary }`"
+
+This keeps the main orchestrator's context lean — detailed data lives on disk, not in conversation memory.
+
+### Backward Compatibility — Legacy File Copies
+
+After writing phase output files, also copy to legacy paths so existing scripts (`generate-report.js`, `daily-db-sync`) continue to work:
+- `phase-4-analysis.json` → `outputs/analysis-{date}.json`
+- `phase-3.5-screener.json` → `outputs/screener-{date}.json`
+- `phase-3-discovery.json` → `outputs/discovery-{date}.json`
+- `phase-4.2-regime.json` → `outputs/market-regime-{date}.json`
+- `phase-4.3-top-risk.json` → `outputs/top-risk-{date}.json`
+- `phase-4.6-market-env.json` → `outputs/market-env-{date}.json`
+- `phase-5a-dq.json` → `outputs/dq-{date}.json`
+- `phase-5.1-edge.json` → `outputs/edge-candidates/{date}/anomalies.json`
+
 ## Workflow
 
 ### Natural language triggers
@@ -82,6 +168,8 @@ Read the `setup-doctor` skill and run Phase 1-3 checks for `--group core-platfor
 - If critical items fail (DB connection, missing packages) → report the failures and halt
 - If only warnings (optional items missing) → report and proceed
 
+**Step 0c — Persist & manifest:** Save check results to `outputs/today/{date}/phase-0-doctor.json`. Create the initial `manifest.json` with pipeline metadata and this phase entry.
+
 ### Phase 1.5: Toss Snapshot + Monitoring (Optional — via toss-ops-orchestrator)
 
 Delegates to `toss-ops-orchestrator` (`.cursor/skills/trading/toss-ops-orchestrator/SKILL.md`) for the snapshot and monitoring phases. Skip with `skip-toss`.
@@ -95,6 +183,8 @@ Launch a Task with `toss-ops-orchestrator` using `--mode monitor-only` to run:
 The orchestrator handles tossctl availability checks internally — if tossctl is unavailable, it returns gracefully.
 
 On failure: **Continue** — Toss operations are optional; the pipeline proceeds without them.
+
+**Step 1.5b — Persist & manifest:** Save toss monitoring results to `outputs/today/{date}/phase-1.5-toss-monitor.json`. Update `manifest.json`.
 
 ### Phase 1: Data Freshness Check
 
@@ -121,6 +211,8 @@ Produce a summary showing:
 - Tickers that are up-to-date (no action needed)
 
 If the `status` flag is set, stop here and report.
+
+**Step 1d — Persist & manifest:** Save the gap report to `outputs/today/{date}/phase-1-freshness.json` (tickers with status, gap type, days stale). Update `manifest.json`.
 
 ### Phase 2: Data Sync
 
@@ -153,6 +245,8 @@ python scripts/weekly_stock_update.py --status
 
 Confirm `Last` dates have advanced. Report any tickers that still have gaps (market closed, delisted, etc.).
 
+**Step 2d — Persist & manifest:** Save sync results to `outputs/today/{date}/phase-2-sync.json` (tickers synced, remaining gaps). Update `manifest.json`.
+
 ### Phase 2.5: Fundamental Data Sync
 
 Collect financial statements and fundamental metrics for all tracked tickers. Skip with `skip-fundamentals`.
@@ -174,6 +268,8 @@ python scripts/financial_data_collector.py --status
 ```
 
 Confirm financial data coverage. Report any tickers without fundamental data.
+
+**Step 2.5c — Persist & manifest:** Save fundamental sync results to `outputs/today/{date}/phase-2.5-fundamentals.json`. Update `manifest.json`.
 
 ### Phase 3: Hot Stock Discovery
 
@@ -208,6 +304,8 @@ Present the discovered hot stocks:
 
 The discovered stocks are included in the Phase 5 report but are NOT permanently added to the tracked ticker list.
 
+**Step 3d — Persist & manifest:** Save discovery results to `outputs/today/{date}/phase-3-discovery.json`. Update `manifest.json`.
+
 ### Phase 3.5: Multi-Factor Screening (NEW)
 
 Run institutional-grade screening on all tracked tickers. Skip with `skip-screener`.
@@ -237,6 +335,8 @@ Present screener results:
 - STRONG BUY / BUY / NEUTRAL / CAUTION / AVOID distribution
 - Top 5 stocks by composite score with key metrics
 
+**Step 3.5d — Persist & manifest:** Save screener results to `outputs/today/{date}/phase-3.5-screener.json`. Update `manifest.json`.
+
 ### Phase 4: Analysis
 
 Run technical analysis on all DB-tracked tickers using three indicator groups: Turtle Trading (SMA 20/55/200, Donchian), Bollinger Bands (20,2σ), and Oscillators (RSI, MACD, Stochastic, ADX).
@@ -257,16 +357,20 @@ This analyzes all tickers stored in PostgreSQL (52+) instead of just CSV-mapped 
   - `overall_signal`: 3-way combined signal (STRONG_BUY/BUY/NEUTRAL/SELL/STRONG_SELL) from turtle + bollinger + oscillator scores
 - `summary`: signal distribution counts
 
+**Step 4b — Persist & manifest:** Save the full analysis JSON to `outputs/today/{date}/phase-4-analysis.json`. Update `manifest.json`.
+
 #### Post-Analysis Parallel Fan-Out (Phases 4.2 / 4.3 / 4.5 / 4.6)
 
 After Phase 4 stock analysis completes, launch the following four optional phases as **parallel subagents** (max 4 concurrent). Each is independent and produces its own output artifact. If any subagent fails, the others continue unaffected.
 
-| Subagent | Phase | Output | Skip Flag |
+| Subagent | Phase | Output (file-first) | Skip Flag |
 |----------|-------|--------|-----------|
-| Regime Diagnosis | 4.2 | `outputs/market-regime-{date}.json` | `skip-regime` |
-| Top Risk Overlay | 4.3 | `outputs/top-risk-{date}.json` | `skip-top-risk` |
-| AlphaEar Intelligence | 4.5 | AlphaEar pipeline outputs | `skip-news` / `skip-sentiment` |
-| Market Environment | 4.6 | `outputs/market-env-{date}.json` | `skip-market-env` |
+| Regime Diagnosis | 4.2 | `outputs/today/{date}/phase-4.2-regime.json` | `skip-regime` |
+| Top Risk Overlay | 4.3 | `outputs/today/{date}/phase-4.3-top-risk.json` | `skip-top-risk` |
+| AlphaEar Intelligence | 4.5 | `outputs/today/{date}/phase-4.5-alphaear.json` | `skip-news` / `skip-sentiment` |
+| Market Environment | 4.6 | `outputs/today/{date}/phase-4.6-market-env.json` | `skip-market-env` |
+
+**Each subagent must**: save its output to the corresponding phase file under `outputs/today/{date}/`, and return only `{ status, file, summary }` to keep the orchestrator's context lean.
 
 Wait for all four subagents to complete (or be skipped) before proceeding to Phase 4.8 (Agent Trading Desk) and Phase 5 (Report).
 
@@ -327,6 +431,8 @@ Save to `outputs/market-regime-{date}.json`:
 
 On failure: **Continue** — regime data is optional. If any subagent fails, use available scores only. If all fail, report shows "N/A" for regime.
 
+**Step 4.2c — Persist & manifest:** Save regime summary to `outputs/today/{date}/phase-4.2-regime.json`. Update `manifest.json`.
+
 ### Phase 4.3: Market Top Risk Overlay (Optional — conditional on FMP_API_KEY)
 
 Detect whether a market top is forming using the O'Neil/Minervini/Monty methodology. Skip with `skip-top-risk`. Auto-skipped if `FMP_API_KEY` is not set in `.env`.
@@ -362,6 +468,8 @@ Save to `outputs/top-risk-{date}.json`:
 
 On failure: **Continue** — top risk detection is optional. Report shows "N/A" if unavailable.
 
+**Step 4.3c — Persist & manifest:** Save top risk results to `outputs/today/{date}/phase-4.3-top-risk.json`. Update `manifest.json`.
+
 ### Phase 4.5: AlphaEar Intelligence (Optional — via alphaear-orchestrator)
 
 Delegates to `alphaear-orchestrator` (`.cursor/skills/alphaear/alphaear-orchestrator/SKILL.md`) for comprehensive market context. Skip with `skip-news` and/or `skip-sentiment`.
@@ -380,6 +488,8 @@ Skip flags are forwarded: `skip-news` → `--skip news`, `skip-sentiment` → `-
 Output: `outputs/alphaear/intel-{date}.md` and individual artifacts in `_workspace/alphaear/`.
 
 On failure: **Continue** — AlphaEar is optional. The report shows "N/A" for market context if the orchestrator fails.
+
+**Step 4.5b — Persist & manifest:** Save AlphaEar intelligence summary to `outputs/today/{date}/phase-4.5-alphaear.json`. Update `manifest.json`.
 
 ### Phase 4.6: Market Environment Context (Optional)
 
@@ -418,6 +528,8 @@ Save to `outputs/market-env-{date}.json`:
 
 On failure: **Continue** — market environment data is optional. Report shows "N/A" for global context.
 
+**Step 4.6c — Persist & manifest:** Save market environment data to `outputs/today/{date}/phase-4.6-market-env.json`. Update `manifest.json`.
+
 ### Phase 4.8: Agent Trading Desk (Optional)
 
 Run a multi-agent debate-based analysis on top BUY/SELL signal stocks. Skip with `skip-agent-desk`.
@@ -442,11 +554,28 @@ Agent desk decisions are included in the Phase 5 report as an "Agent Trading Des
 
 On failure: **Continue** — agent desk is optional; the pipeline proceeds without desk decisions.
 
+**Step 4.8d — Persist & manifest:** Save agent desk decisions to `outputs/today/{date}/phase-4.8-agent-desk.json`. Update `manifest.json`.
+
 ### Phase 5: Report and Post
 
-**Step 5a — Generate report content (반드시 한국어로 작성):**
+**Step 5a — Generate report content (File-First — 반드시 한국어로 작성):**
 
-Use the `alphaear-reporter` skill workflow with the daily-stock-check JSON as input signals.
+**Data Source**: Read all inputs from `outputs/today/{date}/` phase files. Do NOT rely on in-context conversation memory for any data used in report generation.
+
+Load the following files from `outputs/today/{date}/`:
+- `phase-4-analysis.json` — main stock analysis (required)
+- `phase-3.5-screener.json` — screening results (optional)
+- `phase-4.2-regime.json` — market regime (optional)
+- `phase-4.3-top-risk.json` — top risk overlay (optional)
+- `phase-4.6-market-env.json` — global market environment (optional)
+- `phase-4.5-alphaear.json` — AlphaEar news/sentiment (optional)
+- `phase-4.8-agent-desk.json` — agent desk decisions (optional)
+- `phase-5.1-edge.json` — edge candidates (optional)
+- `phase-3-discovery.json` — hot stock discovery (optional)
+
+For each file: if it exists, parse and integrate its data into the report. If it is missing or `status` in the manifest is `"skipped"`, omit that section with a brief note (e.g., "시장 체제 데이터: N/A").
+
+Use the `alphaear-reporter` skill workflow with the loaded phase-4-analysis JSON as input signals.
 **모든 리포트 텍스트, 섹션 제목, 분석 내용, 요약은 반드시 한국어로 작성한다.** 종목 코드(ticker)와 고유명사(회사명 영문)만 영어를 허용한다.
 
 1. **시그널 클러스터링**: 종목 시그널을 3–5개 테마로 그룹핑 (예: "기술주 모멘텀", "KRX 반등", "방어주 포지션")
@@ -454,13 +583,31 @@ Use the `alphaear-reporter` skill workflow with the daily-stock-check JSON as in
 3. **최종 조립**: 다음 섹션으로 리포트를 구성:
    - 날짜 및 시장 개요
    - 시그널 요약 (매수/중립/매도 종목 수)
-   - **시장 체제 대시보드** (Phase 4.2 데이터 사용, 없으면 생략): 복합 체제 점수(0-100), 체제 분류(RISK-ON/CAUTIOUS/RISK-OFF), 브레드스·업트렌드·섹터 로테이션 하위 점수, 1-2줄 체제 내러티브
-   - **시장 천정 리스크** (Phase 4.3 데이터 사용, 없으면 생략): 천정 확률(%), 리스크 레벨(LOW/MODERATE/HIGH/CRITICAL), 분배일 수, 핵심 경고 사항
-   - **글로벌 시장 스냅샷** (Phase 4.6 데이터 사용, 없으면 생략): 미국 지수(S&P/NASDAQ/Dow), VIX, 주요 환율(USD/KRW 포함), 원자재, 국채 수익률, 리스크 센티먼트
+   - **시장 체제 대시보드** (from `phase-4.2-regime.json`, 없으면 생략): 복합 체제 점수(0-100), 체제 분류(RISK-ON/CAUTIOUS/RISK-OFF), 브레드스·업트렌드·섹터 로테이션 하위 점수, 1-2줄 체제 내러티브
+   - **시장 천정 리스크** (from `phase-4.3-top-risk.json`, 없으면 생략): 천정 확률(%), 리스크 레벨(LOW/MODERATE/HIGH/CRITICAL), 분배일 수, 핵심 경고 사항
+   - **글로벌 시장 스냅샷** (from `phase-4.6-market-env.json`, 없으면 생략): 미국 지수(S&P/NASDAQ/Dow), VIX, 주요 환율(USD/KRW 포함), 원자재, 국채 수익률, 리스크 센티먼트
    - 테마별 분석 (클러스터링된 시그널 기반)
    - 주요 종목 (가장 강한 매수/매도 시그널과 근거)
-   - **엣지 후보 리서치 티켓** (Phase 5.1 데이터 사용, 없으면 생략): 발견된 이상 징후 요약, 심각도별 분류, 후속 조사 워치리스트
+   - **엣지 후보 리서치 티켓** (from `phase-5.1-edge.json`, 없으면 생략): 발견된 이상 징후 요약, 심각도별 분류, 후속 조사 워치리스트
    - 리스크 노트 및 면책 조항
+
+4. **Save structured report content**: Write the assembled report sections to `outputs/today/{date}/phase-5-report-content.json`:
+```json
+{
+  "date": "2026-04-01",
+  "sections": {
+    "signal_summary": { "buy": 12, "neutral": 30, "sell": 10, "total": 52 },
+    "regime_dashboard": { ... },
+    "top_risk": { ... },
+    "global_snapshot": { ... },
+    "theme_analyses": [ ... ],
+    "key_stocks": { "buy": [...], "sell": [...] },
+    "edge_candidates": [ ... ]
+  },
+  "report_narrative_ko": "... full Korean report text ..."
+}
+```
+5. **Update manifest**: Append phase-5 entry to `manifest.json`
 
 **Step 5a-DQ — Data Quality Check (automatic, skip if `skip-dq`):**
 
@@ -491,9 +638,19 @@ If `overall` is `FAIL` (errors found): halt report generation and notify user.
 If `overall` is `PASS_WITH_WARNINGS`: continue but include warnings in the report appendix.
 If `overall` is `PASS`: continue normally.
 
+**Persist & manifest:** Save DQ results to `outputs/today/{date}/phase-5a-dq.json`. Update `manifest.json`.
+
 **Step 5b — Generate Korean .docx report (skip if `skip-docx` flag is set):**
 
-1. Save analysis JSON to `outputs/analysis-{date}.json`, screener JSON to `outputs/screener-{date}.json`, and discovery JSON to `outputs/discovery-{date}.json`
+1. **Legacy file copies** (backward compatibility for `generate-report.js` and `daily-db-sync`):
+   - Copy `outputs/today/{date}/phase-4-analysis.json` → `outputs/analysis-{date}.json`
+   - Copy `outputs/today/{date}/phase-3.5-screener.json` → `outputs/screener-{date}.json`
+   - Copy `outputs/today/{date}/phase-3-discovery.json` → `outputs/discovery-{date}.json`
+   - Copy `outputs/today/{date}/phase-4.2-regime.json` → `outputs/market-regime-{date}.json` (if exists)
+   - Copy `outputs/today/{date}/phase-4.3-top-risk.json` → `outputs/top-risk-{date}.json` (if exists)
+   - Copy `outputs/today/{date}/phase-4.6-market-env.json` → `outputs/market-env-{date}.json` (if exists)
+   - Copy `outputs/today/{date}/phase-5a-dq.json` → `outputs/dq-{date}.json` (if exists)
+   - Copy `outputs/today/{date}/phase-5.1-edge.json` → `outputs/edge-candidates/{date}/anomalies.json` (if exists)
 2. Run the report generator:
 
 ```bash
@@ -539,12 +696,25 @@ Evaluate the generated report before posting. Uses the `ai-quality-evaluator` sk
 
 If `ai-quality-evaluator` skill is not available, log a warning and skip the gate (proceed to posting).
 
-**Step 5c — Post to Slack (optional, skip if `dry-run` or `skip-slack`):**
+**Step 5c — Post to Slack (File-First — optional, skip if `dry-run` or `skip-slack`):**
+
+**Data Source**: Read all Slack content from `outputs/today/{date}/` phase files and `manifest.json`. Do NOT compose Slack messages from in-context memory.
+
+Load and parse:
+- `manifest.json` — pipeline status, phase summaries, warnings
+- `phase-5-report-content.json` — structured report sections (signal summary, key stocks, regime, etc.)
+- `phase-4-analysis.json` — per-stock signals for thread detail
+- `phase-4.2-regime.json` — regime badge/score (if available)
+- `phase-4.3-top-risk.json` — top risk badge/level (if available)
+- `phase-4.6-market-env.json` — market environment data (if available)
+- `phase-3-discovery.json` — hot stocks (if available)
+- `phase-5.1-edge.json` — edge candidates (if available)
 
 1. Use `slack_search_channels` MCP tool to find `#h-report` channel ID (known: `C0AKHQWJBLZ`)
-2. Post the **main message** with date, signal summary, top movers, hot stocks, and screener summary
-3. Capture the `message_ts` from the response
-4. **ALWAYS post a thread reply** using `thread_ts` = the main message's `message_ts`, containing:
+2. Populate the main message template using data loaded from the phase files above
+3. Post the **main message** with date, signal summary, top movers, hot stocks, and screener summary
+4. Capture the `message_ts` from the response
+5. **ALWAYS post a thread reply** using `thread_ts` = the main message's `message_ts`, containing:
    - `:mag: BUY 종목 상세 ({N}종목)` — grouped by category (한국 방산/전력/반도체, 미국 인프라/방산, 기타 등), each stock with name, price, change%, RSI, ADX (with 강한추세 label), and any warnings (과매수/과매도)
    - `:mag: SELL 종목 상세 ({N}종목)` — each stock with name, price, change%, RSI, RSI zone, MA alignment, ADX, Stochastic
    - `:warning:` notes for RSI extremes (과매수 80+, 과매도 30-)
@@ -582,11 +752,11 @@ _분석 기준: 이동평균선(20/55/200일) + 볼린저 밴드(%B/스퀴즈) +
 ```
 
 **Slack main message dynamic fields (from new phases — omit entire line/section if data unavailable):**
-- `{regime_badge}`: `:large_green_circle:` RISK-ON / `:large_orange_circle:` CAUTIOUS / `:red_circle:` RISK-OFF (from `market-regime-{date}.json`)
+- `{regime_badge}`: `:large_green_circle:` RISK-ON / `:large_orange_circle:` CAUTIOUS / `:red_circle:` RISK-OFF (from `outputs/today/{date}/phase-4.2-regime.json`)
 - `{regime_label}`, `{regime_score}`: regime classification and composite score
-- `{top_risk_badge}`: `:white_check_mark:` LOW / `:warning:` MODERATE / `:rotating_light:` HIGH / `:no_entry:` CRITICAL (from `top-risk-{date}.json`)
+- `{top_risk_badge}`: `:white_check_mark:` LOW / `:warning:` MODERATE / `:rotating_light:` HIGH / `:no_entry:` CRITICAL (from `outputs/today/{date}/phase-4.3-top-risk.json`)
 - `{top_risk_level}`: top risk classification string
-- Market environment fields (`sp500_change`, `nasdaq_change`, `vix`, `usdkrw`, `risk_sentiment`): from `market-env-{date}.json`
+- Market environment fields (`sp500_change`, `nasdaq_change`, `vix`, `usdkrw`, `risk_sentiment`): from `outputs/today/{date}/phase-4.6-market-env.json`
 
 **Slack thread reply template (MUST always post):**
 
@@ -628,9 +798,9 @@ Detection criteria:
 - Multiple correlated BUY signals in same sector → post as sector rebalancing decision (urgency: MEDIUM)
 - RSI extreme (> 80 or < 20) with ADX > 25 → post as risk alert decision (urgency: MEDIUM)
 - Screener STRONG BUY stocks not currently in portfolio → post as new position decision (urgency: MEDIUM)
-- Market regime shift detected (RISK-ON → CAUTIOUS or CAUTIOUS → RISK-OFF) → post as exposure adjustment decision (urgency: HIGH) — from `market-regime-{date}.json`
-- Market top probability >= 60% → post as risk reduction decision (urgency: HIGH) — from `top-risk-{date}.json`
-- Edge candidate with severity HIGH or CRITICAL → post as investigation decision (urgency: MEDIUM) — from `edge-candidates/{date}/anomalies.json`
+- Market regime shift detected (RISK-ON → CAUTIOUS or CAUTIOUS → RISK-OFF) → post as exposure adjustment decision (urgency: HIGH) — from `outputs/today/{date}/phase-4.2-regime.json`
+- Market top probability >= 60% → post as risk reduction decision (urgency: HIGH) — from `outputs/today/{date}/phase-4.3-top-risk.json`
+- Edge candidate with severity HIGH or CRITICAL → post as investigation decision (urgency: MEDIUM) — from `outputs/today/{date}/phase-5.1-edge.json`
 
 For each detected signal, format using the DECISION template:
 
@@ -665,10 +835,10 @@ After all analysis is complete, automatically detect anomalies and generate rese
 
 **Step 5.1a — Feed analysis data:**
 
-Collect inputs from earlier phases:
-- Phase 4 analysis JSON (`outputs/analysis-{date}.json`) — individual stock signals
-- Phase 4.2 regime data (`outputs/market-regime-{date}.json`, if available) — macro context
-- Phase 3 discovery JSON (`outputs/discovery-{date}.json`, if available) — hot stocks
+Collect inputs from earlier phases (read from `outputs/today/{date}/`):
+- Phase 4 analysis JSON (`phase-4-analysis.json`) — individual stock signals
+- Phase 4.2 regime data (`phase-4.2-regime.json`, if available) — macro context
+- Phase 3 discovery JSON (`phase-3-discovery.json`, if available) — hot stocks
 
 **Step 5.1b — Run edge candidate detection:**
 
@@ -688,6 +858,8 @@ Output to `outputs/edge-candidates/{date}/`:
 Log the count of new edge candidates in the pipeline summary.
 
 On failure: **Continue** — edge candidate discovery is optional. The pipeline proceeds without research tickets.
+
+**Step 5.1d — Persist & manifest:** Save edge candidate summary to `outputs/today/{date}/phase-5.1-edge.json`. Update `manifest.json`.
 
 ### Phase 5.5: Toss Signal Bridge + Reporting (Optional — via toss-ops-orchestrator)
 
@@ -710,6 +882,8 @@ Add a "Toss 실행 가능 시그널" section to the Slack thread reply containin
 - Note: "실행하려면 tossinvest-trading 스킬을 사용하세요"
 
 On failure: **Continue** — Toss integration is optional; log a warning and proceed.
+
+**Step 5.5c — Persist & manifest:** Save toss signal bridge results to `outputs/today/{date}/phase-5.5-toss-signal.json`. Update `manifest.json`.
 
 ### Phase 5½: Report Quality Gate
 
@@ -749,6 +923,8 @@ For each unposted tweet (excluding thread members), execute the full x-to-slack 
 Report the number of tweets fetched, classified, and posted with channel distribution.
 
 **Prerequisite:** `TWITTER_COOKIE` must be set in `.env`. If missing, skip Phase 6 and log a warning.
+
+**Step 6d — Persist & manifest:** Save twitter pipeline results to `outputs/today/{date}/phase-6-twitter.json` (tweet count, channels, post status). Update `manifest.json`. Finalize `manifest.json` with `completed_at` and `overall_status`.
 
 ## CLI Arguments
 
@@ -1003,3 +1179,32 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **Related skills**: `weekly-stock-update`, `daily-stock-check`, `stock-csv-downloader`, `alphaear-reporter`, `anthropic-docx`, `alphaear-news`, `alphaear-sentiment`, `setup-doctor`, `twitter-timeline-to-slack`, `x-to-slack`, `decision-router`, `trading-agent-desk`, `toss-ops-orchestrator` (delegates to 8 toss-* skills), `alphaear-orchestrator` (delegates to 8 alphaear-* skills)
 - **Tab skills**: `tab-stock-sync`, `tab-event-detect`, `tab-fundamental-sync`, `tab-hot-stock-discovery`, `tab-technical-analysis`, `tab-turtle-refresh`, `tab-bollinger-refresh`, `tab-dualma-refresh`, `tab-screening`, `tab-llm-agents`, `tab-genai-features`, `tab-analysis-run`
 - **GitHub Actions**: `.github/workflows/daily-today.yml` (independent pipeline, uses its own API keys via GitHub Secrets)
+
+## Coordinator Synthesis
+
+When delegating to subagents:
+
+- **Never use lazy delegation.** Provide specific inputs (file paths, data, context) to every subagent — not "based on your findings, do X."
+- **Purpose statement required:** Every subagent prompt must include why the task matters and how its output is used downstream — e.g., "This work feeds the daily Korean DOCX report and Slack #h-report; downstream steps must read artifacts under `outputs/today/{date}/` (and legacy `outputs/analysis-{date}.json` / `outputs/screener-{date}.json` where applicable), not chat memory."
+- **Continue vs Spawn decision:**
+  - Continue (resume) when worker context overlaps with the next task or fixing a previous failure
+  - Spawn fresh when verifying another worker's output or when previous approach was fundamentally wrong
+- Use `model: "fast"` for exploration/read-only subagents; default model for generation/analysis
+
+## Honest Reporting
+
+- Report phase outcomes faithfully: if a phase fails, say so with the error output
+- Never claim "pipeline complete" when phases were skipped or failed
+- Never suppress failing phases to manufacture a green summary
+- When a phase succeeds, state it plainly without unnecessary hedging
+- The Slack summary must accurately reflect what happened — not what was hoped
+
+## Subagent Contract
+
+Subagent prompts must include:
+- Always use absolute file paths (subagent cwd may differ)
+- Return `{ status, file, summary }` for orchestrator context efficiency
+- Include code snippets only when exact text is load-bearing
+- Do not recap files merely read — summarize findings
+- Final response: concise report of what was done, key findings, files changed
+- Do not use emojis

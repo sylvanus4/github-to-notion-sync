@@ -197,3 +197,14 @@ The plan is created via CreatePlan with the structure shown in Step 5. The plan 
 - Skill registry: [references/skill-registry.md](references/skill-registry.md)
 - Execution engine: [mission-control](.cursor/skills/workflow/mission-control/SKILL.md)
 - Workflow patterns: see `workflow-patterns.mdc` for Sequential/Parallel/Evaluator-Optimizer guidance
+
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

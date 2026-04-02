@@ -24,6 +24,70 @@ Pull latest changes from all managed repos, run Google Workspace briefing, kick 
 - **Slack channel**: `#효정-할일` (Channel ID: `C0AA8NT4T8T`)
 - **Upstream skills**: `calendar-daily-briefing`, `gmail-daily-triage`, `today`, `toss-morning-briefing`
 
+## Pipeline Output Protocol (File-First)
+
+All intermediate and final artifacts for a run are stored under **`outputs/morning-ship/{date}/`** where `{date}` is `YYYY-MM-DD` for the pipeline run.
+
+### Per-phase JSON files
+
+Each phase writes **one** JSON file when it finishes (skipped phases still write a stub with `status: "skipped"` when the phase is skipped by flags):
+
+| Phase | Output file | Manifest `label` |
+|-------|-------------|------------------|
+| 0 | `phase-0-atg.json` | `atg-probe` |
+| 1 | `phase-1-git-sync.json` | `git-sync` |
+| 2 | `phase-2-google-daily.json` | `google-daily` |
+| 3 | `phase-3-daily-stock.json` | `daily-stock` |
+| 3.3 | `phase-3-3-toss-morning.json` | `toss-morning` |
+| 3.5 | `phase-3-5-quality-gate.json` | `quality-gate` |
+| 4 | `phase-4-slack.json` | `slack` |
+| 5 | `phase-5-report.json` | `report` |
+
+### Manifest
+
+After each phase persist, update **`manifest.json`** in the same directory so it always reflects completed phases and paths.
+
+### Subagent return contract
+
+Delegated work MUST return only:
+
+```json
+{ "status": "ok|skipped|failed|partial", "file": "outputs/morning-ship/{date}/phase-....json", "summary": "one-line human summary" }
+```
+
+### Final aggregation rule
+
+**Phase 4 (Slack)** and **Phase 5 (Report)** assemble content **only** by reading the phase JSON files above (and `manifest.json` for `overall_status` / `warnings`). Do not rebuild the briefing solely from prior chat context or uncaptured subagent prose.
+
+### `manifest.json` schema
+
+```json
+{
+  "pipeline": "morning-ship",
+  "date": "YYYY-MM-DD",
+  "phases": [
+    {
+      "id": "0",
+      "label": "atg-probe",
+      "status": "ok|skipped|failed|partial",
+      "output_file": "outputs/morning-ship/{date}/phase-0-atg.json",
+      "summary": "string"
+    }
+  ],
+  "flags": {
+    "skip_pull": false,
+    "skip_google": false,
+    "skip_stock": false,
+    "skip_toss": false,
+    "no_slack": false,
+    "dry_run": false,
+    "targets": null
+  },
+  "overall_status": "ok|degraded|failed",
+  "warnings": ["string"]
+}
+```
+
 ## Usage
 
 ```
@@ -79,6 +143,8 @@ cd -
 
 Record `{atg: "HEALTHY"|"UNREACHABLE"}`. This phase **never blocks** the pipeline — ATG is an accelerator, not a dependency. Skills work identically without it; only latency and token usage improve when ATG is healthy.
 
+**Persist & manifest:** Write `outputs/morning-ship/{date}/phase-0-atg.json` with the ATG probe result and flags; append/update this phase in `manifest.json` (`label`: `atg-probe`).
+
 ### Phase 1: Git Sync (Pull All Managed Projects)
 
 **Skip if** `--skip-pull` or `--dry-run` flag is set.
@@ -118,6 +184,8 @@ git fetch origin
 
 If a project directory does not exist, warn and skip it. Continue with remaining projects.
 
+**Persist & manifest:** Write `outputs/morning-ship/{date}/phase-1-git-sync.json` with per-project results, skip flags, and `targets` filter; append/update `git-sync` in `manifest.json`.
+
 ### Phase 2: Google Daily (Calendar + Gmail)
 
 **Skip if** `--skip-google` or `--dry-run` flag is set.
@@ -144,6 +212,8 @@ Follow the `gmail-daily-triage` skill (`.cursor/skills/pipeline/gmail-daily-tria
 4. Generate documents: `/tmp/reply-needed-YYYY-MM-DD.docx`, `/tmp/bespin-news-YYYY-MM-DD.docx`
 5. Capture output: `{triage_counts, colleague_emails[], news_articles[], news_insights[]}`
 
+**Persist & manifest:** Write `outputs/morning-ship/{date}/phase-2-google-daily.json` combining 2a/2b payloads (or `status: skipped` when Phase 2 is skipped); append/update `google-daily` in `manifest.json`.
+
 ### Phase 3: Daily Stock Pipeline
 
 **Skip if** `--skip-stock` or `--dry-run` flag is set.
@@ -158,6 +228,8 @@ Run the `today` skill (`.cursor/skills/pipeline/today/SKILL.md`) with `--skip-sl
 6. Turtle + Bollinger + Oscillator analysis
 7. Report generation (.docx)
 8. Capture output: `{stocks_analyzed, signals[], report_path, screener_results}`
+
+**Persist & manifest:** Write `outputs/morning-ship/{date}/phase-3-daily-stock.json`; append/update `daily-stock` in `manifest.json`.
 
 ### Phase 3.3: Toss Morning Briefing (Optional)
 
@@ -174,6 +246,8 @@ Follow the `toss-morning-briefing` skill (`.cursor/skills/trading/toss-morning-b
 
 On failure: **Continue** — Toss briefing is optional. Log a warning and proceed to Phase 3.5.
 
+**Persist & manifest:** Write `outputs/morning-ship/{date}/phase-3-3-toss-morning.json` (include `status: skipped` and reason when skipped or on auth failure); append/update `toss-morning` in `manifest.json`.
+
 ### Phase 3.5: Pre-Notification Quality Gate
 
 Before posting the morning briefing to Slack, verify:
@@ -185,9 +259,13 @@ Before posting the morning briefing to Slack, verify:
 
 If any critical item fails, post a **degraded briefing** that lists completed phases and flags failures with `[INCOMPLETE]` markers. Do NOT silently omit failed sections.
 
+**Persist & manifest:** Write `outputs/morning-ship/{date}/phase-3-5-quality-gate.json` with checklist results, `degraded: true|false`, and reasons; set `overall_status` / `warnings` in `manifest.json` accordingly.
+
 ### Phase 4: Slack Notification
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.
+
+**Input source:** Build every Slack section (main + threads) **only** from `phase-0-atg.json` through `phase-3-5-quality-gate.json` and `manifest.json` under `outputs/morning-ship/{date}/`. If a prior phase file is missing, treat that section as `[INCOMPLETE]` and log a warning.
 
 Post a consolidated morning briefing to `#효정-할일` using the `slack_send_message` MCP tool. The main message **must** end with a short disclaimer (see template footer) and use Slack mrkdwn for all sections above it.
 
@@ -298,7 +376,11 @@ Skip this thread if Phase 3.3 was skipped.
 - Omit sections with no data
 - Keep each message under 5000 chars
 
+**Persist & manifest:** Write `outputs/morning-ship/{date}/phase-4-slack.json` with `message_ts` (if posted), thread count, `skipped: true` when `--no-slack`/`--dry-run`, and pointers to what was sent; append/update `slack` in `manifest.json`.
+
 ### Phase 5: Report
+
+**Input source:** Produce the chat report **only** by reading `outputs/morning-ship/{date}/phase-*.json` and `manifest.json` — same rule as Phase 4. Do not copy from Slack API responses or prior conversational context except to verify `message_ts` if stored in `phase-4-slack.json`.
 
 Display the same consolidated summary in the chat as a formatted report (in Korean).
 
@@ -337,6 +419,8 @@ Git 동기화:
 
 합계: 5/5 프로젝트 동기화, 일정 3건, 메일 23건 처리, 15개 종목 분석
 ```
+
+**Persist & manifest:** Write `outputs/morning-ship/{date}/phase-5-report.json` with the rendered report text (or path to a sidecar `.md` if too large) and `overall_status`; finalize `manifest.json` (`report` phase, `overall_status`, `warnings`).
 
 ## Examples
 
@@ -402,6 +486,8 @@ User runs `/morning-ship --no-slack` to execute Phases 1–3 and 3.5 locally but
 
 ## Error Handling
 
+If a phase fails mid-run, the last valid JSON under `outputs/morning-ship/{date}/` is the resume checkpoint; fix the underlying issue and re-run from that phase after aligning `manifest.json` with disk.
+
 | Scenario | Action |
 |----------|--------|
 | `git fetch` fails (network, DNS, auth) | Log project + error; skip pull for that project; continue with others; include `[FETCH_FAILED]` in Slack/git thread |
@@ -431,3 +517,32 @@ User runs `/morning-ship --no-slack` to execute Phases 1–3 and 3.5 locally but
 - **Never delete** calendar events
 - **Always return** to original working directory after processing each project
 - **Always post** Slack message as the authenticated user, never impersonate
+
+## Coordinator Synthesis
+
+When delegating to subagents:
+
+- **Never use lazy delegation.** Provide specific inputs (file paths, data, context) to every subagent — not "based on your findings, do X."
+- **Purpose statement required:** Every subagent prompt must include why the task matters and how its output is used downstream — e.g., "This work feeds the consolidated morning Slack briefing and chat report; git sync, Google, and stock sections must align with artifacts under `outputs/morning-ship/{date}/` and the `today` pipeline outputs."
+- **Continue vs Spawn decision:**
+  - Continue (resume) when worker context overlaps with the next task or fixing a previous failure
+  - Spawn fresh when verifying another worker's output or when previous approach was fundamentally wrong
+- Use `model: "fast"` for exploration/read-only subagents; default model for generation/analysis
+
+## Honest Reporting
+
+- Report phase outcomes faithfully: if a phase fails, say so with the error output
+- Never claim "pipeline complete" when phases were skipped or failed
+- Never suppress failing phases to manufacture a green summary
+- When a phase succeeds, state it plainly without unnecessary hedging
+- The Slack summary must accurately reflect what happened — not what was hoped
+
+## Subagent Contract
+
+Subagent prompts must include:
+- Always use absolute file paths (subagent cwd may differ)
+- Return `{ status, file, summary }` for orchestrator context efficiency
+- Include code snippets only when exact text is load-bearing
+- Do not recap files merely read — summarize findings
+- Final response: concise report of what was done, key findings, files changed
+- Do not use emojis

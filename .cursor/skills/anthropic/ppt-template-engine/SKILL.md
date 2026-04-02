@@ -126,6 +126,36 @@ python3 scripts/validate_pptx.py \
 
 Expected output: `{"passed": true, "hard_violations": 0, ...}`
 
+## Output Discipline
+
+- Generate content for defined placeholders ONLY — do not invent extra slides or layouts
+- Do not pad bullet lists to fill `max_items` if the content is better expressed in fewer points
+- Match content density to the slide layout — do not cram 10 bullet points into a layout designed for 4
+- If a placeholder is optional and there is no meaningful content, leave it empty
+
+## Verification
+
+After generating the populated PPTX, verify before returning:
+
+1. **Validation script**: `python3 scripts/validate_pptx.py <output.pptx> assets/placeholder-maps/<template_id>.json`
+2. **Slide count check**: Confirm the number of slides matches the spec
+3. **Visual spot-check** (for complex decks): Convert to thumbnails and inspect
+
+Report format:
+
+```text
+### Check: Template compliance
+**Command run:** `python3 scripts/validate_pptx.py output.pptx ...`
+**Output observed:** [paste actual JSON output]
+**Result:** PASS (0 hard violations) or FAIL (N hard violations)
+```
+
+## Honest Reporting
+
+- If validation reports hard violations, do NOT return the file — report the violations and regenerate
+- Never claim "presentation generated successfully" when validation shows hard violations
+- If the template file is missing, report it — do not attempt to create slides without a template
+
 ## Prohibited Actions
 
 - Adding textboxes or shapes not in the placeholder map

@@ -6,7 +6,7 @@ description: >-
   Do NOT use for individual Google Workspace operations (use the specific gws-* skill).
 metadata:
   author: "thaki"
-  version: "3.0.0"
+  version: "3.1.0"
   category: "execution"
 ---
 # Google Daily Automation
@@ -21,6 +21,8 @@ Google Workspace 일일 작업을 순차 파이프라인으로 실행하는 마�
 Calendar → Gmail Triage → Drive Upload → Slack Notify (+ threads) → Memory Sync → Orphan Cleanup
 ```
 
+All intermediate and final aggregation steps persist to `outputs/google-daily/{date}/` (see Pipeline Output Protocol).
+
 ## Slack Configuration
 
 | Key | Value |
@@ -34,6 +36,79 @@ Calendar → Gmail Triage → Drive Upload → Slack Notify (+ threads) → Memo
 
 All Slack messages go to `#효정-할일`. Decision items go to their respective channels. Never use DM.
 
+## Pipeline Output Protocol (File-First)
+
+### Initialization (before Phase 1)
+
+1. Resolve run date `YYYY-MM-DD` (KST unless specified).
+2. Create output directory: `outputs/google-daily/{date}/` (mkdir -p).
+3. Write initial `outputs/google-daily/{date}/manifest.json` with:
+   - `pipeline`: `"google-daily"`
+   - `date`: `{date}`
+   - `started_at`: ISO-8601 timestamp
+   - `completed_at`: `null`
+   - `phases`: `[]` (populated as phases complete)
+   - `flags`: `{}` (e.g. `skip_decisions` when CLI/skill flag `skip-decisions` is set)
+   - `overall_status`: `"running"`
+   - `warnings`: `[]`
+4. Set `MANIFEST_PATH=outputs/google-daily/{date}/manifest.json` for all subsequent updates.
+
+### Per-phase files and manifest
+
+- **Output directory**: `outputs/google-daily/{date}/`
+- **Phase files**: `phase-{N}-{label}.json` — one JSON file per phase (see Output Artifacts table below).
+- **Manifest**: `manifest.json` in the same directory tracks all phases and overall status.
+
+**Subagent Return Contract:** Any subagent delegated to a phase returns **only**:
+
+```json
+{ "status": "ok|failed|skipped", "file": "outputs/google-daily/{date}/phase-N-label.json", "summary": "one-line outcome" }
+```
+
+The orchestrator persists full phase payloads to `file`; subagents must not rely on the parent retaining large blobs in context.
+
+**Final aggregation rule:** Phases that produce user-facing summaries (Slack main post, threads, MEMORY.md, orphan-cleanup note) **read inputs exclusively** from `manifest.json` and the phase `phase-*.json` files under `outputs/google-daily/{date}/`. Do **not** compose Slack or MEMORY content from in-context conversation memory or undumped subagent transcripts.
+
+### manifest.json schema
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `pipeline` | string | Always `"google-daily"`. |
+| `date` | string | Run date `YYYY-MM-DD`. |
+| `started_at` | string | ISO-8601 when run started. |
+| `completed_at` | string \| null | ISO-8601 when run finished; `null` while running. |
+| `phases` | array | Ordered phase records (see below). |
+| `flags` | object | Pipeline flags (e.g. `skip_decisions: true`). |
+| `overall_status` | string | `running`, `ok`, `partial`, or `failed`. |
+| `warnings` | array of string | Non-fatal issues (e.g. partial Slack). |
+
+Each element of `phases`:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | e.g. `"1"`, `"2"`, `"3-5"`. |
+| `label` | string | Short phase name. |
+| `status` | string | `ok`, `failed`, `skipped`. |
+| `output_file` | string | Path to `phase-*.json` for this phase. |
+| `started_at` | string | ISO-8601. |
+| `elapsed_ms` | number | Wall time for the phase. |
+| `summary` | string | One-line outcome. |
+
+On successful completion, set `completed_at`, set `overall_status` from worst phase (`failed` > `partial` > `ok`), and append any warnings.
+
+### Output Artifacts
+
+| Phase | Label | Output file | Notes |
+|-------|-------|-------------|-------|
+| 1 | calendar | `outputs/google-daily/{date}/phase-1-calendar.json` | Agenda, briefing text, focus windows |
+| 2 | gmail | `outputs/google-daily/{date}/phase-2-gmail.json` | Triage counts, colleague_emails, news arrays, paths to docx |
+| 3 | drive | `outputs/google-daily/{date}/phase-3-drive.json` | Folder URL, uploaded file links or skip reason |
+| 3.5 | quality-gate | `outputs/google-daily/{date}/phase-3-5-quality-gate.json` | Gate checklist result, partial_ok flag |
+| 4 | slack | `outputs/google-daily/{date}/phase-4-slack.json` | `main_message_ts`, thread metadata, post counts |
+| 4.5 | decisions | `outputs/google-daily/{date}/phase-4-5-decisions.json` | Decision posts emitted or skipped |
+| 5 | memory | `outputs/google-daily/{date}/phase-5-memory.json` | MEMORY.md entry text or path written |
+| 6 | orphan-cleanup | `outputs/google-daily/{date}/phase-6-orphan-cleanup.json` | Script JSON summary, one-line user message |
+
 ## Phase 1 -- Calendar Briefing
 
 `.cursor/skills/pipeline/calendar-daily-briefing/SKILL.md` 실행.
@@ -45,6 +120,8 @@ gws calendar +agenda --today
 1. 이벤트 분류: 면접(HIGH), 외부미팅(HIGH), 팀미팅(MEDIUM), 집중시간(LOW)
 2. 한국어 브리핑 생성 + 준비 알림
 3. 집중 가능 시간대 계산 (09:00-18:00 기준, 30분 이상 공백)
+
+**Persist & manifest:** Write full Phase 1 result (raw agenda summary, classified events, Korean briefing text, focus windows, errors if any) to `outputs/google-daily/{date}/phase-1-calendar.json`. Update `manifest.json`: append phase record `id: "1"`, `label: calendar`, `output_file`, `status`, `started_at`, `elapsed_ms`, `summary`. If a subagent runs this phase, it returns only `{ status, file, summary }`; the orchestrator writes the JSON file and updates the manifest.
 
 ## Phase 2 -- Gmail Triage
 
@@ -64,11 +141,15 @@ gws calendar +agenda --today
 
 4. 생성 문서: `/tmp/reply-needed-YYYY-MM-DD.docx`, `/tmp/bespin-news-YYYY-MM-DD.docx`
 
-**Collect structured output** from Phase 2 for use in Phase 4:
+**Collect structured output** and persist to `phase-2-gmail.json` (downstream phases read this file, not context):
 - `colleague_emails[]`: list of {sender, subject, summary, draft_reply, attachment_summary}
 - `news_articles[]`: list of {title, url, summary}
 - `news_insights[]`: 3-5 AI/GPU Cloud insight bullets
 - `triage_counts`: {spam, notifications, colleague, news, reply_needed}
+- `reply_needed[]`: items for decision scanning (align with docx content)
+- `docx_paths`: paths to generated docx files
+
+**Persist & manifest:** Write the complete structured object to `outputs/google-daily/{date}/phase-2-gmail.json`. Update `manifest.json` with phase `id: "2"`, `label: gmail`, and the slim subagent contract if delegated. Phase 4 and 4.5 load colleague/news/reply data **only** from this file (and manifest), not from chat memory.
 
 ## Phase 3 -- Drive Upload
 
@@ -82,7 +163,9 @@ gws drive +upload /tmp/bespin-news-YYYY-MM-DD.docx --parent FOLDER_ID
 gws drive +upload /tmp/reply-needed-YYYY-MM-DD.docx --parent FOLDER_ID
 ```
 
-Save Drive folder URL and file links for Phase 4.
+Save Drive folder URL and file links to `outputs/google-daily/{date}/phase-3-drive.json` (not only in context).
+
+**Persist & manifest:** Write `{ folder_url, file_links[], skipped: boolean, skip_reason?, errors? }` to `outputs/google-daily/{date}/phase-3-drive.json`. Update `manifest.json` with `id: "3"`, `label: drive`. If no uploads, set `skipped: true` and still write the file.
 
 ## Phase 3.5 -- Pre-Notification Quality Gate
 
@@ -94,7 +177,20 @@ Before posting to Slack, verify:
 
 If calendar or Gmail failed, post a partial briefing clearly marking missing sections with `[미완료]`. Do NOT silently omit sections.
 
+**Validation inputs:** Read `phase-1-calendar.json`, `phase-2-gmail.json`, and `phase-3-drive.json` from disk; do not rely on unstored context.
+
+**Persist & manifest:** Write gate result `{ checks_passed: boolean, partial_ok: boolean, notes[], failed_checks[] }` to `outputs/google-daily/{date}/phase-3-5-quality-gate.json`. Update `manifest.json` with `id: "3-5"`, `label: quality-gate`.
+
 ## Phase 4 -- Slack Notify (threaded)
+
+**Input source (mandatory):** Build every Slack message body **only** from:
+- `outputs/google-daily/{date}/manifest.json`
+- `outputs/google-daily/{date}/phase-1-calendar.json`
+- `outputs/google-daily/{date}/phase-2-gmail.json`
+- `outputs/google-daily/{date}/phase-3-drive.json`
+- `outputs/google-daily/{date}/phase-3-5-quality-gate.json`
+
+Re-read these files immediately before posting. Do **not** substitute recalled chat context, subagent narrative, or unstored variables for counts, links, or text.
 
 Three-step posting pattern using `slack_send_message` MCP tool.
 
@@ -164,24 +260,28 @@ Insight format example:
 - No `## headers` -- use `*bold text*` on its own line
 - `> quote` for draft replies
 
+**Persist & manifest:** After all Slack steps (main + threads), write `outputs/google-daily/{date}/phase-4-slack.json` with `{ main_message_ts, thread_posts[], partial_failure?, channel_id }`. Update `manifest.json` with `id: "4"`, `label: slack`, `summary` including thread count. Subagents return only `{ status, file, summary }`; the orchestrator persists the full JSON.
+
 ## Phase 4.5 -- Decision Extraction
 
-Skip if `skip-decisions` flag is set. After posting the main summary and threads to `#효정-할일`, scan the collected data for decision-worthy items using the `decision-router` skill rules.
+Skip if `skip-decisions` flag is set (record in `manifest.json` under `flags.skip_decisions`). After posting the main summary and threads to `#효정-할일`, scan for decision-worthy items using the `decision-router` skill rules.
+
+**Input source (mandatory):** Load `colleague_emails[]`, `reply_needed[]`, and calendar overlap/HIGH-prep signals **only** from `phase-2-gmail.json` and `phase-1-calendar.json` on disk (plus `manifest.json` for flags). Do not use in-context memory.
 
 **Step 4.5a — Scan colleague emails:**
 
-Review `colleague_emails[]` for decision keywords: 승인, 결정, 예산, 아키텍처, 채용, 제안, 검토 요청, approve, budget, architecture, hire, proposal, review.
+Review `colleague_emails[]` (from `phase-2-gmail.json`) for decision keywords: 승인, 결정, 예산, 아키텍처, 채용, 제안, 검토 요청, approve, budget, architecture, hire, proposal, review.
 
 - Emails requesting approval, budget, or architectural decisions → scope: **team**, post to `#7층-리더방` (`C0A6Q7007N2`)
 - Emails with explicit questions requiring a personal response → scope: **personal**, post to `#효정-의사결정` (`C0ANBST3KDE`)
 
 **Step 4.5b — Scan reply-needed emails:**
 
-Review `reply_needed[]` for items that require a decision (respond/ignore/delegate). Post to `#효정-의사결정` as personal decisions with MEDIUM urgency.
+Review `reply_needed[]` (from `phase-2-gmail.json`) for items that require a decision (respond/ignore/delegate). Post to `#효정-의사결정` as personal decisions with MEDIUM urgency.
 
 **Step 4.5c — Scan calendar conflicts:**
 
-If Phase 1 found overlapping events or HIGH-priority meetings requiring prep decisions, post to `#효정-의사결정` as personal decisions with HIGH urgency.
+If `phase-1-calendar.json` indicates overlapping events or HIGH-priority meetings requiring prep decisions, post to `#효정-의사결정` as personal decisions with HIGH urgency.
 
 **Step 4.5d — Format and post:**
 
@@ -212,7 +312,11 @@ C. 보류 / 추가 조사 필요
 
 Post each decision as a separate message (not threaded) to the appropriate channel. Include decision posts in the Phase 5 Memory Sync entry.
 
+**Persist & manifest:** Write `{ decisions_posted[], skipped_reason?, channel_posts[] }` to `outputs/google-daily/{date}/phase-4-5-decisions.json`. Update `manifest.json` with `id: "4-5"`, `label: decisions`.
+
 ## Phase 5 -- Memory Sync
+
+**Input source (mandatory):** Compose the MEMORY.md entry **only** from `manifest.json` and the phase files `phase-1-calendar.json` through `phase-4-5-decisions.json` under `outputs/google-daily/{date}/`. Do not reconstruct from conversation memory.
 
 Append a daily entry to `MEMORY.md` at the project root following the protocol in `.cursor/rules/self-improvement.mdc`.
 
@@ -227,7 +331,11 @@ Append a daily entry to `MEMORY.md` at the project root following the protocol i
 - Slack: summary + N threads posted to #효정-할일
 ```
 
+Populate each bullet from the on-disk JSON fields (counts and summaries from `phase-1-calendar.json`, `phase-2-gmail.json`, `phase-4-slack.json`, `phase-4-5-decisions.json` as applicable).
+
 This accumulates context so future sessions can reference past daily patterns, recurring senders, and action item history.
+
+**Persist & manifest:** Write `{ memory_entry_markdown, memory_md_path: "MEMORY.md", appended: boolean }` to `outputs/google-daily/{date}/phase-5-memory.json`. Update `manifest.json` with `id: "5"`, `label: memory`.
 
 ## Phase 6 -- Slack Orphan Cleanup
 
@@ -241,7 +349,13 @@ python backend/scripts/cleanup_orphaned_threads.py --execute --json
 Parse the JSON output and include a one-line summary in the Phase 4 Slack thread (if `main_message_ts` is available) or post a brief message to `#효정-할일`:
 `Orphan cleanup: {deleted} deleted, {failed} failed across {N} channels`
 
+**Input source:** Read `main_message_ts` from `outputs/google-daily/{date}/phase-4-slack.json` only (not from chat memory).
+
+**Persist & manifest:** Write `{ script_output, deleted, failed, channels, summary_line }` to `outputs/google-daily/{date}/phase-6-orphan-cleanup.json`. Update `manifest.json` with `id: "6"`, `label: orphan-cleanup`. Set `manifest.completed_at`, `overall_status`, and `warnings` from all phase outcomes.
+
 ## Error Recovery
+
+Resume from the **last successful `phase-*.json`** under `outputs/google-daily/{date}/` and the current `manifest.json`. Do not re-run completed phases unless their output files are missing or invalid.
 
 | Phase | Failure | Action |
 |-------|---------|--------|
@@ -269,3 +383,32 @@ Parse the JSON output and include a one-line summary in the Phase 4 Slack thread
 **User says:** "google daily" or request matching the skill triggers
 **Actions:** Execute the skill workflow as specified. Verify output quality.
 **Result:** Task completed with expected output format.
+
+## Coordinator Synthesis
+
+When delegating to subagents:
+
+- **Never use lazy delegation.** Provide specific inputs (file paths, data, context) to every subagent — not "based on your findings, do X."
+- **Purpose statement required:** Every subagent prompt must include why the task matters and how its output is used downstream.
+- **Continue vs Spawn decision:**
+  - Continue (resume) when worker context overlaps with the next task or fixing a previous failure
+  - Spawn fresh when verifying another worker's output or when previous approach was fundamentally wrong
+- Use `model: "fast"` for exploration/read-only subagents; default model for generation/analysis
+
+## Honest Reporting
+
+- Report phase outcomes faithfully: if a phase fails, say so with the error output
+- Never claim "pipeline complete" when phases were skipped or failed
+- Never suppress failing phases to manufacture a green summary
+- When a phase succeeds, state it plainly without unnecessary hedging
+- The Slack summary must accurately reflect what happened — not what was hoped
+
+## Subagent Contract
+
+Subagent prompts must include:
+- Always use absolute file paths (subagent cwd may differ)
+- Return `{ status, file, summary }` for orchestrator context efficiency
+- Include code snippets only when exact text is load-bearing
+- Do not recap files merely read — summarize findings
+- Final response: concise report of what was done, key findings, files changed
+- Do not use emojis

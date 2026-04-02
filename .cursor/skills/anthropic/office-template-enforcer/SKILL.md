@@ -126,6 +126,36 @@ See `references/authoring-rules.md` for detailed rules. Key rules:
 
 **Action**: Ambiguous type → ask user: PPTX or DOCX? → proceed based on answer
 
+## Output Discipline
+
+- Select ONE template and delegate to ONE engine — do not create hybrid outputs
+- Do not invent template IDs not listed in the catalog
+- If no template matches, tell the user — do not fall back to creating from scratch (that is anthropic-docx or anthropic-pptx territory)
+- Match content volume to template slot capacity — compress content rather than altering the template
+
+## Coordinator Synthesis
+
+When delegating to sub-engines (docx-template-engine or ppt-template-engine):
+
+- **Never use lazy delegation.** Provide the sub-engine with: template ID, complete JSON spec, output file path
+- Include a purpose statement: "This report will be delivered to [audience]. Focus on [specific emphasis]."
+- After delegation, verify the sub-engine's output — do not blindly pass through results
+
+## Verification
+
+After receiving output from the sub-engine:
+
+1. **File exists**: Confirm the output file was created at the expected path
+2. **Validation passed**: Confirm the sub-engine's validation reported 0 hard violations
+3. **Content spot-check**: Verify key content from the JSON spec appears in the output
+
+## Honest Reporting
+
+- If the sub-engine reports hard violations, report them to the user with specifics
+- Never claim "document created from template" when the validation failed
+- If template selection is ambiguous, ask the user rather than guessing
+- Report both the generated file path AND the validation status
+
 ## Failure Handling
 
 See `references/failure-handling.md` for the complete strategy.

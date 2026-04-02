@@ -216,3 +216,14 @@ Runs only Groups A and B. Produces architecture analysis and interactive diagram
 - **design-architect skipped unexpectedly**: The skill auto-detects frontend files (`.tsx`, `.css`). If your project uses `.vue` or `.svelte`, the detection may miss them -- run with `--section architecture` to force Group B.
 - **StudyVault empty**: docs-tutor-setup requires markdown input files. Ensure Group C (technical-writer) completes before Group C (docs-tutor-setup) runs.
 - **Output directory permission error**: Verify write permissions on the output path. Try a different path with `--output ./onboarding-kit/`.
+
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

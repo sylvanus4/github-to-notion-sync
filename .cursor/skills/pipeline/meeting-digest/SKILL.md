@@ -18,7 +18,7 @@ description: >-
   Do NOT use for ad-hoc PPTX creation without meeting content (use anthropic-pptx).
 metadata:
   author: "thaki"
-  version: "2.0.1"
+  version: "2.1.0"
   category: "execution"
 ---
 # Meeting Digest
@@ -35,13 +35,114 @@ detection, and produces structured Korean summaries with detailed action items.
 
 | Key | Value |
 |-----|-------|
-| Output Directory | `output/meetings/` |
+| Output Directory | `outputs/meeting-digest/{date}/` (see Pipeline Output Protocol) |
 | Language | Korean |
 | MCP Server (Notion) | `plugin-notion-workspace-notion` |
 | MCP Server (Slack) | `plugin-slack-slack` |
 | Default Slack Channel | Specify at invocation via `--slack-channel <id>` |
 | Default Notion Parent | Specify at invocation via `--notion-parent <id>` |
 | Table Conversion Script | `.cursor/skills/notion/md-to-notion/scripts/convert_tables.py` |
+| Pipeline run root (this skill) | `outputs/meeting-digest/{date}/` |
+
+## Pipeline initialization (run start)
+
+Before Phase 1, execute once per run:
+
+1. Set `{date}` to the run date in `YYYY-MM-DD` (or a user-provided `--date` if supported).
+2. Create the output directory: `outputs/meeting-digest/{date}/` (e.g. `mkdir -p`).
+3. Write an initial `outputs/meeting-digest/{date}/manifest.json` with:
+   - `pipeline`: `"meeting-digest"`
+   - `date`: `{date}`
+   - `started_at`: ISO-8601 timestamp
+   - `completed_at`: `null`
+   - `phases`: `[]` (populate as each phase completes)
+   - `flags`: object for CLI flags in effect (e.g. `no_notion`, `pptx`, `slack`)
+   - `overall_status`: `"running"`
+   - `warnings`: `[]`
+
+## Pipeline Output Protocol (File-First)
+
+This skill uses **file-first** orchestration: every phase persists structured output to disk and records it in `manifest.json`. Downstream phases and any final summary/delivery **read only from these files and the manifest**, not from conversational memory or uncached subagent payloads.
+
+### Directories and filenames
+
+| Artifact | Path |
+|----------|------|
+| Run directory | `outputs/meeting-digest/{date}/` |
+| Phase checkpoints | `outputs/meeting-digest/{date}/phase-{N}-{label}.json` |
+| Run manifest | `outputs/meeting-digest/{date}/manifest.json` |
+| Human-readable outputs (summary, action items, PPTX) | Same run directory (`summary.md`, `action-items.md`, optional `meeting-summary.pptx`) |
+| Ingest audit copy | `outputs/meeting-digest/{date}/raw/{sanitized-title}.md` (normalized source for traceability) |
+
+**Phase file mapping** (N = phase number, label = short slug):
+
+| N | label | File |
+|---|--------|------|
+| 1 | ingest | `phase-1-ingest.json` |
+| 2 | classify | `phase-2-classify.json` |
+| 3 | pm-analysis | `phase-3-pm-analysis.json` |
+| 4 | generate | `phase-4-generate.json` |
+| 5 | deliver | `phase-5-deliver.json` |
+
+### Subagent Return Contract
+
+Any Task/subagent invoked in this pipeline MUST return **only** this JSON-shaped result (no full analysis body in the message):
+
+```json
+{
+  "status": "success | skipped | failed",
+  "file": "absolute or repo-relative path to the written artifact, or null",
+  "summary": "one short paragraph: what was produced and where"
+}
+```
+
+The parent agent reads substantive content from `file` (or from the phase JSON written by the subagent per step instructions), never from the subagent’s chat transcript.
+
+### Final aggregation rule
+
+Phases that **compose** the Korean summary, action-items documents, Notion payloads, PPTX, or Slack posts MUST:
+
+- Load `manifest.json` to confirm phase order and paths.
+- Read inputs **only** from `phase-*.json` files (and the markdown files referenced by those JSON records), **not** from prior in-context summaries.
+
+### `manifest.json` schema
+
+Top-level object:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `pipeline` | string | Always `"meeting-digest"`. |
+| `date` | string | Run date `YYYY-MM-DD`. |
+| `started_at` | string | ISO-8601 when the run began. |
+| `completed_at` | string \| null | ISO-8601 when the run finished, or `null` while running. |
+| `phases` | array | One entry per phase after completion (see below). |
+| `flags` | object | Boolean/string flags (e.g. `no_notion`, `pptx`, `slack`, `slack_channel`, `notion_parent`). |
+| `overall_status` | string | `"running"`, `"success"`, `"partial"`, or `"failed"`. |
+| `warnings` | array of string | Non-fatal issues (e.g. skipped optional analysis). |
+
+Each element of `phases`:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | integer | Phase number (1–5). |
+| `label` | string | Short slug (e.g. `ingest`, `classify`). |
+| `status` | string | `"success"`, `"skipped"`, or `"failed"`. |
+| `output_file` | string | Path to `phase-{N}-{label}.json`. |
+| `started_at` | string | ISO-8601. |
+| `elapsed_ms` | number | Wall time for the phase. |
+| `summary` | string | Brief description of what was written. |
+
+Update `manifest.json` after **each** phase completes (merge into `phases`, refresh `overall_status`/`warnings` as needed). Set `completed_at` and final `overall_status` when Phase 5 finishes.
+
+### Output Artifacts (file-first)
+
+| Phase | Stage | Output file | Notes |
+|-------|--------|---------------|--------|
+| 1 | Ingest | `phase-1-ingest.json` | Plus optional `raw/*.md` |
+| 2 | Classify | `phase-2-classify.json` | |
+| 3 | PM analysis | `phase-3-pm-analysis.json` | Merges core + parallel subagent artifacts |
+| 4 | Generate | `phase-4-generate.json` | References `summary.md`, `action-items.md` |
+| 5 | Deliver | `phase-5-deliver.json` | Notion/Slack/PPTX results |
 
 ## Input Modes
 
@@ -64,6 +165,8 @@ Phase 5: Deliver       → Save files + upload to Notion; optionally PPTX, Slack
 
 **Pattern**: Sequential (Phase 1 → 2 → 3 → 4 → 5).
 Phase 3 runs parallel subagents for different PM perspectives.
+
+All phases persist to `outputs/meeting-digest/{date}/` and update `manifest.json` (see **Pipeline Output Protocol (File-First)**).
 
 ---
 
@@ -114,12 +217,23 @@ Convert fetched content to a normalized markdown document containing:
 - Meeting title (extracted from Notion page title, filename, or first heading)
 - Raw content body (all text, tables, bullet points preserved)
 
-Save the normalized content to `output/meetings/raw/{sanitized-title}.md`
+Save the normalized content to `outputs/meeting-digest/{date}/raw/{sanitized-title}.md`
 for audit trail.
+
+### 1.4 Persist & manifest (Phase 1)
+
+1. Write `outputs/meeting-digest/{date}/phase-1-ingest.json` containing at minimum:
+   - `input_mode` (notion | file | raw | mixed)
+   - `source_ref` (URL, path, or indicator for raw)
+   - `normalized_markdown_path`: path to `raw/{sanitized-title}.md`
+   - `title`, `ingest_status`
+2. Update `manifest.json`: append phase `id: 1`, `label: "ingest"`, `status`, `output_file`, `started_at`, `elapsed_ms`, `summary`.
 
 ---
 
 ## Phase 2: Meeting Type Classification
+
+**Input for Phase 2**: Load normalized meeting text from the path in `phase-1-ingest.json` (`normalized_markdown_path`). Do not rely on chat context for the raw meeting body.
 
 Classify the meeting content to determine which PM sub-skills to activate.
 For the classification heuristics, see
@@ -145,18 +259,28 @@ regardless of content analysis.
 The core `pm-execution/summarize-meeting` analysis always runs regardless of
 meeting type.
 
+### 2.1 Persist & manifest (Phase 2)
+
+1. Write `outputs/meeting-digest/{date}/phase-2-classify.json` containing:
+   - `meeting_type` (e.g. `discovery`, `strategy`, `gtm`, `sprint`, `operational`)
+   - `activated_skills` (list)
+   - `override_from_flag` (boolean)
+   - `classification_notes` (short string)
+2. Update `manifest.json` with phase `id: 2`, `label: "classify"`, timings, and summary.
+
 ---
 
 ## Phase 3: Multi-Perspective PM Analysis
 
 **CRITICAL**: Launch parallel subagents (max 4 concurrent) based on the
-detected meeting type. Each subagent must receive the full normalized
-meeting content from Phase 1.
+detected meeting type. Each subagent must read the **normalized meeting content from disk** via `phase-1-ingest.json` → `normalized_markdown_path` (Read tool), not from inline chat context.
+
+**Inputs for Phase 3**: Read `phase-1-ingest.json` and `phase-2-classify.json` only.
 
 ### 3.1 Core Analysis (always runs)
 
 Read `.cursor/skills/pm/pm-execution/references/summarize-meeting.md` and follow
-its instructions with the normalized meeting content as input.
+its instructions with the normalized meeting content loaded from the file path recorded in `phase-1-ingest.json` as input.
 
 Extract:
 - Date, time, participants (names and roles)
@@ -178,7 +302,7 @@ Launch a Task subagent to:
 2. Route to `identify-assumptions-existing`
 3. Read `.cursor/skills/pm/pm-product-discovery/references/identify-assumptions-existing.md`
 4. Apply the assumption identification framework to the meeting content
-5. Return: list of assumptions, confidence levels, and validation suggestions
+5. Write detailed findings to `outputs/meeting-digest/{date}/subagent-discovery.json` (or another deterministic path under the run directory) and return **only** `{ status, file, summary }` per **Subagent Return Contract**.
 
 **For `strategy` meetings:**
 
@@ -187,7 +311,7 @@ Launch a Task subagent to:
 2. Route to `swot-analysis` or `value-proposition` (choose based on content)
 3. Read the corresponding reference file
 4. Apply the framework to the meeting discussion points
-5. Return: SWOT matrix or value proposition canvas
+5. Write findings to `outputs/meeting-digest/{date}/subagent-strategy.json` and return **only** `{ status, file, summary }`.
 
 **For `gtm` meetings:**
 
@@ -196,7 +320,7 @@ Launch a Task subagent to:
 2. Route to `gtm-strategy` or `ideal-customer-profile`
 3. Read the corresponding reference file
 4. Apply the framework to the meeting content
-5. Return: GTM strategy elements or ICP definition
+5. Write findings to `outputs/meeting-digest/{date}/subagent-gtm.json` and return **only** `{ status, file, summary }`.
 
 **For `sprint` meetings:**
 
@@ -205,7 +329,7 @@ Launch a Task subagent to:
 2. Route to `sprint-plan` or `retro` (based on content)
 3. Read the corresponding reference file
 4. Apply the framework to the meeting content
-5. Return: Sprint plan or retrospective output
+5. Write findings to `outputs/meeting-digest/{date}/subagent-sprint.json` and return **only** `{ status, file, summary }`.
 
 ### 3.3 Sentiment & Alignment Analysis (optional)
 
@@ -214,33 +338,41 @@ dynamics, launch an additional subagent to:
 1. Read `.cursor/skills/pm/pm-market-research/SKILL.md`
 2. Route to `sentiment-analysis`
 3. Analyze stakeholder alignment and sentiment on key topics
-4. Return: Sentiment breakdown per topic and participant
+4. Write findings to `outputs/meeting-digest/{date}/subagent-sentiment.json` and return **only** `{ status, file, summary }`.
 
 Only activate this when the meeting content shows clear signals of
 disagreement or multiple competing viewpoints.
+
+### 3.4 Persist & manifest (Phase 3)
+
+1. Merge core analysis and each successful subagent artifact into a single `outputs/meeting-digest/{date}/phase-3-pm-analysis.json` with:
+   - `core_analysis` (path to a JSON or markdown snippet file, or structured fields)
+   - `contextual_analyses`: array of `{ type, file, subagent_status }`
+   - `optional_sentiment`: path or `null`
+2. Update `manifest.json` with phase `id: 3`, `label: "pm-analysis"`, timings, summary. On partial failure, set phase `status` to `"partial"` and append entries to `warnings`.
 
 ---
 
 ## Phase 4: Document Generation
 
-Combine Phase 3 analysis into two structured Korean documents.
+Combine Phase 3 analysis into two structured Korean documents **by reading only** `phase-3-pm-analysis.json`, `phase-1-ingest.json` (for title/metadata), and the referenced artifact files — **not** from uncached chat history.
 
 ### 4.1 Summary Document
 
 Generate a comprehensive Korean summary following the template in
 [references/summary-template.md](references/summary-template.md).
 
-Save to `output/meetings/{date}/summary.md` where `{date}` is today's date
-in `YYYY-MM-DD` format. If a directory for today already exists and contains
+Save to `outputs/meeting-digest/{date}/summary.md` where `{date}` is the run
+date in `YYYY-MM-DD` format. If a directory for today already exists and contains
 output from a different meeting, append a sequence number:
-`output/meetings/{date}-{N}/`.
+`outputs/meeting-digest/{date}-{N}/`.
 
 ### 4.2 Action Items Document
 
 Generate detailed action items following the template in
 [references/action-items-template.md](references/action-items-template.md).
 
-Save to `output/meetings/{date}/action-items.md`.
+Save to `outputs/meeting-digest/{date}/action-items.md`.
 
 ### 4.3 PM Analysis Appendix (conditional)
 
@@ -258,13 +390,23 @@ Before proceeding to Phase 5, verify:
 - [ ] PM analysis appendix included (if applicable)
 - [ ] Language is clear, professional Korean
 
+### 4.4 Persist & manifest (Phase 4)
+
+1. Write `outputs/meeting-digest/{date}/phase-4-generate.json` containing:
+   - `summary_md`: `summary.md` (path relative to run dir or absolute)
+   - `action_items_md`: `action-items.md`
+   - `quality_checklist`: key booleans from the checklist above
+2. Update `manifest.json` with phase `id: 4`, `label: "generate"`, timings, summary.
+
 ---
 
 ## Phase 5: Output Delivery
 
+**Inputs for Phase 5**: Read `manifest.json`, `phase-4-generate.json`, `summary.md`, and `action-items.md` from `outputs/meeting-digest/{date}/` only. Do not reconstruct narrative from prior conversation turns.
+
 ### 5.1 Local Files (always)
 
-Files are always saved to `output/meetings/{date}/`:
+Files are always saved to `outputs/meeting-digest/{date}/`:
 - `summary.md` — Comprehensive Korean summary
 - `action-items.md` — Detailed action items with dashboard
 
@@ -296,8 +438,8 @@ TMPDIR=$(mktemp -d /tmp/notion-upload-XXXXXX)
 
 python .cursor/skills/notion/md-to-notion/scripts/convert_tables.py \
   --outdir "$TMPDIR" \
-  output/meetings/{date}/summary.md \
-  output/meetings/{date}/action-items.md
+  outputs/meeting-digest/{date}/summary.md \
+  outputs/meeting-digest/{date}/action-items.md
 ```
 
 This converts pipe tables to Notion `<table header-row="true">` HTML blocks,
@@ -360,7 +502,7 @@ Check that both created titles appear in the response. Report any missing
 pages.
 
 **Section-count verification**: Count `##` headings in the uploaded Notion
-summary page and compare with the original `summary.md`. If the Notion page
+summary page and compare with the original `outputs/meeting-digest/{date}/summary.md`. If the Notion page
 has fewer `##` headings (difference > 1), the upload is INCOMPLETE — delete
 and re-upload using the full JSON content.
 
@@ -393,33 +535,52 @@ When the `--pptx` flag is provided:
 | N+4 | Next steps | Follow-ups + timeline |
 
 4. Apply "Modern Minimalist" theme (or user preference)
-5. Save to `output/meetings/{date}/meeting-summary.pptx`
+5. Save to `outputs/meeting-digest/{date}/meeting-summary.pptx`
+
+**PPTX content source**: Build slides only from `phase-3-pm-analysis.json`, `summary.md`, and `action-items.md` on disk — not from chat memory.
 
 ### 5.4 Slack Post (--slack flag)
 
 When the `--slack` flag is provided:
 
-1. Post main message to the target channel (specified via `--slack-channel`)
-2. Reply in-thread with detailed discussion points
-3. Reply in-thread with action items dashboard
-4. Reply in-thread with next steps
+1. Load thread copy **only** from `outputs/meeting-digest/{date}/summary.md`, `action-items.md`, and `phase-3-pm-analysis.json` / `phase-4-generate.json` as needed for structure — do not paraphrase from earlier conversation context.
+2. Post main message to the target channel (specified via `--slack-channel`)
+3. Reply in-thread with detailed discussion points
+4. Reply in-thread with action items dashboard
+5. Reply in-thread with next steps
 
 Each message must stay under 4000 characters. Split if needed.
 Use Slack mrkdwn syntax (`*bold*`, `_italic_`, `` `code` ``).
 
 No file uploads — only text-based summaries are posted.
 
+### 5.5 Persist & manifest (Phase 5)
+
+1. Write `outputs/meeting-digest/{date}/phase-5-deliver.json` containing:
+   - `notion`: page IDs or URLs if uploaded, or `skipped: true` if `--no-notion`
+   - `pptx_path`: path or `null`
+   - `slack`: `{ channel, thread_ts }` or `skipped: true`
+   - `tmp_dir_cleaned`: boolean
+2. Update `manifest.json`: append phase `id: 5`, `label: "deliver"`, set `completed_at`, `overall_status` (`success` / `partial` / `failed`), and final `warnings`.
+
 ---
 
 ## Output Structure
 
 ```
-output/meetings/
-├── raw/                          # Normalized source content
-│   └── {sanitized-title}.md
-└── {YYYY-MM-DD}/                 # Date-stamped output
+outputs/meeting-digest/
+└── {YYYY-MM-DD}/                 # Date-stamped run
+    ├── manifest.json             # Phase index + status
+    ├── phase-1-ingest.json
+    ├── phase-2-classify.json
+    ├── phase-3-pm-analysis.json
+    ├── phase-4-generate.json
+    ├── phase-5-deliver.json
+    ├── raw/                      # Normalized source content
+    │   └── {sanitized-title}.md
     ├── summary.md                # Korean summary with PM analysis
     ├── action-items.md           # Detailed action items + dashboard
+    ├── subagent-*.json           # Optional per-subagent artifacts
     └── meeting-summary.pptx      # PowerPoint (if --pptx)
 ```
 
@@ -436,16 +597,16 @@ Actions:
 2. Fetch page via `notion-fetch` with transcript
 3. Classify as `strategy` meeting (contains pricing, positioning, competitive)
 4. Run 3 parallel agents: summarize-meeting + SWOT analysis + sentiment
-5. Generate `output/meetings/2026-03-13/summary.md` with PM appendix
-6. Generate `output/meetings/2026-03-13/action-items.md` with 9 items
+5. Generate `outputs/meeting-digest/2026-03-13/summary.md` with PM appendix
+6. Generate `outputs/meeting-digest/2026-03-13/action-items.md` with 9 items
 7. Convert tables via `convert_tables.py`, upload 2 sub-pages to Notion
 8. Verify both pages appear under default parent
 
-Result: Complete meeting digest in `output/meetings/2026-03-13/` + Notion pages
+Result: Complete meeting digest in `outputs/meeting-digest/2026-03-13/` + Notion pages
 
 ### Example 2: Local file with PPTX and Slack
 
-User says: `/meeting-digest --file output/meetings/raw/vc-pitch-preview.md --pptx --slack`
+User says: `/meeting-digest --file outputs/meeting-digest/2026-03-13/raw/vc-pitch-preview.md --pptx --slack`
 
 Actions:
 1. Read local markdown file
@@ -488,6 +649,8 @@ Result: Discovery-perspective analysis with Notion upload to custom parent
 
 ## Error Handling
 
+If a phase fails after earlier phases succeeded, use `manifest.json` and the latest `phase-*.json` files under `outputs/meeting-digest/{date}/` as the resume checkpoint; re-run from the failed phase after fixing the issue.
+
 | Error | Recovery |
 |-------|----------|
 | Notion MCP not authenticated | Instruct user to authorize the Notion integration |
@@ -502,3 +665,14 @@ Result: Discovery-perspective analysis with Notion upload to custom parent
 | PPTX generation fails | Save markdown outputs, report PPTX failure |
 | Slack post fails | Save all files locally, report Slack failure |
 | Content too short for analysis | Run core summary only, skip contextual PM skills |
+
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

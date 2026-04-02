@@ -188,3 +188,13 @@ Actions:
 - Follows `workflow-patterns.mdc` Parallel pattern definition
 - Follows `parallel-orchestration.mdc` for scaling and sync point rules
 - Can be nested inside `workflow-sequential` as a parallel stage within a sequential pipeline
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected
