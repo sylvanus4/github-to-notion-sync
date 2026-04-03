@@ -364,3 +364,14 @@ Subagentに渡すプロンプト例:
 | scenario-analyst/subagent 失敗 | リトライ、または手動で参照を読み分析を実行 |
 | 確率合計≠100% | Base+Bull+Bear の確率を再調整して100%に |
 | 保存先ディレクトリなし | `outputs/reports/trading/` を作成してから保存 |
+
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

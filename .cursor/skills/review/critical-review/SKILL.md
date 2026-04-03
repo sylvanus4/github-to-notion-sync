@@ -243,3 +243,14 @@ Phase 4 only. Reads existing review and remediation files from `docs/reviews/`. 
 - **PM skill produces incomplete output**: Ensure the CTO and CEO review files contain structured findings. The PM skills parse these as input context.
 - **DOCX generation script error**: Verify `docx` is installed globally (`npm install -g docx`). Use `NODE_PATH=$(npm root -g)` when running the script.
 - **Sprint changes conflict with existing code**: The pipeline applies fixes incrementally. If a conflict occurs, it will skip the conflicting change and report it in the remediation summary.
+
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

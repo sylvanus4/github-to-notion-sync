@@ -1,0 +1,39 @@
+---
+description: "Quick-reference token hygiene checklist — invoke when reviewing or creating rules, skills, or AGENTS.md entries for token impact"
+alwaysApply: false
+---
+
+# Token Diet Hygiene Checklist
+
+Quick-reference for minimizing per-turn token overhead. For full diagnosis, run `/token-diet`.
+
+## Before Adding an `alwaysApply: true` Rule
+
+- [ ] Does this content truly need to be in EVERY agent turn? If not, use `alwaysApply: false`
+- [ ] Is the rule < 2 KB? Rules > 2 KB should be split or trimmed
+- [ ] Does an existing rule already cover this? Check for overlap before creating new ones
+- [ ] Could this be a project-scoped skill instead of a rule?
+
+## Before Adding to AGENTS.md
+
+- [ ] Is this a workspace-wide fact needed every turn? If domain-specific, use a scoped rule
+- [ ] Does the entry duplicate a `.cursor/rules/*.mdc` rule? Deduplicate — one source of truth
+- [ ] Is the entry concise? Use bullet fragments, not full sentences
+
+## MCP Server Hygiene
+
+- [ ] Is the MCP server actively used in this project? Disable unused servers
+- [ ] Target: ≤ 10 enabled servers per project (each adds ~1000 tokens of schema)
+
+## Skill Description Hygiene
+
+- [ ] Is the `description` field in YAML frontmatter ≤ 512 characters?
+- [ ] Does the description use `>-` folded block to avoid accidental whitespace bloat?
+- [ ] Are "Do NOT use for" entries concise? One line per exclusion
+
+## Session Cost Awareness
+
+- [ ] Use `fast` model for exploration subagents — 10× cheaper than Sonnet
+- [ ] Run `/clear` between unrelated tasks to reset context
+- [ ] At logical phase boundaries, consider context compaction (see `ecc-strategic-compact`)
+- [ ] Prefix shell commands with `rtk` for 60-90% output compression (see `rtk-token-optimization.mdc`)

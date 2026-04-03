@@ -189,12 +189,20 @@ def parse_article(api_response: dict) -> str:
 
         rendered_text = render_text(text, inline_styles, entity_ranges, entity_lookup)
 
-        if btype == "header-two":
+        if btype == "header-one":
             if prev_was_list:
                 lines.append("")
                 prev_was_list = False
             ordered_counter = 0
             lines.append(f"## {rendered_text}")
+            lines.append("")
+
+        elif btype == "header-two":
+            if prev_was_list:
+                lines.append("")
+                prev_was_list = False
+            ordered_counter = 0
+            lines.append(f"### {rendered_text}")
             lines.append("")
 
         elif btype == "unordered-list-item":

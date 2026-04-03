@@ -1,0 +1,32 @@
+---
+description: "Reminder to refresh CODEMAP.md after structural changes"
+alwaysApply: false
+---
+
+# Codemap Maintenance
+
+## When to Refresh CODEMAP.md
+
+After completing any of these structural changes, consider running `/codemap --refresh`:
+
+- Created or deleted top-level directories
+- Added a new entry point (new CLI script, API router, frontend page)
+- Renamed or moved modules across directories
+- Changed more than 10 files in a single feature
+- Added or removed major dependencies
+- Completed a significant architectural refactoring
+
+## How to Refresh
+
+```
+/codemap --refresh
+```
+
+Or invoke the `codemap-updater` skill directly for more control.
+
+## What Not to Refresh On
+
+- Single-file edits within existing modules
+- Documentation-only changes
+- Test file additions that don't change architecture
+- Config tweaks (`.env`, settings)

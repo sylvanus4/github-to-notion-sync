@@ -221,3 +221,14 @@ Print a completion report:
 6. Result: 11/12 roles participated
 7. Executive briefing generated with SCQA analysis
 8. Slack: 12 messages (1 main + 11 thread replies + .docx upload)
+
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

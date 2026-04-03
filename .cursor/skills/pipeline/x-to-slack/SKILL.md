@@ -213,6 +213,39 @@ If the tweet topic is not directly related to AI GPU Cloud / AI platform service
 - {추가 리서치가 필요한 영역}
 ```
 
+### Step 5: Long-Form Detection → x-to-notion (optional)
+
+After completing the Slack thread, evaluate whether the tweet qualifies as **long-form content** worth archiving to Notion.
+
+**Detection criteria** (ANY match triggers Notion publishing):
+
+| Criterion | Threshold |
+|---|---|
+| Tweet text length | > 500 characters |
+| X Article | `tweet.article` exists in FxTwitter response |
+| Thread | Self-reply thread with 3+ tweets |
+| Quote + body combined | Total text (tweet + quote) > 400 characters |
+
+**Execution**:
+
+If any criterion matches, invoke the `x-to-notion` skill with the original tweet URL:
+
+1. Log: `"장문 콘텐츠 감지 — Notion 아카이브 시작 ({criterion})"`
+2. Run x-to-notion pipeline (Phase 1–5) with:
+   - `url`: the original tweet URL
+   - `parent_page_id`: default (`3239eddc34e680e8a7a5d5b5eac18b38`)
+3. After x-to-notion completes, add a **4th Slack thread reply** to the existing thread:
+
+```
+*Notion 아카이브*
+장문 콘텐츠가 Notion에 전문 번역·보관되었습니다.
+{Notion page URL}
+```
+
+**Error handling**: If x-to-notion fails, log the error but do NOT fail the overall x-to-slack pipeline. The Slack thread is already posted successfully.
+
+**Skip flag**: If the user passes `skip-notion`, skip this step entirely.
+
 ## Examples
 
 ### Example 1: English tech tweet

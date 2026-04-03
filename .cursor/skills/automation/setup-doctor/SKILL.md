@@ -39,7 +39,7 @@ The user provides:
 | core-platform | PostgreSQL, Redis, Python backend deps | today, daily-stock-check, tab-*, weekly-stock-update |
 | llm-apis | OPENAI_API_KEY, ANTHROPIC_API_KEY | today, paper-review, alphaear-*, trading-* |
 | slack | SLACK_BOT_TOKEN, plugin-slack-slack MCP | today, x-to-slack, eod-ship, morning-ship |
-| notion | NOTION_TOKEN, plugin-notion-workspace-notion MCP | md-to-notion, notion-docs-sync, paper-archive |
+| notion | NOTION_TOKEN (primary, in `.env`), plugin-notion-workspace-notion MCP (fallback) | md-to-notion, notion-docs-sync, paper-archive, paper-review, meeting-digest, md-enhance-publish |
 | google-workspace | `gws` CLI, OAuth credentials | gws-*, calendar-daily-briefing, gmail-daily-triage |
 | huggingface | `hf` CLI, HF_TOKEN | hf-cli, hf-jobs, hf-model-trainer |
 | notebooklm | notebooklm-mcp MCP server | notebooklm, nlm-*, paper-review |
@@ -220,7 +220,7 @@ Capability Group Status:
   core-platform:     READY
   llm-apis:          READY
   slack:             READY
-  notion:            PARTIAL (NOTION_TOKEN empty)
+  notion:            PARTIAL (NOTION_TOKEN empty — Notion MCP usable as fallback)
   google-workspace:  NOT READY (gws CLI not installed)
   huggingface:       NOT READY (hf CLI missing, HF_TOKEN missing)
   notebooklm:        READY

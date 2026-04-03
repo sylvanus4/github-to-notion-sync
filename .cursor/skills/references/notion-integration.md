@@ -69,6 +69,24 @@ Parent Page (--notion-parent)
 Build a summary page with paper metadata, key metrics, overall score, and
 links to sub-pages (Notion auto-links child pages).
 
+**Authentication**: Token-first — check `NOTION_TOKEN` in `.env`.
+
+**Path A — Token-based (preferred):**
+
+```python
+from scripts.notion_api import NotionClient
+
+client = NotionClient()
+blocks = NotionClient.md_to_blocks(overview_content)
+main_page = client.create_page(
+    parent_id="<PARENT_PAGE_ID>",
+    title="{Paper Title} 논문 분석 ({DATE})",
+    children=blocks,
+)
+```
+
+**Path B — MCP fallback:**
+
 ```
 notion-create-pages(
   parent: { page_id: "<PARENT_PAGE_ID>" },
@@ -132,8 +150,8 @@ Save the returned `page_id` for sub-page creation.
 Create sub-pages under the main page. Each sub-page contains the full content
 of one perspective markdown file, adapted to Notion format.
 
-Launch up to 2 parallel `notion-create-pages` calls at a time to stay within
-API rate limits.
+Launch up to 2 parallel calls at a time to stay within API rate limits.
+Use the same token-first / MCP fallback pattern as 7.1.
 
 | Sub-Page | Source File |
 |---|---|
@@ -153,6 +171,19 @@ For each sub-page:
 4. Remove the first `# H1` heading (it becomes the page title)
 5. Truncate content if it exceeds ~60KB (Notion API limit per request)
 
+**Token path:**
+
+```python
+blocks = NotionClient.md_to_blocks(adapted_content)
+client.create_page(
+    parent_id="<MAIN_PAGE_ID>",
+    title="{N}. {Perspective Name}",
+    children=blocks,
+)
+```
+
+**MCP fallback:**
+
 ```
 notion-create-pages(
   parent: { page_id: "<MAIN_PAGE_ID>" },
@@ -165,7 +196,7 @@ notion-create-pages(
 
 ### 7.3 Capture Main Page URL
 
-The `notion-create-pages` response includes the page URL. Save it for
+The create response (from either path) includes the page ID/URL. Save it for
 inclusion in the Slack thread (Phase 8):
 
 ```
@@ -219,5 +250,6 @@ registration field mapping and error handling.
 
 ## Skills Used
 
-- **plugin-notion-workspace-notion** MCP server (`notion-create-pages` tool)
+- **scripts/notion_api.py** — Token-based Notion API (primary)
+- **plugin-notion-workspace-notion** MCP server — Fallback when `NOTION_TOKEN` unavailable
 - **paper-archive** — Archive index registration (Phase 9)

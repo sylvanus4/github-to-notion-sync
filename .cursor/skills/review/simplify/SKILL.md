@@ -269,3 +269,32 @@ Actions:
 - **Slow execution on full mode**: Large projects are batched; expect 30-60 seconds for 50+ files
 - **Slow execution on diff/today**: All 4 agents run in parallel; typical time is 10-20 seconds
 - **Unexpected fixes**: Each fix is applied via StrReplace with exact string matching; review the diff after completion
+
+## Coordinator Synthesis
+
+When delegating to subagents:
+
+- **Never use lazy delegation.** Provide specific inputs (file paths, line numbers, exact changes, or concrete data points) to every subagent — not "based on your findings, do X."
+- **Purpose statement required:** Every subagent prompt must state how its output is used downstream.
+- **Continue vs Spawn decision:**
+  - Continue (resume) when worker context overlaps with the next task or fixing a previous failure
+  - Spawn fresh when verifying another worker's output or when previous approach was fundamentally wrong
+- Use `model: "fast"` for exploration/read-only subagents; default model for generation/analysis
+
+## Honest Reporting
+
+- Report review outcomes faithfully: if a check fails, say so with the relevant output
+- Never claim "all checks pass" when output shows failures
+- Never suppress or simplify failing checks to manufacture a green result
+- When a check passes, state it plainly without unnecessary hedging
+- The final report must accurately reflect what was found — not what was hoped
+
+## Subagent Contract
+
+Subagent prompts must include:
+- Always use absolute file paths (subagent cwd may differ)
+- Share file paths relevant to the task in the final response
+- Include code snippets only when the exact text is load-bearing (a bug found, a signature needed)
+- Do not recap code merely read — summarize what was learned
+- Final response: concise report of what was done, key findings, and files changed
+- Do not use emojis

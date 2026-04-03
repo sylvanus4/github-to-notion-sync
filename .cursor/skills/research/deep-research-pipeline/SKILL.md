@@ -156,7 +156,25 @@ Use `--parent` if provided, otherwise default to `3239eddc34e680e8a7a5d5b5eac18b
 Create a top-level hub page under the parent with title:
 `"🔬 {Topic} — Deep Research & Analysis"`
 
-Use the Notion MCP to create this page:
+**Token-first**: Use `scripts/notion_api.py` when `NOTION_TOKEN` is available.
+**MCP fallback**: Use Notion MCP when token is not available.
+
+**Path A — Token-based (preferred):**
+
+```python
+from scripts.notion_api import NotionClient
+
+client = NotionClient()
+blocks = NotionClient.md_to_blocks(hub_content)
+hub_page = client.create_page(
+    parent_id="<parent-id>",
+    title="🔬 {Topic} — Deep Research & Analysis",
+    children=blocks,
+    icon_emoji="🔬",
+)
+```
+
+**Path B — MCP fallback:**
 
 ```
 CallMcpTool(
@@ -197,6 +215,9 @@ For each file:
 ### 3.4 Verify
 
 Fetch the hub page to confirm all sub-pages are visible:
+
+**Token path**: `client.get_page(hub_page["id"])` to verify.
+**MCP fallback**:
 
 ```
 CallMcpTool(
@@ -256,3 +277,13 @@ After all three stages complete, print a completion report:
 3. Stage 2: role-dispatcher with research context → 10/12 roles participate, executive briefing generated
 4. Stage 3: Hub page + 12 sub-pages created in Notion, Slack thread posted
 5. Total time: ~15-25 minutes (mostly Stage 1 research + Stage 2 parallel analysis)
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

@@ -1,0 +1,186 @@
+# Knowledge Base Conventions
+
+Rules for the LLM Knowledge Base plugin ecosystem. All KB skills must follow these conventions.
+
+## Directory Layout
+
+```
+knowledge-bases/                    # Root for all KBs
+└── {topic-slug}/                   # One directory per topic
+    ├── manifest.json               # Metadata, source registry, stats
+    ├── raw/                        # Ingested source material (human + LLM curated)
+    │   ├── {slug}.md               # Converted markdown sources
+    │   ├── {slug}.pdf              # Binary originals
+    │   └── assets/                 # Downloaded images/media
+    │       └── {slug}/             # Per-source asset folder
+    ├── wiki/                       # LLM-compiled wiki (LLM-owned, rarely human-edited)
+    │   ├── _index.md               # Master index with article summaries
+    │   ├── _summary.md             # Executive summary (~500-1000 words)
+    │   ├── _concept-map.md         # Mermaid concept relationship diagram
+    │   ├── _glossary.md            # Key terms and definitions
+    │   ├── concepts/               # Core concept articles
+    │   ├── references/             # Per-source reference notes
+    │   ├── connections/            # Cross-concept synthesis articles
+    │   ├── queries/                # Filed Q&A answers (auto file-back)
+    │   ├── outputs/                # Filed output artifacts (auto file-back)
+    │   └── images/                 # Generated diagrams
+    └── outputs/                    # Generated artifacts
+        ├── slides/                 # Marp slide decks
+        ├── charts/                 # Matplotlib visualizations
+        ├── reports/                # Research reports
+        ├── diagrams/               # Mermaid/visual diagrams
+        ├── explainers/             # HTML visual explainers
+        └── auto-builder/           # Automation logs and reports
+```
+
+## Naming Conventions
+
+- **Topic slugs**: lowercase, hyphens, no spaces (e.g., `transformer-architectures`)
+- **File slugs**: derived from title, lowercase, hyphens, max 60 chars
+- **Index files**: prefixed with `_` (e.g., `_index.md`, `_summary.md`)
+- **Wiki articles**: plain `.md` files with YAML frontmatter
+
+## Frontmatter Requirements
+
+Every wiki article MUST have YAML frontmatter:
+
+```yaml
+---
+title: "Article Title"
+category: "concepts|references|connections|queries|outputs"
+related: ["other-concept-1", "other-concept-2"]
+sources: ["raw/source-file.md"]
+last_compiled: "YYYY-MM-DD"
+word_count: 850
+---
+```
+
+Every raw source MUST have:
+
+```yaml
+---
+title: "Source Title"
+source: "https://original-url"
+source_type: "web-article|arxiv-paper|youtube|github-repo|pdf|markdown|text"
+author: "Author Name"
+date_published: "YYYY-MM-DD"
+date_ingested: "YYYY-MM-DD"
+tags: []
+word_count: 1234
+summary: "One-line summary"
+---
+```
+
+## Cross-Reference Syntax
+
+- Wiki-style links for internal references: `[[concept-name]]`
+- Relative paths for raw sources: `[title](../raw/source.md)`
+- Mermaid for diagrams: fenced code blocks with `mermaid` language
+
+## LLM Ownership Principle
+
+The wiki/ directory is **owned by the LLM**. Humans contribute raw sources to raw/; the LLM compiles, maintains, and enhances the wiki. Manual edits are discouraged except for corrections. After manual edits, run kb-index to refresh indexes.
+
+## Manifest Schema
+
+`manifest.json` is the single source of truth for KB metadata:
+
+```json
+{
+  "topic": "topic-slug",
+  "created": "YYYY-MM-DD",
+  "description": "Brief topic description",
+  "sources": [
+    {
+      "slug": "source-slug",
+      "title": "Source Title",
+      "source_url": "https://...",
+      "source_type": "web-article",
+      "date_ingested": "YYYY-MM-DD",
+      "file": "raw/source-slug.md",
+      "word_count": 1234
+    }
+  ],
+  "stats": {
+    "raw_count": 15,
+    "wiki_articles": 28,
+    "total_words": 42000,
+    "last_compiled": "YYYY-MM-DD",
+    "concepts": 18,
+    "references": 15,
+    "connections": 5
+  }
+}
+```
+
+## Incremental Compilation Rules
+
+- New raw sources trigger incremental compilation (update, don't overwrite)
+- Never delete existing wiki articles during incremental compilation
+- Regenerate all `_` prefixed index files after any wiki change
+- Update `manifest.json` stats after every operation
+
+## Output Conventions
+
+- Marp slides: YAML front matter with `marp: true`
+- Matplotlib: save as PNG at 150 DPI
+- Reports: markdown with optional DOCX conversion
+- All outputs reference the KB topic and generation date
+
+## Obsidian Compatibility
+
+Wiki articles are designed to be viewable in Obsidian:
+- `[[wikilinks]]` are Obsidian-compatible
+- Image paths use relative references
+- Marp slides viewable with the Obsidian Marp plugin
+- Mermaid diagrams render natively in Obsidian
+
+## Automation Configuration
+
+The `manifest.json` supports an `automation` section for continuous KB construction:
+
+```json
+{
+  "automation": {
+    "watch_dirs": ["~/ObsidianVault/Clippings/", "knowledge-bases/{topic}/inbox/"],
+    "feeds": [
+      {
+        "url": "https://arxiv.org/rss/cs.AI",
+        "filter": "transformer|attention",
+        "max_items": 5,
+        "last_fetched": "2026-04-03"
+      }
+    ],
+    "enhance": {
+      "depth": "light",
+      "auto_file_back": true
+    },
+    "last_auto_run": "2026-04-03T14:30:00Z"
+  }
+}
+```
+
+### Automation Rules
+
+- **Watch dirs**: new files are copied to `raw/` and trigger `kb-ingest → kb-compile (incremental) → kb-index`
+- **Feed subscriptions**: fetched entries are saved as markdown stubs in `raw/`, then processed through the ingest pipeline
+- **Auto file-back**: query answers and generated outputs are automatically archived into `wiki/queries/` and `wiki/outputs/` respectively; use `--no-file-back` to opt out
+- **Enhancement cycle**: `kb-lint → auto-fix → kb-compile (incremental) → kb-index`; runs on `enhance` or `full-auto` mode with configurable depth (`light` = stale/incomplete only, `deep` = full wiki)
+- **CLI wrapper**: `scripts/kb_cli.py` provides standalone automation (init, watch, feed, add) without the Cursor IDE
+
+### Output Directory for Auto-Builder
+
+```
+knowledge-bases/{topic}/outputs/auto-builder/
+├── {timestamp}-watch-log.md      # Watch batch processing log
+├── {timestamp}-feed-log.md       # Feed fetch processing log
+└── {timestamp}-enhance-report.md # Enhancement cycle report
+```
+
+## Skill Invocation Order
+
+For full pipeline: `kb-ingest → kb-compile → kb-index → kb-lint → kb-output`
+For quick add: `kb-ingest → kb-compile (incremental) → kb-index`
+For enhancement: `kb-lint → fix → kb-compile (incremental) → kb-index`
+For automation: `kb-auto-builder (watch|feed|enhance|full-auto)` → delegates to appropriate skills
+For file-back: query/output results → auto-save to `wiki/queries/` or `wiki/outputs/` → `kb-index`

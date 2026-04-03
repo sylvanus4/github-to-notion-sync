@@ -411,7 +411,27 @@ Evaluate whether the tweet warrants a DECISION post. Default to NOT posting — 
 
 See [references/decision-template.md](references/decision-template.md) for detection criteria, the DECISION post template, and channel routing rules.
 
-#### Step 3h: Rate Limiting
+#### Step 3h: Long-Form Detection → x-to-notion (automatic)
+
+The x-to-slack workflow (Step 5) automatically detects long-form content and invokes x-to-notion. This step is inherited from x-to-slack — no additional logic is needed in twitter-timeline-to-slack.
+
+**Detection criteria** (ANY match triggers Notion publishing):
+
+| Criterion | Threshold |
+|---|---|
+| Tweet text length | > 500 characters |
+| X Article | `tweet.article` exists in FxTwitter response |
+| Thread | `is_thread === true` with 3+ tweets in thread array |
+| Quote + body combined | Total text (tweet + quote) > 400 characters |
+
+When a long-form tweet is detected:
+1. x-to-notion runs in the background after Slack posting
+2. A 4th Slack thread reply is added with the Notion page link
+3. If x-to-notion fails, the Slack thread remains intact — no failure propagation
+
+**Skip flag**: Pass `skip-notion` to the pipeline to disable x-to-notion for all tweets in the batch.
+
+#### Step 3i: Rate Limiting
 
 Wait 10-15 seconds before processing the next tweet to avoid Slack rate limits.
 

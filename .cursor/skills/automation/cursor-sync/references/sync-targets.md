@@ -2,19 +2,35 @@
 
 ## Table of Contents
 
-1. [Target Registry](#target-registry)
-2. [Skill Group Whitelist](#skill-group-whitelist)
-3. [Per-Project Notes](#per-project-notes)
-4. [Managing Targets](#managing-targets)
+1. [Environment Configuration](#environment-configuration)
+2. [Target Registry](#target-registry)
+3. [Skill Group Whitelist](#skill-group-whitelist)
+4. [Per-Project Notes](#per-project-notes)
+5. [Managing Targets](#managing-targets)
+
+## Environment Configuration
+
+The sync skill auto-detects the current environment by checking which base path contains `research/.cursor/`.
+
+| Environment | Label | Base Path | Detection |
+|-------------|-------|-----------|-----------|
+| 회사 (Office) | `office` | `$HOME/work/thakicloud` | `$HOME/work/thakicloud/research/.cursor/` exists |
+| 집 (Home) | `home` | `$HOME/thaki` | `$HOME/thaki/research/.cursor/` exists |
+
+Detection order: office first, then home. If neither matches, abort with an error listing both candidates.
+
+The hub path is always `{BASE}/research/.cursor/`.
 
 ## Target Registry
 
-| Alias | Repo | Full Path | Bidirectional |
-|-------|------|-----------|---------------|
-| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `/Users/hanhyojung/thaki/github-to-notion-sync` | **yes** |
-| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `/Users/hanhyojung/thaki/ai-platform-webui` | **yes** |
-| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `/Users/hanhyojung/thaki/ai-model-event-stock-analytics` | **yes** |
-| `ai-template` | `thakicloud/ai-template` | `/Users/hanhyojung/thaki/ai-template` | **yes** |
+Target paths use `{BASE}` which resolves to the detected environment's base path at runtime.
+
+| Alias | Repo | Relative Path | Bidirectional |
+|-------|------|---------------|---------------|
+| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `{BASE}/github-to-notion-sync` | **yes** |
+| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `{BASE}/ai-platform-webui` | **yes** |
+| `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `{BASE}/ai-model-event-stock-analytics` | **yes** |
+| `ai-template` | `thakicloud/ai-template` | `{BASE}/ai-template` | **yes** |
 
 The alias is used with `--targets` flag: `/cursor-sync --targets ai-template`.
 The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/ai-template`.

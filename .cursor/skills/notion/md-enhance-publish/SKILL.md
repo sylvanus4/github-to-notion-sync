@@ -129,6 +129,38 @@ Fallback if script unavailable: convert inline per md-to-notion table conversion
 
 ### Phase 5: Publish to Notion
 
+**Authentication**: Token-first — check `NOTION_TOKEN` in `.env`.
+If available, use `scripts/notion_api.py`. Otherwise fall back to MCP.
+
+#### Path A: Token-based (preferred)
+
+```python
+from scripts.notion_api import NotionClient
+
+client = NotionClient()
+
+# Step 5a — Parent page
+toc_blocks = NotionClient.md_to_blocks(table_of_contents)
+parent_page = client.create_page(
+    parent_id="<parent-id>",
+    title="<title> (<YYYY-MM-DD>)",
+    children=toc_blocks,
+    icon_emoji="🏗️",
+)
+
+# Step 5b — Sub-pages
+for section in sections:
+    blocks = NotionClient.md_to_blocks(section["content"])
+    client.create_page(
+        parent_id=parent_page["id"],
+        title=section["title"],
+        children=blocks,
+        icon_emoji=section["icon"],
+    )
+```
+
+#### Path B: MCP fallback
+
 **Step 5a — Parent page:**
 
 ```
@@ -232,3 +264,13 @@ slack_send_message(channel_id, message="""
 - **md-to-notion** — Table conversion, Notion MCP patterns, split logic
 - **visual-explainer** — Mermaid diagram type selection
 - **kwp-slack-slack-messaging** — Slack mrkdwn formatting
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

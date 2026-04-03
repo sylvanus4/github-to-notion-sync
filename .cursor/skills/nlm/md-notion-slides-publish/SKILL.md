@@ -78,7 +78,11 @@ Publish the markdown file as a Notion sub-page using the **md-to-notion** workfl
 1. Read the markdown file and extract the H1 title (first `# ` line). If no H1, use the filename without extension.
 2. Run `scripts/convert_tables.py` on the file to convert pipe tables to Notion-compatible `<table>` HTML blocks. If the script is unavailable, skip this step.
 3. If the file exceeds 15 KB, split into sub-sections at `## ` boundaries.
-4. Create Notion page(s) via **plugin-notion-workspace-notion** MCP `notion-create-pages`:
+4. Create Notion page(s) — **token-first**:
+   - **Primary**: Use `scripts/notion_api.py` (`NotionClient.create_page()`) with
+     `NOTION_TOKEN` from `.env`
+   - **Fallback**: Use **plugin-notion-workspace-notion** MCP `notion-create-pages`
+     when `NOTION_TOKEN` is not available
    - `title`: the H1 title
    - `parent`: `{"page_id": "<notion_parent>"}`
    - `content_markdown`: the converted markdown content

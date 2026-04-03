@@ -123,22 +123,32 @@ python3 -c "import anthropic; print('anthropic OK')"
 
 **Purpose:** Create, read, and update Notion pages and databases.
 
+**Authentication Strategy:** Token-first → MCP fallback.
+- **Primary:** `NOTION_TOKEN` in `.env` enables direct REST API calls via `scripts/notion_api.py`
+- **Fallback:** `plugin-notion-workspace-notion` MCP (browser OAuth) when token is unavailable
+
 **Prerequisites:**
 
-| Type | Item | Install Command |
-|------|------|-----------------|
-| ENV | NOTION_TOKEN | Create integration at https://www.notion.so/my-integrations |
-| MCP | plugin-notion-workspace-notion | Configure in Cursor MCP settings |
-| MCP | user-Notion | Configure in Cursor MCP settings |
+| Type | Item | Install Command | Priority |
+|------|------|-----------------|----------|
+| ENV | NOTION_TOKEN | Create integration at https://www.notion.so/my-integrations, add to `.env` | Primary |
+| Python | scripts/notion_api.py | Already included in repo | Primary |
+| MCP | plugin-notion-workspace-notion | Configure in Cursor MCP settings | Fallback |
+| MCP | user-Notion | Configure in Cursor MCP settings | Fallback |
 
 **Verification:**
 
 ```bash
-[ -n "$NOTION_TOKEN" ] && echo "NOTION_TOKEN set" || echo "NOTION_TOKEN missing"
-[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps/plugin-notion-workspace-notion" ] && echo "Notion MCP configured" || echo "Notion MCP missing"
+[ -n "$NOTION_TOKEN" ] && echo "NOTION_TOKEN set (direct API ready)" || echo "NOTION_TOKEN missing (will use MCP fallback)"
+[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps/plugin-notion-workspace-notion" ] && echo "Notion MCP configured (fallback ready)" || echo "Notion MCP missing"
 ```
 
-**Dependent Skills:** md-to-notion, notion-docs-sync, paper-archive, meeting-digest, notion-meeting-sync
+**Status Logic:**
+- `NOTION_TOKEN` set → READY (direct API)
+- `NOTION_TOKEN` empty but MCP configured → PARTIAL (MCP fallback only)
+- Both missing → NOT READY
+
+**Dependent Skills:** md-to-notion, notion-docs-sync, paper-archive, paper-review, meeting-digest, notion-meeting-sync, md-enhance-publish, md-notion-slides-publish, deep-research-pipeline, prd-research-factory
 
 ---
 

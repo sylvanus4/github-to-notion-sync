@@ -1,5 +1,5 @@
 ---
-description: "Skill registry (86 project skills + 8 harness orchestrators), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+description: "Skill registry (105 project skills + 11 marketing skills + 8 harness orchestrators), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
 alwaysApply: false
 ---
 
@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (86 project skills + 8 harness orchestrators + 68 agency agents)
+## Skill Registry (105 project skills + 11 marketing skills + 8 harness orchestrators + 68 agency agents)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -46,6 +46,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `cursor-automations` — Create and manage Cursor cloud automations
 - `slack-agent` — Build and deploy Slack bots via Bolt/Express
 - `today` — Daily data sync + hot stock discovery + multi-indicator analysis + .docx report pipeline (DB/CSV gap check, Yahoo backfill, NASDAQ/KOSPI/KOSDAQ hot stocks, Turtle/Bollinger/Oscillator, alphaear-news/sentiment, .docx via anthropic-docx, optional Slack)
+- `build-error-resolver` — Systematic build/compile error resolution across Python, Node.js, and Go
 
 **Review & analysis skills** (read-only):
 - `backend-expert` — FastAPI/Pydantic/async review
@@ -92,6 +93,14 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `ai-quality-evaluator` — Score and validate AI-generated financial reports (5-dimension quality gate)
 - `system-thinker` — Design end-to-end automated systems with data flow mapping and feedback loops
 - `automation-strategist` — Strategic automation planning with ARIA framework and human-in-the-loop design
+- `scqa-writing-framework` — Apply SCQA (Situation-Complication-Question-Answer) framework to structure persuasive narratives
+- `content-repurposing-engine` — Transform long-form content into platform-specific formats (Twitter, LinkedIn, Newsletter, etc.)
+- `long-form-compressor` — Condense documents into user-specified formats with configurable compression ratios
+- `video-script-generator` — Generate platform-optimized video scripts with hooks, pacing, B-roll cues, and CTAs
+- `video-editing-planner` — Create post-production editing plans with scene breakdowns, cut lists, and export specs
+- `hook-generator` — Generate attention-grabbing hooks for video, social, email, and ad contexts using 10 frameworks
+- `codemap-updater` — Generate and maintain CODEMAP.md project navigation reference
+- `hookify` — Interactive wizard for creating Cursor hooks (beforeShellExecution, afterFileEdit, etc.)
 
 **Trading analysis skills** (options/stock analysis):
 - `trading-options-theta` — 12 quant-firm-style options theta prompts (0DTE, iron condor, regime, skew, earnings IV crush, etc.)
@@ -113,12 +122,26 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `daiso-mcp` — Korean retail store/inventory lookup (Daiso, Olive Young, Megabox)
 - `x-to-slack` — Fetch tweet content and post to Slack
 - `ralph-loop` — Continuous AI agent loop for batch task execution
+- `caption-subtitle-formatter` — Format transcripts into SRT/VTT with reading speed validation and accessibility compliance
+- `tmux-session-manager` — Manage tmux sessions for long-running dev processes
 
 **Paperclip (AI agent orchestration)**:
 - `paperclip-control` — Company, agent, goal, approval, cost, and dashboard management
 - `paperclip-tasks` — Issue CRUD, atomic checkout, delegation, status transitions
 - `paperclip-agents` — Agent creation, heartbeats, budgets, skill injection
 - `paperclip-setup` — Installation, configuration, deployment, diagnostics
+
+**Knowledge Base skills** (Karpathy-style LLM Knowledge Bases):
+- `kb-orchestrator` — Master KB orchestrator: init, build, query, enhance, full-pipeline, status modes
+- `kb-ingest` — Ingest raw sources (web, PDF, arXiv, YouTube, repos) into KB raw/ directory
+- `kb-compile` — Compile raw sources into structured wiki with concepts, cross-refs, indexes
+- `kb-index` — Auto-maintain wiki index files (_index.md, _summary.md, _concept-map.md, _glossary.md)
+- `kb-query` — Research questions against the KB wiki with citation-backed answers
+- `kb-output` — Generate formatted outputs from KB (Marp slides, matplotlib charts, reports, diagrams)
+- `kb-lint` — Wiki health checks: consistency, completeness, links, freshness, gap imputation
+- `kb-search` — Keyword/semantic/fuzzy search across KB wiki articles
+- All KB skills at `.cursor/skills/knowledge-base/kb-*/SKILL.md`; commands `/kb`, `/kb-ingest`, `/kb-compile`, `/kb-query`, `/kb-output`, `/kb-lint`, `/kb-search`
+- Convention rule: `kb-conventions.mdc`
 
 **Orchestrator**:
 - `mission-control` — Decomposes goals, delegates to skills, aggregates results
@@ -132,6 +155,20 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `prd-lifecycle-orchestrator` — Pipeline with quality gates: research → quality loop → cascade → review
 - `review-team-orchestrator` — 3-way fan-out (deep-review, simplify, test-suite) + dedup merge
 - `autoresearch-orchestrator` — 2-stage pipeline: AutoResearchClaw CLI → multi-channel distribution
+
+**Marketing skills** (11 skills from [ai-marketing-skills](https://github.com/ericosiu/ai-marketing-skills)):
+- `marketing-growth-engine` — Growth experiment lifecycle with Bayesian scoring and weekly scorecards
+- `marketing-sales-pipeline` — HubSpot CRM pipeline analysis, deal scoring, and revenue forecasting
+- `marketing-content-ops` — Content ideation, production, repurposing, and performance tracking
+- `marketing-outbound-engine` — Cold outreach automation with prospect research and reply classification
+- `marketing-seo-ops` — Technical SEO audits, keyword research, and programmatic SEO
+- `marketing-finance-ops` — Marketing budget analysis, ROI/ROAS tracking, and vendor comparison
+- `marketing-revenue-intelligence` — Cohort analysis, LTV modeling, churn prediction, and attribution
+- `marketing-conversion-ops` — Landing page CRO audits, copy testing, and funnel diagnostics
+- `marketing-podcast-ops` — Guest research, episode planning, transcript repurposing, and promotion
+- `marketing-team-ops` — Marketing SOPs, onboarding, performance tracking, and meeting cadences
+- `marketing-sales-playbook` — Call scripts, objection handling, competitive battlecards, and coaching
+- All marketing skills at `.cursor/skills/marketing/marketing-*/SKILL.md`; commands `/marketing-*`
 
 **Agency Agents** (68 personality-driven AI specialists from [agency-agents](https://github.com/msitarzewski/agency-agents)):
 - `agency-roster` — Manage and orchestrate 68 agency agents across 9 divisions (engineering, design, marketing, product, PM, testing, support, spatial-computing, specialized)
@@ -180,6 +217,13 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/pipeline-build` | pipeline-builder | Sequential |
 | `/context-engineer` | context-engineer | Sequential |
 | `/ai-quality` | ai-quality-evaluator | Eval-Opt (score+feedback) |
+| `/kb` | kb-orchestrator (→ kb-ingest, kb-compile, kb-index, kb-query, kb-output, kb-lint, kb-search) | Mode-dependent (init/build/query/enhance/full-pipeline/add/status) |
+| `/kb-ingest` | kb-ingest | Sequential (classify → extract → download assets → frontmatter → manifest) |
+| `/kb-compile` | kb-compile, kb-index | Sequential (survey → plan → generate → index) |
+| `/kb-query` | kb-search, kb-query | Sequential (index → search → deep-read → synthesize) |
+| `/kb-output` | kb-query, kb-output | Sequential (research → generate → file-back) |
+| `/kb-lint` | kb-lint | Sequential (scan → 8 checks → report → optional auto-fix) |
+| `/kb-search` | kb-search | Sequential (parse → execute → rank → format) |
 | `/system-think` | system-thinker | Sequential |
 | `/automation-strategy` | automation-strategist | Sequential |
 | `/nlm-strategy-hub` | pm-product-strategy, pm-market-research, pm-marketing-growth, notebooklm, notebooklm-research, notebooklm-studio | Sequential (PM analysis) → Sequential (compile+upload+research) → Parallel (4 artifacts) |
@@ -192,6 +236,30 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/notion-meeting-sync` | notion-meeting-sync, pm-execution, anthropic-pptx, anthropic-theme-factory | Sequential (sync → analysis → summary → action items → PPTX) |
 | `/code-review-all` | code-review-all | Sequential (stack detect) → Parallel (3 agents) → Sequential (score+report) |
 | `/future-skills-audit` | all 6 future skills | Parallel (audit) → Sequential (report) |
+| `/marketing-growth-engine` | marketing-growth-engine | Sequential |
+| `/marketing-sales-pipeline` | marketing-sales-pipeline | Sequential |
+| `/marketing-content-ops` | marketing-content-ops | Sequential |
+| `/marketing-outbound-engine` | marketing-outbound-engine | Sequential |
+| `/marketing-seo-ops` | marketing-seo-ops | Sequential |
+| `/marketing-finance-ops` | marketing-finance-ops | Sequential |
+| `/marketing-revenue-intelligence` | marketing-revenue-intelligence | Sequential |
+| `/marketing-conversion-ops` | marketing-conversion-ops | Sequential |
+| `/marketing-podcast-ops` | marketing-podcast-ops | Sequential |
+| `/marketing-team-ops` | marketing-team-ops | Sequential |
+| `/marketing-sales-playbook` | marketing-sales-playbook | Sequential |
+| `/scqa-writing` | scqa-writing-framework | Sequential |
+| `/content-repurpose` | content-repurposing-engine | Sequential |
+| `/compress` | long-form-compressor | Sequential |
+| `/video-script` | video-script-generator | Sequential |
+| `/video-edit-plan` | video-editing-planner | Sequential |
+| `/hooks` | hook-generator | Sequential |
+| `/subtitles` | caption-subtitle-formatter | Sequential |
+| `/test-coverage` | qa-test-expert, test-suite | Sequential (detect → run → parse → prioritize → report) |
+| `/codemap` | codemap-updater | Sequential |
+| `/refactor-clean` | simplify, refactor-simulator, omc-ai-slop-cleaner | Sequential (detect → analyze → plan → execute → verify) |
+| `/build-fix` | build-error-resolver | Sequential (detect → run → classify → fix → re-run → report) |
+| `/tmux` | tmux-session-manager | Sequential |
+| `/hookify` | hookify | Sequential (interactive wizard) |
 | `/agency-roster` | agency-roster | Sequential (list agents by division) |
 | `/agency-team <scenario>` | agency-roster, agency-commands | Sequential (select agents for scenario) |
 | `/agency-activate <name>` | agency-commands | Sequential (adopt agent persona) |

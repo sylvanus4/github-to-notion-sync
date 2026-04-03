@@ -348,3 +348,13 @@ Result: 논문 전용 레이더 (v1.0 behavior)
 | 6 | Collection create fails | Continue without curation; log error |
 | 7 | Slack post fails | Save report locally; retry in next run |
 | 7 | Notion upload fails | Save report locally; manual upload later |
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

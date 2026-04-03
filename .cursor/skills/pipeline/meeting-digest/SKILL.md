@@ -186,22 +186,33 @@ Parse user input to determine the source:
 **CRITICAL**: Content ingestion must succeed before any analysis can proceed.
 If the fetch fails, stop the pipeline and report the error.
 
-**Notion source:**
+**Notion source (token-first):**
 
-```
-CallMcpTool(
-  server="plugin-notion-workspace-notion",
-  toolName="notion-fetch",
-  arguments={
-    "id": "<notion-url-or-page-id>",
-    "include_transcript": true,
-    "include_discussions": true
-  }
-)
+When `NOTION_TOKEN` is available in `.env`, use `scripts/notion_api.py`:
+
+```python
+from scripts.notion_api import NotionClient, is_token_available
+
+if is_token_available():
+    client = NotionClient()
+    page = client.get_page("<page-id>")
+    blocks = client.get_block_children("<page-id>")
+    # Paginate with start_cursor if has_more is True
+else:
+    # Fallback to MCP
+    CallMcpTool(
+      server="plugin-notion-workspace-notion",
+      toolName="notion-fetch",
+      arguments={
+        "id": "<notion-url-or-page-id>",
+        "include_transcript": true,
+        "include_discussions": true
+      }
+    )
 ```
 
-If the fetch fails with authentication error, instruct the user to authorize
-the Notion integration.
+If both token and MCP fail, instruct the user to set `NOTION_TOKEN` in `.env`
+or authorize the Notion MCP integration.
 
 **Local file source:**
 
@@ -456,10 +467,39 @@ the split protocol in `.cursor/skills/notion/md-to-notion/SKILL.md` Step 3.
 
 **MANDATORY**: Use the Read tool to load `$TMPDIR/notion_page_0.json` and
 `$TMPDIR/notion_page_1.json`. Parse each JSON and extract the `content` field
-value. Pass that value **verbatim** as the `content` argument below.
-NEVER manually type, summarize, abbreviate, or replace any portion of the
-content with "see local file" or similar references. The `content` must be
-the COMPLETE output from the JSON file — no omissions.
+value. The `content` must be the COMPLETE output from the JSON file — no
+omissions.
+
+#### Path A: Token-based (preferred)
+
+When `NOTION_TOKEN` is available:
+
+```python
+from scripts.notion_api import NotionClient
+
+client = NotionClient()
+
+# Read and parse each JSON to get markdown content, then convert to blocks
+summary_blocks = NotionClient.md_to_blocks(summary_content)
+actions_blocks = NotionClient.md_to_blocks(actions_content)
+
+summary_page = client.create_page(
+    parent_id="<parent-id>",
+    title="[{YYYY-MM-DD}] {meeting-title} — 회의 요약",
+    children=summary_blocks,
+    icon_emoji="📋",
+)
+actions_page = client.create_page(
+    parent_id="<parent-id>",
+    title="[{YYYY-MM-DD}] 액션 아이템 대시보드",
+    children=actions_blocks,
+    icon_emoji="✅",
+)
+```
+
+#### Path B: MCP fallback
+
+When `NOTION_TOKEN` is NOT available:
 
 ```
 CallMcpTool(
@@ -469,12 +509,12 @@ CallMcpTool(
     "parent": {"page_id": "<parent-id>"},
     "pages": [
       {
-        "properties": {"title": "[{YYYY-MM-DD}] {meeting-title} — summary report (Korean title per template)"},
+        "properties": {"title": "[{YYYY-MM-DD}] {meeting-title} — summary report"},
         "icon": "📋",
         "content": "<FULL content from $TMPDIR/notion_page_0.json>"
       },
       {
-        "properties": {"title": "[{YYYY-MM-DD}] action items dashboard (Korean title per template)"},
+        "properties": {"title": "[{YYYY-MM-DD}] action items dashboard"},
         "icon": "✅",
         "content": "<FULL content from $TMPDIR/notion_page_1.json>"
       }
@@ -488,7 +528,8 @@ not a bare string. The parent page ID must be provided via `--notion-parent`.
 
 **Step 3: Verify upload**
 
-Fetch the parent page to confirm both sub-pages appear:
+Token path: `client.get_page(page_id)` to confirm each page exists.
+MCP fallback:
 
 ```
 CallMcpTool(

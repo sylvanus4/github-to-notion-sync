@@ -52,7 +52,9 @@ Extract:
 - UI notes
 - Any existing states/exceptions
 
-For Notion pages, fetch via Notion MCP (`notion-fetch` or equivalent).
+For Notion pages: **Token-first** — use `scripts/notion_api.py`
+(`NotionClient.get_page()` + `get_block_children()`). **Fallback**: Notion MCP
+(`notion-fetch` or equivalent) when `NOTION_TOKEN` is not available.
 
 ### Step 2: Build state matrix
 

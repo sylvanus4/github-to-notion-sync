@@ -379,3 +379,13 @@ Only consider papers from the last 6 months (stricter than default 9) and post t
 - **alphaear-search** — Finance-specific web search
 - **parallel-web-search** — General web search
 - **parallel-deep-research** — Deep exhaustive web research
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

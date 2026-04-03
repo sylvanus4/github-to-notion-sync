@@ -7,6 +7,8 @@ globs:
 
 # Design System Guide — Refined Swiss
 
+> **AI-agent companion**: See `DESIGN.md` at project root for the same design system in [awesome-design-md](https://github.com/VoltAgent/awesome-design-md) format, optimized for Google Stitch and other AI-agent UI generators.
+
 Canonical design tokens for `frontend/`. Every component MUST follow these conventions.
 
 ## Design Direction

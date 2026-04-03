@@ -42,7 +42,7 @@ and Notion links to Slack.
 - `pptxgenjs` npm package (`npm install -g pptxgenjs`) for PowerPoint generation
 - `defusedxml` and `lxml` for DOCX validation (`pip install defusedxml lxml`)
 - `notebooklm-mcp` MCP server authenticated (run `nlm login` if needed)
-- `plugin-notion-workspace-notion` MCP server connected for Notion page creation
+- `NOTION_TOKEN` in `.env` for Notion API (primary); `plugin-notion-workspace-notion` MCP as fallback
 - `SLACK_BOT_TOKEN` in `.env` for Slack file uploads
 
 When running Node.js scripts for DOCX/PPTX generation, set `NODE_PATH` so
@@ -348,21 +348,52 @@ Read `references/notion-integration.md` for detailed instructions.
 
 No default parent page — provide via `--notion-parent <page_id>`.
 
+### Authentication Strategy
+
+Uses **token-first** Notion authentication:
+- **Primary**: `NOTION_TOKEN` from `.env` via `scripts/notion_api.py`
+- **Fallback**: `plugin-notion-workspace-notion` MCP when token unavailable
+
 ### Distribution Steps
 
+#### Path A: Token-based (preferred)
+
+When `NOTION_TOKEN` is available:
+
+```python
+from scripts.notion_api import NotionClient
+
+client = NotionClient()
+overview_blocks = NotionClient.md_to_blocks(overview_md)
+main_page = client.create_page(
+    parent_id="<parent-id>",
+    title="{Paper Title} — 논문 분석 ({DATE})",
+    children=overview_blocks,
+    icon_emoji="📄",
+)
+# Create sub-pages under main_page["id"]
+for perspective_md in perspective_files:
+    blocks = NotionClient.md_to_blocks(perspective_md)
+    client.create_page(parent_id=main_page["id"], title=title, children=blocks)
+```
+
+#### Path B: MCP fallback
+
+When `NOTION_TOKEN` is NOT available:
+
 1. **Create main page** — `notion-create-pages` MCP tool under the parent page
-   with title pattern `{Paper Title} — paper analysis ({DATE})` (Korean wording in deliverable) and an overview containing
-   paper metadata, key metrics, overall score, and a document list
+   with title pattern `{Paper Title} — paper analysis ({DATE})`
 2. **Create sub-pages** — One sub-page per analysis perspective under the main
-   page. Each sub-page contains the full adapted content from the corresponding
-   markdown file (tables converted, frontmatter stripped)
+   page via MCP
+
+Sub-pages are created 2 at a time (parallel-safe within Notion API limits).
+
 3. **Capture page URL** — Save the main page URL for inclusion in the Slack
    thread (Phase 8)
 
-Sub-pages are created 2 at a time (parallel-safe within Notion API limits).
 If `--skip-pm` was used, only the review sub-page is created.
 
-Skills used: **plugin-notion-workspace-notion** MCP (`notion-create-pages`)
+Skills used: **scripts/notion_api.py** (primary), **plugin-notion-workspace-notion** MCP (fallback)
 
 ---
 
@@ -530,3 +561,13 @@ This will create Notion pages under a custom parent page without posting to Slac
 - **notebooklm-studio** — Studio content generation + download
 - **Notion MCP** — Page creation and workspace management
 - **x-to-slack** — Channel registry and Slack posting patterns
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

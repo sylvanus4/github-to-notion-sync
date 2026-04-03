@@ -299,8 +299,9 @@ Filter papers where `status` is `reviewed` or `archived` AND
 
 ### Step 2: Create Notion Pages
 
-For each unsynced paper, create a page under the parent using
-`notion-create-pages` MCP tool:
+For each unsynced paper, create a page under the parent.
+**Token-first**: use `scripts/notion_api.py` (`NotionClient.create_page()`).
+**Fallback**: use `notion-create-pages` MCP tool when `NOTION_TOKEN` is unavailable.
 
 - Title: `{paper.title} ({paper.date_archived})`
 - Content: paper metadata table + one_line_summary + list of artifact links

@@ -181,12 +181,15 @@ Update the Notion paper database with current archive state.
 
 1. Default parent: `3209eddc34e6801b8921f55d85153730` (ThakiCloud 논문 리뷰).
 2. For each paper with `status` >= `reviewed` and no `notion_page_id`:
-   - Create a Notion page using `notion-create-pages` MCP tool.
+   - **Token-first**: Create a Notion page using `scripts/notion_api.py`
+     (`NotionClient.create_page()`).
+   - **MCP fallback**: Use `notion-create-pages` MCP tool when `NOTION_TOKEN`
+     is not available.
    - Update the paper's `notion_page_id` in the index.
 3. For papers already synced: optionally update status/tags if changed.
 4. Save updated `index.json`.
 
-Skills used: **plugin-notion-workspace-notion** MCP
+Skills used: **scripts/notion_api.py** (primary), **plugin-notion-workspace-notion** MCP (fallback)
 
 ### stats
 

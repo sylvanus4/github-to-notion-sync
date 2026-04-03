@@ -219,3 +219,56 @@ Phase 0: CI Gate (Shell)
 ## Integration with release-commander
 
 `release-commander` can optionally delegate its Group A (deterministic checks) and Group B (AI scans) to this orchestrator for a unified view. This is complementary — `release-commander` retains its own pipeline for the full release lifecycle.
+
+## Verification Protocol
+
+Before reporting any review or audit complete, verify findings with evidence:
+
+```text
+### Check: [what you are verifying]
+**Command run:** [exact command executed]
+**Output observed:** [actual output — copy-paste, not paraphrased]
+**Result:** PASS or FAIL (with Expected vs Actual if FAIL)
+```
+
+A check without a command-run block is not a PASS — it is a skip.
+
+Before issuing PASS: must include at least one adversarial probe (boundary input, concurrent request, missing data, permission edge case).
+
+Before issuing FAIL: check if the issue is already handled elsewhere, intentional by design, or not actionable without breaking an external contract.
+
+End verification with: `VERDICT: PASS`, `VERDICT: FAIL`, or `VERDICT: PARTIAL`.
+
+## Honest Reporting
+
+- Report review outcomes faithfully: if a check fails, say so with the relevant output
+- Never claim "all checks pass" when output shows failures
+- Never suppress or simplify failing checks to manufacture a green result
+- When a check passes, state it plainly without unnecessary hedging
+- The final report must accurately reflect what was found — not what was hoped
+
+## Rationalization Detection
+
+Recognize these rationalizations and do the opposite:
+
+| Rationalization | Reality |
+|----------------|---------|
+| "The code looks correct based on my reading" | Reading is not verification. Run it. |
+| "The implementer's tests already pass" | The implementer is an LLM. Verify independently. |
+| "This is probably fine" | Probably is not verified. Run it. |
+| "I don't have access to test this" | Did you check all available tools? |
+| "This would take too long" | Not your call. Run the check. |
+| "Let me check the code structure" | No. Start the server and hit the endpoint. |
+
+If you catch yourself writing an explanation instead of running a command, stop. Run the command.
+
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

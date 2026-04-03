@@ -267,3 +267,13 @@ Runs Group A only. Provides immediate severity assessment, mitigation steps, and
 - **Regression tests not generated**: Ensure the project has a test framework configured (pytest, vitest, jest). The skill auto-detects from `package.json` or `pyproject.toml`.
 - **Post-mortem slug collision**: If a file with the same date+slug already exists, append `-2`, `-3`, etc.
 - **KWP skill not available**: If `kwp-engineering-incident-response` or `kwp-customer-support-knowledge-management` are not installed, the pipeline skips those agents and continues with available skills.
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

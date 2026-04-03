@@ -43,10 +43,33 @@ macOS에 내장된 `/usr/bin/rsync`는 **openrsync** (protocol v29) 이며, GNU 
 
 ## Configuration
 
-- **Hub (source of truth after merge)**: `/Users/hanhyojung/work/thakicloud/research/.cursor/`
+- **Hub (source of truth after merge)**: `{BASE}/research/.cursor/`
 - **Sync directories**: `commands/`, `skills/`, `rules/`
 - **Target projects**: See [references/sync-targets.md](references/sync-targets.md)
 - **Pull sources**: All 4 targets are `Bidirectional = yes`
+- **Environment detection**: See [references/sync-targets.md — Environment Configuration](references/sync-targets.md#environment-configuration)
+
+### Environment Detection
+
+`{BASE}` is resolved at runtime before any other step:
+
+```bash
+if [ -d "$HOME/work/thakicloud/research/.cursor" ]; then
+  BASE="$HOME/work/thakicloud"
+  ENV_LABEL="office"
+elif [ -d "$HOME/thaki/research/.cursor" ]; then
+  BASE="$HOME/thaki"
+  ENV_LABEL="home"
+else
+  echo "ERROR: research/.cursor not found in either candidate:"
+  echo "  - $HOME/work/thakicloud/research/.cursor"
+  echo "  - $HOME/thaki/research/.cursor"
+  exit 1
+fi
+echo "Environment: $ENV_LABEL (BASE=$BASE)"
+```
+
+All subsequent paths use `$BASE` — never hardcoded absolute paths.
 
 ## Usage
 
@@ -236,36 +259,39 @@ Flags:
 Execute targets **one at a time, sequentially** (not in a for loop). Each target gets its own set of rsync commands. This avoids shell instability issues.
 
 ```bash
+# $BASE and RESEARCH are set by environment detection (see Configuration section)
+RESEARCH="$BASE/research"
+
 # Target 1: github-to-notion-sync (groups: gws, nlm, pipeline, workflow, anthropic, standalone)
-rsync -ac RESEARCH/.cursor/commands/ /Users/hanhyojung/thaki/github-to-notion-sync/.cursor/commands/
-rsync -ac RESEARCH/.cursor/rules/    /Users/hanhyojung/thaki/github-to-notion-sync/.cursor/rules/
-rsync -ac --exclude='*/' RESEARCH/.cursor/skills/ /Users/hanhyojung/thaki/github-to-notion-sync/.cursor/skills/
+rsync -ac $RESEARCH/.cursor/commands/ $BASE/github-to-notion-sync/.cursor/commands/
+rsync -ac $RESEARCH/.cursor/rules/    $BASE/github-to-notion-sync/.cursor/rules/
+rsync -ac --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/github-to-notion-sync/.cursor/skills/
 for g in gws nlm pipeline workflow anthropic standalone; do
-  mkdir -p /Users/hanhyojung/thaki/github-to-notion-sync/.cursor/skills/$g/
-  rsync -ac RESEARCH/.cursor/skills/$g/ /Users/hanhyojung/thaki/github-to-notion-sync/.cursor/skills/$g/
+  mkdir -p $BASE/github-to-notion-sync/.cursor/skills/$g/
+  rsync -ac $RESEARCH/.cursor/skills/$g/ $BASE/github-to-notion-sync/.cursor/skills/$g/
 done
 
 # Target 2: ai-platform-webui (groups: review, infra, frontend, workflow, ce, ecc, anthropic, standalone)
-rsync -ac RESEARCH/.cursor/commands/ /Users/hanhyojung/thaki/ai-platform-webui/.cursor/commands/
-rsync -ac RESEARCH/.cursor/rules/    /Users/hanhyojung/thaki/ai-platform-webui/.cursor/rules/
-rsync -ac --exclude='*/' RESEARCH/.cursor/skills/ /Users/hanhyojung/thaki/ai-platform-webui/.cursor/skills/
+rsync -ac $RESEARCH/.cursor/commands/ $BASE/ai-platform-webui/.cursor/commands/
+rsync -ac $RESEARCH/.cursor/rules/    $BASE/ai-platform-webui/.cursor/rules/
+rsync -ac --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/ai-platform-webui/.cursor/skills/
 for g in review infra frontend workflow ce ecc anthropic standalone; do
-  mkdir -p /Users/hanhyojung/thaki/ai-platform-webui/.cursor/skills/$g/
-  rsync -ac RESEARCH/.cursor/skills/$g/ /Users/hanhyojung/thaki/ai-platform-webui/.cursor/skills/$g/
+  mkdir -p $BASE/ai-platform-webui/.cursor/skills/$g/
+  rsync -ac $RESEARCH/.cursor/skills/$g/ $BASE/ai-platform-webui/.cursor/skills/$g/
 done
 
 # Target 3: ai-model-event-stock-analytics (groups: all)
-rsync -ac RESEARCH/.cursor/commands/ /Users/hanhyojung/thaki/ai-model-event-stock-analytics/.cursor/commands/
-rsync -ac RESEARCH/.cursor/rules/    /Users/hanhyojung/thaki/ai-model-event-stock-analytics/.cursor/rules/
-rsync -ac RESEARCH/.cursor/skills/   /Users/hanhyojung/thaki/ai-model-event-stock-analytics/.cursor/skills/
+rsync -ac $RESEARCH/.cursor/commands/ $BASE/ai-model-event-stock-analytics/.cursor/commands/
+rsync -ac $RESEARCH/.cursor/rules/    $BASE/ai-model-event-stock-analytics/.cursor/rules/
+rsync -ac $RESEARCH/.cursor/skills/   $BASE/ai-model-event-stock-analytics/.cursor/skills/
 
 # Target 4: ai-template (groups: workflow, anthropic, ce, ecc, standalone)
-rsync -ac RESEARCH/.cursor/commands/ /Users/hanhyojung/thaki/ai-template/.cursor/commands/
-rsync -ac RESEARCH/.cursor/rules/    /Users/hanhyojung/thaki/ai-template/.cursor/rules/
-rsync -ac --exclude='*/' RESEARCH/.cursor/skills/ /Users/hanhyojung/thaki/ai-template/.cursor/skills/
+rsync -ac $RESEARCH/.cursor/commands/ $BASE/ai-template/.cursor/commands/
+rsync -ac $RESEARCH/.cursor/rules/    $BASE/ai-template/.cursor/rules/
+rsync -ac --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/ai-template/.cursor/skills/
 for g in workflow anthropic ce ecc standalone; do
-  mkdir -p /Users/hanhyojung/thaki/ai-template/.cursor/skills/$g/
-  rsync -ac RESEARCH/.cursor/skills/$g/ /Users/hanhyojung/thaki/ai-template/.cursor/skills/$g/
+  mkdir -p $BASE/ai-template/.cursor/skills/$g/
+  rsync -ac $RESEARCH/.cursor/skills/$g/ $BASE/ai-template/.cursor/skills/$g/
 done
 ```
 
@@ -275,7 +301,7 @@ After all syncs complete, verify file counts per repo. Repos with `all` skill gr
 
 ```bash
 for repo in research github-to-notion-sync ai-platform-webui ai-model-event-stock-analytics ai-template; do
-  path="/Users/hanhyojung/thaki/$repo"
+  path="$BASE/$repo"
   cmd_count=$(find "$path/.cursor/commands/" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
   skill_count=$(find "$path/.cursor/skills/" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
   rule_count=$(find "$path/.cursor/rules/" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
@@ -288,7 +314,7 @@ Present the final report:
 ```
 Cursor Sync Report (N-Repo)
 ===========================
-Hub: /Users/hanhyojung/thaki/research/.cursor/
+Hub: $BASE/research/.cursor/ (ENV_LABEL)
 
 Pull Phase:
   [per-target new file counts from Step 0c]
@@ -419,7 +445,7 @@ Agent actions:
 
 ```
 1. 어느 레포에서나 스킬/커맨드/룰을 수정
-2. cd /Users/hanhyojung/work/thakicloud/research
+2. cd $BASE/research
 3. /cursor-sync
    → 4개 레포에서 변경 사항 pull (newest wins)
    → research 기준으로 4개 레포에 push

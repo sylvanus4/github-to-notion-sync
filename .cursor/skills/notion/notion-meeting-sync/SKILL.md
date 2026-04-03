@@ -70,18 +70,45 @@ When multiple meetings are fetched, Phase 2 runs parallel subagents
 
 ## Phase 1: Notion Data Sync
 
-### 1.1 Authenticate Notion MCP
+### 1.1 Authentication (token-first)
 
-Before any Notion operations, ensure the MCP server is authenticated:
+Check `NOTION_TOKEN` availability:
+
+```bash
+python -c "from scripts.notion_api import is_token_available; print(is_token_available())"
+```
+
+- If `True`: Use `scripts/notion_api.py` for all Phase 1 Notion calls.
+- If `False`: Fall back to Notion MCP (`mcp_auth` → MCP tools).
+
+**MCP fallback only:**
 
 ```
 CallMcpTool(server="plugin-notion-workspace-notion", toolName="mcp_auth", arguments={})
 ```
 
-If authentication fails, instruct the user to authorize via the Notion
-integration settings.
+If both methods fail, instruct the user to set `NOTION_TOKEN` in `.env`.
 
 ### 1.2 Query the Meeting Database
+
+#### Path A: Token-based (preferred)
+
+```python
+from scripts.notion_api import NotionClient
+import requests
+
+client = NotionClient()
+
+# Query database via Notion REST API
+resp = client._request("POST", "/databases/22c9eddc34e680d5beb9d2cf6c8403b4/query", {
+    "sorts": [{"timestamp": "last_edited_time", "direction": "descending"}]
+})
+pages = resp.get("results", [])
+
+# Extract per page: id, title, last_edited_time, properties
+```
+
+#### Path B: MCP fallback
 
 Use the Notion MCP to query the database. The plugin-notion-workspace-notion
 server provides tools dynamically after authentication. Use whichever
@@ -96,10 +123,7 @@ query/search tool is available:
    - Any date/status/participant properties
 
 Alternatively, use the Notion workspace plugin skills if MCP tools are
-unavailable. The `database-query` skill is provided by the
-`cursor-public/notion-workspace` Cursor plugin (not a project-local skill).
-To use it, read its SKILL.md from the plugin cache and follow its
-instructions to query the meeting database.
+unavailable.
 
 ### 1.3 Compare with Local Sync State
 
@@ -119,6 +143,12 @@ Apply scoping mode:
 ### 1.4 Fetch Page Content
 
 For each new/updated page:
+
+**Token path**: Use `client.get_block_children(page_id)` to recursively
+fetch all blocks. Paginate with `start_cursor` when `has_more` is `True`.
+Convert Notion blocks to markdown locally.
+
+**MCP fallback**: Use `notion-fetch` MCP tool with the page ID.
 
 1. Fetch the full page content (all blocks, including nested children)
 2. Convert block content to markdown
@@ -464,3 +494,13 @@ posted to Slack
   first, so partial Slack failures do not lose data
 - PPTX files are generated locally but NOT uploaded to Slack; only
   text-based summaries and action items are posted as Slack messages
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

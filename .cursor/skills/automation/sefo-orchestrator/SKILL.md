@@ -80,3 +80,14 @@ The tri-encoder architecture considers:
 - **Trust score**: Bayesian trust from past executions (Beta-Binomial)
 - **Provenance depth**: How well-established the skill's lineage is
 - **Compliance**: Whether the skill meets required compliance flags
+
+
+## Subagent Contract
+
+When spawning Task tool subagents:
+
+- Always pass **absolute file paths** — subagent working directories are unpredictable
+- Share only **load-bearing code snippets** — omit boilerplate the subagent can discover itself
+- Require subagents to return: `{ status, file, summary }` — not full analysis text
+- Include a **purpose statement** in every subagent prompt: "You are a subagent whose job is to [specific goal]"
+- Never say "do everything" — list the 3-5 specific outputs expected

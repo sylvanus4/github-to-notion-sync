@@ -7,6 +7,7 @@ Fetch an X (Twitter) post or article, parse content into structured Markdown, tr
 - User asks to "post tweet to Notion", "X to Notion", "트윗 노션에 올려", "X 아티클 노션", "x-to-notion", "tweet to notion", "트윗 번역해서 노션", "X 글 노션 업로드"
 - User provides an x.com or twitter.com URL with Notion publishing intent
 - Invoked via `/x-to-notion` command
+- **Automatically invoked** by `x-to-slack` (Step 5) and `twitter-timeline-to-slack` (Step 3h) when long-form content is detected (tweet > 500 chars, X Article, 3+ self-reply thread, or quote+body > 400 chars)
 
 ## Do NOT Use
 
@@ -15,10 +16,19 @@ Fetch an X (Twitter) post or article, parse content into structured Markdown, tr
 - For uploading existing markdown to Notion (use `md-to-notion`)
 - For general Notion page creation without tweet source (use Notion MCP directly)
 
+## Authentication Strategy
+
+This skill uses **token-first** Notion authentication:
+
+1. **Primary (Token)**: Uses `NOTION_TOKEN` from `.env` via `scripts/notion_api.py`.
+2. **Fallback (MCP)**: Only when `NOTION_TOKEN` is NOT available, fall back
+   to `plugin-notion-workspace-notion` MCP server.
+
 ## Prerequisites
 
 - `requests` Python package (for Notion API)
-- `NOTION_TOKEN` environment variable in `.env`
+- `NOTION_TOKEN` environment variable in `.env` (primary auth)
+- `scripts/notion_api.py` shared utility
 - Internet access for FxTwitter API and Notion API
 - `scripts/parse_article.py` for X Article block parsing
 
@@ -99,14 +109,24 @@ Upload the Korean markdown to Notion.
    - Images → `image` (external URL)
    - Dividers → `divider`
    - Paragraphs → `paragraph`
-3. POST to `https://api.notion.com/v1/pages` with:
-   - `parent.page_id`: target Notion parent page
-   - `icon.emoji`: 🐦
-   - `properties.title`: extracted from markdown H1
-   - `children`: up to 100 blocks per request
-4. If >100 blocks, append remaining via `PATCH /v1/blocks/{page_id}/children`
+3. Publish via `scripts/notion_api.py`:
+   ```python
+   from scripts.notion_api import NotionClient
+   client = NotionClient()
+   blocks = NotionClient.md_to_blocks(content)
+   page = client.create_page(
+       parent_id="<parent-id>",
+       title="<title>",
+       children=blocks,
+       icon_emoji="🐦",
+   )
+   ```
+   The client handles batching (100 blocks/request) and retry automatically.
+4. **Fallback**: If `NOTION_TOKEN` not available, use Notion MCP
+   `notion-create-pages` with `parent: {"page_id": "..."}`.
 
-**Auth**: Uses `NOTION_TOKEN` from `.env` (Bearer token).
+**Auth**: Primary — `NOTION_TOKEN` from `.env` via `scripts/notion_api.py`.
+Fallback — Notion MCP browser auth.
 
 ### Phase 5: Verify & Manifest (verify)
 

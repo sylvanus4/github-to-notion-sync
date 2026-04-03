@@ -42,19 +42,41 @@ document splitting, and ASCII art preservation automatically.
 | `--split-threshold <N>` | No | Character limit before auto-splitting (default: 15000) |
 | `--dry-run` | No | List files and titles without creating pages |
 
+## Authentication Strategy
+
+This skill uses **token-first** Notion authentication:
+
+1. **Primary (Token)**: Check for `NOTION_TOKEN` in `.env` or environment.
+   When available, use `scripts/notion_api.py` (`NotionClient`) for all
+   Notion REST API calls (create page, append blocks, get page).
+2. **Fallback (MCP)**: Only when `NOTION_TOKEN` is NOT available, fall back
+   to `plugin-notion-workspace-notion` MCP server for browser-based auth.
+
+**Detection**: Run `python -c "from scripts.notion_api import is_token_available; print(is_token_available())"`.
+If `True`, use token path. If `False`, use MCP path.
+
 ## Workflow
 
 ```
-Step 0: Spec      → Fetch Notion Markdown spec for reference
+Step 0: Auth      → Detect NOTION_TOKEN availability
 Step 1: Resolve   → Collect .md file paths from input
 Step 2: Parse     → Extract titles, convert tables, check size, split if needed
-Step 3: Publish   → Create Notion sub-pages via MCP
+Step 3: Publish   → Create Notion sub-pages (token API or MCP fallback)
 Step 4: Verify    → Confirm pages appear under parent
 ```
 
-### Step 0: Fetch Notion Markdown Spec
+### Step 0: Detect Authentication Method
 
-Before processing any files, fetch the Notion enhanced markdown specification:
+Check `NOTION_TOKEN` availability:
+
+```bash
+python -c "from scripts.notion_api import is_token_available; print(is_token_available())"
+```
+
+- If `True`: All Steps 3-4 use `scripts/notion_api.py` (direct REST API).
+- If `False`: All Steps 3-4 use Notion MCP as fallback.
+
+When using MCP fallback, optionally fetch the Notion markdown spec:
 
 ```
 FetchMcpResource(
@@ -62,9 +84,6 @@ FetchMcpResource(
   uri="notion://docs/enhanced-markdown-spec"
 )
 ```
-
-Use this spec as the authoritative reference for Notion-flavored markdown
-syntax throughout Steps 2-3.
 
 ### Step 1: Resolve Input
 
@@ -118,8 +137,32 @@ If `--dry-run`, print `[N] {title} ({chars} chars) ← {filepath}` and stop.
 
 ### Step 3: Publish to Notion
 
-**CRITICAL MCP call format** — the `parent` field must be an object, and `title`
-goes inside `properties`:
+#### Path A: Token-based (preferred)
+
+When `NOTION_TOKEN` is available, use `scripts/notion_api.py`:
+
+```python
+from scripts.notion_api import NotionClient
+
+client = NotionClient()
+
+# For each JSON file from Step 2:
+blocks = NotionClient.md_to_blocks(content)
+page = client.create_page(
+    parent_id="<parent-id>",
+    title="<extracted-title>",
+    children=blocks[:100],
+    icon_emoji="<emoji>",  # omit if --icon not provided
+)
+# Remaining blocks auto-appended by create_page if >100
+```
+
+The client handles batching (100 blocks per request) and retry (429/5xx)
+automatically.
+
+#### Path B: MCP fallback
+
+When `NOTION_TOKEN` is NOT available, use MCP:
 
 ```
 CallMcpTool(

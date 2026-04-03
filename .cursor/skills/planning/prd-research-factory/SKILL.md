@@ -88,7 +88,8 @@ Trust level behavior:
 ### 1.1 Fetch Content
 
 Same detection logic as meeting-digest:
-- **Notion URL**: Extract page ID, fetch via `notion-fetch` MCP
+- **Notion URL**: Extract page ID. **Token-first**: fetch via `scripts/notion_api.py`
+  (`NotionClient.get_page()` + `get_block_children()`). **Fallback**: `notion-fetch` MCP.
 - **Local file**: Read with Read tool
 - **Raw text**: Use directly
 
