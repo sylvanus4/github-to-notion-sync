@@ -82,6 +82,8 @@ Sub-agent configuration:
 - `model`: `fast` (read-only analysis; keeps cost low and speed high)
 - `readonly`: `true`
 
+**Agent framing:** Frame review as bug-hunting, not validation. Each agent should aim to find issues, not confirm correctness. If an agent finds zero issues in a file, it must re-review with the lens "what would break under edge cases or adversarial input?" If re-examination still yields zero issues, report honestly as clean — do not fabricate findings.
+
 Each agent must return findings in this structure:
 
 ```

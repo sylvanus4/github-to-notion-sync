@@ -2,7 +2,7 @@
 name: harness
 description: "Design and generate coordinated multi-agent skill architectures for any domain or project. Analyzes domain requirements, designs agent team patterns (Pipeline, Fan-out/Fan-in, Expert Pool, Producer-Reviewer, Supervisor, Hierarchical Delegation, Composite), generates specialized agent skills as .cursor/skills/ files, creates orchestrator workflows using Cursor's Task tool for parallel and sequential agent execution, and validates the complete system with trigger conflict detection and dry-run testing. Based on revfactory/harness methodology. Use when the user asks to 'build a harness', 'design agent team', 'harness', 'agent team architecture', 'multi-agent workflow design', 'generate agent skills for domain', 'skill architecture', 'orchestrate agents', 'create agent pipeline', 'design agent system', 'agent workflow', 'build agent team for', 'scaffold multi-agent', '하네스 구성해줘', '하네스 구축해줘', '하네스 설계', '에이전트 팀 설계', '에이전트 아키텍처', '멀티에이전트 워크플로우', '스킬 아키텍처 설계', '에이전트 시스템 구축', '팀 기반 자동화', '에이전트 파이프라인', or wants to create a coordinated multi-agent system for a new domain/project. Do NOT use for running an existing harness — invoke the generated orchestrator skill directly. Do NOT use for single-skill creation without team context (use create-skill). Do NOT use for optimizing existing individual skills (use skill-optimizer or skill-autoimprove). Do NOT use for ad-hoc orchestration of existing skills at runtime (use mission-control). Do NOT use for multi-agent design theory only without file generation (use ce-multi-agent-patterns). Do NOT use for converting natural language to skill chains from existing skills (use skill-composer)."
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   tags: ["meta-skill", "agent-team", "skill-architect", "orchestration", "multi-agent"]
   source: "https://github.com/revfactory/harness"
 ---
@@ -272,6 +272,75 @@ Cursor에서는 파일 기반 전달이 주요 방식:
 3. **정량적** — assertion 기반 (특정 출력 포함 여부, 형식 준수 등)
 
 상세 테스트 방법론: `references/skill-authoring.md`의 "테스트" 섹션 참조.
+
+### Phase 6: Post-Deploy Monitoring (Optional)
+
+If the harness includes observable endpoints or metrics, set up canary monitoring with existing skills (`canary-monitor`, `ops-kpi-autopilot`).
+
+### Phase 7: Outer-Loop Optimization with Meta-Harness (Optional)
+
+Once a harness is deployed and producing execution traces, apply the Meta-Harness outer-loop to automatically optimize the harness code itself — not just prompts.
+
+#### When to Apply
+
+- The harness has been running for 5+ iterations with measurable quality metrics
+- Prompt-level tuning (`skill-autoimprove`) has plateaued
+- Multi-objective trade-offs (accuracy vs cost, speed vs depth) need systematic exploration
+
+#### How It Works
+
+1. **Enable trace capture** — Run inner-loop skills with `--trace-aware` to store execution traces via `TraceArchive` (see `scripts/meta_harness_trace.py`)
+2. **Invoke meta-harness-optimizer** — Target the orchestrator or individual agent SKILL.md:
+   ```
+   /meta-harness optimize --target .cursor/skills/{domain}-orchestrator/SKILL.md --inner-loop
+   ```
+3. **Review Pareto frontier** — The optimizer proposes code-level mutations (retrieval logic, memory management, prompt construction, tool orchestration) and evaluates each against multiple objectives
+4. **Accept or reject** — Each candidate is logged with full source, diff, scores, and proposer reasoning for audit
+
+#### Architecture (from Meta-Harness paper, arXiv:2603.28052)
+
+```
+┌─────────────────────────────────────────────┐
+│              Meta-Harness Loop              │
+│                                             │
+│  ┌─────────────┐    ┌──────────────────┐   │
+│  │   Proposer   │───▶│  Code Mutation   │   │
+│  │  (Agentic)   │    │  (Skill/Script)  │   │
+│  └──────▲───────┘    └───────┬──────────┘   │
+│         │                    │              │
+│         │ uncompressed       ▼              │
+│         │ traces      ┌──────────────┐      │
+│         │             │  Evaluator   │      │
+│         └─────────────│  (Inner Loop │      │
+│                       │  + Metrics)  │      │
+│                       └──────┬───────┘      │
+│                              │              │
+│                              ▼              │
+│                       ┌──────────────┐      │
+│                       │ TraceArchive │      │
+│                       │ (Filesystem) │      │
+│                       └──────────────┘      │
+└─────────────────────────────────────────────┘
+```
+
+#### Key Differentiator from skill-autoimprove
+
+| Dimension | skill-autoimprove (Inner) | meta-harness-optimizer (Outer) |
+|-----------|--------------------------|-------------------------------|
+| Search space | Prompt text mutations | Code-level changes (retrieval, tools, memory) |
+| Feedback | Binary pass/fail scores | Full execution traces (~450× richer) |
+| Optimization | Single objective (score) | Multi-objective Pareto frontier |
+| Scope | One skill at a time | Orchestrator + constituent agents |
+
+#### Integration Checklist
+
+- [ ] Enable `--trace-aware` on inner-loop evals
+- [ ] Verify `TraceArchive` writes to `_workspace/meta-harness/`
+- [ ] Define 2+ measurable objectives for Pareto ranking
+- [ ] Set iteration budget (default: 20, start conservative)
+- [ ] Review generated `report.md` after each run
+
+Related skills: `meta-harness-optimizer` (outer loop), `skill-autoimprove --trace-aware` (inner loop), `scripts/meta_harness_trace.py` (archive library).
 
 ## 산출물 체크리스트
 

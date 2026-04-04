@@ -4,16 +4,18 @@ description: >-
   Master orchestrator for the LLM Knowledge Base system. Coordinates all
   KB skills (ingest, compile, index, query, output, lint, search,
   auto-builder) into coherent workflows. Supports multiple modes: init
-  (create new KB), build (ingest + compile), query, enhance (lint + fix
-  + recompile), full-pipeline, add, status, watch (directory monitoring),
+  (create new KB), bootstrap (zero-to-working KB with auto source discovery),
+  build (ingest + compile), query, enhance (lint + fix + recompile),
+  full-pipeline, add, status, watch (directory monitoring),
   feed (RSS subscription), and auto (continuous build cycle).
   Based on Karpathy's LLM Knowledge Bases approach.
   Use when the user asks to "create a knowledge base", "build KB",
-  "knowledge base", "kb", "start a new KB", "full KB pipeline",
-  "enhance KB", "watch KB", "auto-build KB", "subscribe feed to KB",
-  or any high-level KB operation spanning multiple skills.
+  "knowledge base", "kb", "start a new KB", "bootstrap KB",
+  "full KB pipeline", "enhance KB", "watch KB", "auto-build KB",
+  "subscribe feed to KB", or any high-level KB operation spanning
+  multiple skills.
   Do NOT use for individual KB operations (invoke specific kb-* skills).
-  Korean triggers: "지식베이스", "KB 생성", "KB 빌드",
+  Korean triggers: "지식베이스", "KB 생성", "KB 빌드", "KB 부트스트랩",
   "KB 파이프라인", "지식베이스 시작", "KB 자동", "KB 감시".
 metadata:
   author: "thaki"
@@ -80,6 +82,23 @@ Create a fresh KB topic with directory structure and manifest.
    ```
 3. Create `manifest.json` with topic metadata
 4. Report the created structure
+
+### Mode 1b: `bootstrap` — Quick-Start with Sample Data
+
+Zero-to-working KB in one command: init + sample web search + ingest + compile + index + lint.
+
+**Trigger:** "Bootstrap a KB for {topic}", "Quick-start KB", "KB bootstrap"
+
+**Steps:**
+1. **init**: Create directory structure
+2. **Web search**: Find 3-5 high-quality sources for the topic via `parallel-web-search`
+3. **kb-ingest**: Ingest discovered sources (with defuddle extraction)
+4. **kb-compile**: Compile raw sources into wiki articles
+5. **kb-index**: Generate navigation files
+6. **kb-lint**: Run health check on the fresh wiki
+7. Report: "KB bootstrapped with {N} sources, {M} articles — ready for queries"
+
+This mode is ideal for getting a working KB quickly without manually curating source URLs. The agent handles source discovery, ingestion, and compilation automatically.
 
 ### Mode 2: `build` — Ingest Sources + Compile Wiki
 
@@ -279,6 +298,10 @@ Query across multiple KBs simultaneously:
 2. Read each `_summary.md`
 3. Synthesize cross-KB themes
 4. Present ranked recommendations
+
+## Obsidian Integration
+
+The `knowledge-bases/` directory is an Obsidian vault with pre-configured settings in `.obsidian/`. After building a KB, open Obsidian and select the `knowledge-bases/` folder as a vault to browse articles via Graph View and wikilinks. See `knowledge-bases/OBSIDIAN_SETUP.md` for recommended plugins and workflow.
 
 ## Error Handling
 

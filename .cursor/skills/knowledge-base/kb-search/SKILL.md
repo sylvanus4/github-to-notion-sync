@@ -158,6 +158,17 @@ For LLM tool use in pipelines, the search can be invoked with structured output:
 3. kb-query reads those files for full content
 4. kb-query synthesizes the final answer
 
+## Standalone CLI
+
+`scripts/kb_search.py` provides a direct terminal search without the full orchestrator:
+
+```bash
+python scripts/kb_search.py "query"              # search all KBs
+python scripts/kb_search.py "query" -t ai-knowledge-bases  # specific topic
+python scripts/kb_search.py "query" --json        # JSON output for pipelines
+python scripts/kb_search.py "query" -C 3          # with context lines
+```
+
 ## Error Handling
 
 | Error | Symptom | Action |

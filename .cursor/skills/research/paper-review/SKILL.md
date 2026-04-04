@@ -3,10 +3,11 @@ name: paper-review
 description: >-
   End-to-end academic paper review pipeline that ingests a paper (arXiv URL, PDF,
   or markdown), produces a structured Korean review markdown, runs multi-perspective
-  PM/research analysis using 7 PM skills, generates a consolidated Word document,
-  a PowerPoint presentation, NotebookLM slide decks, creates structured Notion
-  pages, and distributes everything to Slack with threaded summaries, Notion links,
-  and file uploads.
+  PM/research analysis using 7 PM skills, optionally generates a consolidated Word
+  document and PowerPoint presentation (off by default, enable with --with-docx /
+  --with-pptx), generates NotebookLM slide decks, creates structured Notion pages,
+  and distributes everything to Slack with threaded summaries, Notion links, and
+  file uploads.
   Use when the user asks to "review a paper", "paper review", "논문 리뷰",
   "논문 분석", "analyze this paper", "academic paper review", "연구 논문 리뷰",
   "paper review pipeline", "/paper-review", "논문 요약 분석", "논문 정리",
@@ -68,9 +69,9 @@ Read these as needed during execution:
 Phase 1: Ingest Paper (PDF/URL/markdown → structured text)
 Phase 2: Generate Korean Paper Review (core deliverable, always produced)
 Phase 3: Multi-Perspective PM Analysis (parallel subagents, optional)
-Phase 4: Consolidate into DOCX (Word report)
-Phase 5: Generate PPTX (PowerPoint presentation, anthropic-pptx)
-Phase 6: Generate NLM Slides (NotebookLM slide deck from DOCX)
+Phase 4: Consolidate into DOCX (optional, --with-docx)
+Phase 5: Generate PPTX (optional, --with-pptx)
+Phase 6: Generate NLM Slides (NotebookLM slide deck from review markdown)
 Phase 7: Distribute to Notion (main page + sub-pages per perspective)
 Phase 8: Distribute to Slack (NLM slides + Notion link + files in thread)
 Phase 9: Archive Registration (register paper in paper-archive index)
@@ -87,8 +88,8 @@ content is a pipeline failure.
 |-------|---------------|-------------|
 | Phase 2: Review | 150+ lines | Every section filled with specific evidence, numbers, and paper citations |
 | Phase 3: Each perspective | 80+ lines per file | Concrete analysis with paper-specific data, not generic framework skeletons |
-| Phase 4: DOCX | 15+ pages | Must consolidate ALL Phase 2 + Phase 3 outputs in full; no summaries or truncation |
-| Phase 5: PPTX | 25-35 slides | Substantive bullet points with specific numbers, not placeholder text |
+| Phase 4: DOCX (if `--with-docx`) | 15+ pages | Must consolidate ALL Phase 2 + Phase 3 outputs in full; no summaries or truncation |
+| Phase 5: PPTX (if `--with-pptx`) | 25-35 slides | Substantive bullet points with specific numbers, not placeholder text |
 
 ### Language Requirements
 
@@ -272,7 +273,9 @@ Do NOT proceed to Phase 4 until all 6 perspective files pass verification.
 
 ---
 
-## Phase 4: DOCX Consolidation
+## Phase 4: DOCX Consolidation (optional)
+
+**Skip this phase unless `--with-docx` is explicitly set.**
 
 Read `references/docx-structure.md` for detailed assembly instructions.
 
@@ -300,9 +303,9 @@ python .cursor/skills/anthropic-docx/scripts/office/validate.py output.docx
 
 ---
 
-## Phase 5: PPTX Generation
+## Phase 5: PPTX Generation (optional)
 
-Skip this phase if `--skip-pptx` is set.
+**Skip this phase unless `--with-pptx` is explicitly set.**
 
 Read `references/pptx-structure.md` for detailed slide mapping instructions.
 
@@ -328,8 +331,9 @@ Skip this phase if `--skip-nlm` is set.
 Read `references/nlm-slack-integration.md` for detailed instructions.
 
 1. **Create notebook**: `notebook_create(title="Paper Review: {Paper Title}")`
-2. **Add DOCX as source**: `notebook_add_text(notebook_id, title="Paper Analysis Report", file_path="<ABSOLUTE_PATH>/outputs/papers/{paper-id}-analysis-{DATE}.docx")`
+2. **Add DOCX as source** (if `--with-docx` was set and DOCX exists): `notebook_add_text(notebook_id, title="Paper Analysis Report", file_path="<ABSOLUTE_PATH>/outputs/papers/{paper-id}-analysis-{DATE}.docx")`
 3. **Add review as text source**: `notebook_add_text(notebook_id, title="Korean Review", file_path="<ABSOLUTE_PATH>/outputs/papers/{paper-id}-review-{DATE}.md")`
+   — If DOCX was not generated, also add each perspective markdown as a separate source.
 4. **Generate slides**: `slide_deck_create(notebook_id, format="detailed_deck", confirm=true)`
 5. **Poll status**: `studio_status(notebook_id)` every 30s until complete (5-8 min typical)
 6. **Download PDF**: `download_artifact(notebook_id, artifact_type="slide_deck", output_path="<ABSOLUTE_PATH>/outputs/presentations/{paper-id}-nlm-slides-{DATE}.pdf")`
@@ -412,8 +416,8 @@ If the channel name is provided, use `slack_search_channels` MCP tool to resolve
 1. **Main message** — Upload NLM slides PDF via 3-step Slack API (`getUploadURLExternal` → upload → `completeUploadExternal`) with paper title + Korean summary as `initial_comment`; capture `ts` from response. If NLM slides PDF is unavailable (Phase 6 skipped), fall back to `slack_send_message` text-only post.
 2. **Thread: Paper Summary** — `slack_send_message` MCP tool with detailed Korean summary (500-1000 chars)
 3. **Thread: Notion Link** — `slack_send_message` MCP tool with the Notion main page URL from Phase 7 (skip if `--skip-notion`)
-4. **Thread: Upload DOCX** — 3-step Slack upload with `thread_ts` from step 1
-5. **Thread: Upload PPTX** — 3-step Slack upload with `thread_ts` from step 1 (uploaded last)
+4. **Thread: Upload DOCX** — 3-step Slack upload with `thread_ts` from step 1 (only if `--with-docx` was set)
+5. **Thread: Upload PPTX** — 3-step Slack upload with `thread_ts` from step 1 (only if `--with-pptx` was set)
 
 See `references/nlm-slack-integration.md` for exact curl commands, `ts` extraction, and error handling.
 
@@ -443,9 +447,9 @@ Skills used: **paper-archive**
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--skip-pm` | Skip Phase 3 PM analysis; produce review + docx + pptx only | PM enabled |
-| `--skip-pptx` | Skip Phase 5 PowerPoint generation | PPTX enabled |
-| `--skip-docx` | Skip Phase 4 Word generation (also skips Phase 6) | DOCX enabled |
+| `--skip-pm` | Skip Phase 3 PM analysis; produce review only | PM enabled |
+| `--with-docx` | Enable Phase 4 Word document generation | DOCX skipped |
+| `--with-pptx` | Enable Phase 5 PowerPoint generation | PPTX skipped |
 | `--skip-nlm` | Skip Phase 6 NotebookLM slide generation | NLM enabled |
 | `--skip-notion` | Skip Phase 7 Notion page creation | Notion enabled |
 | `--notion-parent <id>` | Notion parent page ID for Phase 7 | Required if Notion enabled |
@@ -469,11 +473,11 @@ This will:
 1. Download PDF and extract text + metadata
 2. Generate Korean paper review markdown
 3. Run 6 PM/research perspectives in parallel
-4. Consolidate into a Word report
-5. Generate a PowerPoint presentation
-6. Generate NotebookLM slide deck from DOCX
+4. Consolidate into a Word report (only if `--with-docx`)
+5. Generate a PowerPoint presentation (only if `--with-pptx`)
+6. Generate NotebookLM slide deck from review markdown (+ DOCX if available)
 7. Create Notion pages (main + 7 sub-pages) under the specified parent
-8. Post Korean summary + Notion link + DOCX + PPTX to the specified Slack channel in thread
+8. Post Korean summary + Notion link + optional DOCX/PPTX to the specified Slack channel in thread
 9. Register the paper in the paper-archive index
 
 ```

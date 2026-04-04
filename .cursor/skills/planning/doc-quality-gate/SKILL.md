@@ -108,6 +108,13 @@ If comparison targets were provided:
 - Compare design/spec components and states vs code (high level): list matches, gaps, and **sync coverage %** if quantifiable.
 - If target inaccessible: skip and record **Skip** with reason.
 
+### Step 3.5 — Adversarial Challenge
+
+Before assigning a final grade, perform the Opposite Direction Test:
+1. Assume the document FAILS. List the 3 strongest reasons it should fail.
+2. If any reason is valid and not already captured in dimension scores, adjust scores down.
+3. If zero reasons are found, re-examine whether you are being sycophantic — a zero-flaw document is statistically unlikely for first drafts.
+
 ### Step 4 — Gate decision
 
 Apply configurable thresholds; set **Verdict** to APPROVED or NEEDS REVISION.

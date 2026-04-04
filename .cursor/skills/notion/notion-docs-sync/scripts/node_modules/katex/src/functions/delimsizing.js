@@ -6,6 +6,7 @@ import mathMLTree from "../mathMLTree";
 import ParseError from "../ParseError";
 import utils from "../utils";
 import {assertNodeType, checkSymbolNodeType} from "../parseNode";
+import {makeEm} from "../units";
 
 import * as html from "../buildHTML";
 import * as mml from "../buildMathML";
@@ -81,6 +82,7 @@ defineFunction({
     ],
     props: {
         numArgs: 1,
+        argTypes: ["primitive"],
     },
     handler: (context, args) => {
         const delim = checkDelimiter(args[0], context);
@@ -124,6 +126,11 @@ defineFunction({
             node.setAttribute("fence", "false");
         }
 
+        node.setAttribute("stretchy", "true");
+        const size = makeEm(delimiter.sizeToMaxHeight[group.size]);
+        node.setAttribute("minsize", size);
+        node.setAttribute("maxsize", size);
+
         return node;
     },
 });
@@ -141,6 +148,7 @@ defineFunction({
     names: ["\\right"],
     props: {
         numArgs: 1,
+        primitive: true,
     },
     handler: (context, args) => {
         // \left case below triggers parsing of \right in
@@ -166,6 +174,7 @@ defineFunction({
     names: ["\\left"],
     props: {
         numArgs: 1,
+        primitive: true,
     },
     handler: (context, args) => {
         const delim = checkDelimiter(args[0], context);
@@ -299,6 +308,7 @@ defineFunction({
     names: ["\\middle"],
     props: {
         numArgs: 1,
+        primitive: true,
     },
     handler: (context, args) => {
         const delim = checkDelimiter(args[0], context);
@@ -332,7 +342,7 @@ defineFunction({
         return middleDelim;
     },
     mathmlBuilder: (group, options) => {
-        // A Firefox \middle will strech a character vertically only if it
+        // A Firefox \middle will stretch a character vertically only if it
         // is in the fence part of the operator dictionary at:
         // https://www.w3.org/TR/MathML3/appendixc.html.
         // So we need to avoid U+2223 and use plain "|" instead.

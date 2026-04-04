@@ -135,11 +135,12 @@ Related papers context: read `_workspace/paper-lifecycle/02_scout.md`.
 
 ## Task
 Run the full 9-phase paper review pipeline:
-Ingest → Review → PM Analysis → DOCX → PPTX → NLM Slides → Notion → Slack
+Ingest → Review → PM Analysis → NLM Slides → Notion → Slack
+(DOCX and PPTX are off by default; the orchestrator does not enable them unless
+the user explicitly passes --with-docx or --with-pptx.)
 
 ## Output
 Write review summary to `_workspace/paper-lifecycle/03_review.md`.
-DOCX and PPTX outputs follow the paper-review skill's standard output paths.
 
 ## Completion
 Return the review verdict and key findings.
@@ -224,7 +225,7 @@ Phase 2: Scout
     ▼
 Phase 3: Expert Pool Routing
     │   ┌─ --depth full → paper-review (9 phases, opaque)
-    │   │                  → 03_review.md + DOCX + PPTX
+    │   │                  → 03_review.md (+ DOCX/PPTX only if --with-docx/--with-pptx)
     │   │
     │   └─ --depth slides-only → nlm-arxiv-slides (6 skills, opaque)
     │                             → 03_slides.md + PDF

@@ -37,6 +37,25 @@ The KV-cache stores the key-value pairs from attention computation. When the pre
 - Avoid reordering existing context between turns
 - The cache is prefix-based: any change invalidates everything after it
 
+**Cache fragility — common invalidation triggers:**
+- Timestamps or volatile data embedded in the system prompt
+- Non-deterministic ordering of tool definitions across requests
+- Adding or removing tools mid-session (use `defer_loading` stubs + ToolSearch instead)
+- Updating tool parameters or descriptions between turns
+- Switching models mid-session (rebuilds cache from scratch — use subagents for different tiers)
+
+**Messages over system prompt mutations:**
+Convey updates (time changes, file state, mode transitions) via next-turn user messages
+or tool results rather than modifying the system prompt. System prompt changes invalidate
+the entire cached prefix; messages append to the end and preserve the cache.
+
+**defer_loading pattern:**
+For large tool catalogs, define lightweight stub schemas at session start and load full
+tool implementations on demand via a ToolSearch mechanism. This keeps the static tool
+prefix small and stable, maximizing cache hit rate.
+
+See `ecc-token-strategy.mdc` → Prompt Cache Preservation for the full rule set.
+
 ### Observation Masking
 
 When tool outputs are large (multi-page documents, API responses), mask them after the turn in which they were processed. The agent has already extracted the relevant information into its reasoning; the raw output no longer contributes value.
@@ -103,3 +122,4 @@ After a large API or document response is summarized into the assistant message,
 
 - [Optimization Techniques Reference](./references/optimization_techniques.md)
 - Related CE skills: ce-context-fundamentals, ce-context-compression, ce-context-degradation
+- Related rules: `ecc-token-strategy.mdc` (Prompt Cache Preservation), `ecc-strategic-compact` (Cache-Safe Forking)

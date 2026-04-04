@@ -220,8 +220,8 @@ Run kb-index to update the index with the new content.
   Based on: {N} KB articles
   
   To view:
-  - Marp slides: `marp knowledge-bases/{topic}/outputs/slides/{file}`
-  - Charts: open in any image viewer
+  - Marp slides: `scripts/kb_render_slides.sh {topic}` (renders all .marp.md to PDF/HTML)
+  - Charts: `python scripts/kb_render_charts.py {topic}` (renders matplotlib blocks to PNG)
   - HTML: open in browser
 ```
 
@@ -261,5 +261,5 @@ Run kb-index to update the index with the new content.
 |-------|---------|--------|
 | Insufficient KB content | Too few articles for requested output | Report minimum requirements |
 | matplotlib not available | Import error | Suggest `pip install matplotlib` |
-| Marp not installed | Cannot render slides | Provide raw .marp.md, suggest install |
+| Marp not installed | Cannot render slides | Provide raw .marp.md, suggest `npm install -g @marp-team/marp-cli` or use `scripts/kb_render_slides.sh` which also supports npx |
 | Output too large | Generated report > 10K words | Split into sections or summarize |

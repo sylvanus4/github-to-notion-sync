@@ -74,6 +74,12 @@ The evaluator receives:
 - The evaluation criteria and rubric
 - The original task description (for context)
 
+**Evaluator Anti-Sycophancy Guards:**
+- Score the output BEFORE reading the generator's self-assessment or rationale
+- Apply the "hostile reviewer" lens: "What would a senior engineer reject about this?"
+- If all dimensions score >= 8, re-examine at least 2 dimensions with deliberate skepticism
+- Document what the output gets WRONG before what it gets RIGHT
+
 Evaluator output format:
 ```
 EVALUATION:

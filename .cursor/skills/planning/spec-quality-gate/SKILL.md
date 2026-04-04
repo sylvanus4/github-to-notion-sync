@@ -115,6 +115,13 @@ Only if API spec provided:
 - Design-system component usage called out
 - Layout description present
 
+### Step 2.5: Adversarial Challenge
+
+Before compiling the quality report, perform the Opposite Direction Test:
+1. Assume the spec FAILS. List the 3 strongest reasons it should fail.
+2. If any reason is valid and not already captured in check results, add it as a finding with appropriate severity.
+3. If zero reasons are found, re-examine whether you are being sycophantic — a zero-flaw spec is statistically unlikely for first drafts.
+
 ### Step 3: Quality report
 
 ```markdown

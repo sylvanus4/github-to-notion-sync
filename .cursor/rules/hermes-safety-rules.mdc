@@ -1,0 +1,86 @@
+---
+description: Cross-cutting safety guardrails inspired by Hermes Agent — checkpoint before destructive ops, skill trust enforcement, MoA cost gate, memory/skill separation, tool use enforcement
+globs:
+alwaysApply: false
+---
+
+# Hermes Safety Rules
+
+## Pre-Mutation Checkpoint
+
+Before any operation that modifies 5+ files, the agent SHOULD take a shadow
+checkpoint using `hermes-checkpoint-rollback` (unless the user explicitly
+skips with "skip checkpoint" / "체크포인트 생략").
+
+Checkpoint triggers:
+- `/simplify full`, `/deep-review` with auto-fix, refactoring across 5+ files
+- Pipeline skills that overwrite output files (today, morning-ship)
+- `autoskill-evolve` or `autoskill-merger` modifying existing SKILL.md files
+
+## Skill Trust Enforcement
+
+External skills added via `skill-seekers` or `autoskill-evolve` from
+transcripts containing external URLs MUST be scanned by `hermes-skills-guard`
+before first use. Skills from `cursor-public/` plugin caches are implicitly
+`trusted` level.
+
+Trust escalation path:
+1. community → scan → if safe, promote to trusted in subsequent runs
+2. agent-created → scan → if safe+caution, allow; if dangerous, ask user
+
+## MoA Cost Gate
+
+`hermes-mixture-of-agents` requires explicit user opt-in for queries
+estimated above $1.00 in token cost. Budget mode (2 Sonnet refs + Sonnet
+aggregator) is the default unless the user requests maximum quality.
+
+## Memory vs Skill Separation
+
+Enforce a strict boundary between declarative memory and procedural skills:
+
+| Content Type | Store | Never Put In |
+|---|---|---|
+| Durable facts (channel IDs, API endpoints, user prefs) | AGENTS.md or MEMORY.md | SKILL.md |
+| Reusable multi-step procedures | SKILL.md | AGENTS.md bullet |
+| One-time decisions with rationale | tasks/lessons.md | Either |
+| Temporary session state | TodoWrite / in-context | Persistent files |
+
+Violations:
+- A 5-step workflow stored as an AGENTS.md bullet → loses structure, becomes unreproducible
+- A Slack channel ID stored in a SKILL.md → pollutes the skill with volatile config
+- A reusable pattern stored only in tasks/lessons.md → never gets reused because nobody reads it
+
+## Tool Use Enforcement
+
+When a deterministic tool exists for a task, ALWAYS use it over LLM reasoning:
+
+| Task | Use Tool | Never Do |
+|---|---|---|
+| Find files by name | `Glob` | Guess paths from memory |
+| Search code for a string | `Grep` | Recall from context |
+| Check lint errors | `ReadLints` | Read the file and guess |
+| Check git status | `Shell: git status` | Assume clean state |
+| Verify file contents | `Read` | Trust prior context |
+
+Rationale: Tool outputs are deterministic and current. LLM reasoning about
+file contents or system state is stochastic and may reflect stale context.
+This is a primary mechanism for achieving low-variance execution.
+
+## Post-Mutation Verification
+
+After any file-mutating operation, verify the resulting state:
+
+1. `ReadLints` on edited files — catch introduced errors immediately
+2. `Read` the modified file — confirm the change is correct
+3. `Shell: git diff` — review the actual change set
+
+Never claim "done" or "fixed" without running at least one verification step.
+This rule is enforced by the `Verification-Before-Completion` prompt pattern.
+
+## Integration with Existing Rules
+
+- Complements `safe-mode` (runtime command interception) with pre-op checkpoints
+- Complements `semantic-guard` (runtime data flow) with static skill file scanning
+- Complements `hermes-inline-learning.mdc` (runtime learning loop) with safety constraints
+- Does NOT replace `security-expert` (full STRIDE/OWASP auditing) — these are
+  lightweight guardrails for everyday agent operations

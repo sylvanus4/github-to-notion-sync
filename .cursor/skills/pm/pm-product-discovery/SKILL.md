@@ -44,6 +44,7 @@ Orchestrate product discovery workflows from ideation through validation using T
 1. **Identify sub-skill from user intent** — Match the request to the Sub-Skill Index. New vs existing product matters: use `*-new` for startups/MVPs, `*-existing` for live products.
 2. **Read the reference file** — Load the linked `.md` in `references/` and follow its Context, Domain Context, and Instructions.
 3. **Execute and chain** — Follow the reference instructions. Chain sub-skills when needed (e.g., identify-assumptions → prioritize-assumptions → brainstorm-experiments).
+4. **Negative-framing for assumptions** — When testing assumptions, frame prompts as "Why is this assumption wrong?" not "Is this assumption valid?" Negative framing produces more honest and rigorous evaluation than validation framing, which triggers sycophantic agreement.
 
 ## Examples
 

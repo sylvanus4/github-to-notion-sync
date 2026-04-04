@@ -1,8 +1,8 @@
 ---
 name: skill-upgrade-validator
 description: >-
-  Validate SKILL.md files against the 8 prompt engineering patterns defined in
-  skill-prompt-patterns.mdc. Scores compliance (0-8), generates upgrade
+  Validate SKILL.md files against the 10 prompt engineering patterns defined in
+  skill-prompt-patterns.mdc. Scores compliance (0-10), generates upgrade
   suggestions, and produces a summary report. Use when the user asks to
   "validate skill patterns", "check skill compliance", "score skill patterns",
   "pattern coverage check", "skill pattern audit", "upgrade validator",
@@ -20,7 +20,7 @@ metadata:
 
 # Skill Upgrade Validator
 
-Validate SKILL.md files against the 8 prompt engineering patterns from `skill-prompt-patterns.mdc`. Produces a compliance score (0-8) per skill and actionable upgrade suggestions.
+Validate SKILL.md files against the 10 prompt engineering patterns from `skill-prompt-patterns.mdc`. Produces a compliance score (0-10) per skill and actionable upgrade suggestions.
 
 ## Input
 
@@ -43,6 +43,8 @@ Each pattern maps to specific text markers in a SKILL.md file.
 | 6 | Subagent Contract | Contains: "absolute file paths", "load-bearing", "subagent.*return", "purpose statement.*subagent", or a section titled `## Subagent Contract` |
 | 7 | Rationalization Detection | Contains: "rationalization", "reading is not verification", "probably is not verified", "adversarial probe", or a section titled `## Rationalization Detection` |
 | 8 | Domain Memory | Contains: "update memory", "domain.*memory", "what you found.*where.*why", or a section titled `## Domain Memory` |
+| 9 | Gotchas Section | Contains a section titled `## Gotchas` or `## Known Issues` or `## Common Pitfalls`, with at least 2 bullet items documenting failure patterns |
+| 10 | Progressive Disclosure via Filesystem | Skill directory contains `references/`, `scripts/`, `assets/`, or `config.json`; OR SKILL.md references reading from companion files (e.g., "read references/", "see scripts/", "load config.json") |
 
 ## Tier Classification
 
@@ -50,10 +52,11 @@ Skills are classified into tiers based on their category and function:
 
 | Tier | Expected Minimum | Skill Types |
 |------|-----------------|-------------|
-| Tier-1 | 4/8 (Patterns 1, 2, 3, 5) | Document generation: anthropic-docx, anthropic-pptx, anthropic-pdf, anthropic-canvas-design, anthropic-frontend-design, docx-template-engine, ppt-template-engine, office-template-enforcer |
-| Tier-2 | 4/8 (Patterns 1, 4, 5, 6) | Pipeline orchestrators: today, morning-ship, daily-am-orchestrator, daily-pm-orchestrator, eod-ship, google-daily, deep-review, simplify, ship, release-commander, mission-control |
-| Tier-3 | 4/8 (Patterns 1, 3, 5, 7) | Review/quality: quality-gate-orchestrator, code-review-all, test-suite, security-expert, ai-quality-evaluator, ecc-verification-loop, ecc-eval-harness, skill-autoimprove |
-| General | 2/8 (Pattern 1 + any other) | All other skills |
+| Tier-1 | 4/10 (Patterns 1, 2, 3, 5) | Document generation: anthropic-docx, anthropic-pptx, anthropic-pdf, anthropic-canvas-design, anthropic-frontend-design, docx-template-engine, ppt-template-engine, office-template-enforcer |
+| Tier-2 | 5/10 (Patterns 1, 4, 5, 6, 9) | Pipeline orchestrators: today, morning-ship, daily-am-orchestrator, daily-pm-orchestrator, eod-ship, google-daily, deep-review, simplify, ship, release-commander, mission-control |
+| Tier-3 | 5/10 (Patterns 1, 3, 5, 7, 9) | Review/quality: quality-gate-orchestrator, code-review-all, test-suite, security-expert, ai-quality-evaluator, ecc-verification-loop, ecc-eval-harness, skill-autoimprove |
+| Tier-API | 4/10 (Patterns 1, 9, 10) | Library/API reference: anthropic-claude-api, anthropic-mcp-builder, hf-cli, tossinvest-cli, gws-*, context7-mcp |
+| General | 2/10 (Pattern 1 + any other) | All other skills |
 
 ## Workflow
 
@@ -73,9 +76,9 @@ If scope is a single file:
 For each SKILL.md file:
 
 1. Read the file content
-2. Apply all 8 pattern detection rules (case-insensitive matching)
+2. Apply all 10 pattern detection rules (case-insensitive matching)
 3. Record which patterns are present (1) or absent (0)
-4. Calculate score: sum of present patterns (0-8)
+4. Calculate score: sum of present patterns (0-10)
 5. Determine the skill's tier from the classification table
 6. Check if the score meets the tier's expected minimum
 
@@ -93,6 +96,8 @@ For each absent pattern in a skill, generate a specific suggestion:
 | 6 (Subagent Contract) | "Add `## Subagent Contract` section requiring absolute paths, load-bearing snippets, and concise returns" |
 | 7 (Rationalization Detection) | "Add `## Rationalization Detection` section with the rationalization table and adversarial probe requirement" |
 | 8 (Domain Memory) | "Add domain-specific memory update instructions for knowledge that accumulates across runs" |
+| 9 (Gotchas Section) | "Add `## Gotchas` section documenting 2-3 common failure patterns (symptom → root cause → correct approach)" |
+| 10 (Progressive Disclosure) | "Move large reference material to `references/*.md`, add executable helpers to `scripts/`, and create `config.json` for user settings" |
 
 Only suggest patterns that are marked as Required or Optional for the skill's tier in the Application Guide.
 
@@ -106,7 +111,7 @@ Produce a structured markdown report:
 **Date:** YYYY-MM-DD
 **Scope:** [what was scanned]
 **Skills scanned:** N
-**Average score:** X.X / 8
+**Average score:** X.X / 10
 **Skills below threshold:** N
 
 ## Summary by Tier
@@ -116,11 +121,12 @@ Produce a structured markdown report:
 | Tier-1 | N | X.X | N | N |
 | Tier-2 | N | X.X | N | N |
 | Tier-3 | N | X.X | N | N |
+| Tier-API | N | X.X | N | N |
 | General | N | X.X | N | N |
 
 ## Detailed Results
 
-### [skill-name] — Score: X/8 [PASS/FAIL]
+### [skill-name] — Score: X/10 [PASS/FAIL]
 
 | Pattern | Status |
 |---------|--------|
@@ -132,6 +138,8 @@ Produce a structured markdown report:
 | 6. Subagent Contract | ✓ / ✗ |
 | 7. Rationalization Detection | ✓ / ✗ |
 | 8. Domain Memory | ✓ / ✗ |
+| 9. Gotchas Section | ✓ / ✗ |
+| 10. Progressive Disclosure | ✓ / ✗ |
 
 **Suggestions:**
 - [specific suggestion for each missing required/optional pattern]

@@ -166,13 +166,54 @@ Domain-specific examples:
 | Pipeline ops | Failure modes, timing patterns, API rate limit behaviors |
 | Document generation | Template preferences, formatting conventions, content depth expectations |
 
+## Pattern 9: Gotchas Section (Iterative Failure Catalog)
+
+The highest-signal content in any skill is the Gotchas section. Document
+common failure points that the agent encounters when executing this skill.
+
+Requirements:
+- Start with at least 2-3 known gotchas from initial testing
+- Update the section whenever a new failure pattern is observed
+- Format: symptom → root cause → correct approach
+- Prioritize non-obvious failures (things Claude gets wrong by default)
+
+Example:
+
+```
+## Gotchas
+- `gws gmail +triage` uses `--max`, not `--max-results`
+- Slack file upload requires 3-step flow, not single POST
+- Notion API does not support pipe tables — use bulleted lists or HTML
+```
+
+## Pattern 10: Progressive Disclosure via Filesystem
+
+Skills are folders, not just markdown files. Use the filesystem for
+progressive disclosure — tell Claude what files exist and let it read
+them at the appropriate time.
+
+Patterns:
+- `references/*.md` — detailed specs, API signatures, examples
+- `scripts/*.py|*.sh|*.js` — executable helpers Claude can compose
+- `assets/` — templates, JSON maps, sample data
+- `config.json` — user setup (channel IDs, project IDs, preferences)
+- Append-only logs (`*.log`, `*.jsonl`) for skill memory
+
+Anti-patterns:
+- Embedding 500+ lines of reference material inline in SKILL.md
+- Duplicating information that exists in repository docs
+- Storing transient data in the skill directory (use `outputs/` or
+  `_workspace/` instead)
+
 ## Application Guide
 
 | Skill Type | Required Patterns | Optional Patterns |
 |-----------|------------------|-------------------|
-| Document generation | 1, 2, 3, 5 | 8 |
-| Pipeline orchestrator | 1, 4, 5 | 6, 8 |
-| Code review / audit | 1, 3, 5, 7 | 6 |
-| Multi-agent orchestrator | 1, 4, 5, 6 | 7 |
-| Subagent-heavy skill | 1, 6 | 5 |
-| Knowledge-accumulating skill | 1, 8 | 5 |
+| Document generation | 1, 2, 3, 5 | 8, 9 |
+| Pipeline orchestrator | 1, 4, 5 | 6, 8, 9, 10 |
+| Code review / audit | 1, 3, 5, 7 | 6, 9 |
+| Multi-agent orchestrator | 1, 4, 5, 6 | 7, 9 |
+| Subagent-heavy skill | 1, 6 | 5, 9 |
+| Knowledge-accumulating skill | 1, 8 | 5, 9, 10 |
+| Library/API reference skill | 1, 9, 10 | 2, 3 |
+| Infrastructure operations | 1, 3, 9 | 5, 7 |

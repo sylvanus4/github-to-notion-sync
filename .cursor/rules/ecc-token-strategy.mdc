@@ -39,6 +39,43 @@ Complements `rtk-token-optimization.mdc` (CLI output compression) with higher-le
 - Prefer CLI tools when they exist (`gh` over GitHub MCP for simple operations)
 - Disable unused MCP servers in project config
 
+## Prompt Cache Preservation
+
+Prompt caching works by prefix matching — the API caches from the start of the
+request up to each cache_control breakpoint. Any change anywhere in the prefix
+invalidates everything after it. Design the entire system around this constraint.
+
+### Content Ordering (cache-friendly)
+
+1. Static system prompt & Tools (globally cached)
+2. CLAUDE.md / AGENTS.md / Rules (cached per project)
+3. Session context — env, MCP, output style (cached per session)
+4. Conversation messages (per-turn)
+
+### Rules
+
+- NEVER add or remove tools mid-session — use defer_loading stubs + ToolSearch
+- NEVER switch models mid-session — use subagents for different model tiers
+  (switching from Opus to Haiku mid-conversation rebuilds the cache from scratch,
+  making it more expensive than keeping Opus)
+- Use messages (next-turn user message or tool result) to convey updates
+  (time changes, file changes) instead of modifying the system prompt
+- EnterPlanMode / ExitPlanMode are tools, not tool-set swaps — tool definitions
+  stay constant; mode transitions happen via tool calls and system messages
+- Avoid non-deterministic tool definition ordering across requests
+- Avoid timestamps or volatile data in the system prompt
+- Monitor cache hit rate as a key operational metric — treat cache breaks as incidents
+
+### Cache-Safe Forking
+
+When running compaction or subagent work, use the same system prompt, user
+context, and tool definitions as the parent conversation. Append the new
+instruction as a user message at the end to maximize prefix cache reuse.
+This applies to:
+- Compaction (summarizing conversation history)
+- Subagent spawning (explore, review, fix subagents)
+- Skill execution in forked contexts
+
 ## LLM API Calls in Pipeline Code
 
 When the project's Python scripts call LLM APIs (Claude, OpenAI, etc.):

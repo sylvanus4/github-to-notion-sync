@@ -63,7 +63,7 @@ Present the issue plan as a table:
 For each issue batch:
 
 ```bash
-gh issue create --repo OWNER/REPO --title "[TYPE] Title" --assignee @me --body "$(cat <<'EOF'
+gh issue create --repo OWNER/REPO --title "[TYPE] Title" --assignee sylvanus4 --body "$(cat <<'EOF'
 ...issue body...
 EOF
 )"
@@ -159,5 +159,5 @@ Solution: Re-query the project fields to get the current sprint iteration ID. Se
 - **Never push to upstream** unless the user explicitly requests it
 - **Standalone mode**: Show issue plan and confirm with user before creating issues
 - **Pipeline mode** (invoked by release-ship, eod-ship, or any batch pipeline): Auto-confirm issue creation — the pipeline caller has already been approved by the user
-- **Always set assignee** to `@me`
+- **Always set assignee** to `sylvanus4`
 - **Reference local guides** in the `references/` directory for issue templates, project config, and Epic patterns

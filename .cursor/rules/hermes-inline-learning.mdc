@@ -1,0 +1,98 @@
+---
+description: Inline learning loop — nudge agents toward runtime skill creation, memory capture, and background self-improvement during task execution
+globs:
+alwaysApply: false
+---
+
+# Hermes Inline Learning Loop
+
+Inspired by Hermes Agent's built-in learning loop (nousresearch/hermes-agent).
+The key insight: agents that autonomously create, store, and improve skills
+during task execution achieve lower-variance outcomes than those starting fresh
+each session.
+
+## Skills Guidance (Post-Task Nudge)
+
+After completing a complex task (5+ tool calls), fixing a tricky error, or
+discovering a non-trivial workflow, evaluate whether the approach should be
+saved as a reusable skill:
+
+**Save as a skill when:**
+- The workflow involved 3+ coordinated steps that would be hard to reconstruct
+- A non-obvious workaround was discovered (undocumented API behavior, env-specific fix)
+- The user corrected the agent's approach, revealing a pattern worth preserving
+- A multi-tool pipeline produced a result worth repeating
+
+**Do NOT save when:**
+- The task was straightforward and well-documented
+- The solution is project-specific and won't transfer (hardcoded paths, one-off data)
+- An existing skill already covers the pattern (check skill-guide first)
+
+Use `autoskill-extractor` → `autoskill-judge` for structured creation, or
+`create-skill` for immediate manual capture.
+
+## Memory Guidance (Fact Capture)
+
+When encountering durable facts during task execution, capture them to the
+appropriate memory store:
+
+| Fact Type | Store | Example |
+|---|---|---|
+| User preference | AGENTS.md `Learned User Preferences` | "User prefers Korean output with English technical terms" |
+| Workspace fact | AGENTS.md `Learned Workspace Facts` | "Slack channel #press ID is C0XXXXXXXXX" |
+| Decision record | `tasks/lessons.md` | "chose PostgreSQL over Redis for this because..." |
+| Reusable procedure | New skill via `create-skill` | Multi-step deployment workflow |
+
+**Separation principle**: facts go to memory, procedures go to skills.
+Never store a reusable workflow as a memory entry — it loses structure.
+Never store a factoid as a skill — it wastes a skill slot.
+
+## Skill Maintenance (Patch-on-Use)
+
+When using an existing skill and finding it outdated, incomplete, or wrong:
+
+1. Note the specific deficiency
+2. After completing the current task, patch the skill with the correct approach
+3. Bump the version field and log the change
+
+Do NOT wait to be asked. Skills that aren't maintained become liabilities.
+This is the "use it → improve it" loop that differentiates agents with
+learning loops from stateless agents.
+
+## Background Learning (Post-Session)
+
+At session boundaries (EOD, context compaction, task completion), consider:
+
+1. **Skill candidates**: Did this session contain a novel workflow worth saving?
+2. **Memory updates**: Did the user reveal preferences or facts not yet recorded?
+3. **Lesson learned**: Did the agent make a mistake that should be prevented?
+
+These checks align with the existing `autoskill-evolve` pipeline but happen
+inline rather than waiting for batch processing.
+
+## Low-Variance Execution Principles
+
+Hermes Agent's "바닥이 높은 실행" (high-floor execution) comes from:
+
+1. **Externalized procedures**: Complex workflows live in skill files, not in
+   the agent's implicit knowledge. This makes behavior reproducible across sessions.
+2. **Iteration budgeting**: Before starting a multi-step task, estimate the
+   number of iterations needed. If actual iterations exceed 2× the estimate,
+   pause and reassess approach rather than continuing blindly.
+3. **Tool use enforcement**: When a tool exists for a task (Grep for search,
+   ReadLints for lint errors), ALWAYS use it rather than guessing from context.
+   Tool outputs are deterministic; LLM reasoning is stochastic.
+4. **State verification**: After every mutation (file write, API call, git
+   operation), verify the resulting state matches expectations before proceeding.
+
+## Integration with Existing Pipeline
+
+This rule complements (does NOT replace) these existing skills:
+
+| Existing Skill | Role | This Rule Adds |
+|---|---|---|
+| `autoskill-evolve` | Batch skill evolution from transcripts | Inline nudge to create skills during tasks |
+| `autoskill-extractor` | Post-facto transcript mining | Runtime awareness of save-worthy patterns |
+| `skill-autoimprove` | Autonomous prompt optimization | Patch-on-use for immediate corrections |
+| `ecc-continuous-learning` | Hook-based instinct system | Explicit memory vs skill separation |
+| `recall` | Cross-session context restoration | Proactive fact capture to memory stores |

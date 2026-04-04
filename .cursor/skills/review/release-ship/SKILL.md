@@ -64,20 +64,20 @@ git log --oneline -5
 Follow the `domain-commit` skill pattern. For domain-to-path mapping and hook remediation, see [domain-commit references](../domain-commit/references/hooks-and-domains.md).
 
 1. Categorize **all** files (both modified `M` and untracked `??`) by domain prefix into commit batches.
-2. **Critical**: Never silently skip untracked content files. Files in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/` etc. must be included. Unmapped paths go to the catch-all `[chore]` batch.
+2. **Critical**: Never silently skip untracked content files. Files in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/` etc. must be included. Unmapped paths go to the catch-all `chore:` batch.
 3. For each batch:
    - `git add <files>`
-   - Commit with `[TYPE] Summary` format (HEREDOC).
+   - Commit with `TYPE: Summary` format (Conventional Commits, HEREDOC).
    - If pre-commit fails: unstage, fix, re-stage, create new commit.
    - If pre-commit auto-fixes files: re-add and create new commit.
-4. Verify: `git status --short` must be empty. If any content files remain, commit them as `[chore] Add remaining files`.
+4. Verify: `git status --short` must be empty. If any content files remain, commit them as `chore: Add remaining files`.
 
 ### Step 2.5: Pre-Push Quality Gate
 
 Before `git push origin HEAD:tmp`, verify:
 - [ ] All pre-commit hooks passed (no bypassed commits via `--no-verify`)
 - [ ] `git status --short` is empty (all changes committed)
-- [ ] All commit messages follow `[TYPE] Summary` format (check via `git log --oneline -N`)
+- [ ] All commit messages follow `TYPE: Summary` format — Conventional Commits (check via `git log --oneline -N`)
 - [ ] No sensitive files staged (`.env`, `credentials`, `secrets`, `*.key`, `*.pem`)
 - [ ] Total diff is reviewable (`git diff --stat HEAD~N` shows < 500 lines, or split plan exists)
 
@@ -126,8 +126,8 @@ For each commit:
 ```bash
 ISSUE_URL=$(gh issue create \
   --repo OWNER/REPO \
-  --title "[TYPE] Summary from commit" \
-  --assignee @me \
+  --title "TYPE: Summary from commit" \
+  --assignee sylvanus4 \
   --body "$(cat <<'EOF'
 ## Description
 <Derived from commit message and changed files>
@@ -156,19 +156,20 @@ Then set ALL 5 project fields using the `set_all_fields()` Python script from [c
 
 **Procedure:**
 
-1. Query current sprint iteration ID (sprint IDs rotate weekly — never hardcode)
-2. For each issue: query project item ID, then call `set_all_fields(item_id, sprint_id, estimate, label)`
+1. Query current sprint iteration ID via date-based selection (sprint IDs rotate weekly — never hardcode)
+2. For each issue: query project item ID, count changed files, then call `set_all_fields(item_id, sprint_id, label=label, file_count=N)`
 3. Verify all fields were set successfully
 
-**Default field values:**
+**Default field values (auto-determined by file count):**
 
 | Field | Default | Override When |
 |-------|---------|--------------|
+| Assignee | `sylvanus4` | Never override |
 | Status | Done (`98236657`) | Use In Progress for WIP |
 | Priority | P2 (`473ded73`) | P1 for critical, P0 for urgent |
-| Size | S (`434b26a1`) | M for multi-file, L for multi-domain |
-| Sprint | Current (query) | Never override |
-| Estimate | 0.5 SP | 1 for 4-8 files, 2 for 9+ files |
+| Size | Auto by file count | Override with explicit size_id |
+| Sprint | Current (query by date) | Never override |
+| Estimate | Auto by file count | Override with explicit value |
 
 **CRITICAL**: Do NOT skip this step. Do NOT set only Status. ALL 5 fields are required for every issue. If a field set fails, retry once before reporting partial failure.
 
@@ -199,13 +200,13 @@ Update the PR body with current changes. For the PR body template, see [referenc
 
 #### 5b. If no PR exists
 
-Create a new PR. Title format: `#<ISSUE_NUMBER> [TYPE] Summary` (English).
+Create a new PR. Title format: `#<ISSUE_NUMBER> TYPE: Summary` (English).
 
 If issues were created in Step 4, populate the `## Issue?` section with `Resolves #N1, Resolves #N2, ...` so they auto-close on merge.
 
 ```bash
 gh pr create \
-  --title "#${ISSUE_NUMBER} [TYPE] Summary" \
+  --title "#${ISSUE_NUMBER} TYPE: Summary" \
   --body "$(cat <<'EOF'
 ## Issue?
 Resolves #N1, Resolves #N2
@@ -227,7 +228,7 @@ EOF
 )" \
   --base $TARGET_BRANCH \
   --head tmp \
-  --assignee @me
+  --assignee sylvanus4
 ```
 
 For the full PR body template, see [references/pr-template.md](references/pr-template.md).
@@ -273,15 +274,15 @@ Release Ship Report
 Pipeline: commit → push → issue → report (webui: tmp-only mode)
 
 Commits:
-  [TYPE] commit message 1
-  [TYPE] commit message 2
+  TYPE: commit message 1
+  TYPE: commit message 2
 
 Push:
   Branch: tmp → origin/tmp
 
 Issues:
-  #N1 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
-  #N2 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
+  #N1 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
+  #N2 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
 ```
 
 **Other repos** format (full pipeline):
@@ -292,15 +293,15 @@ Release Ship Report
 Pipeline: commit → push → issue → PR → merge
 
 Commits:
-  [TYPE] commit message 1
-  [TYPE] commit message 2
+  TYPE: commit message 1
+  TYPE: commit message 2
 
 Push:
   Branch: [branch] → origin/tmp
 
 Issues:
-  #N1 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
-  #N2 [TYPE] Title → Project #5 (Done, P2, S, Sprint X)
+  #N1 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
+  #N2 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
 
 PR:
   URL: https://github.com/ThakiCloud/REPO/pull/N

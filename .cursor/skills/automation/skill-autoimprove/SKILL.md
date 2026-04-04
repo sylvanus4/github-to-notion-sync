@@ -3,6 +3,9 @@ name: skill-autoimprove
 description: >-
   Autonomously optimize an existing skill prompt: repeated runs, binary evals,
   one mutation at a time, keep only improvements (Karpathy-style autoresearch).
+  Supports --trace-aware mode for full execution trace capture (tool calls,
+  model outputs, state changes) compatible with meta-harness-optimizer's
+  outer-loop code-level optimization via TraceArchive.
   Use when the user asks "skill-autoimprove", "auto-improve this skill",
   "스킬 자동 개선", "프롬프트 자동 개선", "스킬 실험 루프", "스킬 최적화 루프",
   "run evals and fix skill", "self-improve skill", or wants a loop that mutates
@@ -14,7 +17,7 @@ description: >-
   or paper pipelines (paper-review).
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "2.1.0"
   category: "self-improvement"
 ---
 
@@ -304,6 +307,95 @@ experiment	score	max_score	pass_rate	status	description
 - `create-skill` — Create skills from scratch. Autoresearch optimizes existing skills.
 - `doc-quality-gate` / evaluator-optimizer workflows — Improve a specific document output; autoresearch improves the skill prompt itself.
 - `autoskill-evolve` — Mines transcripts for new skill candidates. Autoresearch improves existing skills through runtime experiments.
+- `meta-harness-optimizer` — Outer-loop code-level optimization. Uses `--trace-aware` data from this skill as the inner-loop feedback layer.
+
+---
+
+## Trace-Aware Mode (`--trace-aware`)
+
+When invoked with `--trace-aware`, the autoresearch loop captures full execution traces (tool calls, model outputs, state transitions) alongside the normal binary eval scores. This bridges the inner loop (prompt-text mutation) with the outer loop (`meta-harness-optimizer` code-level mutation) by providing richer feedback than scores alone.
+
+### Activation
+
+Add `--trace-aware` when invoking the skill:
+
+```
+skill-autoimprove --trace-aware --target .cursor/skills/trading/daily-stock-check/SKILL.md
+```
+
+Or when `meta-harness-optimizer` invokes this skill as an inner-loop step, trace-aware mode activates automatically.
+
+### What Changes
+
+| Aspect | Normal Mode | Trace-Aware Mode |
+|--------|------------|-----------------|
+| Eval output | Binary pass/fail scores | Scores + full execution trace per eval case |
+| Storage | `results.tsv` + `changelog.md` | Same + `traces/` directory via TraceArchive |
+| Proposer context | Current SKILL.md + score history | Same + selective trace grep for failure patterns |
+| Archive format | Flat files in `autoimprove-*/` | Compatible with `scripts/meta_harness_trace.py` TraceArchive |
+| Overhead | ~1x | ~1.3x (trace serialization) |
+
+### Trace Capture
+
+During each eval run, the following events are captured per test case:
+
+1. **Input context** — the test prompt/scenario provided
+2. **Skill invocation** — the full prompt sent to the LLM
+3. **Model response** — raw output before eval scoring
+4. **Tool calls** — any tools the skill invoked during execution (with arguments and results)
+5. **Eval results** — per-eval pass/fail with the specific output that was evaluated
+6. **Timing** — wall-clock duration per step
+
+Traces are written to `autoimprove-[skill-name]/traces/exp-{N}/case-{M}.log` as JSON.
+
+### Integration with Meta-Harness
+
+When `meta-harness-optimizer` runs this skill as an inner loop:
+
+1. Meta-Harness sets `--trace-aware` and provides a `--archive-root` path
+2. This skill writes traces to the shared TraceArchive instead of local `traces/`
+3. The Meta-Harness proposer can then read uncompressed traces to propose code-level mutations
+4. Both prompt-level (this skill) and code-level (meta-harness) improvements accumulate
+
+### Trace Output Structure
+
+```
+autoimprove-[skill-name]/
+├── traces/
+│   ├── exp-0/              # baseline traces
+│   │   ├── case-000.log
+│   │   └── case-001.log
+│   ├── exp-1/              # first mutation traces
+│   │   ├── case-000.log
+│   │   └── case-001.log
+│   └── ...
+├── results.tsv
+├── results.json
+├── changelog.md
+└── dashboard.html
+```
+
+Each `case-NNN.log` is a JSON file:
+
+```json
+{
+  "experiment_id": 1,
+  "case_id": "case-000",
+  "input": "analyze AAPL stock",
+  "skill_prompt_hash": "a1b2c3",
+  "steps": [
+    {"type": "llm_call", "prompt_tokens": 1200, "completion_tokens": 800, "duration_ms": 2300},
+    {"type": "tool_call", "tool": "WebSearch", "args": {"query": "AAPL earnings"}, "duration_ms": 450}
+  ],
+  "output": "... full model output ...",
+  "evals": [
+    {"name": "Financial terminology", "pass": true},
+    {"name": "Signal expression", "pass": false, "reason": "missing RSI value"}
+  ],
+  "total_tokens": 2000,
+  "wall_clock_ms": 3200
+}
+```
 
 ---
 

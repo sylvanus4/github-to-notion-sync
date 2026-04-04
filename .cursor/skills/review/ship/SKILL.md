@@ -95,6 +95,8 @@ Agent 4: Performance Agent     → Efficiency, Big-O, redundant operations
 
 Sub-agent config: `subagent_type: generalPurpose`, `model: fast`, `readonly: true`.
 
+**Agent framing:** Inherit adversarial review posture — frame review as bug-hunting, not validation. Zero-issue files should be re-examined with deliberate skepticism before accepting as clean. If re-examination still yields zero issues, report honestly as clean — do not fabricate findings.
+
 ### Step 3: Auto-Fix (skip if `--no-fix` or `--dry-run`)
 
 1. Aggregate and deduplicate findings

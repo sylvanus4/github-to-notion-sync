@@ -1,5 +1,5 @@
 ---
-description: "Skill registry (105 project skills + 11 marketing skills + 8 harness orchestrators), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+description: "Skill registry (109 project skills + 11 marketing skills + 8 harness orchestrators), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
 alwaysApply: false
 ---
 
@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (105 project skills + 11 marketing skills + 8 harness orchestrators + 68 agency agents)
+## Skill Registry (107 project skills + 11 marketing skills + 8 harness orchestrators + 68 agency agents)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -65,7 +65,8 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `codebase-archaeologist` — Git history ownership maps, churn hotspots, bus factor
 - `refactor-simulator` — Blast radius analysis before code changes
 - `skill-optimizer` — Audit, evaluate, benchmark agent skills
-- `skill-autoimprove` — Autonomous skill prompt optimization via binary evals and mutation loop (Karpathy's autoresearch method)
+- `skill-autoimprove` — Autonomous skill prompt optimization via binary evals and mutation loop (Karpathy's autoresearch method); `--trace-aware` mode for Meta-Harness integration
+- `meta-harness-optimizer` — Outer-loop code-level harness optimization with filesystem-based uncompressed history, agentic proposer, and Pareto frontier tracking (arXiv:2603.28052)
 - `evals-skills` — LLM eval pipeline (judge prompts, synthetic data, RAG eval)
 - `related-papers-scout` — Multi-source discovery of hot related papers from elite institutions (Semantic Scholar, arXiv, PapersWithCode, Twitter/GitHub)
 
@@ -98,6 +99,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `long-form-compressor` — Condense documents into user-specified formats with configurable compression ratios
 - `video-script-generator` — Generate platform-optimized video scripts with hooks, pacing, B-roll cues, and CTAs
 - `video-editing-planner` — Create post-production editing plans with scene breakdowns, cut lists, and export specs
+- `remotion-motion-forge` — Generate production-quality motion graphics videos programmatically using Remotion (React-based renderer) with 4 templates (AppDemo, FeatureHighlight, DSShowcase, PromoReel)
 - `hook-generator` — Generate attention-grabbing hooks for video, social, email, and ad contexts using 10 frameworks
 - `codemap-updater` — Generate and maintain CODEMAP.md project navigation reference
 - `hookify` — Interactive wizard for creating Cursor hooks (beforeShellExecution, afterFileEdit, etc.)
@@ -124,6 +126,10 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `ralph-loop` — Continuous AI agent loop for batch task execution
 - `caption-subtitle-formatter` — Format transcripts into SRT/VTT with reading speed validation and accessibility compliance
 - `tmux-session-manager` — Manage tmux sessions for long-running dev processes
+- `hermes-checkpoint-rollback` — Transparent filesystem snapshots via shadow git repos with named checkpoints, diff, and rollback
+- `hermes-mixture-of-agents` — Multi-model consensus (MoA) for complex reasoning via parallel LLM queries and iterative aggregation
+- `hermes-skills-guard` — Static security scanner for externally-sourced and agent-created skill files with trust-level enforcement
+- `open-multi-agent` — Build and orchestrate multi-agent TypeScript apps with coordinator pattern, shared memory, and model-agnostic LLM integration
 
 **Paperclip (AI agent orchestration)**:
 - `paperclip-control` — Company, agent, goal, approval, cost, and dashboard management
@@ -205,6 +211,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/onboarding-accelerator` | onboarding-accelerator | Parallel (8 skills) → Sequential (assembly) |
 | `/cursor-sync` | cursor-sync | Sequential |
 | `/skill-autoimprove` | skill-autoimprove, skill-optimizer | Sequential (audit) → Eval-Opt (autonomous mutation loop) → Sequential (benchmark verification) |
+| `/meta-harness` | meta-harness-optimizer, skill-autoimprove, harness | Sequential (baseline) → Eval-Opt (code-level proposer loop) → Sequential (Pareto selection + graduation) |
 | `/plans` | prompt-architect, plans | Sequential → Eval-Opt (user-driven refinement) |
 | `/today` | today (weekly-stock-update, discover-hot-stocks, daily-stock-check, alphaear-news, alphaear-sentiment, trading-agent-desk, alphaear-reporter, anthropic-docx) | Sequential → Eval-Opt (report quality gate) |
 | `/paperclip-status` | paperclip-control | Sequential |
@@ -254,11 +261,16 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/video-edit-plan` | video-editing-planner | Sequential |
 | `/hooks` | hook-generator | Sequential |
 | `/subtitles` | caption-subtitle-formatter | Sequential |
+| `/remotion-motion-forge` | remotion-motion-forge | Sequential (extract tokens → scaffold → generate composition → render → compress) |
 | `/test-coverage` | qa-test-expert, test-suite | Sequential (detect → run → parse → prioritize → report) |
 | `/codemap` | codemap-updater | Sequential |
+| `/open-multi-agent` | open-multi-agent | Sequential (init → team → execute → observe) |
 | `/refactor-clean` | simplify, refactor-simulator, omc-ai-slop-cleaner | Sequential (detect → analyze → plan → execute → verify) |
 | `/build-fix` | build-error-resolver | Sequential (detect → run → classify → fix → re-run → report) |
 | `/tmux` | tmux-session-manager | Sequential |
+| `/checkpoint` | hermes-checkpoint-rollback | Sequential (snapshot → name → diff → rollback) |
+| `/moa` | hermes-mixture-of-agents | Parallel + Sequential (dispatch → aggregate → iterate) |
+| `/skills-guard` | hermes-skills-guard | Sequential (scan → classify → report) |
 | `/hookify` | hookify | Sequential (interactive wizard) |
 | `/agency-roster` | agency-roster | Sequential (list agents by division) |
 | `/agency-team <scenario>` | agency-roster, agency-commands | Sequential (select agents for scenario) |
@@ -272,6 +284,22 @@ When both apply, Superpowers process skills run first, then delegate domain work
 | `/prd-lifecycle` | prd-lifecycle-orchestrator (prd-research-factory, doc-quality-gate, cascade-sync, review) | Pipeline → Eval-Opt (quality loop) → Sequential (cascade+review) |
 | `/review-team` | review-team-orchestrator (deep-review, simplify, test-suite) | Fan-out (3 parallel, ~12 total agents) → Dedup → Unified report |
 | `/autoresearch` | autoresearch-orchestrator (auto-research, auto-research-distribute) | Pipeline: CLI (23 stages) → Distribution (6 channels) |
+
+## Skill Category Taxonomy
+
+Functional classification based on Thariq Shihipar's 9-category framework (Anthropic Claude Code team). Use this taxonomy for coverage gap analysis and new skill creation guidance. Some skills span multiple categories.
+
+| Category | Description | Project Examples |
+|----------|-------------|-----------------|
+| Library/API Reference | Explain how to use libraries, CLIs, SDKs correctly | `anthropic-claude-api`, `anthropic-mcp-builder`, `hf-cli`, `tossinvest-cli`, `gws-*`, `context7-mcp` |
+| Product Verification | Test or verify that code works (often paired with browser/tmux tools) | `e2e-testing`, `qa-dogfood`, `expect-qa`, `anthropic-webapp-testing`, `canary-monitor`, `e2e-overhaul` |
+| Data Fetching & Analysis | Connect to data and monitoring stacks | `alphaear-stock`, `alphaear-news`, `hf-dataset-viewer`, `tab-*`, `weekly-stock-update`, `daily-stock-check` |
+| Business Process & Team Automation | Automate repetitive workflows into one command | `standup-digest`, `commit-to-issue`, `meeting-digest`, `google-daily`, `eod-ship`, `sod-ship` |
+| Code Scaffolding & Templates | Generate framework boilerplate | `fsd-development`, `create-skill`, `anthropic-skill-creator`, `office-template-enforcer`, `fe-pipeline` |
+| Code Quality & Review | Enforce quality standards and review code | `deep-review`, `simplify`, `omc-ai-slop-cleaner`, `code-review-all`, `test-suite`, `security-expert` |
+| CI/CD & Deployment | Fetch, push, deploy code | `ci-quality-gate`, `release-commander`, `ship`, `release-ship`, `domain-commit` |
+| Runbooks | Map symptoms to multi-tool investigation procedures | `diagnose`, `incident-to-improvement`, `service-health-doctor`, `infra-runbook-generator` |
+| Infrastructure Operations | Routine maintenance with guardrails for destructive actions | `dependency-auditor`, `infra-drift-detector`, `compliance-gate`, `slack-orphan-cleaner`, `helm-validator` |
 
 ## Orchestration Rules
 

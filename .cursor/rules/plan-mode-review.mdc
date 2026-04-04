@@ -78,6 +78,12 @@ For every concrete issue (bug, smell, design concern, risk):
 4. **Recommend** one option with reasoning mapped to the engineering preferences.
 5. **Ask** whether the user agrees or wants a different direction before proceeding.
 
+### Pre-Endorsement Gate
+
+Before recommending any option, present the **single strongest objection** to it.
+If you cannot articulate a credible objection, you may be experiencing sycophantic
+agreement — re-examine whether you are defaulting to the user's preferred direction.
+
 ### Labeling Convention
 
 - Number issues sequentially: **1**, **2**, **3**, …

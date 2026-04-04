@@ -45,6 +45,7 @@ Product execution skill orchestrator. Routes user requests to 15 sub-skills for 
 1. **Route**: Match user intent to one sub-skill from the index.
 2. **Read**: Load `references/<sub-skill>.md` and follow its instructions.
 3. **Execute**: Produce output per reference template; save markdown when substantial.
+4. **Devil's Advocate (create-prd only)**: After drafting a PRD, generate the 3 strongest arguments for why this feature should NOT be built. Include these as a "Devil's Advocate" section in the PRD. This prevents sycophantic confirmation of the requester's assumptions.
 
 ## Examples
 

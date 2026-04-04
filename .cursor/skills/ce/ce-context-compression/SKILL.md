@@ -62,6 +62,24 @@ Use probe-based evaluation rather than ROUGE or embedding similarity:
 | Continuation | Task planning |
 | Decision | Reasoning chain |
 
+## Cache-Safe Compression
+
+When compression triggers a forked request (compaction call, subagent spawn), the fork
+MUST share the parent conversation's prefix — system prompt, tool definitions, and
+conversation history — to get cache hits on the shared portion. Append the compression
+instruction as a final user message.
+
+**Rules:**
+- Same system prompt, user context, and tool definitions as the parent conversation
+- Tool schemas must NEVER be compressed or stripped — they are part of the fixed cached prefix
+- Artifact trails (file paths, function names, error signatures) should survive compression
+  to maintain file-first pipeline compatibility
+- Reserve a "compaction buffer" in the context window for the summary output tokens
+
+This pattern prevents the most expensive mistake in compression: paying full price for
+all input tokens that were previously cached. See `ecc-token-strategy.mdc` →
+Prompt Cache Preservation and `ecc-strategic-compact` → Cache-Safe Forking for details.
+
 ## Examples
 
 ### Example 1: Compressing a 200k-token conversation
@@ -83,4 +101,5 @@ For ongoing work where file-level accuracy matters, anchored iterative summariza
 
 - [Evaluation Framework Reference](./references/evaluation-framework.md)
 - Related CE skills: ce-context-degradation, ce-context-optimization, ce-evaluation, ce-memory-systems
+- Related rules: `ecc-token-strategy.mdc` (Prompt Cache Preservation), `ecc-strategic-compact` (Cache-Safe Forking)
 - Research: Factory Research compression evaluation, Netflix "The Infinite Software Crisis"

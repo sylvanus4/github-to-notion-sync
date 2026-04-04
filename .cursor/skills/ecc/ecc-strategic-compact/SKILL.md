@@ -105,11 +105,34 @@ Understanding what persists helps you compact with confidence:
 5. **Write before compacting** — Save important context to files or memory before compacting
 6. **Use `/compact` with a summary** — Add a custom message: `/compact Focus on implementing auth middleware next`
 
+## Cache-Safe Forking
+
+When compacting, the compaction request MUST use the identical system prompt,
+tools, and conversation history prefix as the parent session. Only append the
+compaction instruction as a final user message.
+
+**Why:** The API caches by prefix match. If the compaction call uses a different
+system prompt or omits tools, the entire cached prefix is invalidated — the user
+pays full price for all input tokens that were previously cached.
+
+**Rules:**
+- Same system prompt, user context, tool definitions as the parent conversation
+- Prepend the parent's conversation messages, append compaction prompt at the end
+- Reserve a "compaction buffer" in the context window for the summary output tokens
+- NEVER strip tool schemas from compaction requests — they are part of the cached prefix
+- Artifact trails (file paths, function names, error signatures) should survive
+  compaction to maintain file-first pipeline compatibility
+
+This pattern also applies to subagent spawning — subagents that share the parent's
+prefix get cache hits on the shared portion. See `ecc-token-strategy.mdc` for the
+full cache preservation rules.
+
 ## Related
 
 - [The Longform Guide](https://x.com/affaanmustafa/status/2014040193557471352) — Token optimization section
 - Memory persistence hooks — For state that survives compaction
 - `continuous-learning` skill — Extracts patterns before session ends
+- `ecc-token-strategy.mdc` — Prompt Cache Preservation section
 
 ## Examples
 

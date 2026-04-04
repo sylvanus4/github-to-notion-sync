@@ -321,6 +321,10 @@ Use wiki-style links for internal references:
 4. Create new articles for new concepts
 5. Regenerate index files
 
+## Obsidian Compatibility
+
+Compiled wiki articles use `[[wikilinks]]` for cross-references, which render natively in Obsidian. The `knowledge-bases/` vault includes pre-configured Graph View color groups — see `knowledge-bases/OBSIDIAN_SETUP.md`.
+
 ## Error Handling
 
 | Error | Symptom | Action |

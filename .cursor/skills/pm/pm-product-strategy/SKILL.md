@@ -43,6 +43,7 @@ Orchestrate product strategy workflows using phuryn/pm-skills frameworks — vis
 1. **Identify sub-skill**: From the user’s request and trigger words, pick the matching sub-skill from the index.
 2. **Read reference**: Load the corresponding `references/<name>.md` file and review its Instructions, Input Requirements, and Output Process.
 3. **Follow instructions**: Replace `$ARGUMENTS` in the reference with the user’s context; follow the framework and output process; produce structured output (markdown, tables, or templates as specified).
+4. **Strongest Counter-Thesis**: Every strategy recommendation must include a "Strongest Counter-Thesis" paragraph before the recommendation is finalized. Construct the best case for the opposite strategic direction; if the counter-thesis is comparably strong, flag the ambiguity explicitly rather than defaulting to the initial direction.
 
 ## Examples
 

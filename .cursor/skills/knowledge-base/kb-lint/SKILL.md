@@ -230,6 +230,38 @@ If `--fix` is specified, automatically fix trivial issues:
 3. Suggest specific sources to ingest
 4. Report findings
 
+## CI Mode (`--ci`)
+
+When invoked with `--ci` flag, output a machine-readable JSON object instead of the human-readable markdown report. Designed for GitHub Actions and automated pipelines.
+
+```json
+{
+  "topic": "ai-knowledge-bases",
+  "timestamp": "2026-04-04T12:00:00Z",
+  "articles_scanned": 11,
+  "issues": {
+    "high": 0,
+    "medium": 2,
+    "low": 3,
+    "total": 5
+  },
+  "pass": true,
+  "findings": [
+    {
+      "severity": "medium",
+      "check": "completeness",
+      "message": "Missing dedicated article for 'dropout regularization'",
+      "file": null,
+      "suggestion": "Create wiki/concepts/dropout-regularization.md"
+    }
+  ]
+}
+```
+
+`pass` is `true` when `high == 0`. CI pipelines can gate on `jq '.pass'` to fail the build on critical issues.
+
+The CLI wrapper supports this via: `python scripts/kb_cli.py lint-report {topic} --ci`
+
 ## Error Handling
 
 | Error | Symptom | Action |

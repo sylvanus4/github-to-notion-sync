@@ -61,6 +61,7 @@ The user provides:
 | dev-browser | `dev-browser` CLI (npm), Chromium | dev-browser |
 | expect-qa | `expect-cli` (npm), Agent (cursor/claude/codex), Chromium | expect-qa |
 | website-cloner | Node ≥18, npm, Playwright Chromium, Git, `cursor-ide-browser` MCP | clone-website |
+| knowledge-base | `marp` CLI (or npx @marp-team/marp-cli), `matplotlib` Python pkg, `feedparser` Python pkg | kb-orchestrator, kb-ingest, kb-compile, kb-output, kb-auto-builder |
 | atg-gateway | Docker, ATG container healthy at `http://localhost:4000/api/v1/health`, `.env` with NOTION_API_TOKEN + SLACK_BOT_TOKEN + GITHUB_TOKEN | atg-client (accelerates all Notion/Slack/GitHub skills) |
 
 For full details on each group (install commands, env vars, verification), see [references/capability-map.md](references/capability-map.md).
@@ -74,7 +75,7 @@ For the complete env var registry, see [references/env-var-registry.md](referenc
 Check each tool via `command -v`:
 
 ```bash
-for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go; do
+for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp; do
   command -v "$tool" >/dev/null 2>&1 && echo "PASS $tool" || echo "FAIL $tool"
 done
 ```

@@ -157,6 +157,8 @@ OPT = {
 }
 
 def get_current_sprint():
+    """Return the iteration ID whose date range contains today."""
+    from datetime import date, timedelta
     q = '''query { organization(login: "ThakiCloud") {
       projectV2(number: 5) { fields(first: 50) { nodes {
         ... on ProjectV2IterationField { id configuration {
@@ -167,11 +169,17 @@ def get_current_sprint():
     r = subprocess.run(['gh','api','graphql','-f',f'query={q}'],
                        capture_output=True, text=True)
     data = json.loads(r.stdout)
+    today = date.today()
     for node in data['data']['organization']['projectV2']['fields']['nodes']:
         if 'configuration' in node:
+            for it in node['configuration']['iterations']:
+                start = date.fromisoformat(it['startDate'])
+                end = start + timedelta(days=it['duration'])
+                if start <= today < end:
+                    return it['id']
             iters = node['configuration']['iterations']
             if iters:
-                return iters[0]['id']
+                return iters[-1]['id']
     return None
 
 def gql_mutation(item_id, field_id, value, vtype='singleSelectOptionId'):
@@ -190,15 +198,50 @@ def set_number(item_id, field_id, value):
     return subprocess.run(['gh','api','graphql','-f',f'query={q}'],
                           capture_output=True, text=True).returncode == 0
 
-def set_all_fields(item_id, sprint_id, estimate=0.5, label=''):
-    """Set ALL 5 mandatory fields on a project item."""
+def auto_size(file_count):
+    """Determine Size option ID based on file count."""
+    if file_count <= 2:
+        return '84ca859b'   # XS
+    elif file_count <= 5:
+        return '434b26a1'   # S
+    elif file_count <= 10:
+        return 'ba4bcc7c'   # M
+    elif file_count <= 20:
+        return 'f38a3a9e'   # L
+    else:
+        return '2f3f024c'   # XL
+
+def auto_estimate(file_count):
+    """Determine story points based on file count."""
+    if file_count <= 3:
+        return 1
+    elif file_count <= 8:
+        return 2
+    elif file_count <= 15:
+        return 3
+    else:
+        return 5
+
+def set_all_fields(item_id, sprint_id, estimate=1, label='',
+                   size_id=None, priority_id=None, status_id=None,
+                   file_count=0):
+    """Set ALL 5 mandatory fields on a project item.
+    
+    If size_id is not given and file_count > 0, auto-determines size.
+    If estimate is default (1) and file_count > 0, auto-determines estimate.
+    """
+    _status   = status_id   or OPT['done']
+    _priority = priority_id or OPT['p2']
+    _size     = size_id     or (auto_size(file_count) if file_count else OPT['s'])
+    _estimate = estimate if estimate != 1 or file_count == 0 else auto_estimate(file_count)
+
     print(f'  Setting fields for {label or item_id}...')
     ok = all([
-        gql_mutation(item_id, FIELD['status'],   OPT['done']),
-        gql_mutation(item_id, FIELD['priority'],  OPT['p2']),
-        gql_mutation(item_id, FIELD['size'],      OPT['s']),
+        gql_mutation(item_id, FIELD['status'],   _status),
+        gql_mutation(item_id, FIELD['priority'],  _priority),
+        gql_mutation(item_id, FIELD['size'],      _size),
         gql_mutation(item_id, FIELD['sprint'],    sprint_id, 'iterationId'),
-        set_number(item_id, FIELD['estimate'], estimate),
+        set_number(item_id, FIELD['estimate'], _estimate),
     ])
     print(f'  => {"OK" if ok else "PARTIAL FAILURE"}')
     return ok
@@ -226,8 +269,12 @@ def get_item_id_for_issue(repo, issue_number):
 # Usage in pipeline:
 # sprint_id = get_current_sprint()
 # item_id = get_item_id_for_issue('ThakiCloud/repo-name', 42)
-# set_all_fields(item_id, sprint_id, estimate=0.5, label='#42')
+# set_all_fields(item_id, sprint_id, label='#42', file_count=6)
 ```
+
+### Default Assignee
+
+All issues created by this pipeline MUST be assigned to `sylvanus4`.
 
 ### Field Defaults
 
@@ -235,15 +282,16 @@ def get_item_id_for_issue(repo, issue_number):
 |-------|---------|-----------------|
 | Status | Done (`98236657`) | Use "In Progress" for WIP issues |
 | Priority | P2 (`473ded73`) | Use P1 for critical, P0 for urgent |
-| Size | S (`434b26a1`) | Use M for multi-file, L for multi-domain |
-| Sprint | Current sprint (query) | Never override — always use current |
-| Estimate | 0.5 SP | Use 1 for medium, 2 for large |
+| Size | Auto by file count | Override with explicit size_id |
+| Sprint | Current sprint (query by date) | Never override — always use current |
+| Estimate | Auto by file count | Override with explicit value |
 
-### Estimate Sizing Guide
+### Auto-Sizing Guide
 
-| Commits | Files Changed | Estimate |
-|---------|--------------|----------|
-| 1 | 1-3 | 0.5 |
-| 2-3 | 4-8 | 1 |
-| 4+ | 9+ | 2 |
-| Cross-domain | 15+ | 3 |
+| Files Changed | Size | Estimate (SP) |
+|--------------|------|---------------|
+| 1-2 | XS (`84ca859b`) | 1 |
+| 3-5 | S (`434b26a1`) | 2 |
+| 6-10 | M (`ba4bcc7c`) | 2 |
+| 11-20 | L (`f38a3a9e`) | 3 |
+| 21+ | XL (`2f3f024c`) | 5 |

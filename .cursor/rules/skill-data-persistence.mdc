@@ -1,0 +1,93 @@
+---
+description: "Standardized patterns for skill-level data persistence: config.json, skill memory, stable data paths, and on-demand hooks"
+globs: .cursor/skills/**/*.md
+alwaysApply: false
+---
+
+# Skill Data Persistence
+
+## User Configuration
+
+Skills that need user-specific settings (channel IDs, preferences, thresholds) SHOULD
+store them in a `config.json` at the skill directory root.
+
+```
+.cursor/skills/{category}/{skill-name}/
+├── SKILL.md
+├── config.json          # user settings
+├── references/          # companion docs
+└── scripts/             # executable helpers
+```
+
+If `config.json` is missing and the skill requires it, prompt the user to set it up
+via the `AskQuestion` tool before proceeding. Never fail silently with default values
+that could produce incorrect behavior.
+
+Example `config.json`:
+
+```json
+{
+  "slack_channel_id": "C0AA8NT4T8T",
+  "notion_parent_page": "3209eddc34e6801b8921f55d85153730",
+  "default_model": "sonnet",
+  "max_results": 10
+}
+```
+
+## Skill Memory and Logs
+
+Skills that accumulate state across runs (scan history, trust scores, learned patterns)
+MUST use append-only files stored OUTSIDE the skill directory to survive skill upgrades
+and `cursor-sync` operations.
+
+| Data Type | Location | Format |
+|-----------|----------|--------|
+| Run logs | `outputs/<skill-name>/` | `.jsonl` (one JSON object per line) |
+| Working state | `_workspace/<skill-name>/` | Any (JSON, markdown, binary) |
+| Temporary files | `/tmp/` or `_workspace/tmp/` | Any (cleaned up after use) |
+
+**Anti-patterns:**
+- Storing logs or state inside `.cursor/skills/` — these get overwritten by `cursor-sync`
+- Using the skill directory for transient data — pollutes the skill folder
+- Writing to repo root — creates noise in `git status`
+
+## Stable Data Paths
+
+Use `outputs/<skill-name>/` for persistent data that must survive:
+- Skill reinstallation
+- `cursor-sync` across repos
+- Git operations (these directories are tracked)
+
+Use `_workspace/<skill-name>/` for working data that is:
+- Repo-local (not synced across machines)
+- Potentially large (build artifacts, trace archives)
+- Acceptable to lose (can be regenerated)
+
+## On-Demand Hooks
+
+Skills can register session-scoped hooks that activate via slash commands:
+
+- `/careful` — Block destructive shell commands (rm -rf, DROP TABLE, force-push)
+- `/freeze <dir>` — Lock file edits to specific directories
+
+Document available hooks in the skill's SKILL.md under a `## Hooks` section:
+
+```markdown
+## Hooks
+
+- `/careful` — Activates destructive-command interception for this session
+- `/freeze src/` — Restricts file modifications to `src/` only
+```
+
+These hooks are session-scoped: they activate when invoked and expire when the
+session ends. They do NOT persist across sessions.
+
+For persistent hook behavior, use `.cursor/hooks/` configuration instead.
+
+## Checklist for Skill Authors
+
+- [ ] If your skill needs user settings, create a `config.json` template
+- [ ] If your skill accumulates state, write to `outputs/<skill-name>/` or `_workspace/<skill-name>/`
+- [ ] Never store mutable data inside `.cursor/skills/`
+- [ ] If your skill has session-scoped commands, document them under `## Hooks`
+- [ ] Clean up temporary files after skill execution completes
