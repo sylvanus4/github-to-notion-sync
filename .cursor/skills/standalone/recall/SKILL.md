@@ -103,16 +103,33 @@ Format results as:
 **One Thing**: [Specific next action]
 ```
 
-## Memory Store Structure
+## Memory Store Structure (3-Layer Architecture)
 
-The search indexes these sources:
+The recall skill searches Layer 2 and Layer 3 of the memory architecture.
+Layer 1 (`MEMORY.md` pointer index) is always loaded and provides entry points.
+
+### Layer 2 — Topic Files (read on demand for full detail)
+
+| Source | Path | Content |
+|--------|------|---------|
+| Preferences | `memory/topics/preferences.md` | User prefs, doc standards, commit conventions |
+| Workspace facts | `memory/topics/workspace-facts.md` | Repos, tools, infra, doc paths |
+| Pipeline ops | `memory/topics/pipeline-ops.md` | Pipeline protocols, today/google-daily/git-sync |
+| Trading stack | `memory/topics/trading-stack.md` | Agent desk, MiroFish, Toss/KIS/Kiwoom |
+| Slack routing | `memory/topics/slack-routing.md` | Channel IDs, routing rules |
+| Skill ecosystem | `memory/topics/skill-ecosystem.md` | Skill registry, reorganization, harness |
+| Runbooks | `memory/topics/runbooks.md` | Operational procedures |
+| Tech debt | `memory/topics/tech-debt.md` | Known debt, structural issues |
+| Decisions | `memory/decisions.md` | Architecture/tool/pattern choices |
+| Patterns | `memory/patterns.md` | Recurring failure/success patterns |
+| Glossary | `memory/glossary.md` | Project-specific terms and acronyms |
+
+### Layer 3 — Transcripts & Archive (grep/BM25 only, never loaded directly)
 
 | Source | Path | Content |
 |--------|------|---------|
 | Sessions | `memory/sessions/*.md` | Auto-extracted user messages from agent transcripts |
-| Decisions | `memory/decisions.md` | Consolidated architectural decisions from MEMORY.md |
-| Patterns | `memory/patterns.md` | Recurring failure/success patterns |
-| Glossary | `memory/glossary.md` | Project-specific terms and acronyms |
+| Archive | `memory/archive/*.md` | COLD-tier entries (attention decay < 0.3) |
 
 ## Incremental Update
 
@@ -124,6 +141,17 @@ python scripts/memory/build-index.py --skip-embeddings
 ```
 
 The `--incremental` flag only processes transcripts not yet in `memory/.cache/processed.txt`.
+Hash deduplication automatically skips sessions with identical content.
+
+### Memory Maintenance
+
+After extraction, optionally run maintenance to keep the pointer index lean:
+
+```bash
+python scripts/memory/attention_decay.py --apply
+```
+
+This prunes COLD entries (attention < 0.3) from `MEMORY.md` to `memory/archive/`.
 
 ## Integration with Session Lifecycle
 

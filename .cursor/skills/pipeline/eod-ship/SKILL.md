@@ -31,9 +31,10 @@ Chain cursor-sync and release-ship across all managed projects in a single flow.
 /eod-ship --targets research     # ship specific project only (comma-separated)
 /eod-ship --dry-run              # preview what would be shipped (no commits/push)
 /eod-ship --no-slack             # skip Slack notification
+/eod-ship --skip-memory          # skip session memory sync
 ```
 
-Arguments can be combined freely. Defaults: sync all, ship all projects, post to Slack.
+Arguments can be combined freely. Defaults: sync all, ship all, memory sync, post to Slack.
 
 ## Workflow
 
@@ -76,6 +77,30 @@ If merge succeeds (fast-forward or clean merge): record `{dev_merge: "ok", dev_c
 If no new commits from `origin/dev` (already up to date): record `{dev_merge: "up_to_date"}`.
 
 Return to original directory after this step.
+
+### Phase 1¾: Session Memory Sync
+
+Synchronize agent session memory before shipping. Extracts today's session transcripts into structured markdown and rebuilds the search index. Skip with `--skip-memory`.
+
+```bash
+cd /Users/hanhyojung/work/thakicloud/ai-model-event-stock-analytics
+
+# 1. Incremental transcript extraction
+python scripts/memory/extract-sessions.py --incremental
+
+# 2. Rebuild search index (skip embeddings for speed)
+python scripts/memory/build-index.py --skip-embeddings
+
+# 3. If MEMORY.md pointers exceed 50 lines, run attention decay
+POINTER_COUNT=$(grep -c '^\- \[' MEMORY.md 2>/dev/null || echo 0)
+if [ "$POINTER_COUNT" -gt 50 ]; then
+    python scripts/memory/attention_decay.py --apply
+fi
+```
+
+Record result: `{memory_sync: "ok", transcripts_extracted: N, index_rebuilt: true, decay_applied: bool}`.
+
+On failure: **Warn and continue** — memory sync is optional; shipping proceeds.
 
 ### Phase 2: Release Ship (Current Project)
 
@@ -134,6 +159,7 @@ Before posting to Slack, verify shipping integrity:
 - [ ] **No orphaned untracked content** — Verify no `.md`, `.ts`, `.go`, `.py`, `.yaml`, `.json`, `.sql` files remain untracked in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/`, or any content directory. If any exist, run one more `git add` + commit round to catch them.
 - [ ] **Branch consistency** — Current project pushed to correct remote branch (ai-platform-webui uses `tmp`, others use standard)
 - [ ] **Issue field completeness** — Every issue created in Phase 2/3 MUST have ALL 5 project fields set (Status, Priority, Size, Sprint, Estimate). If any issue is missing fields, run the `set_all_fields()` script from [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md) to fix it before posting to Slack.
+- [ ] **lat.md drift check** — For repos with a `lat.md/` directory, run `lat check` and warn if broken links or drift are detected. Non-blocking: log warnings but do not halt shipping.
 
 If any criterion fails, log the issue in the Slack message as a warning. Do NOT suppress the notification — post with warnings.
 
@@ -160,6 +186,9 @@ Post a consolidated summary to `#효정-할일` using the `slack_send_message` M
 
 *dev 브랜치 머지 (ai-platform-webui)*
 - origin/dev 머지: N개 커밋 반영 {완료|이미 최신|충돌}
+
+*세션 메모리 동기화*
+- N개 트랜스크립트 추출, 인덱스 리빌드 {완료|건너뜀}
 
 *프로젝트 배포*
 - project-a: N개 커밋, <PR_URL|PR #X> 머지 완료
@@ -196,6 +225,9 @@ EOD 배포 리포트
 dev 브랜치 머지 (ai-platform-webui):
   origin/dev → tmp: N개 커밋 머지 완료
 
+세션 메모리 동기화:
+  트랜스크립트 추출: N개, 인덱스 리빌드: 완료
+
 프로젝트:
   github-to-notion-sync:          3개 커밋, PR #12 머지 완료
   ai-template:                    변경사항 없음
@@ -217,6 +249,7 @@ User runs `/eod-ship` at end of day with changes across 3 projects.
 
 1. cursor-sync: 4 targets synced, 6 files updated
 1½. dev merge: ai-platform-webui에 origin/dev 5개 커밋 머지 완료
+1¾. memory sync: 3개 트랜스크립트 추출, 인덱스 리빌드 완료
 2. Current project (github-to-notion-sync): 2 domain-split commits, PR #15 merged
 3. ai-template: clean, skipped
 4. ai-model-event-stock-analytics: 3 commits, PR #22 merged

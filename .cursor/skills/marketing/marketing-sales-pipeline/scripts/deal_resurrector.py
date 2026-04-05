@@ -473,7 +473,7 @@ def main():
 
     if not HUBSPOT_TOKEN:
         print("❌ HUBSPOT_API_KEY environment variable not set.", file=sys.stderr)
-        print("   Set it: export HUBSPOT_API_KEY='your-token-here'", file=sys.stderr)
+        print("   Set it: export HUBSPOT_API_KEY='your-token-here'", file=sys.stderr)  # pragma: allowlist secret
         sys.exit(1)
 
     print("🔥 Deal Resurrector v2")

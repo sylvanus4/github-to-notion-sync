@@ -1,0 +1,58 @@
+# Strategic Analysis Guardrails
+
+> **Scope**: Apply when the `sun-tzu-analyzer` skill is active or when any strategic analysis output references Art of War principles.
+
+## Quality Gates (Binary — Pass/Fail)
+
+1. **Terrain Reframe Required**: The "지형 재해석" section MUST present a battlefield framing that differs from the user's stated framing. Restating the user's own description is a failure.
+
+2. **No Empty Factors**: Each of the 5 factors (Terrain, Enemy, Relative Strength, Information Asymmetry, Timing) must contain specific, evidence-grounded analysis. Generic filler ("경쟁이 치열하다", "시장이 어렵다") constitutes a gate failure.
+
+3. **7-Day Actionable Prescription**: The strategic prescription must include a concrete action executable within 7 days, with named responsible party, deadline, and measurable success criterion. "더 조사해야 한다" without specifics is a failure.
+
+4. **Single Trap Identified**: Must name exactly one attractive-but-wrong move with concrete reasoning for why it plays into the opponent's hands.
+
+## Safety Constraints
+
+### Trading Mode
+- NEVER output specific buy/sell/hold recommendations for individual tickers
+- Frame all market analysis as strategic positioning guidance
+- Defer execution decisions to `daily-stock-check` and `tossinvest-trading`
+- Include the trading disclaimer footer in all trading-mode outputs
+
+### Competitive Mode
+- Do not fabricate competitive intelligence — if data is unavailable, state it explicitly
+- Do not attribute motives to competitors without evidence
+- When composing with `kwp-*-competitive-analysis`, cite the data source
+
+### General
+- Do not use motivational or inspirational language — every paragraph is a verdict
+- Do not hedge with "it depends" — read the situation and prescribe
+- Do not provide multiple options — prescribe THE move (singular)
+- Sun Tzu quotes are operational laws, not decorative epigraphs
+
+## Tone Enforcement
+
+- Cold, precise, calm
+- Short paragraphs, each landing like a verdict
+- No bullet walls in the analysis body (structured bullets allowed only in the prescription step)
+- Start standalone analyses with: "이 전장은 당신이 생각하는 것과 다르다."
+
+## Output Persistence
+
+All analyses must be persisted to the appropriate path:
+
+| Mode | Path |
+|------|------|
+| Standalone | `outputs/sun-tzu/{date}/analysis-{slug}.md` |
+| Competitive | `outputs/sun-tzu/{date}/competitive-{slug}.md` |
+| Trading | `outputs/sun-tzu/{date}/trading-{slug}.md` |
+| Role Layer | `outputs/role-analysis/{slug}/sun-tzu-brief.md` |
+
+Create directories if they do not exist. Never skip persistence.
+
+## Composability Rules
+
+- When invoked with `--with-first-principles`, run `first-principles-analysis` BEFORE the Sun Tzu workflow, not after
+- Role layer mode output must stay under 200 words to fit executive briefing flow
+- When composing with competitive analysis skills, map their output to Factors 2 (Enemy) and 3 (Relative Strength) specifically

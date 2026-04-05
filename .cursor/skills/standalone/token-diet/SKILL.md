@@ -72,11 +72,16 @@ Count the number of matching files and their total byte size.
 wc -c < AGENTS.md
 ```
 
+Expected: ~800 bytes (static redirect stub). If > 2 KB, content leaked back in.
+
 #### 1c. MEMORY.md
 
 ```bash
 wc -c < MEMORY.md
 ```
+
+Expected: ~3K tokens (pointer index, max 50 entries). If > 12 KB, pointers are
+too verbose or `attention_decay.py --apply` hasn't been run.
 
 Note: MEMORY.md may not be injected every turn depending on Cursor's behavior.
 Include it as a "potential overhead" line item.
@@ -108,8 +113,8 @@ Average description length is ~200 bytes. Estimate as `count × 50 tokens`.
 | Source | GREEN | YELLOW | RED |
 |--------|-------|--------|-----|
 | Always-applied rules | < 20 KB total | 20-50 KB | > 50 KB |
-| AGENTS.md | < 8 KB | 8-15 KB | > 15 KB |
-| MEMORY.md | < 20 KB | 20-50 KB | > 50 KB |
+| AGENTS.md | < 1 KB (redirect stub) | 1-4 KB | > 4 KB |
+| MEMORY.md | < 6 KB (pointer index) | 6-12 KB | > 12 KB |
 | MCP servers | ≤ 5 | 6-10 | > 10 |
 | Skill count | < 200 | 200-500 | > 500 |
 
@@ -134,9 +139,9 @@ Present estimates for the default model tier (Sonnet).
 Analyze each source and produce ranked recommendations by estimated savings:
 
 #### AGENTS.md Diet
-- Classify each section as "every-turn essential" vs "move to agent-requestable rule"
-- Flag sections > 2 KB that could be separate `.mdc` files with `alwaysApply: false`
-- Estimate token savings if sections were moved
+- AGENTS.md should be a ~200-token static redirect stub pointing to `learned-memory.mdc` and `memory/topics/`
+- If > 1 KB, content has leaked back — extract to `memory/topics/*.md` and restore the redirect stub
+- Run `python scripts/memory/memory_classify.py` to auto-route content
 
 #### Rules Diet
 - Identify the top 5 largest `alwaysApply: true` rules by byte size

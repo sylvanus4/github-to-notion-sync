@@ -6,7 +6,7 @@ description: >
   Scores topic relevance (1-10) and produces a structured Korean analysis document when relevant (>= 5).
   Composes pm-market-research, pm-go-to-market, pm-product-strategy,
   kwp-marketing-competitive-analysis, workflow-miner, skill-composer,
-  and intent-alignment-tracker.
+  intent-alignment-tracker, and optionally sun-tzu-analyzer (via --with-sun-tzu).
   Use when the role-dispatcher invokes this skill with a topic, or when the user asks for
   "CSO perspective", "CSO 관점", "전략 분석", "market strategy impact".
   Do NOT use for full GTM execution (use pm-go-to-market), Lean Canvas only
@@ -79,7 +79,14 @@ When relevant, execute sequentially:
    - Map natural language strategy requirements to executable skill chains
    - Suggest reusable strategy analysis pipeline definitions
 
-7. **Strategy Alignment** (via `intent-alignment-tracker`):
+7. **Strategic Terrain Analysis** (via `sun-tzu-analyzer`, optional — `--with-sun-tzu`):
+   - Map competitive landscape to Sun Tzu's 5 factors (Terrain, Enemy, Relative Strength, Information Asymmetry, Timing)
+   - Identify the real strategic threat vs. visible competitors
+   - Prescribe a decisive 7-day action based on terrain control principles
+   - Output as concise Role Layer brief (< 200 words) integrated into the CSO report
+   - Skip if `--with-sun-tzu` flag is not set or if `sun-tzu-analyzer` skill is unavailable
+
+8. **Strategy Alignment** (via `intent-alignment-tracker`):
    - Measure alignment between strategic goals and market execution outcomes
    - Score per IA dimensions (Task Completion, Context Relevance, Efficiency, Side Effects)
    - Track strategy-to-market-fit alignment trends
@@ -120,6 +127,12 @@ When relevant, execute sequentially:
 ### Base Case
 ### Bull Case
 ### Bear Case
+
+## 손자병법 전략 지형 (optional, --with-sun-tzu)
+### 핵심 지형 재해석
+### 진짜 적
+### 허점과 처방
+### 지배 원리
 
 ## 워크플로우 패턴 분석
 ### 발견된 전략 분석 패턴

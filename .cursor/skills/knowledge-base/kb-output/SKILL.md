@@ -218,7 +218,7 @@ Run kb-index to update the index with the new content.
 ✓ Generated: {format} output
   File: knowledge-bases/{topic}/outputs/{subdir}/{filename}
   Based on: {N} KB articles
-  
+
   To view:
   - Marp slides: `scripts/kb_render_slides.sh {topic}` (renders all .marp.md to PDF/HTML)
   - Charts: `python scripts/kb_render_charts.py {topic}` (renders matplotlib blocks to PNG)

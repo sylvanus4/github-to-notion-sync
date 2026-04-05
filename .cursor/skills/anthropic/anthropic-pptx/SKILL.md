@@ -91,6 +91,12 @@ Choose colors that match your topic — don't default to generic blue. Use these
 
 **Every slide needs a visual element** — image, chart, icon, or shape. Text-only slides are forgettable.
 
+**Winston's Slide Content Rules** (from MIT "How to Speak"):
+- **Max ~40 words per slide** — the audience's eyes belong on the speaker, not reading walls of text
+- **Max 6 words per bullet point** — if you need more, you are putting your script on the slide
+- **Never put on a slide what you plan to say** — slides support the speaker, they do not replace the speaker
+- **Image-centric over text-centric** — prefer a single powerful image with a keyword over a paragraph
+
 **Layout options:**
 - Two-column (text left, illustration on right)
 - Icon + text rows (icon in colored circle, bold header, description below)
@@ -143,6 +149,8 @@ Choose colors that match your topic — don't default to generic blue. Use these
 - **Don't mix spacing randomly** — choose 0.3" or 0.5" gaps and use consistently
 - **Don't style one slide and leave the rest plain** — commit fully or keep it simple throughout
 - **Don't create text-only slides** — add images, icons, charts, or visual elements; avoid plain title + bullets
+- **Don't exceed 40 words per slide** (Winston) — if a slide has >40 words, split it or replace text with visuals
+- **Don't write full sentences on slides** (Winston) — use keywords and phrases; the speaker says the sentences
 - **Don't forget text box padding** — when aligning lines or shapes with text edges, set `margin: 0` on the text box or offset the shape to account for padding
 - **Don't use low-contrast elements** — icons AND text need strong contrast against the background; avoid light text on light backgrounds or dark text on dark backgrounds
 - **NEVER use accent lines under titles** — these are a hallmark of AI-generated slides; use whitespace or background color instead
@@ -181,6 +189,7 @@ Convert slides to images (see [Converting to Images](#converting-to-images)), th
 Visually inspect these slides. Assume there are issues — find them.
 
 Look for:
+- **Winston word count**: Any slide with >40 words or bullets with >6 words (flag for reduction)
 - Overlapping elements (text through shapes, lines through words, stacked elements)
 - Text overflow or cut off at edges/box boundaries
 - Decorative lines positioned for single-line text but title wrapped to two lines
@@ -273,3 +282,17 @@ pdftoppm -jpeg -r 150 -f N -l N output.pdf slide-fixed
 | Unexpected input format | Validate input before processing; ask user for clarification |
 | External service unavailable | Retry with exponential backoff; report failure if persistent |
 | Output quality below threshold | Review inputs, adjust parameters, and re-run the workflow |
+
+## Winston Framework Integration
+
+When creating presentation slides, this skill enforces Patrick Winston's MIT "How to Speak" principles:
+
+| Principle | Application |
+|-----------|-------------|
+| **≤40 words per slide** | Design Ideas + QA rubric both enforce this limit |
+| **≤6 words per bullet** | Avoid putting sentences on slides — keywords only |
+| **Image-centric slides** | Every slide requires a visual element; text walls are flagged |
+| **Slides support, not replace** | Content the speaker will say should be in speaker notes, not on the slide face |
+| **No full sentences** | QA visual inspection flags full sentences for reduction |
+
+For a full Winston speaking analysis before building slides, use `winston-speaking-coach` first, then feed its Slide Audit output into this skill.

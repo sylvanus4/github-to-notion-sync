@@ -51,7 +51,7 @@ Bridge analysis pipeline signals to tossctl order previews — the critical link
 
 - `tossctl` installed and in PATH
 - Active authenticated session
-- Today's pipeline outputs (`outputs/screener-*.json`, `outputs/analysis-*.json`)
+- Today's pipeline outputs — prefers `outputs/strategy-cards-{date}.json` (Phase 5b strategy engine); falls back to `outputs/screener-*.json` and `outputs/analysis-*.json`
 
 ## SAFETY: Preview Only
 
@@ -61,7 +61,15 @@ This skill NEVER executes orders. It operates entirely within Layer 3 (preview/d
 
 ### Step 1: Load Pipeline Signals
 
-Load the latest screener and analysis outputs:
+**Preferred source (v1.1+)**: Load strategy cards from the daily strategy engine (Phase 5b):
+
+```bash
+cat outputs/strategy-cards-$(date +%Y-%m-%d).json
+```
+
+Each strategy card provides precise `entry_price`, `stop_loss`, `target_price`, `position_size_pct`, composite `score`, and `signal` (BUY/SELL) backed by a full backtest. Use these directly for order previews — no additional screening needed.
+
+**Fallback**: If strategy cards are not available, load the legacy screener and analysis outputs:
 
 ```bash
 ls -t outputs/screener-*.json | head -1
@@ -100,7 +108,13 @@ Cross-reference:
 
 ### Step 5: Position Sizing
 
-For NEUTRAL (buy) candidates, apply position sizing logic:
+**When using strategy cards**: Each card includes `position_size_pct` (default 5% of equity) and precise `entry_price`. Calculate share quantity directly:
+
+```
+share_qty = (equity × position_size_pct) / entry_price
+```
+
+**Legacy fallback**: For screener-based candidates, apply position sizing logic:
 
 ```bash
 tossctl account summary --output json

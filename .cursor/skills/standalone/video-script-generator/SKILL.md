@@ -55,7 +55,7 @@ Collect from the user:
 | **YouTube Shorts** | 30-60s | Hook → 1 Point → Payoff | Hook in first 2s, vertical framing |
 | **TikTok** | 15-60s | Hook → Build → Reveal | Pattern interrupt in first 1s, loop-friendly ending |
 | **Instagram Reels** | 15-90s | Hook → Value → CTA | Visual-first, text overlay cues |
-| **Educational** | 5-20 min | Hook → Problem → Explanation → Example → Summary | Pacing marks every 2-3 min |
+| **Educational** | 5-20 min | Empowerment Promise → Problem → Explanation → Example → Contribution Summary | Pacing marks every 2-3 min; open with what the viewer will gain (Winston), close with what was shown |
 | **Custom** | Any | User-defined | Follow user specs |
 
 ### Step 3: Script Generation
@@ -79,11 +79,11 @@ Generate the script with these components for each section:
 
 | Platform | Hook Window | Hook Pattern |
 |----------|------------|--------------|
-| YouTube | 0-30s | Question → Surprising stat → Preview of value |
+| YouTube | 0-30s | Empowerment Promise ("By the end of this video, you'll…") → Surprising stat → Preview of value (Winston: state what the audience gains) |
 | Shorts | 0-2s | Visual pattern interrupt → Bold claim |
 | TikTok | 0-1s | "Stop scrolling" move → Immediate curiosity gap |
 | Reels | 0-3s | Visual hook → Text overlay statement |
-| Educational | 0-15s | Real-world problem → "By the end of this video, you'll..." |
+| Educational | 0-15s | Empowerment Promise → Real-world problem → "By the end of this video, you'll…" (Winston: the audience must know what they gain within the first 15 seconds) |
 
 ### Step 4: Timing Validation
 
@@ -138,10 +138,17 @@ Verify total fits within the target duration ±10%. Adjust if needed.
 
 ---
 
+## Winston Narrative Threading (Educational / YouTube ≥ 5 min)
+- **Circle & Star**: The core message must appear ≥ 3 times — Hook (promise), midpoint (reinforce), and closing (restate). Mark the single most critical moment as ★ Star.
+- **Near Miss**: When explaining a concept, include a "This is X, but NOT Y" example to sharpen understanding.
+- **Contribution Ending**: Close by stating what the viewer has learned or can now do — not just "thanks for watching."
+
+---
+
 ## Section N: CTA & Outro — [time] to [end]
 
 ### Script
-[spoken words — include specific CTA: subscribe, link, comment prompt]
+[spoken words — include specific CTA: subscribe, link, comment prompt; state what was shown (Winston Contribution Ending)]
 
 ### Visual Direction
 [end screen elements, subscribe animation, link overlay]
@@ -184,6 +191,8 @@ Generate: Hook (real-world problem solved by lists) → Concept intro → Live c
 | Source material is too thin for target duration | Suggest additional angles, examples, or segments to fill the time |
 | User wants multiple platforms from one topic | Generate separate scripts per platform, each optimized for its format |
 | Script exceeds target duration by >20% | Cut the lowest-impact section and note what was removed |
+| Educational script lacks Circle & Star | Add core message callbacks at Hook, midpoint, and closing (Winston: repeat to build understanding) |
+| Concept explanation is abstract | Add a Near Miss example: "This is X, but NOT Y" to sharpen the distinction (Winston) |
 
 ## Composability
 
@@ -193,3 +202,18 @@ Generate: Hook (real-world problem solved by lists) → Concept intro → Live c
 - **caption-subtitle-formatter** — Generate subtitles from the final script
 - **anthropic-pptx** — Create supporting slides for educational videos
 - **presentation-strategist** — Design the narrative arc before scripting
+- **winston-speaking-coach** — Run a full Winston coaching session to refine the script's Empowerment Promise, Circle & Star threading, and Near Miss examples before recording
+
+## Winston Framework Integration
+
+Video scripts for Educational and YouTube (≥ 5 min) formats incorporate Patrick Winston's "How to Speak" principles:
+
+| Principle | Application |
+|-----------|-------------|
+| **Empowerment Promise** | Hook section opens with what the viewer will gain |
+| **Circle & Star** | Core message repeated ≥ 3 times (hook, midpoint, closing); one ★ Star moment marked |
+| **Near Miss** | Concept explanations include "X but not Y" contrasts |
+| **Contribution Ending** | CTA/Outro states what was shown — not just "thanks for watching" |
+| **Storytelling → Analytical Thinking** | Educational scripts follow observation → hypothesis → test → learning |
+
+For short-form (Shorts, TikTok, Reels ≤ 60s), only the Empowerment Promise is applied due to time constraints.

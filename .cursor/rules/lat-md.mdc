@@ -1,0 +1,50 @@
+---
+description: "lat.md code architecture knowledge graph — when to update lat.md/ pages and run lat check"
+alwaysApply: false
+---
+
+# lat.md Knowledge Graph Maintenance
+
+## When to Update lat.md/
+
+After completing any of these changes, update the relevant `lat.md/` page and run `lat check`:
+
+- Created a new service, module, or domain boundary
+- Renamed or moved classes/functions referenced by `[[src/]]` links
+- Changed the architecture of an existing domain (new dependencies, merged services)
+- Added `# @lat:` annotations to source files
+- Modified more than 5 files in a single feature touching documented domains
+
+## Quick Commands
+
+```bash
+lat check                    # Validate all links — run after every structural change
+lat refs "<section-id>"      # Find code referencing a concept before modifying it
+lat search "<query>"         # Semantic search (requires LAT_LLM_KEY)
+lat section "<section-id>"   # Read a specific section
+lat expand "<section-id>"    # Section content with inline code snippets
+```
+
+## What NOT to Update in lat.md/
+
+- Operational knowledge (decisions, preferences, runbooks) → use `memory/`
+- Session summaries → use `MEMORY.md` pointers
+- Single-file edits that don't change architecture
+- Test or config file changes
+
+## Annotation Syntax
+
+```python
+# @lat: [[page-name#Section Name]]    # Python
+```
+
+```go
+// @lat: [[page-name#Section Name]]   // Go, JS, TS
+```
+
+## Rules
+
+- `[[src/]]` links must reference exact symbol names as they appear in code
+- Every `lat.md/` section needs a leading paragraph ≤250 characters
+- `lat.md/` is project-specific — never sync via `cursor-sync`
+- Only the `lat-md` skill file and this rule file propagate across repos

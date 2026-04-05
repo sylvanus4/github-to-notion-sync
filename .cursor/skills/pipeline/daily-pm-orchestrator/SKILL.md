@@ -112,42 +112,54 @@ While the run is in progress, `overall_status` may be `"running"` until Phase 6 
 
 ### Phase 1: Knowledge Consolidation (knowledge-daily-aggregator)
 
-**Duration**: ~5-10 min | **Dependencies**: None | **Sequential (first)**
+**Duration**: ~3-5 min | **Dependencies**: None | **Sequential (first)**
 
-Read and follow the `knowledge-daily-aggregator` skill (`.cursor/skills/pipeline/knowledge-daily-aggregator/SKILL.md`).
+Run the `knowledge_daily_aggregator.py` script which implements the full `knowledge-daily-aggregator` skill pipeline:
 
-1. **Collect daily outputs**: Scan for today's artifacts:
-   - Email summaries from morning gmail-daily-triage
-   - Sprint digests from github-sprint-digest
-   - News analyses from bespin-news-digest and twitter-timeline-to-slack
-   - Meeting notes (if any meetings were analyzed today)
-   - Code review outputs from any deep-review/simplify runs
-   - Strategy briefings from any role-dispatcher runs
-   - Paper reviews from paper-review or paper-auto-classifier
-   - Stock analysis reports from today pipeline
+```bash
+python scripts/knowledge_daily_aggregator.py --date {date}
+```
 
-2. **Cognee ingestion**: Ingest collected outputs into the knowledge graph
-   ```bash
-   cognee add --text "..." --dataset daily-YYYY-MM-DD
-   cognee cognify
-   ```
+The script executes 6 internal phases:
 
-3. **Entity/relationship extraction**: Extract new entities and relationships
+1. **Phase 1 — Collect**: Scans `outputs/today/{date}/`, `outputs/role-analysis/`, `outputs/sun-tzu/`, `outputs/twitter/`, and other pipeline output directories for today's artifacts (stock reports, strategy analyses, screener results, etc.)
 
-4. **MEMORY.md update**: Append new decisions, tasks, and issues discovered
+2. **Phase 2 — Extract**: Extracts structured entities, learnings, and trading signals from collected artifacts using pattern matching and JSON parsing
+
+3. **Phase 3 — Cognee ingest**: Ingests extracted knowledge into the Cognee knowledge graph using Claude API (for entity extraction) and FastEmbed (for local embeddings at zero API cost):
+   - `cognee.add()` — stores text in vector DB
+   - `cognee.cognify()` — builds knowledge graph with entity/relationship extraction
+   - Gracefully handles Cognee failures (status: "partial") and continues
+
+4. **Phase 4 — Entity resolution**: Placeholder for future cross-day entity deduplication
+
+5. **Phase 5 — MEMORY.md update**: Appends a summary pointer line to `MEMORY.md`
+
+6. **Phase 6 — Report**: Writes final manifest with aggregated stats
+
+**Output directory**: `outputs/knowledge-daily-aggregator/{date}/` with per-phase JSON files.
+
+**Configuration prerequisites**:
+- `.env` must have `ANTHROPIC_API_KEY` set
+- Cognee is configured via `.env` for Claude API (`LLM_PROVIDER=anthropic`, `LLM_MODEL=claude-sonnet-4-6`) + FastEmbed embeddings
+- `pip install cognee fastembed` must be installed
 
 ```python
 results["phases"]["phase1"] = {
   "status": "pass|partial|fail",
   "sources_collected": N,
   "entities_added": N,
-  "relationships_added": N,
+  "learnings": N,
+  "signals": N,
+  "cognee_status": "completed|partial|skipped",
   "memory_entries": N,
   "duration_s": N
 }
 ```
 
-5. **Persist & manifest**: Write the full Phase 1 result object to `outputs/daily-pm/{date}/phase-1-knowledge-consolidation.json`. Append or update `manifest.json` → `phases[]` with `id: "phase-1"`, `label: "knowledge-consolidation"`, `status`, `output_file`, `started_at`, `elapsed_ms`, and a one-line `summary`.
+**Persist & manifest**: Copy the script's report (`outputs/knowledge-daily-aggregator/{date}/phase-6-report.json`) to `outputs/daily-pm/{date}/phase-1-knowledge-consolidation.json`. Append or update `manifest.json` → `phases[]` with `id: "phase-1"`, `label: "knowledge-consolidation"`, `status`, `output_file`, `started_at`, `elapsed_ms`, and a one-line `summary`.
+
+On failure: **Warn and continue** — knowledge consolidation failure should not block shipping or strategy phases.
 
 ---
 

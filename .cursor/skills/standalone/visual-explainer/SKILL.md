@@ -218,11 +218,24 @@ An alternative output format for presenting content as a magazine-quality slide 
 
 **Slides are not pages reformatted.** Each slide is exactly one viewport tall (100dvh) with no scrolling. Typography is 2-3x larger. The agent composes a narrative arc (impact -> context -> deep dive -> resolution).
 
-**Content completeness.** Every section, decision, data point from the source must appear in the deck. Add more slides rather than cutting content.
+**Winston visual-first rules apply to all slides:**
+- **≤40 words** of visible text per slide — keywords, metrics, and short phrases only
+- **≤6 words per bullet** — if you're writing sentences, it belongs in speaker notes or narration
+- **Image-centric** — every slide should have a dominant visual element (diagram, chart, photo, illustration); text walls are a failure
+- **Slides support the speaker** — content the presenter will say goes below or beside the slide, not on it
+- **Empowerment Promise** — the title slide should state what the audience will gain, not just the topic name
+
+**Content completeness.** Every section, decision, data point from the source must appear in the deck. Add more slides rather than cutting content — but distribute content across more slides rather than cramming text.
 
 **Slide types (10):** Title, Section Divider, Content, Split, Diagram, Dashboard, Table, Code, Quote, Full-Bleed. See `./references/slide-patterns.md` for layouts.
 
 **Compositional variety:** Consecutive slides must vary spatial approach — centered, left-heavy, right-heavy, split, edge-aligned, full-bleed.
+
+**Winston narrative flow for slide decks:**
+1. Open with Empowerment Promise (what the audience gains)
+2. Apply Circle & Star — the core message appears at least 3 times across the deck, with one "Star" slide that is the single most important takeaway
+3. Use Near Miss on concept slides — "A but not B" examples to clarify boundaries
+4. End with contribution (what was shown/proven), not "thank you"
 
 **Curated presets:** Midnight Editorial, Warm Signal, Terminal Mono, Swiss Clean. See `./references/slide-patterns.md` for preset CSS values.
 
@@ -257,6 +270,7 @@ Before delivering, verify:
 - **No overflow**: Every grid/flex child needs `min-width: 0`. See `./references/css-patterns.md` Overflow Protection.
 - **Mermaid zoom controls**: Every `.mermaid-wrap` must have +/-/reset and scroll zoom. See `./references/css-patterns.md`.
 - **File opens cleanly**: No console errors, no broken font loads, no layout shifts
+- **Winston word count** (slides only): Flag any slide with >40 words of visible text or bullets with >6 words for reduction
 
 ## Anti-Patterns (AI Slop)
 
@@ -323,3 +337,21 @@ Result: Magazine-quality presentation with keyboard navigation and slide transit
 | CDN fonts fail to load | System font fallback stack ensures readability |
 | HTML file too large (>5MB) | Reduce inline base64 images; use simpler illustrations |
 | Template file not found | Generate from memory using the patterns described in this skill |
+| Slide text too dense | Apply Winston rules: ≤40 words per slide, ≤6 words per bullet; split into multiple slides or move narration off the slide face |
+
+## Winston Framework Integration (Slide Deck Mode)
+
+Slide Deck Mode enforces Patrick Winston's MIT "How to Speak" visual-first principles:
+
+| Principle | Application |
+|-----------|-------------|
+| **≤40 words per slide** | Quality check flags slides exceeding this limit |
+| **≤6 words per bullet** | Keywords and metrics only — no sentences on slides |
+| **Image-centric** | Every slide requires a dominant visual element |
+| **Empowerment Promise** | Title slide states what the audience gains |
+| **Circle & Star** | Core message repeated 3+ times; one Star slide marked |
+| **Near Miss** | Concept slides use "A but not B" examples |
+| **Contribution Ending** | Final slide states what was shown, not "thank you" |
+| **Speaker ≠ Slide** | Content the presenter will say goes in notes or narration, not on the slide face |
+
+For a full Winston coaching session before generating slides, run `winston-speaking-coach` first and use its Slide Audit output to guide the deck.

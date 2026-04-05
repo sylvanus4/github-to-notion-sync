@@ -61,6 +61,13 @@ For each item, decide what visual treatment it needs:
 
 **Every item gets**: problem card + diagram + evidence box + ELI5 box.
 
+**Winston Visual-First Rules** (apply ONLY when the user explicitly states the output will be presented live — do NOT apply to analysis documents, review reports, or reference material):
+- **Minimal text per card**: problem cards ≤ 40 words visible; move detail into collapsible evidence sections
+- **Storytelling structure**: order items as observation → hypothesis → test → learning where applicable, not just severity ranking
+- **Near Miss panels**: when explaining a concept, add an "A but not B" comparison panel to sharpen understanding
+
+**For analysis documents** (the default use case): maximize information density. Problem cards should contain full explanations, evidence should be inline (not collapsed), and all technical detail should be visible without extra clicks.
+
 ### 3. Generate HTML
 
 Produce a single self-contained HTML file with this structure:
@@ -261,6 +268,8 @@ Before delivering, verify:
 - [ ] **Usage guides**: If the source contains "usage guide", "how to use", or trigger examples, render as a dedicated card
 - [ ] **No content omission**: Do NOT omit content to save space — use collapsible `<details>` sections if needed
 - [ ] **Diagrams clickable**: Every Mermaid diagram has a zoom-in cursor and "🔍 클릭하여 확대" hint
+- [ ] **Winston text density** (presentation mode only — skip for analysis docs): Problem cards ≤ 40 words of visible text; additional detail in collapsible evidence sections
+- [ ] **Winston Near Miss** (presentation mode only — skip for analysis docs): Concept explanations include "A but not B" comparison where applicable
 
 ## Example
 
@@ -278,3 +287,23 @@ Before delivering, verify:
 - Mermaid CDN required (not fully offline)
 - Very large documents (50+ items) may produce slow-rendering HTML
 - Diagrams are auto-generated approximations — complex custom layouts may need manual adjustment
+
+## Composability
+
+- **visual-explainer** — Generates diagrams from topics/concepts; this skill transforms existing markdown into visual HTML
+- **winston-speaking-coach** — Run a full Winston coaching session before presenting the visual explainer live; applies Empowerment Promise, Circle & Star, and delivery technique
+
+## Winston Framework Integration (Presentation Mode Only)
+
+These rules apply ONLY when the user explicitly states the visual explainer will be used for live presentation or walkthroughs. **Do NOT apply to analysis documents, review reports, technical specs, or reference material** — those should maximize information density with full text, inline evidence, and complete technical detail.
+
+| Winston Principle | Application (presentation only) |
+|-------------------|-------------|
+| **≤40 words per card** | Problem cards cap visible text; details move to collapsible evidence sections |
+| **Near Miss panels** | Concept explanations include "A but not B" comparison panels |
+| **Storytelling** | Items can be ordered as observation → hypothesis → test → learning, not just severity |
+| **Image-centric** | Diagrams are the dominant visual element; text supports the diagram, not the other way around |
+
+**Analysis document default**: Full explanations inline, evidence visible without collapsing, all technical detail preserved. Information density > visual minimalism.
+
+For a full Winston coaching session on the visual explainer content, run `winston-speaking-coach` before presenting.

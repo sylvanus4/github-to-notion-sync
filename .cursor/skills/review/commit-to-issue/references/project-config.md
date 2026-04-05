@@ -226,7 +226,7 @@ def set_all_fields(item_id, sprint_id, estimate=1, label='',
                    size_id=None, priority_id=None, status_id=None,
                    file_count=0):
     """Set ALL 5 mandatory fields on a project item.
-    
+
     If size_id is not given and file_count > 0, auto-determines size.
     If estimate is default (1) and file_count > 0, auto-determines estimate.
     """

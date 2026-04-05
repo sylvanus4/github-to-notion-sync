@@ -7,8 +7,14 @@ description: >-
   discover hot stocks from NASDAQ/KOSPI/KOSDAQ 100, screen (P/E, RSI, volume,
   MA crossovers, FCF yield), run SMA 20/55/200 + RSI/MACD/Stochastic/ADX,
   optionally fetch news (alphaear-news) and sentiment (alphaear-sentiment),
-  generate buy/sell report via anthropic-docx, post to Slack #h-report,
-  optionally run setup-doctor pre-flight and twitter-timeline-to-slack post-pipeline.
+  generate buy/sell report via anthropic-docx, run 7-strategy backtested
+  strategy engine outputting top 10 strategy cards, post pipeline summary
+  and strategy cards to Slack #h-report via native API (no MCP required),
+  optionally run setup-doctor pre-flight and twitter-timeline-to-slack post-pipeline,
+  and ingest daily outputs into the trading-daily Knowledge Base for compound growth.
+  Optionally cross-validates screener and TA results against TradingView MCP
+  servers (--with-tradingview) and generates Pine Script v5 indicators for top
+  stocks (--with-pine).
   Use when the user asks to run a daily pipeline, sync stock data, discover hot
   stocks, screen stocks, or generate a daily report.
   Do NOT use for weekly price updates only (use weekly-stock-update). Do NOT use
@@ -16,7 +22,7 @@ description: >-
   CSV downloads from investing.com (use stock-csv-downloader).
 metadata:
   author: thaki
-  version: "7.0.0"
+  version: "7.1.0"
   category: execution
 ---
 
@@ -30,10 +36,22 @@ Orchestrates a multi-phase pipeline: optional setup-doctor pre-flight, data fres
 - Stock CSV files exist in `data/latest/` (seed via `stock-csv-downloader` if empty)
 - Python 3.11+ with backend dependencies installed
 - Node.js with `docx` package installed locally (`cd outputs && npm install`) — for .docx report generation
-- (Optional) Slack MCP server connected — only needed for posting to `#h-report`
+- (Optional) Slack MCP server connected — only needed for Cursor-side posting to `#h-report`
 - (Optional) `anthropic-docx` skill available — for .docx report generation; skip with `skip-docx`
 
-> **Note**: No API keys (Claude, Slack, etc.) are required. API keys are only needed by the separate GitHub Actions pipeline.
+> **Note**: No API keys are required for Cursor-side execution. The GitHub Actions pipeline (`daily-today.yml`) uses its own secrets (`SLACK_BOT_TOKEN`, `OPENAI_API_KEY`, etc.) and posts to Slack natively via the `pipeline_orchestrator.py` `slack_notification` stage — no MCP needed.
+
+### Environment Variables (for GitHub Actions / API pipeline)
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `DATABASE_URL` | Yes | — | PostgreSQL connection string |
+| `SLACK_BOT_TOKEN` | For Slack | — | Bot token with `chat:write` + `channels:read` scopes |
+| `SLACK_CHANNEL` | No | `h-report` | Target Slack channel name (resolved via `conversations.list`) |
+| `SLACK_CHANNEL_ID` | No | — | Direct channel ID (skips name resolution lookup) |
+| `OPENAI_API_KEY` | For LLM | — | Used by LLM agent stages |
+| `ANTHROPIC_API_KEY` | For LLM | — | Used by quality evaluator |
+| `FRED_API_KEY` | For macro | — | Federal Reserve economic data |
 
 ## Pipeline Output Protocol
 
@@ -61,6 +79,9 @@ outputs/today/{date}/
   phase-5.1-edge.json          # Phase 5.1 edge candidates
   phase-5-report-content.json  # Phase 5 structured report sections for DOCX
   phase-5.5-toss-signal.json   # Phase 5.5 toss signal bridge
+  phase-tv-screener.json       # TV screener cross-check (optional, --with-tradingview)
+  phase-tv-ta.json             # TV TA cross-validation (optional, --with-tradingview)
+  phase-pine-scripts.json      # Pine Script generation manifest (optional, --with-pine)
 ```
 
 ### Manifest Schema
@@ -129,7 +150,7 @@ Map common utterances to flags and phase scope before executing. Do not skip dep
 
 | User intent (examples) | Execution |
 | --- | --- |
-| Full daily pipeline (`오늘의 파이프라인 전체 실행해줘`, `Run today's pipeline`) | Phases **0→6** with default flags (no `dry-run`). Run fundamentals (2.5), screener (3.5), news/sentiment (4.5), full report + Slack + quality gate + decisions unless user opts out. |
+| Full daily pipeline (`오늘의 파이프라인 전체 실행해줘`, `Run today's pipeline`) | Phases **0→7** with default flags (no `dry-run`). Run fundamentals (2.5), screener (3.5), news/sentiment (4.5), full report + Slack + quality gate + decisions + KB ingest unless user opts out. |
 | `today dry-run skip-twitter` | Full pipeline **except**: no Slack post (`dry-run`); no Phase 6 (`skip-twitter`). Still generate `.docx` unless `skip-docx`. |
 | `today status` | **Phase 1 only** — stop after gap report (`status` / Step 1c). No writes. |
 | Stock data sync only (`주식 데이터 동기화만 해줘`, sync prices only) | **Phases 1, 2, and 2.5** then stop: `skip-discover skip-screener skip-report` (skips Phases 3, 3.5, 4, 4.5, 5, 6). |
@@ -556,6 +577,48 @@ On failure: **Continue** — agent desk is optional; the pipeline proceeds witho
 
 **Step 4.8d — Persist & manifest:** Save agent desk decisions to `outputs/today/{date}/phase-4.8-agent-desk.json`. Update `manifest.json`.
 
+### Phase TV-SC: TradingView Screener Cross-Check (Optional — requires `--with-tradingview`)
+
+Cross-checks the native multi-factor screener results against TradingView MCP screener data. Only runs when `--with-tradingview` flag is set and the `tradingview-mcp-server` npm MCP is available.
+
+**Step TV-SC.a — Run screener cross-check:**
+
+The `tv_screener_crosscheck` pipeline stage (registered in `pipeline_orchestrator.py`) loads the native screener output from `outputs/screener-{date}.json`, queries the TradingView MCP screener for the "most_volatile" strategy (top 50), and computes the overlap.
+
+Output: `outputs/tv-screener-crosscheck-{date}.json` with `overlap` (tickers in both), `tv_only_highlights` (blind spots), and counts.
+
+On failure: **Continue** — gracefully degrades if the TradingView MCP server is unavailable.
+
+**Step TV-SC.b — Persist & manifest:** Save to `outputs/today/{date}/phase-tv-screener.json`. Update `manifest.json`.
+
+### Phase TV-TA: TradingView TA Cross-Validation (Optional — requires `--with-tradingview`)
+
+Cross-validates native TA signals against TradingView MCP TA data for the top 15 screened stocks. Only runs when `--with-tradingview` flag is set and the `tradingview_mcp` Python MCP is available.
+
+**Step TV-TA.a — Run TA cross-validation:**
+
+The `tv_ta_validation` pipeline stage loads analysis output from `outputs/analysis-{date}.json`, calls `TradingViewTAService.batch_analysis()` for the top 15 symbols, and runs `cross_validate_signals()` comparing RSI zones, MACD direction, trend alignment, and Bollinger position.
+
+Output: `outputs/tv-ta-validation-{date}.json` with per-symbol confidence scores (HIGH/MEDIUM/LOW) and an overall agreement ratio.
+
+On failure: **Continue** — gracefully degrades if the TradingView MCP server is unavailable.
+
+**Step TV-TA.b — Persist & manifest:** Save to `outputs/today/{date}/phase-tv-ta.json`. Update `manifest.json`.
+
+### Phase PS: Pine Script Generation (Optional — requires `--with-pine`)
+
+Generates Pine Script v5 code for the top 5 screened stocks' indicator configurations. Runs locally — no external MCP dependency. Only runs when `--with-pine` flag is set.
+
+**Step PS.a — Generate scripts:**
+
+The `pine_script_generation` pipeline stage calls `generate_composite_script()` for overlay indicators (SMA, EMA, Bollinger, Donchian) and `generate_pine_script()` for each oscillator (RSI, MACD, ADX, Stochastic) per symbol.
+
+Output: `outputs/pine-scripts/{SYMBOL}-{indicator}-{date}.pine` files plus `manifest-{date}.json`.
+
+On failure: Per-symbol errors are logged and skipped; other symbols continue.
+
+**Step PS.b — Persist & manifest:** Save generation manifest to `outputs/today/{date}/phase-pine-scripts.json`. Update `manifest.json`.
+
 ### Phase 5: Report and Post
 
 **Step 5a — Generate report content (File-First — 반드시 한국어로 작성):**
@@ -926,6 +989,44 @@ Report the number of tweets fetched, classified, and posted with channel distrib
 
 **Step 6d — Persist & manifest:** Save twitter pipeline results to `outputs/today/{date}/phase-6-twitter.json` (tweet count, channels, post status). Update `manifest.json`. Finalize `manifest.json` with `completed_at` and `overall_status`.
 
+### Phase 7: Knowledge Base Ingest (Optional — Compound Growth Loop)
+
+Ingest today's pipeline outputs into the `trading-daily` Knowledge Base for long-term knowledge accumulation. Each daily run adds a condensed raw source; over time the KB wiki grows with interconnected market knowledge. Skip with `skip-kb`.
+
+**Step 7a — Run KB ingest script:**
+
+```bash
+python scripts/kb_daily_ingest.py --date {date}
+```
+
+This reads all phase output files from `outputs/today/{date}/`, condenses them into a single markdown document with YAML frontmatter, and saves to `knowledge-bases/trading-daily/raw/daily-{date}.md`. The KB manifest is updated automatically.
+
+**Step 7b — Incremental compile (optional, skip if `skip-kb-compile`):**
+
+If accumulated raw sources exceed 7 since last compile, trigger an incremental wiki compilation:
+
+```bash
+# Agent invokes kb-compile skill for knowledge-bases/trading-daily/
+```
+
+This compiles raw sources into structured wiki articles with cross-references.
+
+**Step 7c — Persist & manifest:** Save KB ingest results to `outputs/today/{date}/phase-7-kb-ingest.json`:
+
+```json
+{
+  "date": "2026-04-01",
+  "raw_file": "knowledge-bases/trading-daily/raw/daily-2026-04-01.md",
+  "total_raw_sources": 15,
+  "compiled": false,
+  "status": "completed"
+}
+```
+
+Update `manifest.json`.
+
+On failure: **Continue** — KB ingest is optional; the pipeline succeeds without it.
+
 ## CLI Arguments
 
 | Argument | Default | Description | Example |
@@ -953,7 +1054,11 @@ Report the number of tweets fetched, classified, and posted with channel distrib
 | `skip-decisions` | off | Skip Step 5d (`decision-router`) | `/today skip-decisions` |
 | `skip-toss` | off | Skip Phase 1.5 (snapshot) and Phase 5.5 (signal bridge + risk) | `/today skip-toss` |
 | `skip-twitter` | off | Skip Phase 6 | `/today skip-twitter` |
+| `skip-kb` | off | Skip Phase 7, no KB ingest | `/today skip-kb` |
+| `skip-kb-compile` | off | Skip Phase 7b incremental compile | `/today skip-kb-compile` |
 | `twitter-only` | off | Phase 6 only | `/today twitter-only` |
+| `--with-tradingview` | off | Enable TradingView MCP cross-validation (Phases TV-SC + TV-TA) | `/today --with-tradingview` |
+| `--with-pine` | off | Enable Pine Script v5 generation (Phase PS) | `/today --with-pine` |
 
 **Combined flags:** Multiple tokens stack (e.g. `dry-run` + `skip-twitter`). Example: `/today dry-run skip-twitter` — full analysis and `.docx`, no Slack, no Twitter phase.
 
@@ -1127,11 +1232,44 @@ Phase 3 — Analysis (depends on computation):
   tab-llm-agents         → POST /llm-agents/run + POST /llm-agents/macro/refresh
   tab-genai-features     → POST /genai-features/generate
 
-Phase 4 — Reporting (depends on analysis):
-  report_generation      → POST /reports/generate (depends on ai_news_correlation)
+Phase 4 — Strategy + Reporting (depends on analysis):
+  strategy_engine        → scripts/daily_strategy_engine.py (7 strategies, backtest, top 10 cards)
+  report_generation      → Template-based multi-format reports (MD, DOCX, PPTX, XLSX via build_spec + renderers)
   pattern_refresh        → GET /patterns
-  slack_notification     → Slack #h-report posting
+  slack_notification     → Slack #h-report posting (Jinja2 templates + strategy cards thread)
 ```
+
+### Strategy Engine Stage
+
+The `strategy_engine` stage runs `scripts/daily_strategy_engine.py` which:
+1. Reads all tracked tickers from the DB
+2. Detects signals across 7 strategies (Turtle Breakout, Golden Cross, Bollinger Squeeze, RSI Reversal, MACD Cross, Momentum Burst, Overnight Dip-Buy)
+3. Backtests each signal against 60 days of historical data with commission modeling
+4. Ranks by risk-adjusted return (Sharpe ratio)
+5. Outputs the top 10 strategy cards to `outputs/strategy-cards-{date}.json`
+
+Each strategy card contains: ticker, strategy name, signal direction (BUY/SELL/HOLD), entry/exit prices, stop-loss, risk:reward ratio, backtest win rate, and a `toss_cmd` field for Toss Securities execution.
+
+### Report Generation Stage (Template-Based)
+
+The `report_generation` stage generates reports in 4 formats using the template system in `scripts/report_templates/`:
+
+1. **build_spec.py** reads daily JSON outputs (analysis, screener, strategy-cards, etc.) into a unified `report_spec` dict
+2. **render_md.py** renders a Markdown report via `templates/daily-report.md.j2` (Jinja2)
+3. **render_docx.py** populates `templates/daily-report.docx` with data (python-docx)
+4. **render_pptx.py** populates `templates/daily-slides.pptx` with data (python-pptx)
+5. **render_xlsx.py** populates `templates/stock-tracker.xlsx` with per-ticker data (openpyxl)
+
+All renderers handle `None`/missing data gracefully. Each has a fallback path — if templates fail, legacy `generate_daily_report.py` produces a minimal Markdown report.
+
+Outputs: `outputs/reports/daily-{date}.md`, `.docx`, `.pptx`, `stock-tracker-{date}.xlsx`
+
+### Slack Notification Stage (Template-Based)
+
+The `slack_notification` stage posts to Slack using Jinja2 templates:
+1. `render_slack.py` reads the `report_spec` and renders `templates/slack-main.txt.j2`, `slack-thread.txt.j2`, `slack-strategy.txt.j2`
+2. Falls back to legacy `generate_daily_report` functions if templates unavailable
+3. Posts main message + BUY/SELL thread + strategy cards thread to `#h-report`
 
 ### Running the Full Pipeline via API
 
@@ -1161,10 +1299,11 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **Indicator engine**: `backend/app/services/technical_indicator_service.py` (RSI, MACD, Stochastic, ADX, etc.)
 - **Volume metrics**: `backend/app/services/llm_agents/data/financial_data_service.py` (RVOL, OBV, Volume SMA)
 - **Report workflow**: `alphaear-reporter` skill (Cluster → Write → Assemble)
-- **DOCX generation**: `anthropic-docx` skill (docx-js, tables, formatting)
-- **Report generator**: `outputs/scripts/generate-report.js`
+- **Template system**: `scripts/report_templates/` (build_spec, render_md, render_docx, render_pptx, render_xlsx)
+- **Template files**: `templates/daily-report.docx`, `templates/daily-slides.pptx`, `templates/stock-tracker.xlsx`, `templates/daily-report.md.j2`, `templates/slack-*.txt.j2`
+- **Report outputs**: `outputs/reports/daily-{date}.md`, `.docx`, `.pptx`, `stock-tracker-{date}.xlsx`
+- **DOCX generation (legacy)**: `anthropic-docx` skill — fallback when template renderer fails
 - **Report prompt**: `.cursor/skills/pipeline/today/references/report-prompt.md`
-- **Report output**: `outputs/reports/daily-{date}.docx`
 - **Analysis output**: `outputs/analysis-{date}.json`
 - **Screener output**: `outputs/screener-{date}.json`
 - **Discovery output**: `outputs/discovery-{date}.json`
@@ -1172,7 +1311,11 @@ Each tab skill can be run independently via its trigger command (see Phase 6 com
 - **Data directory**: `data/latest/`
 - **DB models**: `backend/app/models/stock_price.py` (`Ticker`, `StockPrice`), `backend/app/models/llm_agents/models.py` (`FinancialStatement`)
 - **Tracked tickers**: `backend/app/core/constants.py` (`DEFAULT_STOCKS`, `TICKER_CATEGORY_MAP`)
-- **Slack channel**: `#h-report` (optional)
+- **Strategy engine**: `scripts/daily_strategy_engine.py` (7 strategies, backtest, top-10 card output)
+- **Strategy cards output**: `outputs/strategy-cards-{date}.json`
+- **Pipeline runner**: `scripts/today_pipeline_runner.py` (`--dry-run` supported)
+- **Makefile targets**: `make run-today` (full pipeline), `make run-today-dry` (dry-run)
+- **Slack channel**: `#h-report` (optional for Cursor; native posting in API pipeline)
 - **Slack decision channel**: `#효정-의사결정` (`C0ANBST3KDE`) — personal trading decisions (Step 5d)
 - **Agent desk**: `backend/app/services/agent_desk/desk.py` (`AgentDesk`) — multi-agent debate pipeline (Phase 4.8)
 - **Agent desk output**: `outputs/agent-desk/{date}/desk-decisions.json`
@@ -1208,3 +1351,47 @@ Subagent prompts must include:
 - Do not recap files merely read — summarize findings
 - Final response: concise report of what was done, key findings, files changed
 - Do not use emojis
+
+## Appendix: Skill Utilization Tiers (2026-04-05 Audit)
+
+Full classification at `docs/skill-utilization-audit/tier-classification.md`.
+
+### Tier A — Pipeline-Core (30 skills, already wired)
+
+Every daily run exercises these through `PHASE_REGISTRY` in `scripts/today_pipeline_runner.py`:
+
+- **Data**: `weekly-stock-update`, `tab-stock-sync`, `tab-fundamental-sync`
+- **Discovery + Screening**: `tab-hot-stock-discovery`, `tab-screening`, `daily-stock-check`
+- **Technical Analysis**: `tab-technical-analysis`, `tab-turtle-refresh`, `tab-bollinger-refresh`, `tab-dualma-refresh`
+- **Market Context**: `tab-market-breadth`, `trading-market-breadth-analyzer`, `tab-news-fetch`, `alphaear-news`, `alphaear-sentiment`, `trading-market-news-analyst`, `tab-market-environment`, `trading-market-environment-analysis`
+- **Deep Analysis**: `tab-analysis-run`, `tab-llm-agents`, `tab-genai-features`, `trading-agent-desk`, `trading-data-quality-checker`
+- **Backtesting**: `tab-strategy-comparison`, `trading-backtest-expert`
+- **Reporting**: Template renderers (`render_md`, `render_docx`, `render_pptx`, `render_xlsx`), `alphaear-reporter`, `tab-patterns`, `tab-report-generate`, `ai-quality-evaluator`
+
+### Tier B — Pipeline-Ready (18 skills, integration candidates)
+
+**Toss integration (9 skills)** — gated on `tossctl` availability, addressed in Phase 6:
+`toss-daily-snapshot`, `toss-ops-orchestrator`, `toss-morning-briefing`, `toss-risk-monitor`, `toss-signal-bridge`, `toss-portfolio-recon`, `toss-fx-monitor`, `toss-watchlist-sync`, `toss-trade-journal`
+
+**Future pipeline enrichment (9 skills)**:
+- `trading-intel-orchestrator` → unified market intelligence (replace parallel fan-out)
+- `alphaear-orchestrator` → already documented in Phase 4.5
+- `alphaear-deepear-lite` → comprehensive mode on high-signal days
+- `trading-uptrend-analyzer` → breadth enrichment for Phase 4.2
+- `trading-edge-candidate-agent` → edge candidate generation for Phase 5.1
+- `tab-dashboard-summary` → consolidated Slack dashboard for Phase 6
+- `tab-event-detect` → RSS event detection for Phase 4.5+
+- `trading-scenario-analyzer` → event-driven scenario analysis
+- `alphaear-signal-tracker` → signal evolution tracking
+
+### Tier C/D — On-Demand and Standalone (35 skills)
+
+Not candidates for daily pipeline integration. Available for manual invocation:
+- Tier C (21): ad-hoc analysis tools (options, FinViz, predictor, position sizer, etc.)
+- Tier D (14): broker-specific (KIS), simulation (MiroFish), experimental
+
+### Utilization Tracker
+
+Run `python scripts/skill_utilization_tracker.py --days 14` to generate utilization reports:
+- JSON: `outputs/skill-utilization/utilization-{date}.json`
+- Markdown: `outputs/skill-utilization/utilization-{date}.md`

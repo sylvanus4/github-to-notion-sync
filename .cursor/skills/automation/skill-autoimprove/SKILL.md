@@ -143,7 +143,9 @@ Generate the dashboard as a single self-contained HTML file with inline CSS and 
       "max_score": 20,
       "pass_rate": 70.0,
       "status": "baseline",
-      "description": "original skill — no changes"
+      "description": "original skill — no changes",
+      "output_tokens_approx": 1840,
+      "signal_ratio": 0.65
     }
   ],
   "eval_breakdown": [
@@ -171,9 +173,11 @@ Run the skill AS-IS before changing anything. This is experiment #0.
 **results.tsv format (tab-separated):**
 
 ```
-experiment	score	max_score	pass_rate	status	description
-0	14	20	70.0%	baseline	original skill — no changes
+experiment	score	max_score	pass_rate	status	description	output_tokens	signal_ratio
+0	14	20	70.0%	baseline	original skill — no changes	1840	0.65
 ```
+
+The `output_tokens` and `signal_ratio` columns are populated when `--measure-tokens` is active; otherwise left blank.
 
 **IMPORTANT:** After establishing baseline, confirm the score with the user before proceeding. If baseline is already 90%+, the skill may not need optimization — ask the user if they want to continue.
 
@@ -209,14 +213,20 @@ This is the core autoresearch loop. Once started, run autonomously until stopped
 
 5. **Score it.** Run every output through every eval. Calculate total score.
 
-6. **Decide: keep or discard.**
+6. **Measure tokens (when `--measure-tokens`).** For each run output:
+   - Count approximate output tokens: `word_count × 1.3`
+   - Count signal lines (lines containing data, code, or actionable findings) vs total lines → `signal_ratio`
+   - Record both in the experiment entry
+
+7. **Decide: keep or discard.**
    - Score improved → **KEEP.** Log it. This is the new baseline.
-   - Score stayed the same → **DISCARD.** Revert SKILL.md to previous version. The change added complexity without improvement.
+   - Score stayed the same but output tokens decreased ≥ 10% → **KEEP** (token efficiency win).
+   - Score stayed the same, no token improvement → **DISCARD.** Revert SKILL.md to previous version.
    - Score got worse → **DISCARD.** Revert SKILL.md to previous version.
 
-7. **Log the result** in results.tsv and update results.json and changelog.md.
+8. **Log the result** in results.tsv and update results.json and changelog.md.
 
-8. **Repeat.** Go back to step 1 of the loop.
+9. **Repeat.** Go back to step 1 of the loop.
 
 **NEVER STOP.** Once the loop starts, do not pause to ask the user if they should continue. They may be away from the computer. Run autonomously until:
 - The user manually stops you
@@ -277,13 +287,13 @@ Plus the improved SKILL.md saved back to its original location.
 **results.tsv example:**
 
 ```
-experiment	score	max_score	pass_rate	status	description
-0	14	20	70.0%	baseline	original skill — no changes
-1	16	20	80.0%	keep	added explicit instruction to avoid numbering in diagrams
-2	16	20	80.0%	discard	tried enforcing left-to-right layout — no improvement
-3	18	20	90.0%	keep	added color palette hex codes instead of vague description
-4	18	20	90.0%	discard	added anti-pattern for neon colors — no improvement
-5	19	20	95.0%	keep	added worked example showing correct label formatting
+experiment	score	max_score	pass_rate	status	description	output_tokens	signal_ratio
+0	14	20	70.0%	baseline	original skill — no changes	1840	0.65
+1	16	20	80.0%	keep	added explicit instruction to avoid numbering in diagrams	1650	0.72
+2	16	20	80.0%	discard	tried enforcing left-to-right layout — no improvement	1900	0.60
+3	18	20	90.0%	keep	added color palette hex codes instead of vague description	1420	0.78
+4	18	20	90.0%	discard	added anti-pattern for neon colors — no improvement	1500	0.70
+5	19	20	95.0%	keep	added worked example showing correct label formatting	1380	0.82
 ```
 
 ---

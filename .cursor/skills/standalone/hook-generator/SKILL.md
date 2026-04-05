@@ -62,6 +62,7 @@ Apply frameworks based on context and audience:
 | **Benefit Lead** | "Here's how to [desirable outcome] in [time]" | How-to, tutorials |
 | **Controversy** | "[Popular thing] is actually [opposite view]" | Social media, debates |
 | **Scarcity/Urgency** | "Before [deadline/event], you need to know..." | Emails, ads, CTAs |
+| **Empowerment Promise** (Winston) | "After this [talk/video], you will [know/be able to]..." | Presentations, keynotes, seminars, educational videos |
 
 ### Step 3: Generate Variants
 
@@ -90,7 +91,7 @@ Adapt hooks to platform constraints:
 | **LinkedIn** | First 2 lines before "...see more" (~150 chars) | Professional curiosity gap |
 | **Email Subject** | 40-60 chars, preview text support | Subject + preview text pair |
 | **Article/Blog** | First paragraph / H1 | SEO-conscious, keyword-forward |
-| **Presentation** | Single slide, spoken + displayed | Bold statement or question |
+| **Presentation** | Single slide, spoken + displayed | Bold statement or question. **Winston**: Always include an Empowerment Promise variant; never generate joke-based hooks for live presentations (audience is not engaged enough at the start to laugh) |
 | **Ad Copy** | Headline + subhead | Benefit-forward, action-oriented |
 | **Slack** | First line of message | Direct, scannable, emoji optional |
 
@@ -173,6 +174,7 @@ User: "LinkedIn 포스트 훅 만들어줘 - AI 에이전트가 주니어 개발
 | Topic is too generic | Ask for a specific angle or claim within the topic |
 | User wants hooks in a specific language | Generate in the requested language; default to the topic's language |
 | All generated hooks feel too similar | Apply at least 4 different frameworks and vary sentence structure |
+| Presentation context detected | Always include at least 1 Empowerment Promise hook (Winston); never include joke-based hooks for live speaking formats |
 
 ## Composability
 
@@ -180,5 +182,13 @@ User: "LinkedIn 포스트 훅 만들어줘 - AI 에이전트가 주니어 개발
 - **content-repurposing-engine** — Generate platform-specific hooks for repurposed content
 - **scqa-writing-framework** — Use the hook as the Complication or Question element
 - **presentation-strategist** — Use a hook as the opening slide concept
+- **winston-speaking-coach** — Use the Empowerment Promise hook as input for Module 1, or generate hooks from the coaching report's promise
 - **kwp-marketing-content-creation** — Pair hooks with full marketing copy
 - **sentence-polisher** — Polish the final selected hook
+
+## Winston Framework Notes
+
+For **presentation** and **keynote** contexts, this skill enforces two Winston rules:
+
+1. **Empowerment Promise**: Always include at least one hook following the "After this talk, you will [know/be able to/understand]..." pattern. This hook tells the audience what they will gain — not what the speaker will cover.
+2. **No-Joke Anti-Pattern**: Never generate joke-based openings for live presentations. Winston's research shows audiences are not yet engaged enough to laugh at the start. Humor works after rapport is built, not as an opener.

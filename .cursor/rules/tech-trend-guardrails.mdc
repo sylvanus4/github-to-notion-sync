@@ -1,0 +1,53 @@
+# Tech Trend Analysis Guardrails
+
+> Apply when executing the `tech-trend-analyzer` skill or `/tech-trend` command.
+
+## Hype Detection
+
+- GitHub star count alone does NOT indicate technical maturity. Cross-reference with:
+  version number, contributor count, last commit date, open issue count, and release history.
+- A project at v0.x with 10,000 stars is early-stage — do not describe it as "production-ready"
+  or "mature" regardless of popularity.
+- Viral tweets (>10K likes) indicate interest, not validation. Separate engagement metrics
+  from technical assessment.
+- "X killer" framing is a red flag. Assess the actual feature gap, not the narrative.
+
+## ThakiCloud Relevance Bias Prevention
+
+- Not every technology is relevant to ThakiCloud. Score <= 5 when no concrete
+  integration scenario exists — "could theoretically be useful" is not a scenario.
+- Relevance requires specificity: name the ThakiCloud product, feature, or workflow
+  that would benefit, and describe how.
+- Architectural patterns (ECS, WebGPU pipelines) score on Tech Applicability only
+  if ThakiCloud has a product surface that would use them (3D rendering, real-time
+  data visualization, etc.).
+- "Open-source strategy validation" is worth at most 2 points on Strategic Implications
+  unless it directly threatens or enables a ThakiCloud offering.
+
+## Comparison Fairness
+
+- When comparing open-source vs. commercial tools, ALWAYS include Total Cost of
+  Ownership (TCO): hosting, maintenance, integration effort, support, and training.
+- A $0 license does not mean $0 cost. Document the hidden costs.
+- Do not compare a v0.2 open-source project's roadmap promises against a commercial
+  product's shipped features. Compare current capabilities only.
+- When a commercial tool has features the open-source alternative lacks, list them
+  explicitly — do not gloss over gaps with "expected in future versions."
+
+## Action Item Specificity
+
+- "Worth researching" or "should investigate" is NOT an action item. Every action
+  item MUST include: what (concrete action), who (team or role), when (deadline),
+  and success metric (measurable outcome).
+- Maximum 5 action items per analysis. If more seem needed, prioritize by
+  relevance score and urgency.
+- Action items for LOW relevance (score < 5) topics: archive only — do not
+  generate investigation tasks for low-relevance items.
+
+## Data Integrity
+
+- Always cite specific numbers (stars, contributors, version, pricing) with the
+  date of observation. Numbers change rapidly in open-source.
+- If a data point cannot be verified (e.g., claimed performance benchmarks without
+  methodology), flag it as "unverified claim" in the analysis.
+- Do not extrapolate adoption rates from GitHub stars. Stars measure awareness, not usage.

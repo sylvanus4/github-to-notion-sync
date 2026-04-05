@@ -1,0 +1,15 @@
+---
+description: "Output conciseness and anti-sycophancy — reduces output token bloat 30-60%"
+alwaysApply: true
+---
+
+# Output Token Discipline
+
+- Be concise in output but thorough in reasoning
+- No sycophantic openers ("Great question!", "Absolutely!") or closing fluff ("Let me know if...")
+- Code/data first, explanation only if non-obvious
+- Do not re-read files already read in this session unless the file may have changed
+- No speculative suggestions beyond requested scope ("You might also want...")
+- Review: state the issue, show the fix, stop — no compliments or padding
+- No em dashes (—), smart quotes, or decorative Unicode — keep output copy-paste safe
+- Lead with findings; context and methodology after

@@ -103,18 +103,18 @@ def get_pipeline_stats():
     """Fetch pipeline/lead staging stats. Returns (stats_dict, error_string)."""
     if not PIPELINE_AUTH:
         return None, "PIPELINE_AUTH_TOKEN not configured"
-    
+
     data = api_get(f"{PIPELINE_API_URL}?page=1&limit=200", PIPELINE_AUTH)
     if "_error" in data:
         return None, data["_error"]
-    
+
     prospects = data.get("prospects", [])
     stats = data.get("stats", {})
-    
+
     today_total = 0
     today_approved = 0
     today_sent = 0
-    
+
     for p in prospects:
         created = p.get("queued_at") or p.get("created_at") or ""
         if is_today(created):
@@ -124,7 +124,7 @@ def get_pipeline_stats():
                 today_approved += 1
             elif status == "sent":
                 today_sent += 1
-    
+
     return {
         "today_total": today_total,
         "today_approved": today_approved,
@@ -136,18 +136,18 @@ def get_recruiting_stats():
     """Fetch candidate sourcing stats with pagination. Returns (stats_dict, error_string)."""
     if not RECRUITING_AUTH:
         return None, "RECRUITING_AUTH_TOKEN not configured"
-    
+
     data = api_get(f"{RECRUITING_API_URL}?page=1&limit=50", RECRUITING_AUTH)
     if "_error" in data:
         return None, data["_error"]
-    
+
     stats = data.get("stats", {})
     pagination = data.get("pagination", {})
     total_pages = pagination.get("total_pages", 1)
-    
+
     today_total = 0
     week_total = 0
-    
+
     def count_page(candidates):
         nonlocal today_total, week_total
         for c in candidates:
@@ -156,9 +156,9 @@ def get_recruiting_stats():
                 today_total += 1
             if is_this_week(created):
                 week_total += 1
-    
+
     count_page(data.get("candidates", []))
-    
+
     # Paginate (stop early when we hit records older than this week)
     max_pages = min(total_pages, 7)
     for page in range(2, max_pages + 1):
@@ -173,7 +173,7 @@ def get_recruiting_stats():
         count_page(candidates)
         if last_ts and last_ts < week_start():
             break
-    
+
     return {
         "today_total": today_total,
         "week_total": week_total,
@@ -191,15 +191,15 @@ def get_campaign_status(campaign_id, name):
     """Check single email campaign health."""
     if not EMAIL_AUTH:
         return {"name": name, "error": "EMAIL_AUTH_TOKEN not configured", "sending": False, "active": False, "daily_limit": 0}
-    
+
     data = api_get(f"{EMAIL_API_URL}/{campaign_id}", EMAIL_AUTH)
     if "_error" in data:
         return {"name": name, "error": data["_error"], "sending": False, "active": False, "daily_limit": 0}
-    
+
     status = data.get("status", -1)
     ns_status = data.get("not_sending_status", 0)
     daily_limit = data.get("daily_limit", 0)
-    
+
     return {
         "name": name,
         "active": status == 1,
@@ -213,13 +213,13 @@ def get_campaigns_summary(campaigns_dict):
     """Get aggregate health for a set of campaigns."""
     if not campaigns_dict:
         return {"results": [], "sending_count": 0, "total": 0, "capacity": 0, "any_issue": False, "all_paused": True}
-    
+
     results = [get_campaign_status(cid, name) for name, cid in campaigns_dict.items()]
     sending_count = sum(1 for r in results if r.get("sending"))
     total_capacity = sum(r.get("daily_limit", 0) for r in results if r.get("sending"))
     any_issue = any(r.get("ns_status", 0) in (2, 4) for r in results)
     all_paused = all(not r.get("active") for r in results)
-    
+
     return {
         "results": results,
         "sending_count": sending_count,
@@ -272,15 +272,15 @@ def main():
     now = now_local()
     date_str = now.strftime("%a %b %-d")
     time_str = now.strftime("%-I:%M %p") + " " + TZ_LABEL
-    
+
     alerts = []
-    
+
     # Fetch data
     pipeline_stats, pipeline_err = get_pipeline_stats()
     recruiting_stats, recruiting_err = get_recruiting_stats()
     outbound_summary = get_campaigns_summary(OUTBOUND_CAMPAIGNS)
     recruiting_campaign_summary = get_campaigns_summary(RECRUITING_CAMPAIGNS)
-    
+
     if args.json:
         output = {
             "timestamp": now.isoformat(),
@@ -292,9 +292,9 @@ def main():
         print(json.dumps(output, indent=2, default=str))
         has_alerts = pipeline_err or recruiting_err or outbound_summary["any_issue"]
         sys.exit(1 if has_alerts else 0)
-    
+
     lines = [f"⚠️ *Pacing Alert — {date_str} {time_str}*", ""]
-    
+
     # ── Pipeline / Outbound ──
     if pipeline_err:
         p_icon = "🔴"
@@ -308,12 +308,12 @@ def main():
         p_line = f"{pt} leads staged today | {pa} approved | {ps} sent"
         if pt == 0:
             alerts.append("Pipeline: 0 leads staged today")
-    
+
     lines.append(f"{p_icon} 📧 *Outbound Pipeline:*")
     lines.append(f"• {p_line}")
     lines.append(f"• Campaigns: {campaign_line(outbound_summary)}")
     lines.append("")
-    
+
     # ── Recruiting / Sourcing ──
     if recruiting_err:
         r_icon = "🔴"
@@ -326,13 +326,13 @@ def main():
         r_line = f"{rt} candidates added today | {rw} this week | target: {WEEKLY_CANDIDATE_TARGET}/week"
         if rw < WEEKLY_CANDIDATE_TARGET // 4:
             alerts.append(f"Recruiting: only {rw} candidates this week (target {WEEKLY_CANDIDATE_TARGET})")
-    
+
     lines.append(f"{r_icon} 🔍 *Recruiting Pipeline:*")
     lines.append(f"• {r_line}")
     lines.append(f"• Campaigns: {campaign_line(recruiting_campaign_summary)}")
-    
+
     print("\n".join(lines))
-    
+
     if alerts:
         sys.exit(1)
     else:

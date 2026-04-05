@@ -19,9 +19,21 @@ metadata:
 
 End-of-day pipeline that consolidates all daily outputs into the Cognee knowledge graph, building persistent organizational memory.
 
+## Implementation
+
+This skill is fully implemented as a Python script:
+
+```bash
+python scripts/knowledge_daily_aggregator.py --date YYYY-MM-DD
+```
+
+The script handles all 6 phases (collect → extract → cognee ingest → entity resolution → MEMORY.md update → report) and produces structured JSON output in `outputs/knowledge-daily-aggregator/{date}/`.
+
+**Prerequisites**: `pip install cognee fastembed`, `.env` with `ANTHROPIC_API_KEY`, Cognee configured for Claude API (`LLM_PROVIDER=anthropic`, `LLM_MODEL=claude-sonnet-4-6`) + FastEmbed embeddings (see `.env.example`).
+
 ## When to Use
 
-- As the final step in the EOD pipeline (after `eod-ship`, before daily-strategy-post)
+- As Phase 1 of `daily-pm-orchestrator` (evening pipeline)
 - As part of the Execute → Learn → Evolve flywheel (Learn phase)
 - When the user wants to consolidate a day's worth of work into searchable knowledge
 

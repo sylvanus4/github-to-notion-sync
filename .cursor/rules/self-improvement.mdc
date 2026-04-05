@@ -5,46 +5,65 @@ alwaysApply: false
 
 # Memory Architecture & Self-Improvement
 
-## MEMORY.md Protocol
+## 3-Layer Memory Architecture
 
-At the end of every non-trivial work session, append to `MEMORY.md` at the project root:
+Memory uses a bandwidth-aware 3-layer design:
 
-- **`[decision]`** — Decisions made and their reasoning (architecture choices, library selections, trade-offs accepted)
-- **`[task]`** — Work completed (what changed, key implementation details worth remembering)
-- **`[issue]`** — Open issues, blockers, and next steps for the following session
+- **Layer 1 (Index)**: `MEMORY.md` — ~150-char pointer lines, always loaded (~3K tokens max)
+- **Layer 2 (Topics)**: `memory/topics/*.md` — full detail, fetched on-demand by keyword match
+- **Layer 3 (Transcripts)**: `memory/sessions/*.md` — BM25/grep only, never loaded directly
 
-Format:
+### Write Discipline
 
+At the end of every non-trivial work session:
+
+1. Write detail to the appropriate topic file in `memory/topics/` first
+2. Add a ~150-char pointer line to `MEMORY.md` (categories: session_summary, decision, runbook, constraint, tech_debt, preference)
+3. **Never** dump full content into MEMORY.md, AGENTS.md, or learned-memory.mdc
+
+Automated classification:
+
+```bash
+python scripts/memory/memory_classify.py "entry text here"
+python scripts/memory/memory_classify.py --category decision "chose Option B for X"
 ```
-## YYYY-MM-DD
 
-- [decision] Chose feature-based directory structure over role-based for agent context isolation
-- [task] Implemented auth module with JWT + refresh token rotation
-- [issue] Rate limiter not yet integrated — needs Redis config decision
-```
+`AGENTS.md` is a **static redirect stub** — never write dynamic content to it (except the `%% lat:begin %%` marker section).
+
+### Scope Boundary: lat.md/ vs memory/
+
+| Concern | Owner | Examples |
+|---------|-------|----------|
+| Code architecture | `lat.md/` | Module structure, API layer design, data flow, service dependencies |
+| Operational knowledge | `memory/` | Session summaries, user preferences, decisions, runbooks, tech debt |
+| Source code links | `lat.md/` | `[[src/path.py#Class]]` refs, `@lat:` annotations, `lat check` drift |
+| Session pointers | `MEMORY.md` | ~150-char lines pointing to `memory/topics/*.md` |
+
+**Rules:**
+- `lat.md/` pages describe *what the code is and how it connects* — architecture, not operations
+- `memory/` files describe *what happened and what was decided* — temporal, not structural
+- When a concept spans both (e.g., a new pipeline service), create/update the `lat.md/` page for architecture and log the decision in `memory/decisions.md`
+- `lat check` validates code-documentation drift; `memory/` has no automated drift detection
 
 ## Session Restoration
 
 At the start of any work session:
 
-1. Read `MEMORY.md` if it exists — restore context before any work begins
-2. Read `KNOWN_ISSUES.md` if it exists — avoid repeating known agent pitfalls
-3. Read `tasks/lessons.md` for relevant project lessons
-4. Read `memory/decisions.md` and `memory/patterns.md` for consolidated decisions and recurring patterns
-5. If the user's request relates to prior work, use the `/recall` skill to search session history:
-   - Run `python scripts/memory/search.py --mode bm25 "<topic>" --top 5 --verbose` for quick lookup
+1. `MEMORY.md` (Layer 1 pointer index) is always loaded — scan pointers for relevant topics
+2. For relevant topics, read the corresponding `memory/topics/*.md` file (Layer 2)
+3. Read `KNOWN_ISSUES.md` and `tasks/lessons.md` for known pitfalls and lessons
+4. If the user's request relates to prior work, use `/recall` to search Layer 3:
+   - `python scripts/memory/search.py --mode bm25 "<topic>" --top 5 --verbose`
    - Escalate to `--mode hybrid` for conceptual queries
-
-This replaces the "15-minute context re-explanation" with a 5-second file read.
 
 ## Long-Term Memory Sync
 
 At the end of every non-trivial session (as part of the done checklist):
 
-1. Run `python scripts/memory/extract-sessions.py --incremental` to capture this session's transcript
-2. Run `python scripts/memory/build-index.py --skip-embeddings` to update the BM25 index
-3. If significant decisions were made, update `memory/decisions.md` with the new entries
-4. If new failure/success patterns emerged, update `memory/patterns.md`
+1. Run `python scripts/memory/extract-sessions.py --incremental` (includes hash dedup)
+2. Run `python scripts/memory/build-index.py --skip-embeddings` to update BM25 index
+3. Use `python scripts/memory/memory_classify.py` for new decisions/patterns (auto-routes to topic files)
+4. Periodically run `python scripts/memory/attention_decay.py --apply` to prune stale pointers
 
 ## KNOWN_ISSUES.md
 
@@ -75,13 +94,11 @@ After ANY correction from the user, log to `docs/ai/feedback.md` in 3 lines:
 ## Continual Learning (Cursor)
 
 - The `continual-learning` hook extracts learned preferences and workspace facts from session transcripts
-- Output target: `.cursor/rules/learned-memory.mdc` — this is the **SOLE** dynamic memory store
-- `AGENTS.md` must remain a static redirect file. **NEVER** write dynamic content to it
-- The `/continual-learning` command and any memory hook MUST target `learned-memory.mdc` exclusively
+- Output target: `.cursor/rules/learned-memory.mdc` — compacted top-30 index with pointers to `memory/topics/`
+- `AGENTS.md` must remain a **static redirect stub**. NEVER write dynamic content to it
+- Full details go to `memory/topics/*.md` (Layer 2); `learned-memory.mdc` holds ~150-char pointers only
 - When running continual-learning, update `learned-memory.mdc` sections **in place** (not append-only) — deduplicate and merge
-- The learned-memory rule uses `alwaysApply: true` so it is always available to the agent
-- Sections: `## Learned User Preferences` and `## Learned Workspace Facts` (max 12 bullets each)
-- Plain bullet points only, no metadata annotations
+- Max ~30 bullets total across both sections; each bullet ≤ 150 chars with pointer to topic file
 
 ## AutoSkill Evolution
 

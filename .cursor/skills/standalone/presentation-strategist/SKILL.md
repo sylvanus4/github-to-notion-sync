@@ -57,18 +57,18 @@ The 10 modules are organized into 4 sequential phases. Run all phases by default
 
 | # | Module | Purpose |
 |---|--------|---------|
-| 1 | **Blueprint** | Define objective, audience, key message, emotional arc, slide flow |
+| 1 | **Blueprint** | Define objective, audience, key message, emotional arc, slide flow. **Winston**: Start with an Empowerment Promise ("After this talk, you will..."). Include venue/environment checklist (lighting on, 11 AM optimal, room setup). |
 | 9 | **Visual Direction** | Color palette, typography, layout principles, design rules |
 
 ### Phase 2: Content
 
 | # | Module | Purpose |
 |---|--------|---------|
-| 2 | **Opening Hook** | 3 attention-capturing opening options |
-| 3 | **Slide-by-Slide Script** | Headlines, bullets, speaker script, transitions per slide |
-| 4 | **Data Storytelling** | Transform raw numbers into narrative with visual recommendations |
+| 2 | **Opening Hook** | 3 attention-capturing opening options. **Winston Rule**: Never open with a joke for live presentations — the audience is not yet engaged. Include an "Empowerment Promise" hook as one of the 3 options. |
+| 3 | **Slide-by-Slide Script** | Headlines, bullets, speaker script, transitions per slide. **Winston**: Apply Circle & Star — mark which slides reinforce the core message (must appear 3+ times), mark the "Star" slide (single most important point) with distinct emphasis. Use Near Miss ("A but not B") examples on concept-defining slides. |
+| 4 | **Data Storytelling** | Transform raw numbers into narrative with visual recommendations. **Winston**: Stories teach analytical thinking — structure data narratives as observation → hypothesis → test → learning, not just "here are the numbers." |
 | 6 | **Executive Summary** | Single-slide distillation of the entire presentation |
-| 7 | **Closing CTA** | Final slide and closing script with clear call to action |
+| 7 | **Closing CTA** | Final slide and closing script with clear call to action. **Winston Ending**: Never end with just "Thank you" — end with contributions ("We've shown that..."), a final salute to the audience, or a forward-looking call to action. |
 
 ### Phase 3: Defense
 
@@ -81,7 +81,7 @@ The 10 modules are organized into 4 sequential phases. Run all phases by default
 
 | # | Module | Purpose |
 |---|--------|---------|
-| 10 | **Stress Test** | Adversarial review of every weak argument and attention drop |
+| 10 | **Stress Test** | Adversarial review of every weak argument and attention drop. **Winston stress questions**: Does the opening make an Empowerment Promise? Is the core message repeated 3+ times (Circle & Star)? Do slides have minimal text (<40 words each)? Does the closing state contributions rather than just "thank you"? Are Near Miss examples used for ambiguous concepts? |
 
 ### Execution Rules
 
@@ -174,3 +174,19 @@ Actions:
 | Objection module requested without objections | Ask: "What objections do you expect from the audience?" |
 | Stress Test without outline | Ask: "Please provide your presentation outline or run the full pipeline first." |
 | User wants rendered slides | Redirect to `anthropic-pptx` or `/generate-slides` |
+
+## Winston Framework Integration
+
+This skill incorporates Patrick Winston's MIT "How to Speak" principles throughout:
+
+| Winston Principle | Where Applied |
+|-------------------|--------------|
+| **Empowerment Promise** | Blueprint (Module 1), Opening Hook (Module 2) |
+| **No-Joke Opening** | Opening Hook (Module 2) — anti-pattern for live presentations |
+| **Circle & Star** | Slide-by-Slide Script (Module 3) — core message appears 3+ times, Star slide marked |
+| **Near Miss** | Slide-by-Slide Script (Module 3) — "A but not B" examples on concept slides |
+| **Storytelling → Analytical Thinking** | Data Storytelling (Module 4) — observation → hypothesis → test → learning |
+| **Contribution Ending** | Closing CTA (Module 7) — state what was shown, not just "thank you" |
+| **Stress Test Checklist** | Stress Test (Module 10) — Winston compliance questions |
+
+For a full Winston-only coaching session, use `winston-speaking-coach` skill first, then feed its output into this skill.

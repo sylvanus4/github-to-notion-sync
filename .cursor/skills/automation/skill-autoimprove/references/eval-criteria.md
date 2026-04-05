@@ -36,6 +36,20 @@ Each dimension below should map to at least one `EVAL N:` block in the skill’s
 - Pass: No **new** forbidden or deprecated product terms introduced by the mutated skill (per POL-001 and glossary); cloud-platform product framing is not added unless the skill explicitly targets cross-repo sync.
 - Fail: Introduces disallowed naming, wrong product name, or upstream cloud UI stack as required for this app.
 
+### 6. Output token discipline
+
+- Pass: Skill output contains no sycophantic openers/closers ("Great question!", "Let me know if..."), no speculative suggestions beyond scope ("You might also want..."), no narration of internal steps ("Now I will..."), and leads with data/code before explanation.
+- Fail: Output starts with pleasantries, ends with padding, includes unrequested suggestions, or buries findings after verbose methodology.
+
+### 7. Token efficiency (quantitative — optional)
+
+When `--measure-tokens` flag is passed to autoimprove, additionally track:
+
+- **Output token count** per run (approximate via word count × 1.3)
+- **Output-to-signal ratio**: actionable content lines / total output lines
+- Log both metrics in `results.json` under each experiment's entry as `output_tokens_approx` and `signal_ratio`
+- A mutation that maintains eval pass rate while reducing output tokens by ≥ 10% counts as an improvement even if the binary score is unchanged
+
 ## Combining with user evals
 
 User-provided 3–6 binary evals **replace or extend** this list. If the target skill is not finance-facing, still keep eval **#3** and **#5** when the skill touches frontend or identity; drop **#1–2** only when clearly irrelevant (e.g. pure infra script with no domain copy).

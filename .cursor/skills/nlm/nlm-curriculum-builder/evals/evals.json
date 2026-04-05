@@ -1,0 +1,67 @@
+[
+  {
+    "id": "minimal-input",
+    "description": "Course title only — skill should ask clarifying questions via AskQuestion",
+    "input": "Build a curriculum for 'Data Structures and Algorithms'",
+    "expected_behavior": [
+      "Skill invokes AskQuestion to collect target audience, week count, learning objectives, and source materials",
+      "Does NOT proceed to Phase 2 without at least target audience and one source",
+      "Suggests reasonable defaults (12 weeks, bilingual, default artifact set)"
+    ],
+    "success_criteria": "AskQuestion is called before any notebook_create or file generation"
+  },
+  {
+    "id": "full-pipeline",
+    "description": "Full input with title + objectives + sources + 12 weeks — generates complete curriculum",
+    "input": "Build a 12-week curriculum for 'Introduction to Natural Language Processing' targeting graduate students. Sources: ~/papers/attention-is-all-you-need.pdf, https://web.stanford.edu/~jurafsky/slp3/. Objectives: (1) Explain core NLP pipeline components, (2) Implement text classification and sequence labeling, (3) Evaluate transformer-based models for downstream tasks. Generate slides, quiz, flashcards, and study guide per module.",
+    "expected_behavior": [
+      "Phase 1: Saves phase1-input.json with all collected parameters",
+      "Phase 2: Generates authority-map.md with 12 modules, subtopics, key questions, and Bloom's progression",
+      "Phase 3: Creates NLM notebook, sets persona via chat_configure, uploads 1 PDF + 1 URL",
+      "Phase 4: Generates syllabus.md following syllabus-template.md structure, saves syllabus.docx",
+      "Phase 5: Generates 12 lesson-plan.md files following lesson-plan-template.md structure",
+      "Phase 6: Generates 4 artifact types × 12 modules = 48 artifacts",
+      "Phase 7: Creates manifest.json, curriculum-overview.docx"
+    ],
+    "success_criteria": "All 7 phases complete; outputs/curriculum/introduction-to-natural-language-processing/ contains authority-map.md, syllabus.md, syllabus.docx, manifest.json, and 12 module-NN/ directories each with lesson-plan.md + 4 artifacts"
+  },
+  {
+    "id": "bilingual-output",
+    "description": "Verify EN+KO bilingual generation for syllabus and lesson plans",
+    "input": "Build a 4-week curriculum for 'Cloud Computing Fundamentals' with bilingual output. Source: https://cloud.google.com/docs/overview",
+    "expected_behavior": [
+      "Syllabus contains English section followed by --- divider followed by Korean section",
+      "Each lesson plan contains parallel EN and KO versions with identical structure",
+      "Korean learning objectives use 합니다체 and parenthetical English terms on first use",
+      "Both versions contain the same number of modules, objectives, and source citations"
+    ],
+    "success_criteria": "syllabus.md and all lesson-plan.md files contain both EN and KO sections separated by --- with matching structure"
+  },
+  {
+    "id": "source-variety",
+    "description": "Mix of PDF, URL, YouTube, and Google Doc sources — all ingested correctly",
+    "input": "Build curriculum for 'AI Ethics'. Sources: ~/docs/ai-ethics-report.pdf, https://arxiv.org/abs/2301.10226, https://www.youtube.com/watch?v=dQw4w9WgXcQ, https://docs.google.com/document/d/1abc123",
+    "expected_behavior": [
+      "source_add called with source_type='file' for PDF",
+      "source_add called with source_type='url' for arXiv URL",
+      "source_add called with source_type='url' for YouTube URL (NLM auto-extracts transcript)",
+      "source_add called with source_type='drive' for Google Docs URL with document_id extracted",
+      "All 4 sources appear in phase3-sources.json",
+      "wait=True used for each source_add call"
+    ],
+    "success_criteria": "phase3-sources.json lists 4 sources with correct types; notebook_query succeeds referencing content from all sources"
+  },
+  {
+    "id": "resume-idempotency",
+    "description": "Resume from interrupted pipeline — skip completed phases",
+    "input": "Resume the 'Introduction to NLP' curriculum build with --resume",
+    "expected_behavior": [
+      "Checks manifest.json for completed phases",
+      "Skips Phase 1-4 if syllabus.md and authority-map.md already exist",
+      "Resumes from the first incomplete module in Phase 5 or Phase 6",
+      "Does not overwrite existing artifacts",
+      "Updates manifest.json with newly completed items"
+    ],
+    "success_criteria": "Only incomplete phases/modules are processed; existing files remain unchanged; manifest.json updated"
+  }
+]

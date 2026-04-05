@@ -49,16 +49,16 @@ Use when the user asks to "meta-harness optimize", "outer-loop optimize skill", 
 PROCEDURE MetaHarnessOptimize(target, eval_fn, N, k):
   run_id ← generate_uuid()
   archive ← TraceArchive("_workspace/meta-harness/{run_id}/")
-  
+
   -- Phase 1: Initialize
   H ← {target}                          -- seed population (current skill)
   D_search, D_val ← split(eval_data, search_split)
-  
+
   -- Phase 2: Evaluate seed
   FOR h IN H:
     scores, traces ← evaluate(h, D_search)
     archive.log_candidate(h.id, h.source, scores, traces)
-  
+
   -- Phase 3: Outer loop (N iterations)
   FOR i IN 1..N:
     -- Proposer selectively reads archive
@@ -66,7 +66,7 @@ PROCEDURE MetaHarnessOptimize(target, eval_fn, N, k):
       pattern="scores.json AND traces/*.log",
       strategy="selective_grep"           -- not full dump
     )
-    
+
     -- Generate k new candidates via code-level mutations
     candidates ← proposer.generate(
       context=context,
@@ -75,28 +75,28 @@ PROCEDURE MetaHarnessOptimize(target, eval_fn, N, k):
                       "evaluation_pipeline"],
       k=k
     )
-    
+
     -- Validate and evaluate
     FOR c IN candidates:
       IF validate_interface(c):
         scores, traces ← evaluate(c, D_search)
         archive.log_candidate(c.id, c.source, scores, traces)
-    
+
     -- Update Pareto frontier
     archive.update_pareto(objectives)
-    
+
     -- Checkpoint: emit progress
     report_iteration(i, archive.get_pareto_frontier())
-  
+
   -- Phase 4: Final validation on held-out set
   pareto_set ← archive.get_pareto_frontier()
   FOR h IN pareto_set:
     val_scores ← evaluate(h, D_val)
     archive.update_validation(h.id, val_scores)
-  
+
   -- Phase 5: Report
   archive.generate_report()              -- markdown + Pareto chart data
-  
+
   RETURN pareto_set                      -- human selects from frontier
 ```
 
@@ -214,7 +214,7 @@ No candidate replaces a production skill without explicit user approval. The ski
 
 ```
 User: meta-harness optimize daily-stock-check
-Agent: 
+Agent:
 1. Reading target skill at .cursor/skills/trading/daily-stock-check/SKILL.md
 2. Preparing evaluation data from outputs/screener-*.json (50 cases)
 3. Split: 25 search / 25 validation

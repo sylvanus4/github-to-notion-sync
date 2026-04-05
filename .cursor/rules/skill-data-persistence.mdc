@@ -28,7 +28,7 @@ Example `config.json`:
 ```json
 {
   "slack_channel_id": "C0AA8NT4T8T",
-  "notion_parent_page": "3209eddc34e6801b8921f55d85153730",
+  "notion_parent_page": "3209eddc34e6801b8921f55d85153730",  // pragma: allowlist secret
   "default_model": "sonnet",
   "max_results": 10
 }

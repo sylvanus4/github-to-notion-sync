@@ -52,15 +52,19 @@ Using the system prompt from `references/system-prompt.md`, rewrite each section
 
 **English version:**
 - Professional, authoritative domain-expert tone
-- Short bullet points with key metrics highlighted
+- Short bullet points with key metrics highlighted (≤6 words per bullet — Winston rule)
 - Clear headers matching the original section structure
 - Presentation-ready: no paragraphs, only scannable points
+- ≤40 words of visible text per slide section (Winston: slides support the speaker, they don't replace the speaker)
+- Image/diagram cues in brackets where a visual would strengthen the point
 
 **Korean version:**
 - 전문가 톤 (formal expert voice)
 - Same structure and data points as the English version
 - Natural Korean business/technical phrasing
 - 핵심 지표와 데이터 강조
+- Same Winston density rules: ≤40 words per slide section, ≤6 words per bullet
+- Speaker narration belongs in presenter notes, not on the slide face
 
 Combine all English sections into one document. Combine all Korean sections into one document.
 
@@ -87,7 +91,7 @@ studio_create(notebook_id, artifact_type="slide_deck", slide_format="detailed_de
 
 Available `slide_format` options:
 - `detailed_deck` (default) -- comprehensive slides with full content
-- `presenter_slides` -- speaker-note style with key talking points
+- `presenter_slides` -- speaker-note style with key talking points (Winston-recommended: keeps slide face minimal, puts narration in notes)
 
 Available `slide_length` options:
 - `default` -- standard length
@@ -185,6 +189,7 @@ This will:
 |---------|-----|
 | Authentication expired | Run `nlm login` in terminal, then call `refresh_auth` MCP tool |
 | Slides lack depth | Check that the rewrite step produced substantive content, not summaries |
+| Too much text on slides | Apply Winston density rules: ≤40 words visible per slide, ≤6 words per bullet; move narration to speaker notes |
 | Wrong language mix | Use `--lang en` or `--lang ko` to generate single-language versions |
 | Generation timeout | Poll `studio_status` every 30-60s; slides take **5-8 minutes** typically |
 | File not found after download | Use **absolute path** in `output_path`; MCP server resolves from its own cwd |
@@ -196,3 +201,18 @@ This will:
 - **notebooklm-studio** -- ad-hoc studio content generation
 - **nlm-video** -- same pipeline but for video generation
 - **anthropic-pptx** -- local PowerPoint creation without NotebookLM
+- **winston-speaking-coach** -- pre-production coaching for slide content audit and delivery
+
+## Winston Framework Integration
+
+Content rewriting in Step 3 enforces these Winston "How to Speak" principles:
+
+| Principle | Application |
+|-----------|-------------|
+| **≤40 words per slide** | Rewrite step caps visible text per section |
+| **≤6 words per bullet** | Keywords and metrics only — no sentences |
+| **Image cues** | Rewrite inserts `[visual: ...]` placeholders for diagrams/charts |
+| **Presenter Mode** | `presenter_slides` format keeps narration in notes, not on slide face |
+| **Speaker ≠ Slide** | Content the presenter will say goes in speaker notes |
+
+For a full Winston coaching session before generating slides, run `winston-speaking-coach` first and use its Slide Audit output to guide the rewrite.

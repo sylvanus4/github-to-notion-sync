@@ -49,48 +49,68 @@ After updates, emit **one** user-facing summary listing: files touched, pruned c
 
 ## Knowledge Architecture
 
-The project's context is organized in three tiers:
+The project's context uses a 3-layer memory architecture ("Memory = Index, Not Storage"):
 
-### Tier 1: Working Memory (always loaded)
+### Layer 1: Index (always loaded, ~5K tokens total)
 
 | Source | Path | Content |
 |--------|------|---------|
-| MEMORY.md | `MEMORY.md` | Decisions, tasks, issues, session context |
+| Pointer index | `MEMORY.md` | ~150-char pointer lines to topic files and sessions (max 50 HOT entries) |
+| Redirect stub | `AGENTS.md` | Static topic file directory (~200 tokens) |
+| Compacted prefs | `.cursor/rules/learned-memory.mdc` | Top-30 preference/fact bullets with topic file pointers |
 | Rules | `.cursor/rules/*.mdc` | Persistent behavior rules |
-| Skill descriptions | `.cursor/skills/*/SKILL.md` frontmatter | Skill registry (description field only) |
 
-### Tier 2: Domain Knowledge (loaded on demand)
+### Layer 2: Topic Files (loaded on demand)
 
 | Source | Path | Content |
 |--------|------|---------|
+| Preferences | `memory/topics/preferences.md` | User prefs, doc standards, commit conventions |
+| Workspace facts | `memory/topics/workspace-facts.md` | Repos, tools, infra, doc paths |
+| Pipeline ops | `memory/topics/pipeline-ops.md` | Pipeline protocols, today/google-daily/git-sync |
+| Trading stack | `memory/topics/trading-stack.md` | Agent desk, MiroFish, Toss/KIS/Kiwoom |
+| Slack routing | `memory/topics/slack-routing.md` | Channel IDs, routing rules |
+| Skill ecosystem | `memory/topics/skill-ecosystem.md` | Skill registry, reorganization, harness |
+| Runbooks | `memory/topics/runbooks.md` | Operational procedures |
+| Tech debt | `memory/topics/tech-debt.md` | Known debt, structural issues |
+| Decisions | `memory/decisions.md` | Architecture/tool/pattern choices |
+| Patterns | `memory/patterns.md` | Recurring failure/success patterns |
+| Glossary | `memory/glossary.md` | Project terms, acronyms |
 | Skill bodies | `.cursor/skills/*/SKILL.md` | Full skill instructions |
-| Skill references | `.cursor/skills/*/references/*.md` | Detailed reference docs |
 | Task tracking | `tasks/todo.md` | Current and completed tasks |
-| Lessons learned | `tasks/lessons.md` | Patterns from past corrections |
-| Known issues | `KNOWN_ISSUES.md` | Documented bugs and patterns |
 
-### Tier 3: Project Knowledge (searchable)
+### Layer 3: Transcripts (grep/BM25 only, never loaded directly)
 
 | Source | Path | Content |
 |--------|------|---------|
-| Product docs | `docs/` | PRDs, ADRs, architecture docs |
+| Sessions | `memory/sessions/*.md` | Auto-extracted session transcripts |
+| Archive | `memory/archive/*.md` | COLD-tier entries (attention decay < 0.3) |
+| Project docs | `docs/` | PRDs, ADRs, architecture docs |
 | API schemas | `backend/app/api/` | Endpoint definitions |
-| DB models | `backend/app/models/` | Data schema |
-| Constants | `backend/app/core/constants.py` | Ticker maps, categories |
-| Config | `.env.example`, `docker-compose.yml` | Infrastructure config |
+
+## Write Discipline (CRITICAL)
+
+Never dump full content into `MEMORY.md` or `AGENTS.md`. Follow this order:
+
+1. Write detail to the appropriate `memory/topics/*.md` file
+2. Add a ~150-char pointer line to `MEMORY.md`
+3. Or automate: `python scripts/memory/memory_classify.py "entry text"`
+
+Maintenance scripts:
+- `python scripts/memory/attention_decay.py --apply` — prune COLD entries to `memory/archive/`
+- `python scripts/memory/extract-sessions.py --incremental` — extract sessions with hash dedup
 
 ## Workflow
 
 ### Mode 1: MEMORY.md Refresh
 
-Update MEMORY.md with current project state.
+Maintain MEMORY.md as a pointer index (max 50 HOT entries, ~3K tokens).
 
-**Step 1 — Audit current MEMORY.md:**
+**Step 1 — Audit current pointers:**
 
 Read `MEMORY.md` and identify:
-- Stale entries (decisions that have been superseded)
-- Missing entries (recent work not captured)
-- Incorrect entries (facts that changed)
+- Stale pointers (topics that moved or were archived)
+- Missing pointers (recent work not captured)
+- Pointers that are too verbose (should be ≤150 chars)
 
 **Step 2 — Gather fresh context:**
 
@@ -98,29 +118,14 @@ Run these in parallel:
 1. `git log --oneline -20` — recent commits
 2. Read `tasks/todo.md` — current task state
 3. Read `tasks/lessons.md` — recent lessons
-4. Scan `.cursor/skills/` — any new or removed skills
-5. Check `backend/app/core/constants.py` — ticker changes
+4. Scan `memory/topics/` — any new or modified topic files
 
-**Step 3 — Update MEMORY.md:**
+**Step 3 — Update via write discipline:**
 
-Apply the MEMORY.md protocol from `.cursor/rules/self-improvement.mdc`:
-
-```markdown
-## [decision] Title (YYYY-MM-DD)
-- Context: why this decision was made
-- Choice: what was decided
-- Alternatives considered: what was rejected and why
-
-## [task] Title (YYYY-MM-DD)
-- Status: completed/in-progress/blocked
-- Key artifacts: file paths created or modified
-
-## [issue] Title (YYYY-MM-DD)
-- Symptom: what went wrong
-- Resolution: how it was fixed
-```
-
-Remove entries older than 30 days unless they contain architectural decisions.
+For each new entry:
+1. Write detail to `memory/topics/{topic}.md`
+2. Add pointer to `MEMORY.md`: `[category] Short description → memory/topics/{topic}.md`
+3. If pointers > 50, run `python scripts/memory/attention_decay.py --apply`
 
 ### Mode 2: Context Package Creation
 

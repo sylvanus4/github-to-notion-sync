@@ -325,6 +325,19 @@ If Step 3c produced new merge commits, push them to `tmp`:
 git push origin HEAD:tmp
 ```
 
+### Phase 3f: lat.md Drift Check
+
+For each project that has a `lat.md/` directory:
+
+```bash
+cd PROJECT_PATH
+[ -d "lat.md" ] && lat check || true
+```
+
+Record per-project result: `{lat_check: "pass"|"warnings"|"errors"|"no_lat_dir"}`.
+
+Non-blocking: log warnings in the Slack and chat reports but do not halt the pipeline.
+
 ### Phase 4: Verify Sync
 
 For each project:

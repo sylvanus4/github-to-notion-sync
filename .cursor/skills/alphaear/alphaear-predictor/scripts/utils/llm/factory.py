@@ -4,6 +4,7 @@ from agno.models.ollama import Ollama
 from agno.models.dashscope import DashScope
 from agno.models.deepseek import DeepSeek
 from agno.models.openrouter import OpenRouter
+from agno.models.anthropic import Claude
 
 def get_model(model_provider: str, model_id: str, **kwargs):
     """
@@ -106,6 +107,17 @@ def get_model(model_provider: str, model_id: str, **kwargs):
             base_url=os.getenv("UST_URL"),
             role_map=role_map,
             extra_body={"enable_thinking": False}, # TODO: one more setting for thinking
+            **kwargs
+        )
+
+    elif model_provider == "anthropic":
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            print("Warning: ANTHROPIC_API_KEY not set.")
+
+        return Claude(
+            id=model_id,
+            api_key=api_key,
             **kwargs
         )
 

@@ -103,7 +103,7 @@ Check `last_compiled` dates and source publication dates:
 Identify articles that likely should cross-reference but don't:
 
 ```
-ℹ SUGGESTED CONNECTION: 
+ℹ SUGGESTED CONNECTION:
   [[positional-encoding]] and [[rotary-embeddings]]
   → Both discuss position representation but don't reference each other
   Suggestion: Add cross-reference or create connection article
@@ -192,7 +192,7 @@ If `--fix` is specified, automatically fix trivial issues:
 ✓ KB Lint complete: {topic}
   Issues: {high} high, {medium} medium, {low} low
   Report: knowledge-bases/{topic}/outputs/lint-report-{date}.md
-  
+
   Top actions:
   1. Fix {N} broken links
   2. Create {N} missing articles
