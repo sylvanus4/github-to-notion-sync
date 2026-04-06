@@ -14,7 +14,7 @@ User input: $ARGUMENTS
 
 ### Flags
 
-- No arguments: scan all configured repos for `release:thu` PRs
+- No arguments: scan all configured repos for `release:approved` PRs
 - `--repo <owner/repo>`: scan a specific repository only
 - `--skip-notion`: collect and validate without updating Notion
 - `--skip-slack`: collect without posting to Slack
