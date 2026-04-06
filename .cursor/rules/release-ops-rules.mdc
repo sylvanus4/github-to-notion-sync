@@ -1,0 +1,192 @@
+# Release Operations Rules
+
+> **Activation guard**: Apply this rule when working on release operations (skills under `.cursor/skills/release/`, commands starting with `release-*` or `hotfix-*`, or any task referencing the weekly release cycle). Do NOT apply for unrelated tasks.
+
+## Release Model: Label-Gated RC Branch
+
+This team has **no staging environment**. Image builds happen **after** PR merge to `dev`. QA is performed on the `dev` environment using a frozen RC image. The release flow uses an **opt-in label policy** to prevent unverified changes from reaching production.
+
+### Fundamental Principle: Opt-In, Not Opt-Out
+
+Every PR merged to `dev` is **excluded by default** from the Thursday release. App owners must explicitly approve their PR for inclusion by adding the `release:approved` label after verifying the change works in the `dev` environment. This prevents WIP, experimental, or broken features from accidentally shipping.
+
+## 7 Core Rules
+
+1. **No `release:approved` label → Excluded from release**
+   A merged PR is included in the RC branch ONLY if the app owner has added `release:approved` after verifying the change in dev. Unlabeled PRs are auto-held at Tuesday cutoff.
+
+2. **No QA result by Wednesday EOD → No Thursday deployment**
+   Every item in the RC must have a recorded QA result (Pass, Fail, or Conditional Pass) by end of Wednesday. Items without QA results are reverted from RC and excluded.
+
+3. **Hotfixes require impact statement and notification status**
+   Every hotfix MUST include: customer/business impact description, business team notification status, and QA completion status. Hotfixes missing any of these are blocked.
+
+4. **Every item needs an accountable app owner**
+   Each release item MUST have an assigned app owner who can explain the change, its impact, and the rollback plan. Orphaned items (no assignee) are excluded.
+
+5. **No new items on deployment day**
+   Thursday's release list is locked. New items CANNOT be added on deployment day. The only exception is approved hotfixes through the `#hotfix-alert` channel.
+
+6. **PR description must have the 5 required sections**
+   Every PR labeled `release:approved` or `hotfix` MUST have all 5 sections filled: Changes, User Impact, QA Method, Rollback Method, Related Issue/Ticket.
+
+7. **`release:approved` and `hotfix` are mutually exclusive**
+   A single PR CANNOT carry both. Regular releases follow the weekly cycle; hotfixes follow the emergency path.
+
+## GitHub Label Taxonomy
+
+### Release Inclusion Labels (3-Label Gate System)
+
+| Label | Meaning | Default State | Who Applies | When |
+|---|---|---|---|---|
+| `release:approved` | ✅ Verified in dev, include in this week's release | — | App owner | After testing in dev, before Monday EOD |
+| `release:hold` | 🟡 Intentionally deferred to next cycle | — | App owner | Anytime — WIP, dependency, timing reasons |
+| `release:blocked` | 🔴 Issues found in dev, must NOT ship | — | App owner or QA | When bugs discovered in dev |
+| *(no release label)* | Treated as `release:hold` at Tuesday cutoff | This is the default | — | Auto-applied Tuesday 10:00 AM |
+
+**Key constraint**: Only `release:approved` PRs are included. Everything else is excluded.
+
+### PR Lifecycle After Merge
+
+```
+PR merged to dev
+  → CI builds image → deployed to dev environment
+  → App owner tests in dev
+    ├─ Works correctly    → add `release:approved` + `risk:*`
+    ├─ Not ready/WIP      → add `release:hold` (or leave unlabeled)
+    └─ Bug found          → add `release:blocked`
+```
+
+### Existing Labels (already on the repo)
+
+| Category | Labels | Usage in Release Ops |
+|---|---|---|
+| Change type | `bug`, `enhancement`, `feature`, `refactoring`, `performance`, `chore`, `security` | Classify what kind of change the PR is. |
+| Area | `backend`, `pods-service`, `workloads-eda` | Identify which service/area is affected. |
+| Severity | `severity:critical` | Marks critical issues; maps to `risk:high`. |
+| Process | `deployment`, `testing` | Infra/deploy changes or test-only PRs. |
+| Automation | `automated`, `dependencies`, `github_actions` | Auto-generated PRs. Usually low risk. |
+
+### New Labels (to be created for release ops)
+
+```bash
+# Release inclusion gate (3-label system)
+gh label create "release:approved" --color "0E8A16" --description "Dev-verified, include in Thursday release"
+gh label create "release:hold" --color "FBCA04" --description "Deferred — skip this release cycle"
+gh label create "release:blocked" --color "D93F0B" --description "Issues found — must NOT ship"
+
+# Hotfix
+gh label create "hotfix" --color "B60205" --description "Urgent fix outside regular cycle"
+
+# QA status
+gh label create "qa:needed" --color "FBCA04" --description "QA testing required"
+gh label create "qa:done" --color "0E8A16" --description "QA testing completed"
+
+# Risk classification
+gh label create "risk:low" --color "C2E0C6" --description "Low risk change"
+gh label create "risk:medium" --color "FEF2C0" --description "Medium risk change"
+gh label create "risk:high" --color "F9D0C4" --description "High risk change"
+```
+
+### Validation
+
+A merged PR is considered **release-ready** when it has:
+1. `release:approved` label (mandatory — opt-in gate)
+2. Exactly one `risk:*` label (`risk:low`, `risk:medium`, `risk:high`)
+3. At least one area/type label from existing labels
+4. PR description with all 5 required sections filled
+5. An assignee (app owner)
+
+### Risk Mapping from Existing Labels
+
+| Existing label pattern | Default risk | Rationale |
+|---|---|---|
+| `dependencies` or `automated` | `risk:low` | Auto-generated, scoped changes |
+| `refactoring` or `chore` or `testing` | `risk:low` | No user-facing behavior change |
+| `bug` or `performance` | `risk:medium` | Behavior change, but targeted fix |
+| `security` or `severity:critical` | `risk:high` | Broad impact, requires careful rollback |
+| `deployment` or `feature` or `enhancement` | `risk:medium` | New functionality or infra — assess per case |
+
+## RC Branch Model (No Staging)
+
+### Weekly Flow
+
+```
+Mon 18:00  │ Bot sends reminder for unlabeled merged PRs
+Tue 10:00  │ CUTOFF: unlabeled PRs → auto release:hold
+Tue 10:00  │ Cut release/{date} branch from dev HEAD
+Tue 10:30  │ Revert non-approved PRs on release branch (reverse chrono)
+Tue 11:00  │ Build RC image from release branch → deploy to dev env
+Tue PM     │ Notify QA team: RC image ready on dev
+Wed all-day│ QA on dev environment (running RC image)
+Wed EOD    │ QA gate: pass/fail for each item
+Thu AM     │ Deploy RC image to production
+Thu PM     │ Restore dev env to latest dev HEAD image
+```
+
+### RC Branch Creation Process
+
+```bash
+# 1. Identify the last release tag
+LAST_RELEASE=$(git tag --list 'v20*' --sort=-creatordate | head -1)
+
+# 2. List merged PRs since last release
+gh pr list --state merged --base dev \
+  --search "merged:>=$(git log -1 --format=%ci $LAST_RELEASE | cut -d' ' -f1)" \
+  --json number,title,mergeCommit,labels,assignees
+
+# 3. Classify PRs
+#   approved_prs: has release:approved label
+#   excluded_prs: has release:hold, release:blocked, or NO release label
+
+# 4. Create release branch
+git checkout -b release/$(date +%Y-%m-%d) dev
+
+# 5. Revert excluded PRs (reverse chronological order to minimize conflicts)
+for pr in excluded_prs (sorted newest-merge-first):
+  git revert --no-edit <merge_commit_sha>
+
+# 6. Push release branch → triggers RC image build
+git push origin release/$(date +%Y-%m-%d)
+
+# 7. Tag RC
+git tag v$(date +%Y.%m.%d)-rc release/$(date +%Y-%m-%d)
+git push origin v$(date +%Y.%m.%d)-rc
+```
+
+### Conflict Resolution
+
+When reverting excluded PRs causes a conflict:
+1. Release Owner resolves the conflict manually
+2. If unresolvable: the conflicting approved PR is removed from RC (set to `release:hold`)
+3. Always revert in reverse chronological order (newest first) to minimize cascading conflicts
+
+### Post-Deploy Cleanup
+
+After Thursday production deployment:
+1. Restore dev environment to latest `dev` HEAD image
+2. Merge `release/{date}` branch to `main` and tag as `v{YYYY.MM.DD}`
+3. PRs with `release:hold` remain on `dev` for next cycle evaluation
+4. PRs with `release:blocked` need fixes before reconsideration
+
+## Weekly Timeline Constraints
+
+| Day | Time | Action | Actor |
+|---|---|---|---|
+| After merge | Anytime | Test in dev, apply release label | App owner |
+| Monday | 18:00 KST | Reminder for unlabeled merged PRs | Bot (GitHub Action) |
+| Tuesday | 10:00 KST | Auto-hold unlabeled PRs, cut RC branch | Bot + Release Owner |
+| Tuesday | 11:00 KST | RC image deployed to dev for QA | CI/CD |
+| Wednesday | All day | QA on dev (RC image) | QA team |
+| Wednesday | EOD | QA results due | QA team |
+| Thursday | AM | Deploy RC image to production | Release Owner |
+| Thursday | PM | Restore dev to latest HEAD | Release Owner |
+
+## Slack Channel Routing
+
+| Channel | Content |
+|---|---|
+| `#release-control` | Release operations: collection, RC status, QA status, deploy confirmation |
+| `#hotfix-alert` | Hotfix-only: urgent candidates, business impact, deploy status |
+
+Blocker escalations that require decisions route to `#효정-의사결정` via the `decision-router` skill.

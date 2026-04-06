@@ -13,7 +13,7 @@ description: >-
   Do NOT use for single article analysis (use x-to-slack).
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "1.2.0"
   category: "execution"
 ---
 # Bespin News Digest
@@ -235,6 +235,24 @@ print(f"Found {len(articles)} articles")
 
 **Subagent**: return only `{ "status", "file", "summary" }` for `phase-2-parse-articles.json`.
 
+## Phase 2.5 — Cross-Repo Dedup Check (MANDATORY)
+
+Before processing articles, check each URL against the centralized intelligence registry to prevent duplicate analysis and Slack posting.
+
+```bash
+RESEARCH_REPO="$HOME/thaki/research"
+REGISTRY="$RESEARCH_REPO/scripts/intelligence/intel_registry.py"
+
+# For each article URL from phase-2-parse-articles.json:
+python3 "$REGISTRY" check "{ARTICLE_URL}"
+# Exit code 0 = new URL (process it)
+# Exit code 1 = already processed (skip it)
+```
+
+Filter the article list: remove any URL where `intel_registry.py check` returns exit code 1. Update `phase-2-parse-articles.json` with a `dedup_skipped` count and a `filtered_articles` array containing only new URLs. Log skipped URLs in `manifest.json` `warnings`.
+
+If ALL articles are duplicates, skip to Phase 6 with a summary noting "All articles previously processed".
+
 ## Phase 3 — Per-Article Pipeline
 
 > **CRITICAL — CHANNEL ROUTING**: ALL articles MUST be posted to `#bespin-news` (`C0ANL38CBPG`).
@@ -399,7 +417,56 @@ Detection criteria for bespin-news articles:
 If a decision is detected, flag the article for Phase 7 (decision summary) consolidation. Store:
 `{title, decision_scope, urgency, decision_summary, slack_thread_link}`.
 
-### Step 3g: Persist & manifest (per article)
+### Step 3g: Intelligence Artifact Save & URL Registration (MANDATORY)
+
+After posting the 3-message Slack thread, save an intelligence artifact to the centralized research repo and register the URL:
+
+```bash
+RESEARCH_REPO="$HOME/thaki/research"
+REGISTRY="$RESEARCH_REPO/scripts/intelligence/intel_registry.py"
+ARTIFACT_DIR="$RESEARCH_REPO/outputs/intelligence/$(date +%Y-%m-%d)"
+mkdir -p "$ARTIFACT_DIR"
+```
+
+Generate a markdown artifact file with the article analysis:
+
+```markdown
+---
+source: bespin-news-digest
+url: {ARTICLE_URL}
+title: {ARTICLE_TITLE}
+date: {YYYY-MM-DD}
+classification: {AI GPU Cloud | topic-specific}
+---
+
+# {ARTICLE_TITLE}
+
+## Source
+- Publication: {publication name} ({domain})
+- Original URL: {ARTICLE_URL}
+
+## Summary
+{Korean content summary from Message 2 — 핵심 내용 section}
+
+## Research Findings
+{추가 조사 결과 from Message 2}
+
+## Insights
+{인사이트 from Message 3A or 3B}
+
+## References
+{참고 링크 list}
+```
+
+Save the artifact and register the URL:
+
+```bash
+python3 "$REGISTRY" save "{ARTICLE_URL}" "$ARTIFACT_DIR/{slug}.md"
+```
+
+If `$REGISTRY` is unavailable (research repo not found), save the artifact locally to `outputs/bespin-news-digest/{date}/intelligence/` as a fallback. Never skip artifact generation.
+
+### Step 3h: Persist & manifest (per article)
 
 After Steps 3a–3f for **one** article:
 
@@ -433,7 +500,7 @@ missing, the thread is **incomplete** — retry before moving to next article:
 **Inputs (files only):** Load and parse:
 
 - `outputs/bespin-news-digest/{date}/phase-2-parse-articles.json` (counts / order)
-- `outputs/bespin-news-digest/{date}/phase-3-per-article-pipeline.json` (`articles_processed[]` — source, summary, research_findings, insights, reference_links per your schema in 3g)
+- `outputs/bespin-news-digest/{date}/phase-3-per-article-pipeline.json` (`articles_processed[]` — source, summary, research_findings, insights, reference_links per your schema in 3h)
 - `outputs/bespin-news-digest/{date}/manifest.json` (confirm phase 3 `completed`)
 
 Do **not** use chat memory or uncached prior turns to build the document. Derive `processed_articles` by normalizing each `articles_processed` entry into the fields expected below (`source`, `url`, `title`, `summary`, `research_findings`, `insights`, `reference_links`).

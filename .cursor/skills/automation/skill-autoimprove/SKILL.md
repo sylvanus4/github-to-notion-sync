@@ -6,10 +6,14 @@ description: >-
   Supports --trace-aware mode for full execution trace capture (tool calls,
   model outputs, state changes) compatible with meta-harness-optimizer's
   outer-loop code-level optimization via TraceArchive.
+  Supports --harness-mode for optimizing single-file agent harnesses (agent.py)
+  with Docker-isolated benchmark evaluation via autoagent-benchmark, operating
+  on the editable section above the FIXED ADAPTER BOUNDARY.
   Use when the user asks "skill-autoimprove", "auto-improve this skill",
   "스킬 자동 개선", "프롬프트 자동 개선", "스킬 실험 루프", "스킬 최적화 루프",
-  "run evals and fix skill", "self-improve skill", or wants a loop that mutates
-  SKILL.md until scores improve. Produces improved SKILL.md, results.tsv,
+  "run evals and fix skill", "self-improve skill", "harness prompt optimize",
+  "하네스 프롬프트 최적화", or wants a loop that mutates SKILL.md or harness
+  prompts until scores improve. Produces improved SKILL.md, results.tsv,
   changelog.md, and a live HTML dashboard.
   Do NOT use for static audits only (skill-optimizer audit), new skill creation
   (create-skill), single-doc polish without editing the skill (doc-quality-gate
@@ -17,7 +21,7 @@ description: >-
   or paper pipelines (paper-review).
 metadata:
   author: "thaki"
-  version: "2.1.0"
+  version: "2.2.0"
   category: "self-improvement"
 ---
 
@@ -318,6 +322,54 @@ experiment	score	max_score	pass_rate	status	description	output_tokens	signal_rat
 - `doc-quality-gate` / evaluator-optimizer workflows — Improve a specific document output; autoresearch improves the skill prompt itself.
 - `autoskill-evolve` — Mines transcripts for new skill candidates. Autoresearch improves existing skills through runtime experiments.
 - `meta-harness-optimizer` — Outer-loop code-level optimization. Uses `--trace-aware` data from this skill as the inner-loop feedback layer.
+
+---
+
+## Harness Mode (`--harness-mode`)
+
+When invoked with `--harness-mode`, the autoresearch loop operates on a single-file agent harness (`agent.py`) instead of a SKILL.md prompt. Mutations target the editable section of the harness (above the `FIXED ADAPTER BOUNDARY` marker) while benchmark evaluation runs in Docker via `autoagent-benchmark`.
+
+### Activation
+
+```
+skill-autoimprove --harness-mode --target agent.py --tasks data/bench/
+```
+
+Or when `autoagent-loop` invokes this skill in `prompt-only` mode, harness-mode activates automatically with the harness path and task suite forwarded.
+
+### What Changes
+
+| Aspect | Normal Mode | Harness Mode |
+|--------|------------|--------------|
+| Mutation target | SKILL.md prompt text | Editable section of `agent.py` (above fixed boundary) |
+| Evaluation | Local skill execution + binary evals | Docker-isolated benchmark via `autoagent-benchmark` |
+| Scoring | Pass/fail count against eval criteria | Aggregate benchmark score from `ScoreAggregator` |
+| Trace format | `autoimprove-*/traces/` JSON logs | ATIF trajectories via `ATIFLogger` |
+| Experiment tracking | `results.tsv` + `changelog.md` | Same + `ExperimentLedger` JSON ledger |
+| Boundary enforcement | N/A | Never modify content below `FIXED ADAPTER BOUNDARY` |
+
+### Harness Mutation Rules
+
+1. Extract the editable section via `HarnessTemplate.extract_editable()`
+2. Apply one mutation to the editable section only
+3. Reassemble via `HarnessTemplate.replace_editable()`
+4. Run benchmark in Docker to score
+5. Keep/discard per the standard decision logic
+6. Snapshot kept harness via `ExperimentLedger.record()`
+
+### Integration with autoagent-loop
+
+When `autoagent-loop` runs in `prompt-only` mode:
+1. It invokes this skill with `--harness-mode`
+2. This skill treats the harness prompt/instructions as the mutation target
+3. Benchmark scores flow back to `autoagent-loop` for ledger tracking
+4. ATIF trajectories are written to `outputs/autoagent-trajectories/`
+
+### Prerequisites
+
+- Docker installed and running (for benchmark execution)
+- `scripts/autoagent/` package available
+- Task suite in Harbor format (see `autoagent-benchmark` skill)
 
 ---
 

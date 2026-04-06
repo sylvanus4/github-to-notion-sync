@@ -1,6 +1,6 @@
 ---
 name: harness
-description: "Design and generate coordinated multi-agent skill architectures for any domain or project. Analyzes domain requirements, designs agent team patterns (Pipeline, Fan-out/Fan-in, Expert Pool, Producer-Reviewer, Supervisor, Hierarchical Delegation, Composite), generates specialized agent skills as .cursor/skills/ files, creates orchestrator workflows using Cursor's Task tool for parallel and sequential agent execution, and validates the complete system with trigger conflict detection and dry-run testing. Based on revfactory/harness methodology. Use when the user asks to 'build a harness', 'design agent team', 'harness', 'agent team architecture', 'multi-agent workflow design', 'generate agent skills for domain', 'skill architecture', 'orchestrate agents', 'create agent pipeline', 'design agent system', 'agent workflow', 'build agent team for', 'scaffold multi-agent', '하네스 구성해줘', '하네스 구축해줘', '하네스 설계', '에이전트 팀 설계', '에이전트 아키텍처', '멀티에이전트 워크플로우', '스킬 아키텍처 설계', '에이전트 시스템 구축', '팀 기반 자동화', '에이전트 파이프라인', or wants to create a coordinated multi-agent system for a new domain/project. Do NOT use for running an existing harness — invoke the generated orchestrator skill directly. Do NOT use for single-skill creation without team context (use create-skill). Do NOT use for optimizing existing individual skills (use skill-optimizer or skill-autoimprove). Do NOT use for ad-hoc orchestration of existing skills at runtime (use mission-control). Do NOT use for multi-agent design theory only without file generation (use ce-multi-agent-patterns). Do NOT use for converting natural language to skill chains from existing skills (use skill-composer)."
+description: "Design and generate coordinated multi-agent skill architectures for any domain or project. Analyzes domain requirements, designs agent team patterns (Pipeline, Fan-out/Fan-in, Expert Pool, Producer-Reviewer, Supervisor, Hierarchical Delegation, Composite), generates specialized agent skills as .cursor/skills/ files, creates orchestrator workflows using Cursor's Task tool for parallel and sequential agent execution, and validates the complete system with trigger conflict detection and dry-run testing. Supports --single-file mode for generating autoagent-compatible single-file harnesses with editable/fixed boundary sections via HarnessTemplate. Based on revfactory/harness methodology. Use when the user asks to 'build a harness', 'design agent team', 'harness', 'agent team architecture', 'multi-agent workflow design', 'generate agent skills for domain', 'skill architecture', 'orchestrate agents', 'create agent pipeline', 'design agent system', 'agent workflow', 'build agent team for', 'scaffold multi-agent', 'single-file harness', 'scaffold harness', '하네스 구성해줘', '하네스 구축해줘', '하네스 설계', '에이전트 팀 설계', '에이전트 아키텍처', '멀티에이전트 워크플로우', '스킬 아키텍처 설계', '에이전트 시스템 구축', '팀 기반 자동화', '에이전트 파이프라인', '단일 파일 하네스', or wants to create a coordinated multi-agent system for a new domain/project, or scaffold a single-file agent harness for autoagent optimization. Do NOT use for running an existing harness — invoke the generated orchestrator skill directly. Do NOT use for single-skill creation without team context (use create-skill). Do NOT use for optimizing existing individual skills (use skill-optimizer or skill-autoimprove). Do NOT use for ad-hoc orchestration of existing skills at runtime (use mission-control). Do NOT use for multi-agent design theory only without file generation (use ce-multi-agent-patterns). Do NOT use for converting natural language to skill chains from existing skills (use skill-composer)."
 metadata:
   version: "1.2.0"
   tags: ["meta-skill", "agent-team", "skill-architect", "orchestration", "multi-agent"]
@@ -341,6 +341,81 @@ Once a harness is deployed and producing execution traces, apply the Meta-Harnes
 - [ ] Review generated `report.md` after each run
 
 Related skills: `meta-harness-optimizer` (outer loop), `skill-autoimprove --trace-aware` (inner loop), `scripts/meta_harness_trace.py` (archive library).
+
+## Single-File Harness Mode (`--single-file`)
+
+Generate a single-file agent harness with clear editable and fixed boundary sections, compatible with `autoagent-loop` optimization. Uses `HarnessTemplate` from `scripts/autoagent/`.
+
+### Activation
+
+```
+사용자: "단일 파일 하네스 생성해줘" / "scaffold single-file harness"
+→ harness 스킬이 --single-file 모드로 실행
+```
+
+Or explicitly:
+```
+/harness --single-file --sdk openai --output agent.py
+/harness --single-file --sdk claude --output agent.py
+```
+
+### What It Produces
+
+Instead of multiple SKILL.md files and an orchestrator, this mode generates a single `agent.py` file with:
+
+1. **Editable section** (above the boundary marker) — agent logic, tools, prompts that the meta-agent can modify
+2. **Fixed adapter boundary** (below the marker) — CLI interface, Docker glue, scoring hooks that must never change
+
+```python
+# ═══════════════ EDITABLE SECTION ═══════════════
+# The meta-agent may modify everything above the boundary.
+
+SYSTEM_PROMPT = "..."
+TOOLS = [...]
+
+async def solve(task: str) -> str:
+    ...
+
+# ═══════════════ FIXED ADAPTER BOUNDARY ═══════════════
+# Everything below is infrastructure. Do NOT modify.
+
+if __name__ == "__main__":
+    ...
+```
+
+### SDK Support
+
+| SDK | Template | Agent Framework |
+|-----|----------|-----------------|
+| `openai` | OpenAI Agents SDK (`agents` package) | `Agent`, `Runner`, `function_tool` |
+| `claude` | Claude Agent SDK (`claude_agent_sdk`) | `create_agent`, `run_agent`, `tool` |
+
+### Configuration
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--sdk` | `openai` | Target SDK: `openai` or `claude` |
+| `--output` | `agent.py` | Output file path |
+| `--model` | SDK default | Model to use in the harness |
+| `--tools` | `[]` | Comma-separated tool names to include |
+| `--name` | `"agent"` | Agent name in the generated code |
+
+### How It Connects
+
+- The generated harness feeds directly into `autoagent-loop` for optimization
+- `autoagent-benchmark` can build a Docker image from the harness and run task suites
+- `skill-autoimprove --harness-mode` can mutate the editable section
+- `meta-harness-optimizer --atif-import` can consume benchmark trajectories
+
+### Generation Flow
+
+1. Read `HarnessTemplate` from `scripts/autoagent/harness_template.py`
+2. Call `HarnessTemplate.generate(sdk=sdk, model=model, tools=tools, agent_name=name)`
+3. Write the output file
+4. Optionally generate a Dockerfile via `HarnessTemplate.generate_dockerfile()`
+5. Optionally generate a starter task suite in Harbor format
+
+---
 
 ## 산출물 체크리스트
 

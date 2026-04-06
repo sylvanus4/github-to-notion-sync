@@ -19,7 +19,7 @@ description: >-
   Do NOT use for ad-hoc Notion page creation (use Notion MCP directly).
 metadata:
   author: thaki
-  version: 2.0.1
+  version: 2.1.0
   category: research
 ---
 
@@ -440,6 +440,30 @@ For the full field mapping and implementation steps, see
 [paper-archive integration hooks](../paper-archive/references/integration-hooks.md).
 
 Skills used: **paper-archive**
+
+## Phase 10: Research Repo Sync (MANDATORY)
+
+Always runs after Phase 9. Best-effort: failures do NOT block the pipeline.
+
+Copy the paper review markdown and key artifacts to the centralized research repository for Karpathy KB accumulation, and register the paper URL in the central intelligence registry.
+
+1. Copy the review markdown to `~/thaki/research/outputs/papers/{date}/{slug}.md`.
+2. Register the paper URL in the central dedup registry:
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
+  "{paper_url}" "outputs/papers/{paper_review_filename}" \
+  --type paper \
+  --topic ai-research
+```
+
+This enables:
+- Cross-repo deduplication: the same paper won't be reviewed twice from different repos/machines.
+- Automatic KB ingestion: `kb_intel_router.py` routes `outputs/papers/` artifacts to the `ai-research` Karpathy KB.
+- Compound knowledge growth: paper reviews accumulate in the wiki and become queryable via `kb-query`.
+
+If the research repo is not found, log a warning and skip (graceful degradation).
 
 ---
 

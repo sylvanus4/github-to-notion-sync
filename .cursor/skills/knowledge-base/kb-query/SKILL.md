@@ -15,9 +15,9 @@ description: >-
   "KB 쿼리", "지식베이스에서 찾아줘".
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "2.0.0"
   category: "execution"
-  tags: ["knowledge-base", "query", "q-and-a", "research"]
+  tags: ["knowledge-base", "query", "q-and-a", "research", "three-layer"]
 ---
 
 # KB Query — Knowledge Base Q&A
@@ -26,11 +26,17 @@ Research complex questions against your LLM-maintained wiki. The agent navigates
 
 ## Core Approach
 
-This is "poor man's RAG" — no vector database needed. The LLM reads lightweight index files (~2-5K tokens) to identify relevant articles, then reads only those articles for depth. At scales up to ~100 articles and ~400K words, this approach works remarkably well.
+Two complementary retrieval strategies:
+
+1. **SQLite FTS5 + Vector** (primary): When `brain_index.db` exists, use `kb_search.py` for fast FTS5 or hybrid search to identify relevant articles. Scales to hundreds of articles with sub-second retrieval.
+2. **Index-file scan** (fallback): Read lightweight `_index.md` (~2-5K tokens) and match question keywords against summaries. Works without any DB.
+
+At scales up to ~100 articles and ~400K words, both approaches work well. The SQLite path is preferred for precision and speed.
 
 ## Prerequisites
 
 - Wiki must exist at `knowledge-bases/{topic}/wiki/`
+- For best results: `brain_index.db` built via `python scripts/kb_index_db.py --rebuild`
 - Index files should be current (run kb-index if stale)
 
 ## Input
@@ -47,15 +53,34 @@ Optional:
 
 ## Workflow
 
-### Step 1: Read Index
+### Step 0: Read Schema (MANDATORY)
 
-Read `knowledge-bases/{topic}/wiki/_index.md` to get the full article inventory with summaries.
+Before any query, read `_schema.md` from the KB root directory. Extract:
 
-If `_index.md` doesn't exist or is stale, run kb-index first.
+- **Conventions**: language, terminology, answer structure preferences
+- **Quality Gates**: citation requirements, confidence thresholds, contradiction handling policy
+- **Domain Rules**: topic-specific constraints that affect answer synthesis (e.g., "always distinguish between supervised and unsupervised approaches")
+- **File-back Rules**: required frontmatter fields for query articles, naming conventions for `queries/` directory
 
-### Step 2: Identify Relevant Articles
+If `_schema.md` does not exist, warn the user and suggest running `kb-orchestrator init` first. Proceed with defaults if the user chooses to continue.
 
-Based on the question, identify the most relevant articles from the index:
+### Step 1: Identify Relevant Articles
+
+Use the best available retrieval method:
+
+#### Path A — SQLite FTS5/Hybrid (preferred)
+
+If `brain_index.db` exists, run FTS5 or hybrid search:
+
+```bash
+python scripts/kb_search.py "{question}" --mode auto --json --top 10
+```
+
+This returns ranked results with file paths, scores, and snippets. For conceptual queries, use `--mode hybrid` when vector embeddings are available.
+
+#### Path B — Index File Scan (fallback)
+
+If no SQLite index, read `knowledge-bases/{topic}/wiki/_index.md` to get the article inventory:
 
 1. Match question keywords against article titles and summaries
 2. Follow `related` links to find connected articles
@@ -64,7 +89,7 @@ Based on the question, identify the most relevant articles from the index:
 
 Typically 3-8 articles are sufficient for most queries.
 
-### Step 3: Deep Read
+### Step 2: Deep Read
 
 Read the identified articles in full. For each article, note:
 - Key facts relevant to the question
@@ -72,7 +97,7 @@ Read the identified articles in full. For each article, note:
 - Connections to other concepts
 - Gaps or uncertainties
 
-### Step 4: Synthesize Answer
+### Step 3: Synthesize Answer
 
 Compose a comprehensive answer following this structure:
 
@@ -104,9 +129,18 @@ Compose a comprehensive answer following this structure:
 - [[reference-notes-2]] — supporting data for [aspect]
 ```
 
-### Step 5: File Back into Wiki (Auto)
+### Step 4: File Back into Wiki (Schema-Gated)
 
 By default, every query answer is automatically archived into the wiki. This implements the Karpathy feedback loop where explorations and queries "always add up" in the knowledge base. Use `--no-file-back` to skip this step.
+
+**Quality Gate**: Before filing back, validate the answer against schema quality gates:
+
+1. **Minimum citations** — answer must reference at least N wiki articles (default: 1, configurable via schema)
+2. **Confidence threshold** — if confidence is "low" and schema requires "medium" minimum, flag for human review instead of auto-filing
+3. **Frontmatter compliance** — the filed article must have all schema-required frontmatter fields
+4. **Layer separation** — file-back articles go into `wiki/queries/` (Layer 2), NEVER into `raw/` (Layer 1)
+
+If the quality gate fails, present the answer to the user but log `QUERY-FILE-BACK-BLOCKED` instead of filing.
 
 Save the answer as a new article:
 
@@ -114,20 +148,22 @@ Save the answer as a new article:
 knowledge-bases/{topic}/wiki/queries/{question-slug}.md
 ```
 
-With frontmatter:
+With frontmatter (read template from `_schema.md`, fall back to defaults):
 
 ```yaml
 ---
 title: "Q: {question}"
 category: "queries"
 related: ["concept-1", "concept-2"]
+sources_consulted: ["concept-1.md", "reference-2.md"]
+confidence: "high"  # high | medium | low
 date: "2026-04-03"
 ---
 ```
 
 Then run kb-index to update the index with the new article.
 
-### Step 6: Report
+### Step 5: Report
 
 Present the answer to the user with:
 - The synthesized answer
@@ -177,21 +213,64 @@ For complex questions requiring multi-step reasoning:
 3. Synthesize themes and identify frontier areas
 4. Present ranked recommendations with evidence
 
-### Example 3: File-back query
+### Example 3: File-back query (default behavior)
 
-**User says:** "Query the diffusion KB: how do classifier-free and classifier guidance compare? File it back."
+**User says:** "Query the diffusion KB: how do classifier-free and classifier guidance compare?"
 
 **Actions:**
 1. Research the question against the KB
-2. Write answer to `wiki/queries/classifier-free-vs-classifier-guidance.md`
-3. Run kb-index to update
-4. Report the filed location
+2. Present the answer to the user
+3. **File-back is ON by default**: Write synthesized answer to `wiki/queries/classifier-free-vs-classifier-guidance.md` with proper frontmatter, citations, and `[[wikilinks]]`
+4. Run kb-index to update indexes
+5. Append to `_log.md`: `QUERY: "{question}" → filed to wiki/queries/{slug}.md`
+6. Report the filed location
+
+To skip file-back, user must explicitly say "don't file back" or pass `--no-file-back`.
+
+### Answer Output Formats
+
+Queries can produce answers in multiple formats depending on the question type:
+
+| Question Type | Default Output | Alternative Outputs |
+|---------------|----------------|---------------------|
+| Factual | Markdown article | Bullet summary |
+| Comparison | Comparison table | Pros/cons list |
+| Synthesis | Thematic essay | Mermaid concept map |
+| Timeline | Chronological list | Timeline diagram |
+| Decision | Decision matrix | Recommendation brief |
+
+The LLM should choose the most natural format for the question. User can override with explicit instructions.
+
+## Operations Log
+
+After every query, append to `_log.md` using the **grep-parseable H2 heading format** (never overwrite or truncate):
+
+```markdown
+## [2026-04-03 17:00] QUERY | "How does attention differ from convolution?" | articles_read: 4 | confidence: high | → wiki/queries/attention-vs-convolution.md
+
+## [2026-04-03 17:05] QUERY | "What are the key themes?" | articles_read: 8 | confidence: medium | file-back: blocked (low confidence)
+```
+
+Format: `## [YYYY-MM-DD HH:MM] QUERY | question | articles_read | confidence | → destination_or_status`
+
+If schema-related issues are detected (e.g., missing domain terminology, answer structure doesn't match schema conventions), append a co-evolution suggestion:
+
+```markdown
+## [2026-04-03 17:10] SCHEMA-SUGGEST | source: kb-query | rule: "Add 'queries' category to required frontmatter fields" | status: pending-review
+```
 
 ## Error Handling
 
 | Error | Symptom | Action |
 |-------|---------|--------|
+| No schema | `_schema.md` missing | Warn user, suggest `kb-orchestrator init`, proceed with defaults |
+| Schema parse error | Malformed `_schema.md` | Report parse error, fall back to defaults |
 | No index file | `_index.md` missing | Run kb-index first |
 | No relevant articles | Question doesn't match any KB content | Report "not covered" + suggest kb-ingest |
 | Stale index | Index date much older than newest article | Run kb-index, then re-query |
 | Contradictory sources | Different articles disagree | Present both views with citations |
+
+## Obsidian CLI Integration
+
+Use `obsidian-kb-bridge` to query the KB from the current vault context —
+reads the active note to formulate questions automatically.

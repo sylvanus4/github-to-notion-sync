@@ -12,7 +12,7 @@ description: >-
   .cursor/ assets only (use cursor-sync).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # SOD Ship — Start-of-Day Git Sync Pipeline
@@ -325,7 +325,32 @@ If Step 3c produced new merge commits, push them to `tmp`:
 git push origin HEAD:tmp
 ```
 
-### Phase 3f: lat.md Drift Check
+### Phase 3f: Intelligence KB Routing (Research Repo)
+
+After pulling the research repo, route any new intelligence artifacts (received from other machines via git pull) to Karpathy KB topics. Skip if the research repo was not pulled or does not exist.
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+if [ -d "$RESEARCH_REPO" ] && [ -f "$RESEARCH_REPO/scripts/intelligence/kb_intel_router.py" ]; then
+    python3 "$RESEARCH_REPO/scripts/intelligence/kb_intel_router.py"
+fi
+```
+
+If new artifacts were routed, commit the KB changes and push:
+
+```bash
+cd "$RESEARCH_REPO"
+git add knowledge-bases/
+git diff --cached --quiet || git commit -m "chore: route intelligence artifacts to KB"
+git push origin HEAD
+cd -
+```
+
+Record result: `{intel_routing: "ok", routed: N}` or `{intel_routing: "skipped"}`.
+
+On failure: Warn and continue. Does not block the SOD pipeline.
+
+### Phase 3g: lat.md Drift Check
 
 For each project that has a `lat.md/` directory:
 
@@ -371,6 +396,41 @@ research                         SYNCED    1 commit received
 ai-platform-webui                PARTIAL   12 files committed, push OK, pull conflict in 2 files
 ```
 
+### Phase 4½: GitHub Project #5 Verification
+
+After sync verification, check that any recently created issues and PRs (within the last 24 hours) across the 5 managed repos are properly registered on GitHub Project #5 with complete fields.
+
+```bash
+# 1. List recent issues/PRs for the main repo
+gh issue list --repo ThakiCloud/ai-model-event-stock-analytics --state all --json number,url,createdAt --limit 20
+gh pr list --repo ThakiCloud/ai-model-event-stock-analytics --state all --json number,url,createdAt --limit 10
+
+# 2. Filter to items created in the last 24 hours
+
+# 3. Check Project #5 registration
+gh project item-list 5 --owner ThakiCloud --format json --limit 100
+```
+
+For each recent issue/PR:
+1. Verify it appears in the Project #5 item list
+2. Verify all 5 fields (Status, Priority, Size, Sprint, Estimate) have non-null values
+
+If any item is missing from Project #5, add it with `gh project item-add 5 --owner ThakiCloud --url $ITEM_URL` and run `set_all_fields()` from [commit-to-issue/references/project-config.md](../../review/commit-to-issue/references/project-config.md). Retry once if the first attempt fails.
+
+Record verification result:
+
+```json
+{
+  "project5_check": {
+    "issues": { "verified": N, "total": M, "missing": [] },
+    "prs": { "verified": N, "total": M, "missing": [] },
+    "fields_incomplete": []
+  }
+}
+```
+
+Non-blocking: if `gh project` commands fail (auth issues, API limits), log the error and continue to Phase 5. Include the failure in the Slack notification.
+
 ### Phase 5: Slack Notification
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.
@@ -415,9 +475,17 @@ Call `CallMcpTool` with:
 **dev 브랜치 머지 (ai-platform-webui)**
 - origin/dev 머지: N개 커밋 반영 {완료|충돌|스킵}
 
+**인텔리전스 KB 라우팅**
+- research 레포: N개 아티팩트 라우팅 {완료|건너뜀}
+
 **커서 동기화**
 - N개 파일 Pull → research 허브, M개 파일 Push → 4개 타겟
 - 검증: commands=X  skills=Y  rules=Z (5개 레포 동일)
+
+**GitHub Project #5 검증**
+- 이슈 등록: N/N 확인 ✅ (or ⚠️ M개 누락)
+- 필드 완성도: N/N 완전 ✅ (or ⚠️ M개 불완전)
+- PR 등록: N/N 확인 ✅ (or ⚠️ M개 누락)
 
 **결과**
 - ✅ SYNCED: N/5 | ⚠️ PARTIAL: N/5 | ❌ FAILED: N/5
@@ -539,10 +607,18 @@ SOD 동기화 리포트
 dev 브랜치 머지 (ai-platform-webui):
   origin/dev → tmp: N개 커밋 머지 완료
 
+인텔리전스 KB 라우팅:
+  research 레포: N개 아티팩트 라우팅, M개 스킵
+
 커서 동기화:
   Pull: N개 파일 → research 허브
   Push: M개 파일 → 4개 타겟
   검증: commands=426  skills=498  rules=34 (5개 레포 동일)
+
+GitHub Project #5 검증:
+  이슈 등록: N/N 확인 ✅
+  필드 완성도: N/N 완전 ✅
+  PR 등록: N/N 확인 ✅
 
 결과: SYNCED 5/5, PARTIAL 0/5, FAILED 0/5
 슬랙: #효정-할일 채널에 게시 완료

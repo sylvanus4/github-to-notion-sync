@@ -28,12 +28,14 @@ alwaysApply: true
 - Presentations: practical demos over abstractions; Steve Jobs for keynotes; Korean speaker scripts
 - NLM slides: upload PDF directly; skip papers >9 months old
 - Notion API: no pipe tables; clean up ephemeral MCP/upload files after automation tasks
+- LLM session traces: fold high-signal items into memory/topics + MEMORY.md; support multi-machine via same repo path layout (home/office)
 
 ## Learned Workspace Facts
 <!-- Full detail → memory/topics/workspace-facts.md, pipeline-ops.md, trading-stack.md, slack-routing.md, skill-ecosystem.md, runbooks.md -->
 
 - AI Platform: Go/Fiber + React 19, PostgreSQL, K8s, GPU, Keycloak → memory/topics/workspace-facts.md
 - File-first pipeline: outputs/{pipeline}/{date}/ + manifest.json + phase files → memory/topics/pipeline-ops.md
+- Daily KB raw from today: `python scripts/kb_daily_ingest.py`; Karpathy loop ingest→compile→query→lint via kb-* skills → memory/topics/pipeline-ops.md
 - Trading: agent-desk, MiroFish L5, Toss/KIS/Kiwoom integrations → memory/topics/trading-stack.md
 - Slack: #h-report, #효정-할일, #deep-research-trending, #bespin-news → memory/topics/slack-routing.md
 - Skills: 109+ in 23 subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/` → memory/topics/skill-ecosystem.md
@@ -42,4 +44,5 @@ alwaysApply: true
 - 7-tier platform (Free→Enterprise); Thaki model names only; CPU-first Phase 0 path in financial models
 - AutoResearchClaw at ~/thaki/AutoResearchClaw/; MiroFish at ~/thaki/MiroFish/ (L5 escalation only)
 - ATG: optional accelerator at port 4000; direct MCP fallback when unavailable
+- Weekly release ops: Tue collect → Wed QA → Thu deploy; GitHub labels + Notion Weekly Release/Hotfix Queue; Slack #release-control / #hotfix-alert; skills under `.cursor/skills/release/` → memory/topics/workspace-facts.md
 - Pre-push hook can hang >4min on E2E tests — use git push --no-verify as workaround

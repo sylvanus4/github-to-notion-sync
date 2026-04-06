@@ -9,7 +9,7 @@ description: >-
   non-Twitter content sharing. Korean triggers: "분석", "검색", "리서치", "API".
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "1.2.0"
   category: "execution"
 ---
 # X-to-Slack: Tweet Intelligence Pipeline
@@ -25,6 +25,20 @@ The user provides:
 2. **Slack channel name** -- e.g. `#general` or `general`
 
 ## Workflow
+
+### Step 0.5: Cross-Repo Dedup Check (MANDATORY)
+
+Before any processing, check the central intelligence registry to avoid duplicate Slack posts across repos/machines.
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" check "<tweet_url>"
+```
+
+- **Exit 0 (new)**: Proceed with the pipeline.
+- **Exit 1 (duplicate)**: Report `"이미 처리된 URL입니다 (처음 처리: {first_seen}, 소스: {source_repo})"` and STOP. Do NOT post to Slack.
+
+If the research repo or `intel_registry.py` is not found, log a warning and proceed (graceful degradation).
 
 ### Step 1: Fetch Tweet via FxTwitter API
 
@@ -245,6 +259,48 @@ If any criterion matches, invoke the `x-to-notion` skill with the original tweet
 **Error handling**: If x-to-notion fails, log the error but do NOT fail the overall x-to-slack pipeline. The Slack thread is already posted successfully.
 
 **Skip flag**: If the user passes `skip-notion`, skip this step entirely.
+
+### Step 6: Artifact Save & URL Registration (MANDATORY)
+
+After Slack posting completes (and optional x-to-notion), save the intelligence artifact to the research repo and register the URL.
+
+#### Step 6a: Generate Markdown Artifact
+
+Create a markdown file summarizing this tweet's intelligence:
+
+```markdown
+---
+url: {tweet_url}
+author: @{screen_name}
+date: {created_at}
+slack_channel: {channel_name}
+slack_ts: {message_ts}
+topic: {classified_topic}
+---
+# {Korean title from Message 1}
+
+{Message 2 content (full Korean summary with research)}
+
+{Message 3 content (insights and action items)}
+```
+
+Save to a temporary file, e.g. `/tmp/x-to-slack-{tweet_id}.md`.
+
+#### Step 6b: Save to Research Repo
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
+  "{tweet_url}" "/tmp/x-to-slack-{tweet_id}.md" \
+  --type tweet \
+  --channel "{channel_name}" \
+  --ts "{message_ts}" \
+  --topic intelligence
+```
+
+This copies the artifact to `~/thaki/research/outputs/intelligence/{date}/{slug}.md` and registers the URL in the central dedup registry.
+
+If the research repo is not found, log a warning and skip (graceful degradation). The Slack post is still complete.
 
 ## Examples
 

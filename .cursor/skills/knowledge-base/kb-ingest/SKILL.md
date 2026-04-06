@@ -17,9 +17,9 @@ description: >-
   "지식 베이스에 추가", "자료 수집".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "execution"
-  tags: ["knowledge-base", "ingest", "data-collection"]
+  tags: ["knowledge-base", "ingest", "data-collection", "three-layer"]
 ---
 
 # KB Ingest — Source Material Collector
@@ -55,6 +55,16 @@ knowledge-bases/{topic}/
 
 ## Workflow
 
+### Step 0: Read Schema (MANDATORY)
+
+Before any ingestion, read `_schema.md` from the KB root directory. Extract:
+
+- **Ingestion Rules**: preferred source types, deduplication policy, frontmatter template
+- **Conventions**: naming rules, language, date format
+- **Domain Rules**: topic-specific constraints that affect what to ingest
+
+If `_schema.md` does not exist, warn the user and suggest running `kb-orchestrator init` first. Proceed with defaults if the user chooses to continue.
+
 ### Step 1: Initialize KB Directory
 
 If the topic directory doesn't exist, create it:
@@ -80,6 +90,13 @@ If `manifest.json` doesn't exist, create it:
   }
 }
 ```
+
+### Step 1.5: Schema-Guided Deduplication Check
+
+Before processing any source, check the schema's deduplication policy. By default:
+1. Search `manifest.json` for matching `source_url`
+2. Search `raw/` for files with matching title slugs
+3. If a duplicate is found, follow the schema's policy: `ask` (default), `skip`, or `overwrite`
 
 ### Step 2: Classify Source Type
 
@@ -148,23 +165,25 @@ Update image references in the markdown to use relative paths:
 ![alt](assets/{slug}/{filename})
 ```
 
-### Step 5: Add Frontmatter
+### Step 5: Add Schema-Aware Frontmatter
 
-Ensure every raw markdown file has YAML frontmatter:
+Read the frontmatter template from `_schema.md` (Ingestion Rules section). If the schema defines required fields, ensure they are all populated. Default template if no schema template is specified:
 
 ```yaml
 ---
 title: "Article Title"
-source: "https://original-url.com/article"
-source_type: "web-article"
+source_url: "https://original-url.com/article"
+source_type: "web-article"   # web-article | paper | book-chapter | video-transcript | repo-readme | pdf | text
 author: "Author Name"
 date_published: "2026-01-15"
-date_ingested: "2026-04-03"
+ingested: "2026-04-03"
 tags: []
 word_count: 1234
-summary: ""
+source_refs: ["https://original-url.com/article"]
 ---
 ```
+
+**Schema compliance**: If `_schema.md` defines additional required frontmatter fields (e.g., `domain`, `sub_topic`, `confidence_level`), include them. If a required field cannot be auto-populated, set it to `""` and flag it in the log for manual review.
 
 ### Step 6: Update Manifest
 
@@ -248,12 +267,65 @@ Generate slugs from titles:
 4. Add frontmatter
 5. Update manifest
 
+## Operations Log
+
+After every ingestion, append to `_log.md` using the **grep-parseable H2 heading format** (never overwrite or truncate):
+
+```markdown
+## [2026-04-03 14:30] INGEST | "Attention Is All You Need" | paper | 7800 words | → raw/attention-is-all-you-need.md
+
+## [2026-04-03 14:30] INGEST | "Duplicate Skipped" | web-article | 0 words | dedup-policy: skip | existing: raw/llm-kb-guide.md
+```
+
+Format: `## [YYYY-MM-DD HH:MM] INGEST | title | source_type | word_count | → destination_path`
+
+If schema compliance issues are detected (e.g., source type not in preferred list, missing required frontmatter fields), also append a co-evolution suggestion:
+
+```markdown
+## [2026-04-03 14:35] SCHEMA-SUGGEST | source: kb-ingest | rule: "Add 'podcast-transcript' to preferred source types" | status: pending-review
+```
+
+This provides a chronological audit trail distinct from the content-oriented `_index.md`.
+
+## Interactive Mode (Schema-Guided)
+
+When ingesting long or complex sources (e.g., 50-page PDFs, dense academic papers), consult `_schema.md` for the preferred ingest mode. If the schema specifies a default mode, use it. Otherwise, offer the user a choice:
+
+1. **Auto-summarize**: LLM extracts key concepts and creates a condensed markdown (default)
+2. **Verbatim**: Store the full extracted text as-is
+3. **Guided**: Ask the user which sections or topics to focus on before ingestion
+
+Interactive mode is especially useful when the user provides a vague URL and the content is large — ask before processing 100+ pages.
+
+If the schema defines domain-specific ingestion rules (e.g., "for papers, always extract Abstract, Method, Results, Limitations"), apply those rules automatically in Auto-summarize mode.
+
+## Obsidian Web Clipper Integration
+
+If the user has the [Obsidian Web Clipper](https://obsidian.md/clipper) browser extension, they can clip URLs directly into the KB's `raw/` folder with YAML frontmatter. When kb-ingest detects files in `raw/` that are not in `manifest.json`, it should offer to register them.
+
+## Image Handling
+
+When ingesting web pages with important images (diagrams, charts, figures):
+
+1. Download images to `raw/assets/{slug}/` alongside the source markdown
+2. Rewrite image URLs in the markdown to relative paths: `![alt](assets/{slug}/image.png)`
+3. Log image count in the manifest
+
+For screenshots and complex diagrams that need OCR, note them in frontmatter as `needs_ocr: true` for later processing.
+
 ## Error Handling
 
 | Error | Symptom | Action |
 |-------|---------|--------|
+| No schema | `_schema.md` missing | Warn user, suggest `kb-orchestrator init`, proceed with defaults |
+| Schema parse error | Malformed `_schema.md` | Report parse error, fall back to defaults |
 | URL unreachable | defuddle returns empty/error | Log warning, skip source, continue batch |
 | Image download fails | curl returns non-200 | Keep original URL reference, log warning |
 | Duplicate source | Same URL already in manifest | Ask user: overwrite or skip |
 | Invalid file path | Local file not found | Report error with path |
 | Rate limiting | defuddle returns 429 | Wait 5 seconds, retry once |
+
+## Obsidian CLI Source
+
+Vault notes can be piped into `kb-ingest` via `obsidian-kb-bridge`
+(`.cursor/skills/obsidian/obsidian-kb-bridge/`).

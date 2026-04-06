@@ -15,9 +15,9 @@ description: >-
   "요약 재생성", "인덱스 리빌드".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "execution"
-  tags: ["knowledge-base", "index", "navigation"]
+  tags: ["knowledge-base", "index", "navigation", "three-layer"]
 ---
 
 # KB Index — Wiki Index Maintainer
@@ -34,6 +34,16 @@ At ~400K words, an LLM cannot read the entire wiki for every query. Index files 
 - At least some articles with YAML frontmatter
 
 ## Workflow
+
+### Step 0: Read Schema (MANDATORY)
+
+Before any indexing, read `_schema.md` from the KB root directory. Extract:
+
+- **Conventions**: naming rules, language, date format, preferred terminology
+- **Quality Gates**: required frontmatter fields, minimum article standards
+- **Domain Rules**: glossary terms that must appear, required index sections
+
+If `_schema.md` does not exist, warn the user and suggest running `kb-orchestrator init` first. Proceed with defaults if the user chooses to continue.
 
 ### Step 1: Scan Wiki Directory
 
@@ -141,6 +151,37 @@ Scan all articles for defined terms (bold terms, heading terms) and compile:
 | Attention | Mechanism for weighing input relevance | [[attention-mechanism]] |
 ```
 
+### Step 6.5: Raw-Wiki Drift Detection
+
+Compare `raw/` sources against wiki articles to detect drift:
+
+1. **Uncovered sources** — raw files not referenced by ANY wiki article's `sources:` frontmatter
+2. **Stale articles** — wiki articles whose ALL source files have been updated since `last_compiled`
+3. **Orphan concepts** — wiki concepts not connected to any raw source
+
+Report drift as a summary table:
+
+```markdown
+## Raw-Wiki Drift Report
+
+| Type | Count | Details |
+|------|-------|---------|
+| Uncovered sources | 2 | raw/new-paper.md, raw/blog-post.md |
+| Stale articles | 1 | concepts/attention.md (source updated 2026-04-01, compiled 2026-03-15) |
+| Orphan concepts | 0 | — |
+```
+
+If drift is detected, recommend running `kb-compile` (incremental) to resolve.
+
+### Step 6.6: Glossary-Schema Alignment
+
+If `_schema.md` defines domain rules or a preferred terminology list:
+
+1. Compare `_glossary.md` terms against schema-defined terms
+2. Flag terms present in the schema but missing from the glossary
+3. Flag glossary terms that use non-preferred terminology per the schema
+4. Suggest `SCHEMA-SUGGEST` entries for new terms discovered in wiki articles but absent from both glossary and schema
+
 ### Step 7: Update Manifest Stats
 
 Update `manifest.json` with current stats from the index scan.
@@ -165,10 +206,59 @@ Update `manifest.json` with current stats from the index scan.
 2. Regenerate `_index.md`, `_summary.md`, `_concept-map.md`, `_glossary.md`
 3. Update `manifest.json`
 
+## Distinction from `_log.md`
+
+`_index.md` and `_log.md` serve different purposes — do NOT confuse them:
+
+| File | Purpose | Updated by |
+|------|---------|------------|
+| `_index.md` | **Content catalog** — what articles exist, their topics, and links | kb-index (regenerated from wiki content) |
+| `_log.md` | **Operations chronicle** — what happened, when, in what order | All skills (append-only) |
+
+`_index.md` is regenerated from scratch on each index rebuild. `_log.md` is append-only and never regenerated — it preserves the full operational history.
+
+## Dataview-Compatible Frontmatter
+
+When generating or updating articles, encourage consistent YAML frontmatter fields that work with [Obsidian Dataview](https://blacksmithgu.github.io/obsidian-dataview/):
+
+```yaml
+---
+title: "Attention Mechanisms"
+created: 2026-04-05
+updated: 2026-04-05
+tags: [transformer, attention, architecture]
+source_count: 3
+word_count: 1200
+status: active
+---
+```
+
+During index rebuild, validate that articles have the minimum required fields (`title`, `created`, `tags`) and warn about missing fields.
+
+## Operations Log
+
+After every index rebuild, append to `_log.md` using the **grep-parseable H2 heading format** (never overwrite or truncate):
+
+```markdown
+## [2026-04-03 16:00] INDEX | articles: 18 | broken_links: 2 | orphans: 1 | drift: 3 uncovered sources
+
+## [2026-04-03 16:00] INDEX | glossary_terms: 45 | schema_missing: 3 | non_preferred: 1
+```
+
+Format: `## [YYYY-MM-DD HH:MM] INDEX | key metrics...`
+
+If glossary-schema alignment finds issues, also append co-evolution suggestions:
+
+```markdown
+## [2026-04-03 16:05] SCHEMA-SUGGEST | source: kb-index | rule: "Add 'fine-tuning' to preferred terminology" | status: pending-review
+```
+
 ## Error Handling
 
 | Error | Symptom | Action |
 |-------|---------|--------|
+| No schema | `_schema.md` missing | Warn user, suggest `kb-orchestrator init`, proceed with defaults |
+| Schema parse error | Malformed `_schema.md` | Report parse error, fall back to defaults |
 | No wiki articles | Empty wiki/ directory | Prompt to run kb-compile first |
 | Missing frontmatter | Articles lack YAML headers | Infer metadata from content, warn user |
 | Broken links | `[[concept]]` points to nonexistent file | List broken links in report |

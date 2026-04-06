@@ -1,0 +1,68 @@
+# AutoAgent Experiment Discipline
+
+Rules governing autonomous agent harness optimization experiments.
+
+## One-Mutation-Per-Iteration
+
+Never compound changes. Each experiment applies exactly one mutation to the harness.
+If two things seem worth changing, run them as two separate experiments.
+Isolation makes cause-effect unambiguous — you can attribute score changes to the specific mutation.
+
+## Score Is the Judge
+
+Keep or discard mutations based on numeric score delta only.
+"It looks better" or "this feels cleaner" are not evidence.
+The only valid argument for keeping a change is `new_score > baseline + min_delta`.
+
+## Overfitting Prevention
+
+After each kept mutation, apply the overfitting test:
+"Remove the single task this change was designed for. Is the change still worthwhile?"
+If removing that task would eliminate the score improvement, flag the mutation as an overfitting risk.
+
+Three heuristics:
+1. **Single-Task Lift**: >80% of score delta comes from one task → flag
+2. **Prompt Length Explosion**: Prompt grew >30% and score delta is <5% → flag
+3. **Tool Proliferation**: Added a tool used in <10% of tasks → flag
+
+## Fixed Boundary Inviolable
+
+Never modify content below the `FIXED ADAPTER BOUNDARY` marker in a harness file.
+This section contains the CLI/Docker/scoring glue that connects the agent to the benchmark infrastructure.
+If you believe it has a bug, report it — do not fix it.
+
+## Failure Classes, Not Individuals
+
+Group failing tasks by root cause before attempting a fix.
+Fix the failure class, not one specific task.
+If a mutation fixes only one task and doesn't address the underlying class, it's likely overfitting.
+
+## Simplicity Tiebreaker
+
+At equal scores, prefer:
+- Fewer tools over more tools
+- Shorter prompts over longer prompts
+- Simpler orchestration over complex orchestration
+
+Complexity is debt that compounds across iterations.
+
+## Log Everything
+
+Record every experiment in the ExperimentLedger, including discarded ones.
+Discarded experiments prevent rediscovering dead ends.
+Each entry must include: iteration number, mutation description, scores, delta, kept/discarded, and timestamp.
+
+## Docker Isolation
+
+All benchmark evaluations must run in Docker containers.
+Never evaluate an agent harness in the host environment — it compromises reproducibility.
+Exception: `prompt-only` mode may use local evaluation when Docker is unavailable.
+
+## Stop Conditions
+
+Stop the optimization loop when any of these conditions are met:
+1. `max_iterations` reached
+2. `stagnation_limit` consecutive iterations without improvement
+3. Score reaches the target threshold
+4. Human sends a stop signal
+5. Budget (compute cost) exceeded

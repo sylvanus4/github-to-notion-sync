@@ -173,6 +173,22 @@ Then set ALL 5 project fields using the `set_all_fields()` Python script from [c
 
 **CRITICAL**: Do NOT skip this step. Do NOT set only Status. ALL 5 fields are required for every issue. If a field set fails, retry once before reporting partial failure.
 
+#### 4d. Verify issues and PR on Project #5
+
+After all issues are created and fields set, verify they appear correctly on GitHub Project #5:
+
+```bash
+gh project item-list 5 --owner ThakiCloud --format json --limit 50
+```
+
+For each issue created in Step 4b, verify:
+1. Issue appears in Project #5 item list
+2. All 5 fields (Status, Priority, Size, Sprint, Estimate) have non-null values
+
+If any issue is missing from Project #5 or has incomplete fields, retry `item-add` and `set_all_fields()` once before recording failure.
+
+Record verification result: `{project5_check: {issues_verified: N, issues_total: M, missing_issues: [...], fields_incomplete: [...]}}`.
+
 ### Step 5: PR Create or Update
 
 **Skip this step** if `IS_WEBUI` is true (ai-platform-webui works on `tmp` only — no PRs).
@@ -253,7 +269,19 @@ gh pr merge $PR_NUMBER --squash --delete-branch --admin
 
 If admin merge also fails, report the error with the PR URL. Do NOT block the Report step.
 
-#### 6a. Switch to base branch after merge
+#### 6a. Add PR to Project #5
+
+After PR is created (Step 5) or before merge, add the PR to Project #5:
+
+```bash
+gh project item-add 5 --owner ThakiCloud --url $PR_URL
+```
+
+Verify the PR appears in Project #5 item list. Record: `{pr_on_project5: true/false}`.
+
+If `item-add` fails, retry once. Non-blocking — continue to merge even if Project #5 linking fails.
+
+#### 6b. Switch to base branch after merge
 
 After a successful merge, pull the updated base branch and switch to it:
 
@@ -283,6 +311,10 @@ Push:
 Issues:
   #N1 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
   #N2 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
+
+GitHub Project #5 검증:
+  이슈 등록: N/N 확인 ✅ (or ⚠️ M개 누락)
+  필드 완성도: N/N 완전 ✅ (or ⚠️ M개 불완전)
 ```
 
 **Other repos** format (full pipeline):

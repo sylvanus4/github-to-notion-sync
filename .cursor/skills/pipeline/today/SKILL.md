@@ -989,35 +989,43 @@ Report the number of tweets fetched, classified, and posted with channel distrib
 
 **Step 6d — Persist & manifest:** Save twitter pipeline results to `outputs/today/{date}/phase-6-twitter.json` (tweet count, channels, post status). Update `manifest.json`. Finalize `manifest.json` with `completed_at` and `overall_status`.
 
-### Phase 7: Knowledge Base Ingest (Optional — Compound Growth Loop)
+### Phase 7: Knowledge Base Accumulation (Optional — Compound Growth Loop)
 
-Ingest today's pipeline outputs into the `trading-daily` Knowledge Base for long-term knowledge accumulation. Each daily run adds a condensed raw source; over time the KB wiki grows with interconnected market knowledge. Skip with `skip-kb`.
+Two-path knowledge accumulation for long-term compound growth. Path A writes to Karpathy-style markdown KBs; Path B feeds Cognee KG via `knowledge_daily_aggregator.py`. Skip with `skip-kb`.
 
-**Step 7a — Run KB ingest script:**
+**Step 7a — KB ingest (trading-daily raw source):**
 
 ```bash
 python scripts/kb_daily_ingest.py --date {date}
 ```
 
-This reads all phase output files from `outputs/today/{date}/`, condenses them into a single markdown document with YAML frontmatter, and saves to `knowledge-bases/trading-daily/raw/daily-{date}.md`. The KB manifest is updated automatically.
+Reads phase output files from `outputs/today/{date}/` or `outputs/daily/{date}/`, condenses into a single markdown with YAML frontmatter, saves to `knowledge-bases/trading-daily/raw/daily-{date}.md`.
 
-**Step 7b — Incremental compile (optional, skip if `skip-kb-compile`):**
-
-If accumulated raw sources exceed 7 since last compile, trigger an incremental wiki compilation:
+**Step 7b — KB multi-topic router:**
 
 ```bash
-# Agent invokes kb-compile skill for knowledge-bases/trading-daily/
+python scripts/kb_daily_router.py --date {date}
 ```
 
-This compiles raw sources into structured wiki articles with cross-references.
+Scans all `outputs/` directories, classifies artifacts by topic (trading-daily, ai-research, tech-trends, project-ops), and routes each to its `knowledge-bases/{topic}/raw/` directory. Auto-initializes new KB directories. Deduplicates against existing raw files.
 
-**Step 7c — Persist & manifest:** Save KB ingest results to `outputs/today/{date}/phase-7-kb-ingest.json`:
+**Step 7c — Incremental compile (optional, skip if `skip-kb-compile`):**
+
+If accumulated raw sources exceed 7 since last compile, trigger LLM wiki compilation:
+
+```bash
+python scripts/kb_compile.py {topic}
+```
+
+Uses Claude to transform raw sources into structured wiki articles with YAML frontmatter, wikilinks, and navigation files (`_index.md`, `_summary.md`, `_glossary.md`, `_concept-map.md`).
+
+**Step 7d — Persist & manifest:** Save KB results to `outputs/today/{date}/phase-7-kb-ingest.json`:
 
 ```json
 {
   "date": "2026-04-01",
   "raw_file": "knowledge-bases/trading-daily/raw/daily-2026-04-01.md",
-  "total_raw_sources": 15,
+  "topics_routed": {"trading-daily": 2, "ai-research": 6, "tech-trends": 12},
   "compiled": false,
   "status": "completed"
 }
@@ -1025,7 +1033,7 @@ This compiles raw sources into structured wiki articles with cross-references.
 
 Update `manifest.json`.
 
-On failure: **Continue** — KB ingest is optional; the pipeline succeeds without it.
+On failure: **Continue** — KB accumulation is optional; the pipeline succeeds without it.
 
 ## CLI Arguments
 

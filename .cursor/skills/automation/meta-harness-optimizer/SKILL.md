@@ -194,6 +194,42 @@ No candidate replaces a production skill without explicit user approval. The ski
 - **Initial design**: `harness` skill generates the initial orchestrator that Meta-Harness then optimizes
 - **Runtime traces**: `backend/app/services/orchestration/trace.py` emits events consumed by TraceArchive
 
+## ATIF Trajectory Import
+
+Import ATIF (Agent Trajectory Interchange Format) trajectories from `autoagent-benchmark` runs into the Meta-Harness TraceArchive for unified analysis. This bridges the autoagent Docker-isolated evaluation with the Meta-Harness optimization loop.
+
+### Usage
+
+```
+/meta-harness --mode optimize --target agent.py --atif-import outputs/autoagent-trajectories/
+```
+
+### How It Works
+
+1. Read ATIF trajectory JSON files from the specified directory
+2. Convert each trajectory to TraceArchive format via `ATIFLogger.to_trace_archive_format()`
+3. Store converted traces in `_workspace/meta-harness/{run-id}/candidates/{candidate-id}/traces/`
+4. The proposer can then read these traces alongside natively generated traces
+
+### Conversion Mapping
+
+| ATIF Field | TraceArchive Field |
+|------------|-------------------|
+| `trajectory_id` | `case_id` |
+| `steps[].tool_call` | `steps[].type = "tool_call"` |
+| `steps[].message` | `steps[].type = "llm_call"` |
+| `outcome` | `evals[0].pass` (success → true, else false) |
+| `total_duration_ms` | `wall_clock_ms` |
+| `metadata.task_id` | `input` (task context) |
+
+### When to Use
+
+- After running `autoagent-benchmark` and wanting to feed results into Meta-Harness optimization
+- When combining autoagent-style Docker evaluation with Meta-Harness Pareto optimization
+- When `autoagent-loop` runs in `code-only` or `full` mode and delegates to Meta-Harness
+
+---
+
 ## Anti-Patterns
 
 - Do NOT run on execution skills with real side effects (Slack, DB writes, API calls) without sandboxing

@@ -1,10 +1,11 @@
 ---
 name: kb-search
 description: >-
-  Search across Knowledge Base wiki articles using keyword matching,
-  semantic search, and fuzzy search. Returns ranked results with
-  context snippets. Designed as both a user-facing tool and an
-  LLM tool for use in larger query pipelines.
+  Search across Knowledge Base wiki articles using SQLite FTS5
+  full-text search, optional vector embeddings (hybrid mode),
+  and ripgrep fallback. Returns ranked results with context
+  snippets. Designed as both a user-facing tool and an LLM tool
+  for use in larger query pipelines.
   Use when the user asks to "search KB", "find in knowledge base",
   "kb search", "grep wiki", "look up in KB", or wants to locate
   specific information across wiki articles without full Q&A synthesis.
@@ -15,164 +16,154 @@ description: >-
   "KB에서 찾기", "위키에서 검색".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "execution"
-  tags: ["knowledge-base", "search", "retrieval"]
+  tags: ["knowledge-base", "search", "retrieval", "fts5", "vector", "hybrid"]
 ---
 
 # KB Search — Wiki Search Engine
 
-Fast search across Knowledge Base wiki articles. Returns ranked results with context snippets. Serves as both a direct user tool and an LLM utility for larger query pipelines.
+Fast search across Knowledge Base wiki articles powered by SQLite FTS5 full-text search and optional vector embeddings. Falls back to ripgrep when the index is unavailable.
 
 ## Search Modes
 
-| Mode | Speed | Best For |
-|------|-------|----------|
-| **keyword** | Fast | Exact terms, specific names, identifiers |
-| **semantic** | Medium | Conceptual queries, "articles about X" |
-| **fuzzy** | Medium | Approximate matches, typo tolerance |
-| **heading** | Fast | Find articles by title/heading |
+| Mode | Engine | Speed | Best For |
+|------|--------|-------|----------|
+| **auto** | FTS5 (fallback: ripgrep) | Fast | Default — uses best available engine |
+| **fts** | SQLite FTS5 | Fast | Exact keywords, titles, porter-stemmed terms |
+| **hybrid** | FTS5 + OpenAI vectors | Medium | Conceptual queries, semantic similarity |
+| **ripgrep** | ripgrep grep | Fast | Legacy fallback, no DB required |
+
+## Prerequisites
+
+- `brain_index.db` must exist for FTS5/hybrid modes. Build with:
+
+```bash
+python scripts/kb_index_db.py --rebuild          # full rebuild
+python scripts/kb_index_db.py --rebuild --embed   # with vector embeddings
+```
+
+- For hybrid mode: `OPENAI_API_KEY` environment variable and `openai` Python package
 
 ## Workflow
 
-### Step 1: Parse Query
+### Step 1: Select Search Mode
 
-Determine the search mode:
-- If query is a single term or exact phrase → `keyword`
-- If query is a question or conceptual → `semantic`
-- If query contains potential typos or partial terms → `fuzzy`
-- If query starts with `title:` or `heading:` → `heading`
+The `--mode` flag controls engine selection:
+
+- **auto** (default): Uses FTS5 if `brain_index.db` exists, otherwise ripgrep
+- **fts**: FTS5 only; errors if DB missing
+- **hybrid**: FTS5 (weight 0.4) + vector cosine similarity (weight 0.6)
+- **ripgrep**: Legacy file-based grep
 
 ### Step 2: Execute Search
 
-#### Keyword Search
+#### FTS5 Search (default)
 
-Use Grep to find exact matches across wiki files:
-
-```bash
-rg -i --type md -C 2 "{query}" knowledge-bases/{topic}/wiki/
-```
-
-#### Semantic Search
-
-1. Read `_index.md` to get article summaries
-2. Score each article's summary against the query for semantic relevance
-3. Read top-scoring articles and search within them
-4. Return context-rich snippets
-
-#### Heading Search
-
-Search only headings and frontmatter titles:
+SQLite FTS5 with porter stemming and unicode61 tokenizer. Searches title, compiled_truth, timeline, and body columns:
 
 ```bash
-rg "^#+\s.*{query}" knowledge-bases/{topic}/wiki/ --type md
-rg "^title:.*{query}" knowledge-bases/{topic}/wiki/ --type md
+python scripts/kb_search.py "knowledge base architecture" --mode fts --top 10
 ```
 
-#### Fuzzy Search
+#### Hybrid Search (FTS5 + Vector)
 
-Use ripgrep with word boundaries and case insensitivity:
+Combines FTS5 keyword relevance with OpenAI `text-embedding-3-small` cosine similarity:
 
 ```bash
-rg -i --type md "{query}" knowledge-bases/{topic}/wiki/
+python scripts/kb_search.py "how do agents learn" --mode hybrid --top 10
 ```
 
-### Step 3: Rank Results
+Requires `--embed` flag during index build and `OPENAI_API_KEY` at search time.
 
-Score results by:
-1. **Title match** (highest): Query appears in article title → 10 points
-2. **Heading match**: Query appears in a heading → 7 points
-3. **Definition match**: Query appears in first paragraph → 5 points
-4. **Body match**: Query appears in article body → 3 points
-5. **Frequency**: More occurrences → +1 per occurrence (cap 5)
+#### Ripgrep Fallback
 
-### Step 4: Format Output
+When no SQLite index exists:
 
-Present results as a ranked list:
-
-```markdown
-## Search Results for "{query}" in {topic} KB
-
-**{N} results found** | Mode: {mode}
-
-### 1. [[concept-name]] (Score: 15)
-> ...context snippet with **highlighted** match...
-**File:** wiki/concepts/concept-name.md | **Words:** 850
-
-### 2. [[reference-notes]] (Score: 8)
-> ...context snippet with **highlighted** match...
-**File:** wiki/references/reference-notes.md | **Words:** 600
-
-### 3. [[connection-article]] (Score: 5)
-> ...context snippet with **highlighted** match...
-**File:** wiki/connections/connection-article.md | **Words:** 400
+```bash
+python scripts/kb_search.py "query" --mode ripgrep -C 3
 ```
 
-## CLI-Style Interface
+### Step 3: Format Output
 
-For LLM tool use in pipelines, the search can be invoked with structured output:
+Results are ranked by relevance score. Use `--json` for pipeline consumption:
+
+```bash
+python scripts/kb_search.py "RSI signals" --json --top 5
+```
 
 ```json
 {
-  "query": "attention mechanism",
-  "topic": "transformer-architectures",
-  "mode": "semantic",
-  "top_k": 5,
+  "query": "RSI signals",
+  "mode": "fts",
+  "total": 3,
   "results": [
     {
-      "file": "wiki/concepts/attention-mechanism.md",
-      "title": "Attention Mechanism",
-      "score": 15,
-      "snippet": "The attention mechanism allows the model to..."
+      "topic": "trading-daily",
+      "article": "rsi-oscillator",
+      "title": "RSI Oscillator",
+      "path": "knowledge-bases/trading-daily/wiki/concepts/rsi-oscillator.md",
+      "fts_rank": -8.2,
+      "hits": 8
     }
   ]
 }
 ```
 
+## Standalone CLI
+
+```bash
+python scripts/kb_search.py "query"                           # auto mode, all KBs
+python scripts/kb_search.py "query" -t ai-knowledge-bases      # specific topic
+python scripts/kb_search.py "query" --mode hybrid              # semantic + keyword
+python scripts/kb_search.py "query" --mode ripgrep -C 3        # legacy with context
+python scripts/kb_search.py "query" --json --top 20            # JSON for pipelines
+```
+
+## Index Management
+
+```bash
+python scripts/kb_index_db.py --rebuild          # full rebuild (no embeddings)
+python scripts/kb_index_db.py --rebuild --embed   # full rebuild with vectors
+python scripts/kb_index_db.py --incremental       # delta update (fast)
+python scripts/kb_index_db.py --stats             # print index statistics
+python scripts/kb_index_db.py --search "query"    # quick FTS5 test
+```
+
 ## Examples
 
-### Example 1: Keyword search
+### Example 1: FTS5 keyword search
 
-**User says:** "Search my ML KB for 'dropout'"
-
-**Actions:**
-1. Run keyword search: `rg -i "dropout" knowledge-bases/ml/wiki/ --type md -C 2`
-2. Rank and present results
-
-### Example 2: Semantic search
-
-**User says:** "Find articles about preventing overfitting in my KB"
+**User says:** "Search my trading KB for 'bollinger bands'"
 
 **Actions:**
-1. Read index to get article summaries
-2. Score summaries for relevance to "preventing overfitting"
-3. Read top articles for context snippets
-4. Present ranked results
+1. Run: `python scripts/kb_search.py "bollinger bands" -t trading-daily`
+2. FTS5 returns ranked results with porter-stemmed matching
+3. Present results with topic grouping
+
+### Example 2: Hybrid semantic search
+
+**User says:** "Find articles about market risk assessment methods"
+
+**Actions:**
+1. Run: `python scripts/kb_search.py "market risk assessment methods" --mode hybrid`
+2. FTS5 finds keyword matches, vector search finds semantically similar articles
+3. Weighted merge (40% FTS, 60% vector) produces final ranking
 
 ### Example 3: Search as LLM tool
 
 **Used by kb-query internally:**
 
-1. kb-query calls kb-search with a specific sub-question
-2. kb-search returns top 3 results with file paths
+1. kb-query calls `search_fts()` or `search_hybrid()` from `kb_search.py`
+2. Returns top results with file paths and scores
 3. kb-query reads those files for full content
 4. kb-query synthesizes the final answer
-
-## Standalone CLI
-
-`scripts/kb_search.py` provides a direct terminal search without the full orchestrator:
-
-```bash
-python scripts/kb_search.py "query"              # search all KBs
-python scripts/kb_search.py "query" -t ai-knowledge-bases  # specific topic
-python scripts/kb_search.py "query" --json        # JSON output for pipelines
-python scripts/kb_search.py "query" -C 3          # with context lines
-```
 
 ## Error Handling
 
 | Error | Symptom | Action |
 |-------|---------|--------|
 | No matches | Zero results | Suggest alternative queries, check spelling |
-| Too many matches | > 50 results | Narrow with more specific terms |
+| No brain_index.db | DB missing | Run `python scripts/kb_index_db.py --rebuild` |
+| No OPENAI_API_KEY | Hybrid mode fails | Falls back to FTS5-only results |
 | No wiki | Wiki directory missing | Prompt to run kb-compile |

@@ -42,6 +42,20 @@ This skill uses **token-first** Notion authentication:
 
 ## Workflow
 
+### Phase 0.5: Cross-Repo Dedup Check (MANDATORY)
+
+Before any processing, check the central intelligence registry. When invoked standalone (not as a sub-step of x-to-slack), verify the URL has not already been published to Notion.
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" check "<tweet_url>"
+```
+
+- **Exit 0 (new)**: Proceed with the pipeline.
+- **Exit 1 (duplicate)**: If invoked standalone, report duplicate and STOP. If invoked by x-to-slack (Step 5), the parent pipeline already passed the check -- proceed.
+
+If the research repo or `intel_registry.py` is not found, log a warning and proceed (graceful degradation).
+
 ### Phase 1: Fetch (fetch)
 
 Retrieve tweet content via the FxTwitter API.
@@ -136,6 +150,22 @@ Fallback — Notion MCP browser auth.
    - Per-phase status, file paths, summaries
    - Source metadata (URL, author, title)
    - Notion page ID and URL
+
+### Phase 6: Intelligence Registry Update (MANDATORY)
+
+After successful Notion publishing, register the URL and Notion page ID in the central intelligence registry.
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
+  "{tweet_url}" "output/x-to-notion/{date}/{slug}.ko.md" \
+  --type notion-article \
+  --topic intelligence
+```
+
+This ensures the Notion page artifact is saved to `~/thaki/research/outputs/intelligence/` and the URL is registered for cross-repo dedup.
+
+If the research repo is not found, log a warning and skip (graceful degradation). The Notion page is already published.
 
 ## Intermediate Persistence
 

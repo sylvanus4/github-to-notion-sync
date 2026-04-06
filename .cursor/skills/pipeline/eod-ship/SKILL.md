@@ -10,7 +10,7 @@ description: >-
   (use daily-scrum).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # EOD Ship — End-of-Day Multi-Project Shipping Pipeline
@@ -102,6 +102,26 @@ Record result: `{memory_sync: "ok", transcripts_extracted: N, index_rebuilt: tru
 
 On failure: **Warn and continue** — memory sync is optional; shipping proceeds.
 
+### Phase 1⅞: Intelligence KB Routing (Research Repo)
+
+Route accumulated intelligence artifacts (from x-to-slack, twitter-timeline-to-slack, paper-review) to Karpathy KB topics in the research repo. Skip if the research repo is not found.
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+if [ -d "$RESEARCH_REPO" ] && [ -f "$RESEARCH_REPO/scripts/intelligence/kb_intel_router.py" ]; then
+    python3 "$RESEARCH_REPO/scripts/intelligence/kb_intel_router.py"
+fi
+```
+
+This ensures:
+- `outputs/intelligence/` and `outputs/papers/` artifacts are routed to `knowledge-bases/{topic}/raw/`
+- KB manifests are updated with new sources
+- All routed files are included when research repo is committed in Phase 3
+
+Record result: `{intel_routing: "ok", routed: N, skipped: M}` or `{intel_routing: "skipped", reason: "research repo not found"}`.
+
+On failure: Warn and continue. Intelligence routing is best-effort.
+
 ### Phase 2: Release Ship (Current Project)
 
 Run the `release-ship` skill on the current working directory **in pipeline mode**.
@@ -159,6 +179,7 @@ Before posting to Slack, verify shipping integrity:
 - [ ] **No orphaned untracked content** — Verify no `.md`, `.ts`, `.go`, `.py`, `.yaml`, `.json`, `.sql` files remain untracked in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/`, or any content directory. If any exist, run one more `git add` + commit round to catch them.
 - [ ] **Branch consistency** — Current project pushed to correct remote branch (ai-platform-webui uses `tmp`, others use standard)
 - [ ] **Issue field completeness** — Every issue created in Phase 2/3 MUST have ALL 5 project fields set (Status, Priority, Size, Sprint, Estimate). If any issue is missing fields, run the `set_all_fields()` script from [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md) to fix it before posting to Slack.
+- [ ] **GitHub Project #5 등록 검증** — Phase 2/3에서 생성된 모든 이슈와 PR이 GitHub Project #5에 정상 등록되었는지 확인. `gh project item-list 5 --owner ThakiCloud --format json --limit 100` 으로 조회하여 (1) 이슈/PR이 프로젝트 아이템 목록에 존재하는지 (2) 5개 필드(Status, Priority, Size, Sprint, Estimate)가 모두 non-null인지 검증. 누락된 항목은 `gh project item-add` + `set_all_fields()` 로 재시도 1회. 결과를 `{project5_check: {issues: {verified: N, total: M}, prs: {verified: N, total: M}, missing: [...], fields_incomplete: [...]}}` 형태로 기록.
 - [ ] **lat.md drift check** — For repos with a `lat.md/` directory, run `lat check` and warn if broken links or drift are detected. Non-blocking: log warnings but do not halt shipping.
 
 If any criterion fails, log the issue in the Slack message as a warning. Do NOT suppress the notification — post with warnings.
@@ -190,6 +211,9 @@ Post a consolidated summary to `#효정-할일` using the `slack_send_message` M
 *세션 메모리 동기화*
 - N개 트랜스크립트 추출, 인덱스 리빌드 {완료|건너뜀}
 
+*인텔리전스 KB 라우팅*
+- research 레포: N개 아티팩트 라우팅, M개 스킵 {완료|건너뜀}
+
 *프로젝트 배포*
 - project-a: N개 커밋, <PR_URL|PR #X> 머지 완료
 - project-b: 변경사항 없음
@@ -197,6 +221,11 @@ Post a consolidated summary to `#효정-할일` using the `slack_send_message` M
 
 *이슈 생성*
 - <ISSUE_URL|#N1>, <ISSUE_URL|#N2> → 프로젝트 #5
+
+*GitHub Project #5 검증*
+- 이슈 등록: N/N 확인 ✅ (or ⚠️ M개 누락)
+- 필드 완성도: N/N 완전 ✅ (or ⚠️ M개 불완전)
+- PR 등록: N/N 확인 ✅ (or ⚠️ M개 누락)
 
 *합계*
 - N개 프로젝트 배포, M개 커밋, K개 이슈 생성
@@ -228,6 +257,9 @@ dev 브랜치 머지 (ai-platform-webui):
 세션 메모리 동기화:
   트랜스크립트 추출: N개, 인덱스 리빌드: 완료
 
+인텔리전스 KB 라우팅:
+  research 레포: N개 아티팩트 라우팅, M개 스킵
+
 프로젝트:
   github-to-notion-sync:          3개 커밋, PR #12 머지 완료
   ai-template:                    변경사항 없음
@@ -236,6 +268,12 @@ dev 브랜치 머지 (ai-platform-webui):
   ai-platform-webui:              2개 커밋 (tmp 전용)
 
 이슈: #101, #102, #103, #104 → 프로젝트 #5
+
+GitHub Project #5 검증:
+  이슈 등록: 4/4 확인 ✅
+  필드 완성도: 4/4 완전 ✅
+  PR 등록: 3/3 확인 ✅
+
 슬랙: #효정-할일 채널에 게시 완료
 
 합계: 4/5 프로젝트 배포, 8개 커밋, 4개 이슈

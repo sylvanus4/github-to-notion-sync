@@ -16,7 +16,7 @@ description: >-
   "위키 생성", "원본에서 위키 만들기".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "execution"
   tags: ["knowledge-base", "compile", "wiki"]
 ---
@@ -28,6 +28,26 @@ Transform raw source material into a structured, interconnected markdown wiki. T
 ## Core Principle
 
 **The wiki is the domain of the LLM.** Humans contribute raw sources; the LLM owns the wiki entirely. Every article, index, and link is generated and maintained by the compiler.
+
+## Article Structure: Compiled Truth + Timeline
+
+Every wiki article MUST use the two-part structure inspired by Garry Tan's GBrain:
+
+1. **Compiled Truth** (mutable) — the current best understanding, rewritten whenever new evidence arrives. Written as definitive statements, not hedged summaries.
+2. **Evidence Timeline** (append-only) — chronological log of all evidence with dates, sources, and what each added or changed.
+
+```markdown
+## Compiled Truth
+
+[Current best understanding — rewritten holistically on each update]
+
+## Evidence Timeline
+
+- **2026-04-06** — [Source A]: [What this source established]
+- **2026-04-03** — [Source B]: [What this source added or modified]
+```
+
+On incremental updates, rewrite Compiled Truth with the new synthesis; append new entries to Evidence Timeline. Never delete timeline entries.
 
 ## Prerequisites
 
@@ -248,7 +268,17 @@ graph TD
 | Term 1 | Brief definition | [[concept-1]] |
 ```
 
-### Step 7: Update Manifest
+### Step 7: Rebuild SQLite Index
+
+After wiki compilation, rebuild the brain index for fast search:
+
+```bash
+python scripts/kb_index_db.py --incremental
+```
+
+This updates FTS5 full-text search, wikilink graphs, and tag indexes. Add `--embed` to regenerate vector embeddings (requires OPENAI_API_KEY).
+
+### Step 8: Update Manifest
 
 Update `manifest.json` with wiki stats:
 
@@ -266,7 +296,7 @@ Update `manifest.json` with wiki stats:
 }
 ```
 
-### Step 8: Report
+### Step 9: Report
 
 ```
 ✓ Wiki compiled for: {topic}
@@ -275,6 +305,7 @@ Update `manifest.json` with wiki stats:
   Connections: {C} synthesis articles
   Total words: ~{W}K
   Index files: _index.md, _summary.md, _concept-map.md, _glossary.md
+  SQLite index: brain_index.db updated ({P} pages indexed)
 ```
 
 ## Incremental Compilation

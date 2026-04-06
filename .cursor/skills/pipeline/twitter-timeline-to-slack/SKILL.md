@@ -13,7 +13,7 @@ description: >-
   Korean triggers: "타임라인", "트위터 타임라인", "트윗 일괄", "트윗 스크래핑".
 metadata:
   author: "thaki"
-  version: "2.1.0"
+  version: "2.2.0"
   category: "execution"
 ---
 # Twitter Timeline to Slack Pipeline
@@ -42,7 +42,26 @@ When invoked without a screen name (e.g. `/twitter-timeline-to-slack` or "트위
 
 Verify `TWITTER_COOKIE` is set and functional before fetching. If missing or expired, guide the user through interactive registration.
 
-See [references/cookie-validation.md](references/cookie-validation.md) for the full validation and registration flow (Steps 0a–0c).
+See [references/cookie-validation.md](references/cookie-validation.md) for the full validation and registration flow (Steps 0a-0c).
+
+### Phase 0.5: Cross-Repo Dedup Sync
+
+Before fetching and posting, load the central intelligence registry to filter out already-processed tweets across all repos and machines.
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+```
+
+For each tweet URL that would be posted, check against the registry:
+
+```bash
+python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" check "<tweet_url>"
+```
+
+- **Exit 0 (new)**: Include in the batch for processing.
+- **Exit 1 (duplicate)**: Mark as `skip_reason: "cross_repo_duplicate"` in tweets.json and skip.
+
+If the research repo or `intel_registry.py` is not found, log a warning and proceed without cross-repo dedup (graceful degradation). Local dedup via tweets.json still applies.
 
 ### Phase 1: Fetch Tweets
 
@@ -372,11 +391,34 @@ Use the `thread` array from tweets.json to show all tweets in the thread numbere
 
 #### Step 3f: Update Local DB
 
-After successful posting, update `tweets.json`:
+After successful posting, update `tweets.json` (ALL fields are MANDATORY):
+- Set `status` to `"posted"` (CRITICAL — without this, the tweet will be reprocessed and posted again)
 - Set `posted_to_slack: true`
 - Set `slack_channel` to the channel name
 - Set `slack_ts` to the `message_ts` from Message 1
 - Set `classified_topic` to the classification result
+- Set `posted_at` to current ISO timestamp
+
+**WARNING**: If `status` remains `"pending"` while `posted_to_slack` is `true`, the pipeline will treat the tweet as unprocessed and post it again, causing duplicates.
+
+#### Step 3f-intel: Intelligence Artifact Save (after local DB update)
+
+After updating tweets.json, save an intelligence artifact to the research repo and register the URL in the central dedup registry.
+
+1. Generate a markdown artifact with YAML frontmatter (url, author, date, channel, topic) and the full Message 2 + Message 3 content.
+2. Save and register via:
+
+```bash
+RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
+python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
+  "{tweet_url}" "/tmp/timeline-{tweet_id}.md" \
+  --type tweet \
+  --channel "{channel_name}" \
+  --ts "{message_ts}" \
+  --topic intelligence
+```
+
+If the research repo is not found, log a warning and skip (graceful degradation). The Slack post is already complete.
 
 #### Step 3f-verify: Quality Self-Check (MANDATORY)
 
