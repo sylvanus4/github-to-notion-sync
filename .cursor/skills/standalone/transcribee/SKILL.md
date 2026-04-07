@@ -150,6 +150,10 @@ Actions:
 2. Read the generated `transcript.txt`
 3. Analyze content and present summary with key takeaways
 
+## See Also
+
+- **reclip-media-downloader** — Alternative for pre-downloading media files before transcription. Useful when you want to download a video first (with format/quality control) and then transcribe the local file, or when transcribee's built-in download fails.
+
 ## Error Handling
 
 | Error | Cause | Fix |

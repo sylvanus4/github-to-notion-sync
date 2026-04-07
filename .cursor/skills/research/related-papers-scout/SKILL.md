@@ -363,9 +363,10 @@ Only consider papers from the last 6 months (stricter than default 9) and post t
 | Symptom | Fix |
 |---------|-----|
 | Semantic Scholar API 429 | Rate limited; add 3-second delays between requests |
-| Semantic Scholar returns empty | Paper may be too new; fall back to WebSearch-only discovery |
+| Semantic Scholar returns empty | Paper may be too new; fall back to WebSearch-only discovery. Also try Exa Search via agent-reach: `mcporter call 'exa.web_search_exa(query: "related:{paper_title}", numResults: 10)'` |
 | pdfplumber not found | `pip install pdfplumber` |
 | Defuddle fails | Fall back to extracting metadata from PDF first page |
+| WebSearch returns too few results | Supplement with Exa Search (agent-reach MCP channel): `mcporter call 'exa.find_similar(url: "https://arxiv.org/abs/{arxiv_id}", numResults: 10)'` for semantically similar papers |
 | Too few institution matches | Relax institution filter per Phase 3 selection rules |
 | Slack channel not found | Use `slack_search_channels`; verify bot is a channel member |
 | Thread reply fails | Ensure `message_ts` was captured from main message response |

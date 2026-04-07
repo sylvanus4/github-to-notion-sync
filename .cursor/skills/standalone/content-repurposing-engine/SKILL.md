@@ -187,9 +187,11 @@ Generate all 8 platform formats from the paper review, emphasizing different asp
 
 ## Composability
 
+- **reclip-media-downloader** — Download source video/audio from URLs for transcription-based repurposing
 - **scqa-writing-framework** — Structure the source content before repurposing
 - **hook-generator** — Generate stronger hooks for each platform
 - **sentence-polisher** — Polish each output before publishing
 - **kwp-brand-voice-brand-voice-enforcement** — Apply brand voice to all outputs
 - **md-to-slack-canvas** — Publish the Slack summary as a Canvas
 - **md-to-notion** — Archive the repurposed content set in Notion
+- **agent-reach** — Fallback content extractor when defuddle/WebFetch fails on source URLs (403, paywall, anti-bot). Use agent-reach URL-pattern routing to access the content via the appropriate channel.

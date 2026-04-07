@@ -251,12 +251,17 @@ Actions:
 
 Result: Full transcript saved as markdown with chapters and timestamps preserved.
 
+## See Also
+
+- **reclip-media-downloader** — Alternative when you need the actual video/audio *file* (MP4/MP3) from a URL instead of extracted text/transcript. Defuddle extracts content as markdown; reclip downloads the media file itself.
+
 ## Error Handling
 
 | Error | Symptom | Action |
 |-------|---------|--------|
 | Empty response | `curl` returns empty string | URL may be invalid or blocked; try `WebFetch` as fallback |
 | Timeout | `curl` hangs beyond 30s | Add `--max-time 15` flag; report timeout to user |
-| No main content found | Response has frontmatter but empty body | Site may use heavy JS rendering; suggest `agent-browser` instead |
+| WebFetch also empty | Both defuddle and WebFetch fail | Try Agent-Reach Jina Reader: `curl -s "https://r.jina.ai/{URL}"`. For platform-specific URLs (Twitter, Reddit, Bilibili, Xiaohongshu), use the corresponding agent-reach channel instead (see agent-reach skill) |
+| No main content found | Response has frontmatter but empty body | Site may use heavy JS rendering; try Agent-Reach Jina Reader first (`curl -s "https://r.jina.ai/{URL}"`), then `agent-browser` if still empty |
 | Rate limiting | HTTP 429 or delayed responses | Wait and retry; for batch operations, add 1s delay between requests |
 | Invalid URL format | Error or unexpected output | Verify URL has no protocol prefix; strip `https://` before passing |

@@ -29,6 +29,7 @@ Detailed prerequisites for each capability group: CLI tools, packages, env vars,
 23. [dev-browser](#23-dev-browser) — Sandboxed browser automation (QuickJS WASM + Playwright)
 24. [expect-qa](#24-expect-qa) — AI agent browser QA testing (expect-cli)
 25. [website-cloner](#25-website-cloner) — AI website cloning pipeline
+40. [reddit-reaction](#40-reddit-reaction) — Reddit to Korean YouTube Shorts
 
 ---
 
@@ -112,7 +113,7 @@ python3 -c "import anthropic; print('anthropic OK')"
 
 ```bash
 [ -n "$SLACK_BOT_TOKEN" ] && echo "SLACK_BOT_TOKEN set" || echo "SLACK_BOT_TOKEN missing"
-[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps/plugin-slack-slack" ] && echo "Slack MCP configured" || echo "Slack MCP missing"
+[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-model-event-stock-analytics/mcps/plugin-slack-slack" ] && echo "Slack MCP configured" || echo "Slack MCP missing"
 ```
 
 **Dependent Skills:** today, paper-review, related-papers-scout, x-to-slack, eod-ship, morning-ship, role-dispatcher, google-daily, slack-agent
@@ -140,7 +141,7 @@ python3 -c "import anthropic; print('anthropic OK')"
 
 ```bash
 [ -n "$NOTION_TOKEN" ] && echo "NOTION_TOKEN set (direct API ready)" || echo "NOTION_TOKEN missing (will use MCP fallback)"
-[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps/plugin-notion-workspace-notion" ] && echo "Notion MCP configured (fallback ready)" || echo "Notion MCP missing"
+[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-model-event-stock-analytics/mcps/plugin-notion-workspace-notion" ] && echo "Notion MCP configured (fallback ready)" || echo "Notion MCP missing"
 ```
 
 **Status Logic:**
@@ -228,7 +229,7 @@ hf auth whoami 2>/dev/null
 **Verification:**
 
 ```bash
-[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps/user-notebooklm-mcp" ] && echo "NotebookLM MCP configured" || echo "NotebookLM MCP missing"
+[ -d "$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-model-event-stock-analytics/mcps/user-notebooklm-mcp" ] && echo "NotebookLM MCP configured" || echo "NotebookLM MCP missing"
 ```
 
 **Dependent Skills:** notebooklm, notebooklm-research, notebooklm-studio, nlm-slides, nlm-video, nlm-deep-learn, nlm-arxiv-slides, paper-review
@@ -833,3 +834,451 @@ For `cursor-ide-browser` MCP, verify by checking:
 ```
 
 **Dependent Skills:** clone-website
+
+---
+
+## 26. pika-video
+
+**Purpose:** AI video generation from text/image prompts via Pika v2.2 on fal.ai, plus end-to-end video production pipeline and live PikaStreaming meeting avatars.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| Env | FAL_KEY | fal.ai dashboard → API Keys |
+| CLI | ffmpeg | `brew install ffmpeg` |
+| Python | fal-client | `pip install fal-client` |
+
+**Quick Setup:**
+
+```bash
+pip install fal-client
+brew install ffmpeg
+echo 'FAL_KEY=your-key' >> .env
+```
+
+**Verification:**
+
+```bash
+[ -n "$FAL_KEY" ] && echo "PASS FAL_KEY" || echo "FAIL FAL_KEY missing"
+command -v ffmpeg && echo "PASS ffmpeg" || echo "FAIL ffmpeg"
+python3 -c "import fal_client" 2>/dev/null && echo "PASS fal-client" || echo "FAIL fal-client"
+```
+
+**Dependent Skills:** pika-text-to-video, pika-video-pipeline, pikastream-video-meeting
+
+---
+
+## 27. sleek-mobile
+
+**Purpose:** Design mobile app screens via the Sleek REST API — project management, screen design, iteration, and code export.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| Env | SLEEK_API_KEY | https://sleek.design → Dashboard |
+
+**Quick Setup:**
+
+```bash
+echo 'SLEEK_API_KEY=your-key' >> .env
+```
+
+**Verification:**
+
+```bash
+[ -n "$SLEEK_API_KEY" ] && echo "PASS SLEEK_API_KEY" || echo "FAIL SLEEK_API_KEY missing"
+```
+
+**Dependent Skills:** sleek-design-mobile-apps
+
+---
+
+## 28. data-designer
+
+**Purpose:** Synthetic data generation via NVIDIA NeMo Data Designer — person sampling, dataset preview/review, and seed dataset management.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| Python | nemo-curator | `pip install nemo-curator` |
+| Env | NVIDIA_API_KEY | OPT — https://build.nvidia.com |
+| Env | OPENROUTER_API_KEY | OPT — https://openrouter.ai/keys |
+
+**Quick Setup:**
+
+```bash
+pip install nemo-curator
+# Optional — needed only for NIM endpoints
+echo 'NVIDIA_API_KEY=your-key' >> .env
+```
+
+**Verification:**
+
+```bash
+python3 -c "import nemo_curator" 2>/dev/null && echo "PASS nemo-curator" || echo "FAIL nemo-curator"
+[ -n "$NVIDIA_API_KEY" ] && echo "PASS NVIDIA_API_KEY" || echo "OPT NVIDIA_API_KEY not set"
+```
+
+**Dependent Skills:** data-designer
+
+---
+
+## 29. lat-md
+
+**Purpose:** Code architecture knowledge graph via lat.md CLI — semantic search, cross-referencing, drift detection, and @lat annotation management.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | lat | `npm install -g lat.md` |
+| Env | LAT_LLM_KEY | OPT — reuse OPENAI_API_KEY or ANTHROPIC_API_KEY |
+
+**Quick Setup:**
+
+```bash
+npm install -g lat.md
+lat check
+```
+
+**Verification:**
+
+```bash
+command -v lat && echo "PASS lat" || echo "FAIL lat (npm install -g lat.md)"
+lat check 2>/dev/null && echo "PASS lat check" || echo "WARN lat check failed (may need lat.md/ init)"
+```
+
+**Dependent Skills:** lat-md
+
+---
+
+## 30. knowledge-base
+
+**Purpose:** Karpathy-style LLM Knowledge Bases — ingest sources, compile wikis, FTS5/vector search, lint, index, and output generation.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| Python | fastembed | `pip install fastembed` (for local embeddings) |
+| Python | sqlite3 | Built-in with Python |
+| Env | KB_ROOT | OPT — defaults to `knowledge-bases` |
+| Env | EMBEDDING_PROVIDER | OPT — `openai` / `fastembed` / `local` |
+| Env | EMBEDDING_DIMENSIONS | OPT — defaults to `1536` |
+
+**Quick Setup:**
+
+```bash
+pip install fastembed
+# KB directories are created automatically on first ingest
+```
+
+**Verification:**
+
+```bash
+python3 -c "import fastembed" 2>/dev/null && echo "PASS fastembed" || echo "OPT fastembed (needed for local embeddings)"
+python3 -c "import sqlite3" 2>/dev/null && echo "PASS sqlite3" || echo "FAIL sqlite3"
+[ -d "knowledge-bases" ] && echo "PASS KB_ROOT exists" || echo "INFO KB_ROOT not yet created"
+```
+
+**Dependent Skills:** kb-ingest, kb-compile, kb-query, kb-search, kb-lint, kb-index, kb-output, kb-orchestrator, kb-auto-builder, kb-daily-router
+
+---
+
+## 31. rhwp-documents
+
+**Purpose:** HWP/HWPX document processing — viewing, conversion (SVG/PDF), debugging, and web editor embedding via the rhwp toolkit.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | rhwp | `cargo install rhwp` (Rust required) |
+| CLI | cargo | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| Node | @rhwp/core | `npm install @rhwp/core` (for web integration) |
+
+**Quick Setup:**
+
+```bash
+# Install Rust if not present
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+cargo install rhwp
+```
+
+**Verification:**
+
+```bash
+command -v rhwp && echo "PASS rhwp" || echo "FAIL rhwp (cargo install rhwp)"
+command -v cargo && echo "PASS cargo" || echo "FAIL cargo (install rustup)"
+```
+
+**Dependent Skills:** rhwp-viewer, rhwp-converter, rhwp-debug, rhwp-pipeline, rhwp-setup, rhwp-web-editor
+
+---
+
+## 32. carbonyl-browser
+
+**Purpose:** Browse the web inside the terminal using Carbonyl — a Chromium-based terminal browser with Unicode/ANSI rendering.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | carbonyl | `brew install nickolay/nickolay/nickolay-carbonyl` or download from GitHub |
+| CLI | docker | OPT — `brew install docker` (alternative runtime) |
+
+**Quick Setup:**
+
+```bash
+# macOS via Homebrew
+brew install nickolay/nickolay/nickolay-carbonyl
+# or via Docker
+docker run --rm -ti nickolay/nickolay-carbonyl https://example.com
+```
+
+**Verification:**
+
+```bash
+command -v carbonyl && echo "PASS carbonyl" || echo "FAIL carbonyl"
+```
+
+**Dependent Skills:** carbonyl-browser
+
+---
+
+## 33. obsidian-vault
+
+**Purpose:** Manage Obsidian vaults via CLI — CRUD files, daily notes, search, tags, plugins, themes, and developer tools.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | obsidian | Install Obsidian desktop app + enable CLI |
+| App | Obsidian.app | https://obsidian.md/download |
+
+**Quick Setup:**
+
+```bash
+# Install Obsidian from https://obsidian.md/download
+# Enable CLI access in Obsidian settings
+```
+
+**Verification:**
+
+```bash
+command -v obsidian && echo "PASS obsidian CLI" || echo "FAIL obsidian CLI (install app + enable CLI)"
+```
+
+**Dependent Skills:** obsidian-files, obsidian-search, obsidian-notes, obsidian-daily, obsidian-admin, obsidian-dev, obsidian-setup, obsidian-kb-bridge, brain-full-crew
+
+---
+
+## 34. atg-gateway
+
+**Purpose:** Agent Tool Gateway — HTTP proxy for Notion/Slack/GitHub MCP calls with caching, dedup, and compression.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | go (>= 1.21) | `brew install go` |
+| Env | NOTION_API_TOKEN | https://www.notion.so/my-integrations |
+| Env | SLACK_BOT_TOKEN | Shared with slack group |
+| Env | GITHUB_TOKEN | `gh auth token` |
+| Port | 4000 | ATG default listen port |
+
+**Quick Setup:**
+
+```bash
+cd atg && go run . &
+# Verify ATG health
+curl -s http://127.0.0.1:4000/health | grep -q ok && echo "ATG running" || echo "ATG not running"
+```
+
+**Verification:**
+
+```bash
+curl -sf http://127.0.0.1:4000/health >/dev/null 2>&1 && echo "PASS ATG reachable" || echo "OPT ATG not running (optional accelerator)"
+```
+
+**Dependent Skills:** atg-client, atg-skill-engineer
+
+---
+
+## 35. agent-reach
+
+**Purpose:** Multi-platform content access — 17 platforms via CLI, MCP, curl, and Python scripts for web search, social media, and developer platforms.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | agent-reach | `pip install agent-reach` or use bundled scripts |
+| Python | requests | `pip install requests` |
+
+**Quick Setup:**
+
+```bash
+pip install agent-reach
+agent-reach doctor
+```
+
+**Verification:**
+
+```bash
+command -v agent-reach && echo "PASS agent-reach" || echo "OPT agent-reach not installed"
+# Per-channel health
+agent-reach doctor 2>/dev/null || echo "Run 'agent-reach doctor' to check per-channel status"
+```
+
+**Dependent Skills:** agent-reach
+
+---
+
+## 36. feynman-research
+
+**Purpose:** Advanced paper research via the alpha CLI (AlphaXiv-backed) — semantic/keyword/agentic search, full-text reading, Q&A, code inspection, and annotations.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | alpha | `pip install alphaxiv-cli` or from AlphaXiv |
+
+**Quick Setup:**
+
+```bash
+pip install alphaxiv-cli
+```
+
+**Verification:**
+
+```bash
+command -v alpha && echo "PASS alpha CLI" || echo "FAIL alpha CLI (pip install alphaxiv-cli)"
+```
+
+**Dependent Skills:** feynman-alpha-research, feynman-peer-review, feynman-paper-audit, feynman-replication, feynman-source-comparison, feynman-research-watch
+
+---
+
+## 37. diagrams
+
+**Purpose:** Generate visual diagrams — Graphviz dot rendering, Mermaid diagrams, and architecture visualizations.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | dot | `brew install graphviz` |
+
+**Quick Setup:**
+
+```bash
+brew install graphviz
+```
+
+**Verification:**
+
+```bash
+command -v dot && echo "PASS graphviz/dot" || echo "FAIL graphviz (brew install graphviz)"
+```
+
+**Dependent Skills:** diagrams-generator, visual-explainer, alphaear-logic-visualizer
+
+---
+
+## 38. remotion-video
+
+**Purpose:** Programmatic motion graphics via Remotion — React-based video composition, rendering to .mp4, and design-system token extraction.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | node (>= 18) | `brew install node` |
+| Node | remotion | `npm install remotion @remotion/cli` |
+| CLI | ffmpeg | `brew install ffmpeg` |
+
+**Quick Setup:**
+
+```bash
+npm install remotion @remotion/cli @remotion/bundler
+brew install ffmpeg
+```
+
+**Verification:**
+
+```bash
+npx remotion --version 2>/dev/null && echo "PASS remotion" || echo "FAIL remotion (npm install remotion)"
+command -v ffmpeg && echo "PASS ffmpeg" || echo "FAIL ffmpeg"
+```
+
+**Dependent Skills:** remotion-motion-forge
+
+---
+
+## 39. paperclip-agents
+
+**Purpose:** Paperclip AI agent orchestration — create agents, manage tasks/issues, run heartbeats, enforce budgets, and inject runtime skills.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | paperclip | `npm install -g @paperclip-ai/cli` |
+| CLI | docker | `brew install docker` (for isolated agent runs) |
+| Env | PAPERCLIP_API_KEY | OPT — https://paperclip.dev |
+
+**Quick Setup:**
+
+```bash
+npm install -g @paperclip-ai/cli
+paperclip doctor
+```
+
+**Verification:**
+
+```bash
+command -v paperclip && echo "PASS paperclip" || echo "FAIL paperclip (npm install -g @paperclip-ai/cli)"
+paperclip doctor 2>/dev/null || echo "Run 'paperclip doctor' for setup status"
+```
+
+**Dependent Skills:** paperclip-agents, paperclip-tasks, paperclip-control, paperclip-setup
+
+---
+
+## 40. reddit-reaction
+
+**Purpose:** Generate Korean-subtitled YouTube Shorts from Reddit posts — scrape, TTS, card rendering, background assets, and video composition.
+
+**Prerequisites:**
+
+| Type | Item | Install Command |
+|------|------|-----------------|
+| CLI | ffmpeg | `brew install ffmpeg` |
+| CLI | yt-dlp | `pip install yt-dlp` |
+| Package (Python) | requests, gTTS, moviepy, Pillow, rich | `pip install requests gTTS moviepy Pillow rich yt-dlp` |
+| Font | NotoSansKR-Bold.ttf | Auto-downloaded from Google Fonts on first run |
+
+**Quick Setup:**
+
+```bash
+brew install ffmpeg
+pip install requests gTTS moviepy Pillow rich yt-dlp
+```
+
+**Verification:**
+
+```bash
+command -v ffmpeg && echo "PASS ffmpeg" || echo "FAIL ffmpeg"
+command -v yt-dlp && echo "PASS yt-dlp" || echo "FAIL yt-dlp"
+for pkg in requests gtts moviepy PIL rich; do
+  python3 -c "import $pkg" 2>/dev/null && echo "PASS $pkg" || echo "FAIL $pkg"
+done
+```
+
+**Dependent Skills:** reddit-reaction-maker

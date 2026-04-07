@@ -75,6 +75,7 @@ outputs/today/{date}/
   phase-4.5-alphaear.json      # Phase 4.5 AlphaEar intelligence
   phase-4.6-market-env.json    # Phase 4.6 market environment
   phase-4.8-agent-desk.json    # Phase 4.8 agent desk decisions
+  phase-4.9-kb-context.json    # Phase 4.9 KB historical context enrichment
   phase-5a-dq.json             # Phase 5a-DQ data quality
   phase-5.1-edge.json          # Phase 5.1 edge candidates
   phase-5-report-content.json  # Phase 5 structured report sections for DOCX
@@ -577,6 +578,62 @@ On failure: **Continue** — agent desk is optional; the pipeline proceeds witho
 
 **Step 4.8d — Persist & manifest:** Save agent desk decisions to `outputs/today/{date}/phase-4.8-agent-desk.json`. Update `manifest.json`.
 
+### Phase 4.9: KB Context Enrichment (Optional — Consumption Loop)
+
+Query accumulated knowledge from the Karpathy KB and Cognee to enrich the report with historical pattern context. Uses `scripts/kb_unified_query.py` for cross-system search with RRF merge. Skip with `skip-kb-context`.
+
+**Step 4.9a — Extract query targets:**
+
+Read `outputs/today/{date}/phase-4-analysis.json` and identify:
+1. Tickers with BUY or SELL signals (top 10 by absolute signal strength)
+2. Current regime classification from `phase-4.2-regime.json` (if available)
+
+**Step 4.9b — Query historical patterns:**
+
+For each target ticker, run:
+
+```bash
+python scripts/kb_unified_query.py "{ticker} {signal_type} pattern historical" --sources all --top 5 --json
+```
+
+For regime context (if Phase 4.2 data is available):
+
+```bash
+python scripts/kb_unified_query.py "market regime {current_regime} historical performance outcomes" --sources all --top 5 --json
+```
+
+Apply a 30-second timeout per query. If a query exceeds the timeout, record an empty result and continue.
+
+**Step 4.9c — Structure and save:**
+
+Save to `outputs/today/{date}/phase-4.9-kb-context.json`:
+
+```json
+{
+  "date": "2026-04-07",
+  "historical_context": {
+    "AAPL": {
+      "query": "AAPL RSI oversold bounce historical",
+      "kb_hits": 3,
+      "cognee_hits": 2,
+      "summary": "3 prior RSI oversold events in last 90 days of KB data...",
+      "pattern_match_confidence": 0.7
+    }
+  },
+  "regime_context": {
+    "current_regime": "risk-off",
+    "historical_similar": "Found 5 prior risk-off periods...",
+    "avg_duration_days": 12
+  },
+  "sources_available": ["kb_fts", "cognee_graph"],
+  "warnings": []
+}
+```
+
+On failure: **Continue** — KB context enrichment is advisory. The report proceeds without historical context if queries fail or return no results.
+
+**Step 4.9d — Persist & manifest:** Save KB context to `outputs/today/{date}/phase-4.9-kb-context.json`. Update `manifest.json`.
+
 ### Phase TV-SC: TradingView Screener Cross-Check (Optional — requires `--with-tradingview`)
 
 Cross-checks the native multi-factor screener results against TradingView MCP screener data. Only runs when `--with-tradingview` flag is set and the `tradingview-mcp-server` npm MCP is available.
@@ -1019,7 +1076,17 @@ python scripts/kb_compile.py {topic}
 
 Uses Claude to transform raw sources into structured wiki articles with YAML frontmatter, wikilinks, and navigation files (`_index.md`, `_summary.md`, `_glossary.md`, `_concept-map.md`).
 
-**Step 7d — Persist & manifest:** Save KB results to `outputs/today/{date}/phase-7-kb-ingest.json`:
+**Step 7d — Incremental index rebuild:**
+
+After new raw sources are ingested, incrementally rebuild `brain_index.db` to keep FTS5 search current:
+
+```bash
+python scripts/kb_index_db.py --rebuild
+```
+
+This re-indexes all wiki files across all KB topic directories into `knowledge-bases/brain_index.db`. Takes ~2-5 seconds for typical daily increments. If the script fails, log a warning and continue — the index will be rebuilt on next run.
+
+**Step 7e — Persist & manifest:** Save KB results to `outputs/today/{date}/phase-7-kb-ingest.json`:
 
 ```json
 {
@@ -1062,6 +1129,7 @@ On failure: **Continue** — KB accumulation is optional; the pipeline succeeds 
 | `skip-decisions` | off | Skip Step 5d (`decision-router`) | `/today skip-decisions` |
 | `skip-toss` | off | Skip Phase 1.5 (snapshot) and Phase 5.5 (signal bridge + risk) | `/today skip-toss` |
 | `skip-twitter` | off | Skip Phase 6 | `/today skip-twitter` |
+| `skip-kb-context` | off | Skip Phase 4.9, no KB historical context enrichment | `/today skip-kb-context` |
 | `skip-kb` | off | Skip Phase 7, no KB ingest | `/today skip-kb` |
 | `skip-kb-compile` | off | Skip Phase 7b incremental compile | `/today skip-kb-compile` |
 | `twitter-only` | off | Phase 6 only | `/today twitter-only` |

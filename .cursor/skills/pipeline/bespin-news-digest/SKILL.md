@@ -284,7 +284,10 @@ Extract from the response:
 - Domain / source publication
 - Full body text (key paragraphs — aim for 300-600 chars of core content)
 
-**Fallback**: If Jina Reader returns empty, error, or times out → `WebFetch {ARTICLE_URL}` directly.
+**Fallback chain**:
+1. If Jina Reader returns empty, error, or times out → `WebFetch {ARTICLE_URL}` directly.
+2. If WebFetch also returns empty/error → try Agent-Reach Jina channel: `curl -s "https://r.jina.ai/{ARTICLE_URL}"` (may use different routing/headers).
+3. If all three fail, mark article as `extraction_failed` in the phase JSON and continue.
 
 **404 / unreachable**: Skip article, note in DOCX as "[접속 불가]", continue.
 

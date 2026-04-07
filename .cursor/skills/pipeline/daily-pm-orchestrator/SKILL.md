@@ -67,6 +67,7 @@ While the run is in progress, `overall_status` may be `"running"` until Phase 6 
 | Phase | Label | Output file | Skip flag |
 | --- | --- | --- | --- |
 | 1 | Knowledge consolidation | `outputs/daily-pm/{date}/phase-1-knowledge-consolidation.json` | (none; first phase) |
+| 1.8 | Strategic KB query | `outputs/daily-pm/{date}/phase-1.8-strategic-context.json` | `--skip-kb-context`, `--skip-phase 1.8` |
 | 2 | Strategic analysis | `outputs/daily-pm/{date}/phase-2-strategic-analysis.json` | `--skip-strategy`, `--skip-phase 2` |
 | 3 | Code shipping | `outputs/daily-pm/{date}/phase-3-code-shipping.json` | `--skip-phase 3` |
 | 4 | Skill evolution | `outputs/daily-pm/{date}/phase-4-skill-evolution.json` | `--skip-skills`, `--skip-phase 4` |
@@ -80,6 +81,7 @@ While the run is in progress, `overall_status` may be `"running"` until Phase 6 
 /daily-pm --skip-phase 2          # skip Strategic Analysis
 /daily-pm --only-phase 3          # run only Code Shipping
 /daily-pm --skip-strategy         # skip daily-strategy-post
+/daily-pm --skip-kb-context       # skip Phase 1.8 KB historical context
 /daily-pm --skip-skills           # skip skill evolution
 /daily-pm --friday                # force weekly reports even if not Friday
 /daily-pm --no-slack              # suppress Slack notifications
@@ -163,6 +165,85 @@ On failure: **Warn and continue** — knowledge consolidation failure should not
 
 ---
 
+### Phase 1.8: Strategic KB Query (Unified Query Layer)
+
+**Duration**: ~1-2 min | **Dependencies**: Phase 1 | **Sequential after Phase 1, before Phase 2**
+
+**Skip if** `--skip-kb-context` or `--skip-phase 1.8` is set.
+
+Query the unified knowledge layer (`scripts/kb_unified_query.py`) to retrieve historical strategic context that grounds Phase 2 strategy documents in accumulated knowledge rather than same-day data alone.
+
+**Step 1.8a — Extract query targets from Phase 1:**
+
+Read `outputs/daily-pm/{date}/phase-1-knowledge-consolidation.json` and extract:
+1. Top entities discovered today (companies, technologies, market signals)
+2. Key signal patterns from the aggregator (e.g., recurring trading themes, sector trends)
+
+If Phase 1 failed or produced no entities, skip Phase 1.8 with `status: "skipped"`.
+
+**Step 1.8b — Query historical context:**
+
+For each extracted entity (max 5), run:
+
+```bash
+python scripts/kb_unified_query.py "prior strategic decisions related to {entity}" --sources all --top 5 --json
+```
+
+For each signal pattern (max 3), run:
+
+```bash
+python scripts/kb_unified_query.py "historical trend for {signal_pattern}" --sources all --top 5 --json
+```
+
+Apply a 30-second timeout per query. If exceeded, record an empty result and continue.
+
+**Step 1.8c — Structure and save:**
+
+Save to `outputs/daily-pm/{date}/phase-1.8-strategic-context.json`:
+
+```json
+{
+  "date": "2026-04-07",
+  "entity_context": {
+    "NVIDIA": {
+      "query": "prior strategic decisions related to NVIDIA",
+      "kb_hits": 4,
+      "cognee_hits": 1,
+      "summary": "4 prior KB entries reference NVIDIA GPU demand cycle...",
+      "relevance": 0.82
+    }
+  },
+  "signal_context": {
+    "sector_rotation_defensive": {
+      "query": "historical trend for defensive sector rotation",
+      "kb_hits": 2,
+      "cognee_hits": 3,
+      "summary": "Historical defensive rotations lasted 8-15 days...",
+      "relevance": 0.75
+    }
+  },
+  "sources_available": ["kb_fts", "cognee_graph"],
+  "warnings": []
+}
+```
+
+**Step 1.8d — Persist & manifest:** Update `manifest.json` → `phases[]` with `id: "phase-1.8"`, `label: "strategic-kb-context"`, `status`, `output_file: "phase-1.8-strategic-context.json"`, timing, and summary.
+
+On failure: **Continue** — strategic context is advisory. Phase 2 (strategy post) proceeds without historical grounding if queries fail.
+
+```python
+results["phases"]["phase1_8"] = {
+  "status": "pass|partial|fail|skipped",
+  "entities_queried": N,
+  "signals_queried": N,
+  "total_kb_hits": N,
+  "total_cognee_hits": N,
+  "duration_s": N
+}
+```
+
+---
+
 ### Phase 2: Strategic Analysis (daily-strategy-post)
 
 **Duration**: ~5-10 min | **Dependencies**: Phase 1 | **Sequential after Phase 1**
@@ -171,12 +252,13 @@ On failure: **Warn and continue** — knowledge consolidation failure should not
 
 Read and follow the `daily-strategy-post` skill (`.cursor/skills/pipeline/daily-strategy-post/SKILL.md`).
 
-1. Collect all daily intelligence (aggregated in Phase 1):
+1. Collect all daily intelligence (aggregated in Phase 1) and historical context (Phase 1.8):
    - Email trends and topics
    - Sprint data and blockers
    - News highlights
    - Research discoveries
    - Market signals
+   - KB historical context from `phase-1.8-strategic-context.json` (if available)
 
 2. Run multi-role strategic analysis:
    - Company-level strategy (CEO/CSO perspective)
@@ -349,7 +431,7 @@ results["phases"]["phase5"] = {
 | Batch | Phases | Notes |
 |---|---|---|
 | Sequential | Phase 1 (Knowledge) | Must run first |
-| Sequential | Phase 1 → Phase 2 (Strategy) | Needs aggregated intelligence |
+| Sequential | Phase 1 → Phase 1.8 (KB Context) → Phase 2 (Strategy) | Needs aggregated intelligence + historical context |
 | Parallel A | Phase 3 (Code Shipping) | After Phase 1 |
 | Parallel B | Phase 4 (Skill Evolution) | After Phase 1 |
 | Parallel C | Phase 5 (Weekly, Friday only) | After Phase 1 |

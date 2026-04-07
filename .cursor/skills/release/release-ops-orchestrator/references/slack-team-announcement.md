@@ -36,7 +36,7 @@
 *매주 월요일까지*:
 
 1️⃣ *배포 대상 PR에 GitHub 라벨 4개 부착*
-   • `release:thu` — 이번 주 목요일 배포 대상
+   • `release:approved` — 이번 주 목요일 배포 대상
    • `app:ai-platform` 또는 `app:agent-studio` — 앱 구분
    • `risk:low` / `risk:medium` / `risk:high` — 위험도
    • `qa:needed` — QA 필요 표시
@@ -67,7 +67,7 @@
 4️⃣ 모든 배포 항목에 설명 가능한 앱 오너 필수
 5️⃣ 배포 당일(목) 신규 항목 추가 금지 — 핫픽스만 예외
 6️⃣ PR 템플릿 5개 섹션 모두 작성 필수
-7️⃣ `release:thu`와 `hotfix` 라벨 동시 사용 금지
+7️⃣ `release:approved`와 `hotfix` 라벨 동시 사용 금지
 
 > :rotating_light: *핫픽스가 필요한 경우*: `#hotfix-alert` 채널을 사용해주세요.
 > 정규 릴리즈와 핫픽스는 별도 트랙으로 관리됩니다.

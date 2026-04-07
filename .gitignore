@@ -96,3 +96,7 @@ docs/_build/
 # OS
 Thumbs.db
 .DS_Store
+.cursor/skills/**/assets/**/*.mp4
+.cursor/skills/**/assets/**/*.mp3
+.cursor/skills/**/assets/**/*.wav
+*.pdf

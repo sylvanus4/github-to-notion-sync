@@ -4,7 +4,7 @@ description: >-
   Hotfix queue management outside the regular weekly release cycle. Validates
   hotfix PRs, manages the Notion Hotfix Queue, posts alerts to #hotfix-alert,
   and enforces hotfix-specific rules (impact statement, notification status,
-  mutual exclusivity with release:thu). Use when the user asks to "submit
+  mutual exclusivity with release:approved). Use when the user asks to "submit
   hotfix", "hotfix alert", "manage hotfix", "핫픽스 관리", "핫픽스 등록",
   "hotfix-manager", or any hotfix-related operation. Do NOT use for regular
   release items (use release-collector), QA on regular items (use release-qa-gate),
@@ -39,7 +39,7 @@ For the submitted PR, run hotfix-specific validation:
 
 **1a. Label validation**:
 - Must have `hotfix` label
-- Must NOT have `release:thu` label (Rule 7: mutually exclusive)
+- Must NOT have `release:approved` label (Rule 7: mutually exclusive)
 - Must have exactly one app label (`app:ai-platform` or `app:agent-studio`)
 
 **1b. PR body validation** — same 5-section template as regular releases:
@@ -153,7 +153,7 @@ Write hotfix record to `outputs/release-ops/{date}/hotfix-{pr_number}.json`:
 ## Gotchas
 
 - Hotfixes are independent of the weekly cycle — they can happen any day
-- A hotfix PR must NOT also be labeled `release:thu`; if it is, remove `release:thu` and explain Rule 7
+- A hotfix PR must NOT also be labeled `release:approved`; if it is, remove `release:approved` and explain Rule 7
 - Hotfixes still require QA, but the QA cycle is compressed (same-day)
 - Business team notification is a hard requirement (Rule 3), not optional
 - If a hotfix is submitted on Thursday, it does NOT get added to the regular release list

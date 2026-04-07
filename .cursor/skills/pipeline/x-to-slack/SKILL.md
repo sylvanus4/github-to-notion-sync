@@ -330,7 +330,7 @@ Result: Thread with quote tweet context included
 
 ## Error Handling
 
-- **FxTwitter API failure**: Report error to user, do not post to Slack.
+- **FxTwitter API failure**: Try Agent-Reach Twitter channel as fallback: `twitter read {tweet_id}` (requires TWITTER_COOKIE configured via agent-reach). If twitter-cli is also unavailable or fails, report error to user and do not post to Slack.
 - **Channel not found (public)**: Fall back to `slack_search_public_and_private` with `in:{channel_name}` and `channel_types: "private_channel"`. If still not found, ask user to provide correct channel name.
 - **Missing thread_ts**: If Message 1 response doesn't include `message_ts`, use `slack_read_channel` to find the most recent message just posted.
 - **Tweet has no text**: Still process if media or quote exists; note empty text in summary.

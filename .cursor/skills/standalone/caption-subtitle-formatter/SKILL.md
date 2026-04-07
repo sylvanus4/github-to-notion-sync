@@ -211,6 +211,7 @@ Read the existing SRT, re-segment long lines, split fast blocks into shorter one
 
 ## Composability
 
+- **reclip-media-downloader** — Download video files from URLs, then transcribe and format as subtitles
 - **transcribee** — Transcribe audio/video first, then format as subtitles
 - **defuddle** — Extract YouTube transcripts, then format as proper SRT/VTT
 - **video-script-generator** — Generate script, then pre-generate subtitles from the script

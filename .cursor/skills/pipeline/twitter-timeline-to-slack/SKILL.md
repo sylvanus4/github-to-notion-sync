@@ -77,7 +77,7 @@ The `--user` flag is supported to override the default screen name:
 cd scripts/twitter && node run_pipeline.js --fetch-only --user someuser
 ```
 
-This uses twittxr (Twitter Syndication API wrapper) to fetch up to 100 tweets. Falls back to FxTwitter API for individual tweet enrichment.
+This uses twittxr (Twitter Syndication API wrapper) to fetch up to 100 tweets. Falls back to FxTwitter API for individual tweet enrichment. If both twittxr and FxTwitter fail, try Agent-Reach Twitter channel: `twitter search "{screen_name}" --limit 20` (requires TWITTER_COOKIE configured via `agent-reach configure twitter`).
 
 ### Phase 2: Classify and Route
 
@@ -691,8 +691,8 @@ Actions:
 ## Error Handling
 
 - **TWITTER_COOKIE missing or expired**: Trigger Phase 0 cookie registration flow — guide user to copy cookie from browser and save to `.env`
-- **twittxr API failure**: Log error, continue with existing tweets in DB
-- **FxTwitter fetch failure**: Use raw tweet data from twittxr as fallback
+- **twittxr API failure**: Log error, try Agent-Reach Twitter channel (`twitter timeline {screen_name} --limit 20`) as fallback. Continue with existing tweets in DB if both fail.
+- **FxTwitter fetch failure**: Use raw tweet data from twittxr as fallback. If twittxr data is also unavailable, try `twitter read {tweet_id}` via agent-reach.
 - **Slack channel not found**: Skip tweet, log warning
 - **Rate limit**: Configurable via `TWEET_POST_DELAY_MS` env var (default: 12000ms)
 

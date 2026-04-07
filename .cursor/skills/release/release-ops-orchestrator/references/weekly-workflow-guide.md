@@ -27,7 +27,7 @@
 ### 앱 오너가 할 일
 
 1. **배포 대상 PR에 라벨 부착**
-   - `release:thu` — 이번 주 목요일 배포 대상
+   - `release:approved` — 이번 주 목요일 배포 대상
    - `app:ai-platform` 또는 `app:agent-studio` — 앱 구분
    - `risk:low` / `risk:medium` / `risk:high` — 위험도
    - `qa:needed` — QA 필요
@@ -59,7 +59,7 @@
 
 | 시간 | 작업 | 상세 |
 |---|---|---|
-| 10:00 AM | **취합 마감** | GitHub에서 `release:thu` 라벨이 달린 모든 PR 수집 |
+| 10:00 AM | **취합 마감** | GitHub에서 `release:approved` 라벨이 달린 모든 PR 수집 |
 | 10:00~11:00 | **검증** | 각 PR의 라벨, 템플릿 5섹션, Assignee 확인 |
 | 11:00 | **Notion 업데이트** | `Weekly Release - {목요일 날짜}` 페이지 생성, 각 항목 등록 |
 | 11:30 | **Slack 공지** | `#release-control`에 "주간 릴리즈 후보 목록 v1" 게시 |
@@ -189,7 +189,7 @@
 
 | 순서 | 작업 | 상세 |
 |---|---|---|
-| 1 | **PR 생성** | `hotfix` 라벨 + `app:*` 라벨 부착 (⚠️ `release:thu`와 동시 사용 불가) |
+| 1 | **PR 생성** | `hotfix` 라벨 + `app:*` 라벨 부착 (⚠️ `release:approved`와 동시 사용 불가) |
 | 2 | **PR 본문 작성** | 5섹션 템플릿 작성 + 고객/비즈니스 영향 필수 기재 |
 | 3 | **Slack 알림** | `#hotfix-alert`에 핫픽스 요청 게시 |
 
@@ -228,7 +228,7 @@
 | 4 | 모든 배포 항목에 설명 가능한 앱 오너 필수 | 항목 제외 |
 | 5 | 배포 당일 신규 항목 추가 금지 (핫픽스 제외) | 거절 |
 | 6 | PR 템플릿 5섹션 필수 | 보완 요청 |
-| 7 | `release:thu`와 `hotfix` 라벨 동시 사용 금지 | 라벨 수정 요청 |
+| 7 | `release:approved`와 `hotfix` 라벨 동시 사용 금지 | 라벨 수정 요청 |
 
 ---
 

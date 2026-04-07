@@ -319,7 +319,7 @@ For screenshots and complex diagrams that need OCR, note them in frontmatter as 
 |-------|---------|--------|
 | No schema | `_schema.md` missing | Warn user, suggest `kb-orchestrator init`, proceed with defaults |
 | Schema parse error | Malformed `_schema.md` | Report parse error, fall back to defaults |
-| URL unreachable | defuddle returns empty/error | Log warning, skip source, continue batch |
+| URL unreachable | defuddle returns empty/error | Fallback 1: `WebFetch {URL}`. Fallback 2: Agent-Reach channel (URL-pattern match — e.g., `curl -s "https://r.jina.ai/{URL}"` for general web, `rdt read` for Reddit, `yt-dlp` for YouTube). If all fail, log warning and skip source. |
 | Image download fails | curl returns non-200 | Keep original URL reference, log warning |
 | Duplicate source | Same URL already in manifest | Ask user: overwrite or skip |
 | Invalid file path | Local file not found | Report error with path |

@@ -1,21 +1,22 @@
 ---
 name: release-deployer
 description: >-
-  Thursday deployment operations for the weekly release cycle. Locks the release
-  list, announces deployment schedule, tracks deployment status, and posts
-  post-deploy confirmation with improvement points. Use when the user asks to
-  "run deployment", "Thursday deploy", "release deploy", "목요일 배포",
-  "릴리즈 배포", "release-deployer", or during the Thursday deployment pipeline.
-  Do NOT use for Tuesday collection (use release-collector), Wednesday QA
-  (use release-qa-gate), or hotfix deployment (use hotfix-manager).
+  Thursday deployment operations for the weekly release cycle. Promotes the
+  QA-verified RC image to a production tag (vYYYY.MM.DD), deploys it to
+  production via ArgoCD, restores the dev environment to the latest dev HEAD
+  image, and posts confirmation to Slack. Use when the user asks to "run
+  deployment", "Thursday deploy", "release deploy", "promote RC image",
+  "목요일 배포", "릴리즈 배포", "release-deployer", or during the Thursday
+  deployment pipeline. Do NOT use for Tuesday collection (use release-collector),
+  Wednesday QA (use release-qa-gate), or hotfix deployment (use hotfix-manager).
 metadata:
-  version: "1.0.0"
+  version: "3.0.0"
   category: "execution"
   author: "thaki"
 ---
-# Release Deployer
+# Release Deployer (Image Promotion to Production)
 
-Thursday deployment lifecycle: lock the release list, announce schedule, track deployment progress, post confirmation, and record improvement points.
+Thursday deployment lifecycle: lock the release list, promote the QA-verified RC image to a production tag (`vYYYY.MM.DD`), deploy to production via ArgoCD, restore dev to its latest HEAD image, and record the cycle retrospective.
 
 ## When to Use
 
@@ -25,122 +26,160 @@ Thursday deployment lifecycle: lock the release list, announce schedule, track d
 
 ## Prerequisites
 
-- Notion MCP connected (for `release-notion-board`)
-- Slack MCP connected (for `release-slack-ops`)
-- QA gate completed — `qa-results.json` from `release-qa-gate` exists
-- Reference: `release-ops-orchestrator/references/checklists.md` for Thursday Deploy Checklist
+- QA gate completed — `qa-results.json` from `release-qa-gate` exists with `gate_status = OPEN`
+- RC image tag exists on ghcr.io (created by `release-collector`)
+- `collection.json` available with `rc_image_tag`
+- Kubernetes / ArgoCD access to deploy images to production and dev
+- Notion weekly release page populated
+- Slack MCP connected
+- Reference: `release-ops-rules.mdc` for deployment rules
 
 ## Workflow
 
 ### Phase 1: Lock Release List
 
-1. Load QA results from `outputs/release-ops/{date}/qa-results.json` or query Notion for items with Status = `Ready for Release`
-2. Enforce Rule 5: No new items on deployment day (log the locked list)
-3. Generate the final deploy manifest with item count, risk profile, deployment sequence
-4. Persist the locked list to `outputs/release-ops/{date}/deploy-manifest.json`
+1. Load `outputs/release-ops/{date}/qa-results.json`
+2. Verify `gate_status = OPEN` — abort if CLOSED
+3. Extract deploy candidates (items with `qa_status` = Pass or Conditional Pass)
+4. Enforce Rule 5: reject any requests to add new items on Thursday
+5. Generate deploy manifest
 
 ```json
 {
-  "date": "2026-04-09",
-  "locked_at": "2026-04-09T09:00:00+09:00",
-  "deploy_time": "14:00",
-  "total": 6,
-  "risk_profile": {"high": 1, "medium": 3, "low": 2},
-  "items": [
-    {
-      "pr_url": "...",
-      "title": "...",
-      "app": "ai-platform",
-      "risk": "medium",
-      "owner": "...",
-      "rollback_method": "...",
-      "deploy_order": 1
-    }
-  ]
+  "date": "2026-04-10",
+  "locked_at": "2026-04-10T09:00:00+09:00",
+  "rc_image_tag": "rc-20260408103000",
+  "production_tag": "v2026.04.10",
+  "deploy_time": "10:00",
+  "total": 13,
+  "risk_profile": {"high": 2, "medium": 6, "low": 5},
+  "items": [...]
 }
 ```
 
 ### Phase 2: Pre-Deploy Announcement
 
-Call `release-slack-ops` Message Type 3 (Thursday Pre-Deploy):
-- Main message: item count, deploy time, risk profile, LOCKED notice
+Call `release-slack-ops` to `#release-control`:
+- Main message: item count, deploy time, RC image tag, production tag, risk profile, LOCKED notice
 - Thread 1: Full item list with owners and rollback plans
 - Thread 2: Deployment sequence and timeline
 
-Notify business/QA teams per the checklist:
-- Update Notion items: `Business Team Share Status` = checked
-- Update Notion items: `QA Team Share Status` = checked
+### Phase 3: Promote RC Image and Deploy to Production
 
-### Phase 3: Track Deployment Progress
+The RC image (already verified by QA on dev) is promoted to the production tag and deployed:
 
-For each item in the deploy manifest, track deployment status:
+```bash
+# 1. Tag the RC image as the production release
+#    source: ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000
+#    target: ghcr.io/thakicloud/ai-platform-webui:v2026.04.10
+#    Trigger CI workflow to re-tag:
+gh workflow run release-webui.yaml -f image_tag=v2026.04.10
 
-**Status transitions**:
+# 2. Deploy to production via ArgoCD
+#    Update Helm values with the new image tag
+#    ArgoCD syncs and deploys the production image
+
+# 3. Verify rollout
+kubectl rollout status deployment/<app> -n production --timeout=300s
+```
+
+Track deployment status for each service:
 - `Ready for Release` → `Released` (successful deployment)
-- `Ready for Release` → `Hold` (deployment failed, rolled back)
+- `Ready for Release` → `Rollback` (deployment failed)
 
-**For each deployed item**:
-1. Update Notion via `release-notion-board` Operation 3:
-   - Status = `Released`
-   - Release Inclusion = `Included`
-2. Record deployment timestamp
+Update Notion for each deployed item.
 
-**For each rolled-back item**:
-1. Update Notion:
-   - Status = `Hold`
-   - Release Inclusion = `Deferred`
-2. Record rollback reason
+### Phase 4: Post-Deploy Verification
 
-### Phase 4: Post-Deploy Announcement
+After production deployment:
 
-Call `release-slack-ops` Message Type 4 (Thursday Post-Deploy Confirmation):
-- Main message: deployed count, rolled back count, monitoring plan
+1. Run smoke tests against production
+2. Monitor error rates and latency for 30 minutes
+3. If issues detected → initiate rollback to previous production image tag
+
+### Phase 5: Create Git Release Tag
+
+After production is stable, create the git tag for traceability:
+
+```bash
+# Tag the dev commit corresponding to the RC image
+git fetch origin dev
+git tag v2026.04.10 <dev_head_sha_from_collection>
+git push origin v2026.04.10
+```
+
+No branch merge is needed — the image tagging model does not use release branches.
+
+### Phase 6: Restore Dev Environment
+
+Restore the dev environment from the RC image back to the latest `dev` HEAD image:
+
+```bash
+# Deploy the latest dev HEAD image to the dev environment
+# The latest dev-{TIMESTAMP} image from CI is used
+# ArgoCD or Helm redeploy to dev with the dev HEAD image tag
+```
+
+This unblocks app owners to test their held/blocked PRs for the next cycle.
+
+### Phase 7: Post-Deploy Cleanup
+
+1. PRs with `release:approved` + `qa:done`: no action needed (already shipped)
+2. PRs with `release:hold`: remain on `dev` for next cycle consideration
+3. PRs with `release:blocked`: need fixes before reconsideration; app owner notified
+4. Remove `release:approved` labels from shipped PRs (cycle complete)
+
+### Phase 8: Post-Deploy Announcement + Retrospective
+
+Call `release-slack-ops` to `#release-control`:
+- Main message: deployed count, production tag, RC image tag, monitoring status
 - Thread 1: Deployed items with confirmation
-- Thread 2: 3 improvement points for next week (collected from the team or auto-generated)
-- Thread 3: Rolled back or deferred items with reasons
+- Thread 2: Rolled back items with reasons (if any)
+- Thread 3: 3 improvement points for next cycle
 
-### Phase 5: Post-Deploy Retrospective
-
-Collect and record 3 improvement points:
-1. Review the week's release cycle for process issues
-2. Note any missed deadlines, validation gaps, or communication failures
-3. Document actionable improvements
-
-Persist to `outputs/release-ops/{date}/retrospective.json`:
+Collect and record improvement points:
 
 ```json
 {
-  "date": "2026-04-09",
-  "deployed": 5,
-  "rolled_back": 1,
-  "deferred": 0,
+  "date": "2026-04-10",
+  "production_tag": "v2026.04.10",
+  "rc_image_tag": "rc-20260408103000",
+  "rc_image_url": "ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000",
+  "deployed": 13,
+  "rolled_back": 0,
+  "dev_restored": true,
   "improvements": [
     "Improvement 1: ...",
     "Improvement 2: ...",
     "Improvement 3: ..."
   ],
-  "monitoring_end": "2026-04-09T18:00:00+09:00"
+  "monitoring_end": "2026-04-10T14:00:00+09:00"
 }
 ```
 
-### Phase 6: Persist Final State
+### Phase 9: Persist Final State
 
-Write deployment results to `outputs/release-ops/{date}/deploy-results.json`:
+Write to `outputs/release-ops/{date}/deploy-results.json`:
 
 ```json
 {
-  "date": "2026-04-09",
-  "total_candidates": 6,
-  "deployed": 5,
-  "rolled_back": 1,
-  "deferred": 0,
+  "date": "2026-04-10",
+  "rc_image_tag": "rc-20260408103000",
+  "rc_image_url": "ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000",
+  "production_tag": "v2026.04.10",
+  "git_tag": "v2026.04.10",
+  "total_candidates": 13,
+  "deployed": 13,
+  "rolled_back": 0,
+  "dev_restored": true,
   "items": [
     {
+      "pr_number": 123,
       "pr_url": "...",
       "title": "...",
-      "app": "ai-platform",
+      "risk": "medium",
       "status": "Released",
-      "deployed_at": "2026-04-09T14:15:00+09:00"
+      "deployed_at": "2026-04-10T10:15:00+09:00"
     }
   ]
 }
@@ -148,25 +187,31 @@ Write deployment results to `outputs/release-ops/{date}/deploy-results.json`:
 
 ## Output Artifacts
 
-| Phase | Stage | Output File | Skip Flag |
-|---|---|---|---|
-| 1 | Lock | `outputs/release-ops/{date}/deploy-manifest.json` | — |
-| 2 | Pre-deploy | `#release-control` message | `skip-slack` |
-| 3 | Track | Notion database (live) | — |
-| 4 | Post-deploy | `#release-control` message | `skip-slack` |
-| 5 | Retrospective | `outputs/release-ops/{date}/retrospective.json` | — |
-| 6 | State file | `outputs/release-ops/{date}/deploy-results.json` | — |
+| Phase | Output | Skip Flag |
+|---|---|---|
+| 1 | `outputs/release-ops/{date}/deploy-manifest.json` | — |
+| 2 | Slack `#release-control` pre-deploy | `skip-slack` |
+| 3 | Production deployment + image promotion | `skip-deploy` |
+| 5 | Git release tag | `skip-tag` |
+| 6 | Dev environment restore | `skip-dev-restore` |
+| 8 | Slack `#release-control` post-deploy | `skip-slack` |
+| 9 | `outputs/release-ops/{date}/deploy-results.json` | — |
 
 ## Error Recovery
 
-- If deploy-manifest lock fails: fall back to Notion query for `Ready for Release` items
-- If Notion update fails during tracking: persist status locally and retry
-- If Slack posting fails: save to `outputs/release-ops/{date}/pending-slack-deploy.md`
+- QA gate not OPEN: abort deployment, alert Release Owner
+- Image promotion fails: retry CI workflow, report status
+- Production deploy fails: rollback to previous production image tag, record in results
+- Dev restore fails: retry, alert — dev should not stay on RC image
+- Slack failure: save to `outputs/release-ops/{date}/pending-slack-deploy.md`
 
 ## Gotchas
 
-- Deploy time is announced, not enforced — actual deployment is a manual operation by the team
-- Rule 5 enforcement: if someone tries to add an item on Thursday, this skill rejects it with explanation
-- Rolled-back items should be triaged for next week's release or hotfix path
-- Monitoring duration after deployment is typically 2-4 hours; adjust per risk profile
-- The 3 improvement points are a mandatory output — if no issues occurred, note what went well
+- The RC image deployed to production is the SAME image that passed QA on dev — no rebuild
+- Image promotion = re-tagging the same image digest, not rebuilding
+- No branch merges or branch deletions — the image tagging model eliminates release branches entirely
+- After production deploy, dev MUST be restored to dev HEAD to unblock development
+- Rule 5 enforcement: no new items on Thursday, only approved hotfixes via `#hotfix-alert`
+- Monitoring duration: 30 min minimum for high-risk items, 15 min for low-risk
+- The 3 improvement points are mandatory — even if everything went well, note what worked
+- Label cleanup (`release:approved` removal) signals cycle completion for that PR

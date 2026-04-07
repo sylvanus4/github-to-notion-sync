@@ -39,6 +39,7 @@ All environment variables required or used by project skills, organized by capab
 | SLACK_REPORT_CHANNEL | OPT | `h-report` | Default Slack channel for reports | — |
 | SLACK_SIGNING_SECRET | OPT | — | Required for slack-agent bot development | Slack App → Basic Info |
 | SLACK_APP_TOKEN | OPT | — | Required for slack-agent Socket Mode (`xapp-...`) | Slack App → Basic Info |
+| SLACK_USER_TOKEN | OPT | — | User OAuth token (`xoxp-...`) for slack-orphan-cleaner thread deletion | Slack App → OAuth (User Token Scopes) |
 
 ## notion
 
@@ -178,3 +179,69 @@ No env vars — requires `gitleaks` CLI tool.
 ## scrapling
 
 No env vars — requires `scrapling` Python package.
+
+## pika-video
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| FAL_KEY | REQ | — | fal.ai API key for Pika v2.2 video generation | https://fal.ai/dashboard/keys |
+
+## sleek
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| SLEEK_API_KEY | REQ | — | Sleek REST API key for mobile app screen design | https://sleek.design |
+
+## data-designer
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| NVIDIA_API_KEY | OPT | — | NVIDIA NIM API key for synthetic data generation | https://build.nvidia.com |
+| OPENROUTER_API_KEY | OPT | — | OpenRouter API key (alternative LLM provider) | https://openrouter.ai/keys |
+| NEMO_TELEMETRY_ENABLED | OPT | `false` | Enable NeMo telemetry reporting | — |
+
+## lat-md
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| LAT_LLM_KEY | OPT | — | LLM API key for `lat search` semantic queries | Reuse OPENAI_API_KEY or ANTHROPIC_API_KEY |
+
+## knowledge-base
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| KB_ROOT | OPT | `knowledge-bases` | Root directory for Knowledge Base topics | — |
+| EMBEDDING_PROVIDER | OPT | `openai` | Embedding provider (`openai` / `fastembed` / `local`) | — |
+| EMBEDDING_MODEL | OPT | `text-embedding-3-small` | Embedding model name | — |
+| EMBEDDING_DIMENSIONS | OPT | `1536` | Embedding vector dimensions | — |
+| RESEARCH_REPO | OPT | — | Path to research repo for KB source sync | — |
+
+## pikastream
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| FAL_KEY | REQ | — | fal.ai API key (shared with pika-video) for PikaStreaming avatar + voice | https://fal.ai/dashboard/keys |
+
+## google-seo
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| GOOGLE_CREDENTIALS_FILE | OPT | — | Path to Google service account JSON (for Search Console) | Google Cloud Console |
+| GOOGLE_CLIENT_ID | OPT | — | OAuth client ID for Google APIs | Google Cloud Console |
+| GOOGLE_CLIENT_SECRET | OPT | — | OAuth client secret for Google APIs | Google Cloud Console |
+
+## atg-gateway
+
+| Variable | Priority | Default | Description | Source |
+|----------|----------|---------|-------------|--------|
+| NOTION_API_TOKEN | REQ | — | Notion API token for ATG Notion connector | https://www.notion.so/my-integrations |
+| SLACK_BOT_TOKEN | REQ | — | Slack Bot token for ATG Slack connector (shared with slack group) | Slack App → OAuth |
+| GITHUB_TOKEN | REQ | — | GitHub token for ATG GitHub connector | `gh auth token` or https://github.com/settings/tokens |
+
+## agent-reach
+
+No env vars — individual channels use their own auth (Twitter cookie, Exa MCP config, etc.). Run `agent-reach doctor` for per-channel health.
+
+## reddit-reaction
+
+No env vars — Reddit scraping uses public `.json` endpoints (no API key). Font auto-downloads on first run.

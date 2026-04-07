@@ -133,6 +133,10 @@ Result: Higher quality output at CRF 24
 | Output file already exists | Add `-y` flag to overwrite, or ask user |
 | Disk space insufficient | Check available space with `df -h .` before starting |
 
+## See Also
+
+- **reclip-media-downloader** — Download source videos from URLs (YouTube, TikTok, etc.) before compressing them with this skill.
+
 ## Notes
 
 - Compressed files are local artifacts; never commit or push them

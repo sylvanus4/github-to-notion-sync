@@ -67,17 +67,19 @@ These labels are actively used in the repository. Release operations integrate w
 
 | Label | Color | Description | Usage |
 |---|---|---|---|
-| `release:thu` | `#0E8A16` (green) | Weekly Thursday release candidate | Applied to PRs targeting the regular weekly release |
+| `release:approved` | `#0E8A16` (green) | PR approved for weekly release | Applied to PRs approved for the next production release |
+| `release:hold` | `#FBCA04` (yellow) | PR held from release (needs review) | Applied to PRs that need further review before release |
+| `release:blocked` | `#B60205` (red) | PR blocked from release | Applied to PRs that cannot be included in any release |
 | `hotfix` | `#D93F0B` (red) | Urgent fix outside the regular cycle | Applied to PRs requiring immediate deployment |
 
-**Mutual exclusion**: `release:thu` and `hotfix` MUST NOT coexist on the same PR.
+**Mutual exclusion**: `release:approved` and `hotfix` MUST NOT coexist on the same PR.
 
 ### QA Status Labels
 
 | Label | Color | Description |
 |---|---|---|
-| `qa:needed` | `#FBCA04` (yellow) | QA testing required |
-| `qa:done` | `#0E8A16` (green) | QA testing completed and passed |
+| `qa:needed` | `#1D76DB` (blue) | QA verification required |
+| `qa:done` | `#0E8A16` (green) | QA verification completed and passed |
 
 Transition: `qa:needed` is applied at collection; replaced with `qa:done` after QA pass.
 
@@ -85,9 +87,9 @@ Transition: `qa:needed` is applied at collection; replaced with `qa:done` after 
 
 | Label | Color | Description |
 |---|---|---|
-| `risk:low` | `#C2E0C6` (light green) | Low risk — minor changes, well-tested path |
-| `risk:medium` | `#FEF2C0` (light yellow) | Medium risk — moderate scope, some new paths |
-| `risk:high` | `#F9D0C4` (light red) | High risk — large scope, new infra, or data migration |
+| `risk:low` | `#C2E0C6` (light green) | Low deployment risk — minor changes, well-tested path |
+| `risk:medium` | `#FBCA04` (yellow) | Medium deployment risk — moderate scope, some new paths |
+| `risk:high` | `#B60205` (red) | High deployment risk — large scope, new infra, or data migration |
 
 ---
 
@@ -97,17 +99,19 @@ Run once per repository to create the release-specific labels:
 
 ```bash
 # Release cycle
-gh label create "release:thu" --color "0E8A16" --description "Weekly Thursday release candidate"
+gh label create "release:approved" --color "0E8A16" --description "PR approved for weekly release"
+gh label create "release:hold" --color "FBCA04" --description "PR held from release (needs review)"
+gh label create "release:blocked" --color "B60205" --description "PR blocked from release"
 gh label create "hotfix" --color "D93F0B" --description "Urgent fix outside regular cycle"
 
 # QA status
-gh label create "qa:needed" --color "FBCA04" --description "QA testing required"
-gh label create "qa:done" --color "0E8A16" --description "QA testing completed"
+gh label create "qa:needed" --color "1D76DB" --description "QA verification required"
+gh label create "qa:done" --color "0E8A16" --description "QA verification completed"
 
 # Risk classification
-gh label create "risk:low" --color "C2E0C6" --description "Low risk change"
-gh label create "risk:medium" --color "FEF2C0" --description "Medium risk change"
-gh label create "risk:high" --color "F9D0C4" --description "High risk change"
+gh label create "risk:low" --color "C2E0C6" --description "Low deployment risk"
+gh label create "risk:medium" --color "FBCA04" --description "Medium deployment risk"
+gh label create "risk:high" --color "B60205" --description "High deployment risk"
 ```
 
 ---
@@ -130,9 +134,9 @@ The suggested risk is a **default**; the PR author or release owner can override
 
 ## Validation Rules
 
-1. Every PR with `release:thu` or `hotfix` MUST also have at least one area label (`backend`, `pods-service`, `workloads-eda`) or change type label (`bug`, `enhancement`, `feature`, etc.)
-2. Every PR with `release:thu` MUST have exactly one `risk:*` label
-3. `qa:needed` is applied during Tuesday collection on all `release:thu` PRs
+1. Every PR with `release:approved` or `hotfix` MUST also have at least one area label (`backend`, `pods-service`, `workloads-eda`) or change type label (`bug`, `enhancement`, `feature`, etc.)
+2. Every PR with `release:approved` MUST have exactly one `risk:*` label
+3. `qa:needed` is applied during Tuesday collection on all `release:approved` PRs
 4. `qa:done` replaces `qa:needed` — they should not coexist
-5. `release:thu` + `hotfix` on the same PR is a configuration error
-6. PRs with `severity:critical` that also carry `release:thu` MUST be `risk:high`
+5. `release:approved` + `hotfix` on the same PR is a configuration error
+6. PRs with `severity:critical` that also carry `release:approved` MUST be `risk:high`

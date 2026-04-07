@@ -1,34 +1,35 @@
 ---
 name: release-collector
 description: >-
-  Tuesday RC branch creation for the weekly release cycle. Scans merged PRs on
+  Tuesday RC image tagging for the weekly release cycle. Scans merged PRs on
   dev since the last release, enforces the 3-label gate system (release:approved
-  / release:hold / release:blocked), auto-holds unlabeled PRs, cuts an RC branch,
-  reverts excluded PRs, creates the Notion weekly release page, and posts results
-  to Slack. Use when the user asks to "collect release items", "run Tuesday
-  collection", "cut RC branch", "release collector", "화요일 취합", "릴리즈 후보
-  수집", "RC 브랜치 생성", "release-collect", or during the Tuesday morning release
+  / release:hold / release:blocked), auto-holds unlabeled PRs, re-tags the dev
+  HEAD image as rc-{TIMESTAMP}, creates the Notion weekly release page, and posts
+  results to Slack. Use when the user asks to "collect release items", "run Tuesday
+  collection", "tag RC image", "release collector", "화요일 취합", "릴리즈 후보
+  수집", "RC 이미지 태깅", "release-collect", or during the Tuesday morning release
   pipeline. Do NOT use for hotfix collection (use hotfix-manager), QA operations
   (use release-qa-gate), or deployment (use release-deployer).
 metadata:
-  version: "2.0.0"
+  version: "3.0.0"
   category: "execution"
   author: "thaki"
 ---
-# Release Collector (Label-Gated RC Branch)
+# Release Collector (Image Tagging Model)
 
-Tuesday morning workflow: enforce the opt-in label policy, cut an RC branch from dev, revert excluded PRs, build the RC image, populate Notion, and announce on Slack.
+Tuesday morning workflow: enforce the opt-in label policy, verify dev HEAD contains all approved PRs, re-tag the dev image as `rc-{TIMESTAMP}`, deploy the RC image to dev for QA, populate Notion, and announce on Slack.
 
 ## When to Use
 
 - Every Tuesday at 10:00 KST as part of the release cycle
 - Called by `release-ops-orchestrator` on Tuesdays
-- Manually when an RC branch needs to be (re-)cut mid-week
+- Manually when an RC image needs to be (re-)tagged mid-week
 
 ## Prerequisites
 
 - GitHub CLI (`gh`) authenticated with repo access
-- Git access to push branches and tags to origin
+- Git access to the repository
+- CI/CD pipeline access (to trigger image re-tagging via `release-webui.yaml`)
 - Notion MCP or API token (for `release-notion-board`)
 - Slack MCP connected (for `release-slack-ops`)
 - Reference: `release-ops-rules.mdc` for the 3-label gate system
@@ -43,7 +44,7 @@ Tuesday morning workflow: enforce the opt-in label policy, cut an RC branch from
   "collection_deadline": "10:00",
   "timezone": "Asia/Seoul",
   "dev_branch": "dev",
-  "release_branch_prefix": "release/"
+  "image_registry": "ghcr.io/thakicloud/ai-platform-webui"
 }
 ```
 
@@ -52,11 +53,9 @@ Tuesday morning workflow: enforce the opt-in label policy, cut an RC branch from
 ### Phase 1: Identify Merged PRs Since Last Release
 
 ```bash
-# Find the last release tag
 LAST_RELEASE=$(git tag --list 'v20*' --sort=-creatordate | head -1)
 LAST_DATE=$(git log -1 --format=%ci $LAST_RELEASE | cut -d' ' -f1)
 
-# List all merged PRs since the last release
 gh pr list --state merged --base dev \
   --search "merged:>=$LAST_DATE" \
   --json number,title,body,labels,assignees,mergeCommit,mergedAt,url,author \
@@ -72,13 +71,13 @@ For each merged PR, classify by its release-inclusion label:
 | Label Present | Classification | RC Inclusion |
 |---|---|---|
 | `release:approved` | Approved | ✅ Included |
-| `release:hold` | Held | ❌ Excluded (reverted) |
-| `release:blocked` | Blocked | ❌ Excluded (reverted) |
+| `release:hold` | Held | ❌ Excluded |
+| `release:blocked` | Blocked | ❌ Excluded |
 | *(none of the above)* | Unlabeled | ❌ Auto-hold → Excluded |
 
 **2a. Auto-hold unlabeled PRs**
 
-For each merged PR with NO release label (`release:approved`, `release:hold`, `release:blocked`):
+For each merged PR with NO release label:
 
 ```bash
 gh pr edit <number> --add-label "release:hold"
@@ -99,40 +98,44 @@ Classify validated PRs as:
 - **Missing Info**: Validation failures → still included but flagged for resolution before QA
 - **Invalid**: Critical issues (missing assignee, conflicting labels) → demoted to `release:hold`
 
-### Phase 3: Cut RC Branch
+### Phase 3: Verify Dev HEAD and Select Image
+
+Verify that `dev` HEAD contains all approved PRs and does not include any `release:blocked` changes that would require exclusion.
 
 ```bash
-RELEASE_DATE=$(date +%Y-%m-%d)  # next Thursday date
-
-# Ensure dev is up to date
 git fetch origin dev
-git checkout -b release/$RELEASE_DATE origin/dev
+
+# Get the dev HEAD SHA
+DEV_HEAD=$(git rev-parse origin/dev)
+
+# Identify the dev image tag corresponding to HEAD
+# The CI produces dev-{TIMESTAMP} tags; find the latest
+DEV_IMAGE_TAG="dev-$(date -u +%Y%m%d%H%M%S)"  # approximate; verify via ghcr.io
 ```
 
-### Phase 4: Revert Excluded PRs
+**Handling exclusions**: If a `release:blocked` PR is interleaved with approved changes on dev HEAD:
 
-Collect merge commit SHAs from all excluded PRs (hold + blocked + auto-held). Sort by merge date **newest first** to minimize conflicts:
+1. **Best case**: An earlier dev image (before the blocked PR was merged) contains all approved PRs. Select that image.
+2. **Revert case**: Revert the blocked PR from `dev`, wait for CI to build a new `dev-{TIMESTAMP}` image, then proceed with the new HEAD.
+3. The RC is always a single immutable image — no partial modifications.
+
+### Phase 4: Tag RC Image
+
+Once the correct dev image is identified, re-tag it as the RC:
 
 ```bash
-# For each excluded PR, in reverse chronological order:
-git revert --no-edit <merge_commit_sha>
+RC_TIMESTAMP=$(date +%Y%m%d%H%M%S)
+RC_TAG="rc-${RC_TIMESTAMP}"
+
+# Trigger CI to re-tag the image
+gh workflow run release-webui.yaml -f image_tag=$RC_TAG
 ```
 
-**Conflict handling**:
-1. Attempt automated resolution
-2. If auto-resolution fails, check if the conflict involves an approved PR
-3. If the conflicting approved PR cannot be cleanly preserved → set it to `release:hold` and skip
-4. Log all conflict resolutions for the report
-
-After all reverts:
+Deploy the RC image to the dev environment for QA:
 
 ```bash
-git push origin release/$RELEASE_DATE
-
-# Tag the RC
-RC_TAG="v$(date +%Y.%m.%d)-rc"
-git tag $RC_TAG
-git push origin $RC_TAG
+# ArgoCD or Helm deployment to dev with the RC image tag
+# The exact mechanism depends on the deploy pipeline
 ```
 
 ### Phase 5: Create/Update Notion Board
@@ -147,7 +150,7 @@ git push origin $RC_TAG
 ### Phase 6: Generate Collection Report
 
 ```
-📋 RC Branch Created — release/{date}
+📋 RC Image Tagged — rc-{TIMESTAMP}
 
 Included (release:approved): {n} items
 Excluded:
@@ -155,8 +158,9 @@ Excluded:
   - release:hold (auto): {n}
   - release:blocked: {n}
 
-RC Tag: v{YYYY.MM.DD}-rc
-RC Image Build: [pending/triggered]
+Source: dev HEAD ({short_sha})
+RC Image: ghcr.io/thakicloud/ai-platform-webui:rc-{TIMESTAMP}
+Production Tag (Thursday): vYYYY.MM.DD
 ```
 
 Per-item details:
@@ -167,7 +171,7 @@ Per-item details:
 ### Phase 7: Post to Slack
 
 Call `release-slack-ops` with the collection report to `#release-control`:
-- Main message: RC branch summary with counts
+- Main message: RC image summary with counts and image tag
 - Thread 1: Included items table (approved PRs)
 - Thread 2: Excluded items table (hold + blocked + auto-held) with reasons
 - Thread 3: Action items — QA team can start Wednesday, missing info deadlines
@@ -180,15 +184,16 @@ Write to `outputs/release-ops/{date}/collection.json`:
 {
   "date": "2026-04-08",
   "target_release_date": "2026-04-10",
-  "rc_branch": "release/2026-04-10",
-  "rc_tag": "v2026.04.10-rc",
+  "dev_head_sha": "abc123def",
+  "rc_image_tag": "rc-20260408103000",
+  "rc_image_url": "ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000",
+  "production_tag": "v2026.04.10",
   "notion_page_id": "<page_id>",
   "total_merged": 48,
   "included": 15,
   "excluded_hold_explicit": 20,
   "excluded_hold_auto": 10,
   "excluded_blocked": 3,
-  "revert_conflicts": [],
   "items": [
     {
       "pr_number": 123,
@@ -211,7 +216,7 @@ Write to `outputs/release-ops/{date}/collection.json`:
 |---|---|---|
 | 1 | `outputs/release-ops/{date}/merged-prs.json` | `skip-scan` |
 | 2 | `outputs/release-ops/{date}/classification.json` | `skip-classify` |
-| 4 | `release/{date}` branch + RC tag | `skip-branch` |
+| 4 | RC image tag on ghcr.io | `skip-tag` |
 | 5 | Notion weekly release page | `skip-notion` |
 | 7 | Slack `#release-control` message | `skip-slack` |
 | 8 | `outputs/release-ops/{date}/collection.json` | — |
@@ -219,16 +224,16 @@ Write to `outputs/release-ops/{date}/collection.json`:
 ## Error Recovery
 
 - GitHub API failure: retry once, then report with error details
-- Git revert conflict: log, attempt skip, demote conflicting approved PR to hold
+- Image tagging failure: report CI workflow status, suggest manual re-trigger
 - Notion failure: persist to local JSON, report
 - Slack failure: save to `outputs/release-ops/{date}/pending-slack-collection.md`
-- RC branch already exists: prompt to delete and re-cut, or abort
+- RC image already exists with same tag: use a new timestamp suffix
 
 ## Gotchas
 
 - PRs without ANY release label are auto-held — this is by design (opt-in model)
-- Revert order matters: newest-first minimizes cascading conflicts
-- A PR's merge commit SHA is required for revert; `gh pr view --json mergeCommit` provides it
-- Multiple merge commits from the same PR (squash vs merge commit) need careful handling
-- The RC image must be deployed to dev for QA — coordinate with CI/CD pipeline
+- No branch cuts or reverts — the image tagging model freezes the artifact, not the branch
+- If a blocked PR must be excluded and it's already in dev HEAD, either select an earlier dev image or revert from dev and rebuild
+- The RC image must be deployed to dev for QA — coordinate with the CI/CD pipeline
 - Auto-held PRs: app owners should be individually notified so they can plan for next cycle
+- The RC image tag is immutable once created — if changes are needed, create a new RC with a new timestamp

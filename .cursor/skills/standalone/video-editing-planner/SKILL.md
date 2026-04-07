@@ -207,6 +207,7 @@ Generate two editing plans from the same footage: a full-length YouTube edit and
 
 ## Composability
 
+- **reclip-media-downloader** — Download source footage from URLs before planning edits
 - **video-script-generator** — Generate the script that this skill turns into an edit plan
 - **video-compress** — Compress the final exported video
 - **caption-subtitle-formatter** — Generate subtitles for the edited video

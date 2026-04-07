@@ -38,9 +38,10 @@ Master orchestrator for building and maintaining personal LLM Knowledge Bases. I
 │  │kb-auto-builder│ (watch / feed / enhance / full-auto)      │
 │  └──────┬────────┘                                           │
 │         ↓                                                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                   │
-│  │kb-ingest │→ │kb-compile│→ │ kb-index │                   │
-│  └──────────┘  └──────────┘  └──────────┘                   │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐│
+│  │kb-ingest │→ │kb-compile│→ │ kb-index │→ │graphify-runner││
+│  └──────────┘  └──────────┘  └──────────┘  │(--with-graphify)│
+│                                             └───────────────┘│
 │       ↑                           ↓                           │
 │  ┌──────────┐              ┌──────────┐                      │
 │  │ kb-lint  │←─────────────│ kb-query │ ──→ file-back ──┐   │
@@ -102,7 +103,7 @@ This mode is ideal for getting a working KB quickly without manually curating so
 
 ### Mode 2: `build` — Ingest Sources + Compile Wiki
 
-Full build from sources to wiki.
+Full build from sources to wiki. Optional `--with-graphify` flag adds a Graphify knowledge graph build after compilation.
 
 **Trigger:** "Build KB from these sources", "Ingest and compile", "Create wiki from articles"
 
@@ -110,7 +111,8 @@ Full build from sources to wiki.
 1. **kb-ingest**: Process all provided source URLs/files
 2. **kb-compile**: Compile raw sources into structured wiki
 3. **kb-index**: Generate index files
-4. Report final stats
+4. *(if `--with-graphify`)* **graphify-runner**: Build knowledge graph from `raw/` into `graphify-out/`
+5. Report final stats (include graph node/edge count if Graphify ran)
 
 ### Mode 3: `query` — Research + Answer
 
@@ -139,7 +141,7 @@ Improve wiki quality through automated health checks and fixes.
 
 ### Mode 5: `full-pipeline` — End-to-End
 
-Complete pipeline from sources to outputs.
+Complete pipeline from sources to outputs. Optional `--with-graphify` flag adds Graphify knowledge graph generation as a post-compile step.
 
 **Trigger:** "Full KB pipeline", "Build everything", "Complete KB workflow"
 
@@ -148,10 +150,11 @@ Complete pipeline from sources to outputs.
 2. **kb-ingest**: Process all sources
 3. **kb-compile**: Build wiki
 4. **kb-index**: Generate indexes
-5. **kb-lint**: Run health checks
-6. Auto-fix issues
-7. **kb-output**: Generate requested outputs (slides, reports)
-8. Report comprehensive summary
+5. *(if `--with-graphify`)* **graphify-runner**: Build knowledge graph from `raw/` into `graphify-out/`
+6. **kb-lint**: Run health checks
+7. Auto-fix issues
+8. **kb-output**: Generate requested outputs (slides, reports)
+9. Report comprehensive summary (include graph stats if Graphify ran)
 
 ### Mode 6: `add` — Quick Add + Incremental Compile
 
@@ -258,6 +261,21 @@ Query across multiple KBs simultaneously:
 | **md-to-notion** | Publish wiki to Notion |
 | **nlm-slides** | Generate NotebookLM slides from KB |
 | **kb-auto-builder** | Automated ingestion via watch dirs, feeds, enhancement loops |
+| **graphify-runner** | Optional (`--with-graphify`): build vis.js knowledge graph + Obsidian vault from raw sources |
+| **graphify-query** | Query the Graphify-generated `graph.json` via BFS/DFS, shortest path, or node explain |
+
+## --with-graphify Flag
+
+When `--with-graphify` is passed to `build` or `full-pipeline` modes, the orchestrator invokes `graphify-runner` as a post-compile step:
+
+1. Reads source files from `knowledge-bases/{topic}/raw/`
+2. Runs the Graphify 2-pass pipeline (AST extraction + semantic extraction via Claude subagents)
+3. Outputs to `knowledge-bases/{topic}/graphify-out/` (graph.json, obsidian/, report.md, etc.)
+4. The wiki compiled by `kb-compile` and the Graphify knowledge graph coexist independently
+
+**When to use:** Add `--with-graphify` when you want an interactive vis.js graph view, community clustering (Leiden algorithm), or God Node analysis alongside the standard wiki. Omit it for routine builds where the wiki alone suffices.
+
+**Querying Graphify outputs:** After a `--with-graphify` build, use the `graphify-query` skill to traverse the graph, find shortest paths between concepts, or explain individual nodes.
 
 ## Examples
 

@@ -6,7 +6,7 @@
 
 Run by / 담당: **효정님** (Release Owner)
 
-- [ ] `release:thu` 라벨이 붙은 PR 전체 스캔 (Scan GitHub for all PRs with `release:thu` label)
+- [ ] `release:approved` 라벨이 붙은 PR 전체 스캔 (Scan GitHub for all PRs with `release:approved` label)
 - [ ] 필수 라벨 확인: `app:*`, `risk:*`, `qa:needed` (Verify each PR has required labels)
 - [ ] PR 본문에 5개 필수 섹션 포함 여부 확인 (Verify PR body contains all 5 template sections: Changes, User Impact, QA Method, Rollback, Related Issue)
 - [ ] 각 PR에 담당자(assignee) 지정 확인 (Check each PR has an assignee)

@@ -13,13 +13,13 @@ description: >-
   setup guides (use gws-workspace, paperclip-setup, etc. directly).
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "3.0.0"
   category: "infrastructure"
 ---
 
 # Setup Doctor
 
-Diagnose and fix missing prerequisites across all project skill groups. Organizes checks by **capability group** (25 functional clusters) rather than 400+ individual skills.
+Diagnose and fix missing prerequisites across all project skill groups. Organizes checks by **capability group** (40 functional clusters) rather than 400+ individual skills.
 
 ## Input
 
@@ -63,6 +63,19 @@ The user provides:
 | website-cloner | Node ≥18, npm, Playwright Chromium, Git, `cursor-ide-browser` MCP | clone-website |
 | knowledge-base | `marp` CLI (or npx @marp-team/marp-cli), `matplotlib` Python pkg, `feedparser` Python pkg | kb-orchestrator, kb-ingest, kb-compile, kb-output, kb-auto-builder |
 | atg-gateway | Docker, ATG container healthy at `http://localhost:4000/api/v1/health`, `.env` with NOTION_API_TOKEN + SLACK_BOT_TOKEN + GITHUB_TOKEN | atg-client (accelerates all Notion/Slack/GitHub skills) |
+| agent-reach | `agent-reach` CLI (pipx), `rdt` (Reddit), `yt-dlp`, `gh`, `mcporter` (Exa) | agent-reach (fallback for defuddle, x-to-slack, twitter-timeline-to-slack, kb-ingest, bespin-news-digest, content-repurposing-engine, related-papers-scout) |
+| pika-video | FAL_KEY, ffmpeg, `fal-client` Python pkg | pika-text-to-video, pika-video-pipeline, pikastream-video-meeting |
+| sleek-mobile | SLEEK_API_KEY | sleek-design-mobile-apps |
+| data-designer | `nemo-curator` Python pkg, NVIDIA_API_KEY (opt) | data-designer |
+| lat-md | `lat` CLI (npm), LAT_LLM_KEY (opt) | lat-md |
+| rhwp-documents | `rhwp` CLI (cargo), `cargo`, `@rhwp/core` (npm opt) | rhwp-viewer, rhwp-converter, rhwp-debug, rhwp-pipeline, rhwp-setup, rhwp-web-editor |
+| carbonyl-browser | `carbonyl` CLI | carbonyl-browser |
+| obsidian-vault | `obsidian` CLI, Obsidian.app | obsidian-files, obsidian-search, obsidian-notes, obsidian-daily, obsidian-admin, obsidian-dev, obsidian-kb-bridge, brain-full-crew |
+| feynman-research | `alpha` CLI | feynman-alpha-research, feynman-peer-review, feynman-paper-audit, feynman-replication, feynman-source-comparison, feynman-research-watch |
+| diagrams | `dot` (graphviz) | diagrams-generator, visual-explainer, alphaear-logic-visualizer |
+| remotion-video | `remotion` + `@remotion/cli` (npm), ffmpeg, Node ≥18 | remotion-motion-forge |
+| paperclip-agents | `paperclip` CLI (npm), Docker, PAPERCLIP_API_KEY (opt) | paperclip-agents, paperclip-tasks, paperclip-control, paperclip-setup |
+| reddit-reaction | ffmpeg, yt-dlp, gTTS, moviepy, Pillow | reddit-reaction-maker |
 
 For full details on each group (install commands, env vars, verification), see [references/capability-map.md](references/capability-map.md).
 
@@ -75,7 +88,7 @@ For the complete env var registry, see [references/env-var-registry.md](referenc
 Check each tool via `command -v`:
 
 ```bash
-for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp; do
+for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp agent-reach rdt mcporter rhwp cargo carbonyl obsidian alpha dot lat paperclip; do
   command -v "$tool" >/dev/null 2>&1 && echo "PASS $tool" || echo "FAIL $tool"
 done
 ```
@@ -87,7 +100,7 @@ Record results in a table: `Tool | Status | Required By | Install Command`.
 **Python packages** — check critical packages via `pip show`:
 
 ```bash
-for pkg in fastapi uvicorn sqlalchemy asyncpg alembic pandas numpy yfinance pykrx openai anthropic playwright feedparser huggingface-hub pdfplumber defusedxml lxml python-docx pypdf pillow scrapling cognee beautifulsoup4 pyyaml imageio requests; do
+for pkg in fastapi uvicorn sqlalchemy asyncpg alembic pandas numpy yfinance pykrx openai anthropic playwright feedparser huggingface-hub pdfplumber defusedxml lxml python-docx pypdf pillow scrapling cognee beautifulsoup4 pyyaml imageio requests fal-client nemo-curator fastembed data-designer gTTS moviepy; do
   pip show "$pkg" >/dev/null 2>&1 && echo "PASS $pkg" || echo "FAIL $pkg"
 done
 ```
@@ -95,7 +108,7 @@ done
 **Node global packages** — check via `npm list -g --depth=0`:
 
 ```bash
-for pkg in "@googleworkspace/cli" docx pptxgenjs agent-browser dev-browser expect-cli; do
+for pkg in "@googleworkspace/cli" docx pptxgenjs agent-browser dev-browser expect-cli "@rhwp/core" remotion "@remotion/cli" lat.md "@paperclip-ai/cli"; do
   npm list -g --depth=0 2>/dev/null | grep -q "$pkg" && echo "PASS $pkg" || echo "FAIL $pkg"
 done
 ```
@@ -105,7 +118,7 @@ done
 1. Check if `.env` file exists in project root
 2. Parse `.env.example` for all variable names
 3. For each variable in `.env.example`, check if it exists and is non-empty in `.env`
-4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`, `ELEVEN_LABS_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `BETTER_AUTH_SECRET`, `BROWSERBASE_API_KEY`, `FINVIZ_API_KEY`, `FMP_API_KEY`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN`
+4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`, `ELEVEN_LABS_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `BETTER_AUTH_SECRET`, `BROWSERBASE_API_KEY`, `FINVIZ_API_KEY`, `FMP_API_KEY`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN`, `SLACK_USER_TOKEN`, `FAL_KEY`, `SLEEK_API_KEY`, `NVIDIA_API_KEY`, `OPENROUTER_API_KEY`, `LAT_LLM_KEY`, `GOOGLE_CREDENTIALS_FILE`, `KB_ROOT`, `EMBEDDING_PROVIDER`, `EMBEDDING_DIMENSIONS`, `RESEARCH_REPO`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NOTION_API_TOKEN`, `SLACK_BOT_TOKEN`, `GITHUB_TOKEN`, `PAPERCLIP_API_KEY`
 5. Classify each as: SET (non-empty), EMPTY (exists but blank), MISSING (not in .env)
 
 Present results grouped by capability group.
@@ -115,8 +128,8 @@ Present results grouped by capability group.
 Check MCP server configs exist under the project's mcps directory:
 
 ```bash
-MCP_DIR="$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-platform-webui/mcps"
-for server in user-notebooklm-mcp plugin-notion-workspace-notion plugin-slack-slack cursor-ide-browser user-daiso-mcp user-public-apis user-Context7 user-GitHub user-Figma user-Notion plugin-context7-plugin-context7; do
+MCP_DIR="$HOME/.cursor/projects/Users-hanhyojung-thaki-ai-model-event-stock-analytics/mcps"
+for server in user-notebooklm-mcp plugin-notion-workspace-notion plugin-slack-slack cursor-ide-browser user-daiso-mcp user-public-apis user-Context7 user-GitHub user-Figma user-Notion plugin-context7-plugin-context7 plugin-huggingface-skills-huggingface-skills plugin-figma-figma cursor-app-control; do
   [ -d "$MCP_DIR/$server" ] && echo "PASS $server" || echo "FAIL $server"
 done
 ```
@@ -142,6 +155,42 @@ If ATG is healthy, additionally verify connector env vars are set for its native
 - `SLACK_BOT_TOKEN` — required for ATG Slack connector
 - `GITHUB_TOKEN` — required for ATG GitHub connector
 
+### Phase 4.6: Agent-Reach Channel Scan
+
+Run `agent-reach doctor` to check channel health:
+
+```bash
+command -v agent-reach >/dev/null 2>&1 && agent-reach doctor 2>&1 || echo "SKIP agent-reach not installed"
+```
+
+Parse the doctor output for per-channel status. Key channels to verify:
+- `github` (gh CLI) — zero-config
+- `youtube` (yt-dlp) — zero-config
+- `reddit` (rdt-cli) — zero-config
+- `web/jina` (curl) — zero-config
+- `twitter` (twitter-cli + cookie) — cookie required
+- `exa` (mcporter + config) — MCP config required
+
+Mark WARN (not FAIL) for missing cookie-required channels since they need manual setup.
+
+### Phase 4.7: Project MCP Servers
+
+Check MCP servers defined in `.cursor/mcp.json` (project-local servers distinct from Phase 4's Cursor-managed servers):
+
+```bash
+PROJECT_MCP="$(git rev-parse --show-toplevel)/.cursor/mcp.json"
+if [ -f "$PROJECT_MCP" ]; then
+  for server in huggingface kis-backtest tradingview-ta tradingview-screener kb-brain; do
+    jq -e ".mcpServers[\"$server\"]" "$PROJECT_MCP" >/dev/null 2>&1 \
+      && echo "PASS project-mcp:$server" || echo "WARN project-mcp:$server not configured"
+  done
+else
+  echo "WARN .cursor/mcp.json not found"
+fi
+```
+
+These are optional integrations — mark failures as WARN (not FAIL). Verify connectivity only when the server entry exists.
+
 ### Phase 5: Report and Fix
 
 **Report format:**
@@ -157,6 +206,8 @@ Node Packages:    [N]/[T] passed
 Environment Vars: [N]/[T] set
 MCP Servers:      [N]/[T] configured
 ATG Gateway:      [HEALTHY/UNREACHABLE] (optional accelerator)
+Agent-Reach:      [N]/[T] channels active (fallback content router)
+Project MCPs:     [N]/[T] configured (optional integrations)
 
 Capability Group Status:
   core-platform:     READY / PARTIAL / NOT READY

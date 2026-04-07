@@ -50,6 +50,7 @@ Optional:
 - `--no-file-back` — skip archiving the answer into the wiki (default: auto file-back is ON)
 - `--deep` — read all potentially relevant articles, not just top matches
 - `--with-sources` — include raw source excerpts in the answer
+- `--with-cognee` — cross-system query: search both Karpathy KB and Cognee knowledge graph, merge results via Reciprocal Rank Fusion (RRF)
 
 ## Workflow
 
@@ -269,6 +270,43 @@ If schema-related issues are detected (e.g., missing domain terminology, answer 
 | No relevant articles | Question doesn't match any KB content | Report "not covered" + suggest kb-ingest |
 | Stale index | Index date much older than newest article | Run kb-index, then re-query |
 | Contradictory sources | Different articles disagree | Present both views with citations |
+
+## Unified Cross-System Query (`--with-cognee`)
+
+When `--with-cognee` is passed, the query spans both the Karpathy KB (FTS5 + vector) and the Cognee knowledge graph, merging results via Reciprocal Rank Fusion (RRF). This is powered by `scripts/kb_unified_query.py`.
+
+### How it works
+
+1. **Karpathy KB** search via `brain_index.db` (FTS5 + optional vector embeddings)
+2. **Cognee** search via `cognee.search(SearchType.CHUNKS, ...)`
+3. Results from both sources are merged using **RRF (k=60)** — items appearing in multiple ranked lists receive a boosted score
+4. Either system can be unavailable — the query degrades gracefully and returns results from whichever source is working
+
+### CLI usage
+
+```bash
+python scripts/kb_unified_query.py "query text" --sources all --top 10 --json
+python scripts/kb_unified_query.py "query text" --sources kb         # KB only
+python scripts/kb_unified_query.py "query text" --sources cognee     # Cognee only
+python scripts/kb_unified_query.py "query text" --context-lines 3    # snippet context
+```
+
+### Pipeline integration
+
+The unified query layer is consumed by:
+
+- **`today` Phase 4.9** — enriches the daily report with historical patterns from KB
+- **`daily-pm-orchestrator` Phase 1.8** — grounds strategic analysis in prior decisions
+- **`kb_mcp_server.py`** — exposes `brain_search` and `brain_query` as MCP tools with auto-rebuild resilience
+
+### Graceful degradation
+
+| Scenario | Behavior |
+|----------|----------|
+| Cognee not installed (`ModuleNotFoundError`) | KB-only results returned, warning logged |
+| `brain_index.db` missing | Auto-rebuild attempted; if fails, Cognee-only results |
+| Both unavailable | Empty results with warnings |
+| Network timeout on Cognee | 30s timeout, fall back to KB results |
 
 ## Obsidian CLI Integration
 

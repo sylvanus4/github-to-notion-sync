@@ -2,7 +2,7 @@
 
 ## Usage
 
-This template is required for all PRs labeled `release:thu` or `hotfix`. Copy the template below into the PR description.
+This template is required for all PRs labeled `release:approved` or `hotfix`. Copy the template below into the PR description.
 
 > **Bilingual support**: Each section heading is shown in both English and Korean. Fill in the content in whichever language you prefer — Korean or English. Both are accepted.
 

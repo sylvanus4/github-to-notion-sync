@@ -1,0 +1,21 @@
+{
+  "subreddit": "korea",
+  "language": "ko",
+  "post_limit": 3,
+  "min_upvotes": 50,
+  "min_comments": 5,
+  "max_comment_length": 300,
+  "top_comments": 5,
+  "video_width": 1080,
+  "video_height": 1920,
+  "max_duration_seconds": 58,
+  "fps": 30,
+  "bg_opacity": 0.7,
+  "screenshot_scale": 0.9,
+  "bgm_enabled": true,
+  "bgm_volume": 0.15,
+  "font": "NotoSansKR-Bold.ttf",
+  "watermark": "",
+  "background_dir": "assets/backgrounds",
+  "slack_channel": "C0AA8NT4T8T"
+}
