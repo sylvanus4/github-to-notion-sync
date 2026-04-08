@@ -31,7 +31,7 @@ End-to-end pipeline that transforms an arXiv paper into professional NotebookLM 
 
 - `notebooklm-mcp` MCP server registered and authenticated (see `notebooklm` skill)
 - `curl` available for PDF download and Defuddle abstract extraction
-- `pdfplumber` Python package installed (`pip install pdfplumber`)
+- `opendataloader-pdf` Python package + JDK 11+ (preferred PDF parser); `pdfplumber` as fallback (`pip install opendataloader-pdf pdfplumber`)
 - Authentication often expires between sessions; if `notebook_create` fails with "Authentication expired", run `nlm login` in terminal, then call `refresh_auth` MCP tool before retrying
 
 ## Reference Files
@@ -86,18 +86,29 @@ Skills used: **alphaxiv-paper-lookup**, **defuddle**
 
 ### Phase 3: Extract Text from PDF (conditional)
 
-**If AlphaXiv overview is available**: pdfplumber extraction is optional. The
+**If AlphaXiv overview is available**: PDF text extraction is optional. The
 structured overview provides sufficient content for the Phase 4 expert rewrite.
 Skip this phase unless you need verbatim equation/table/figure data that the
 overview lacks.
 
-**If AlphaXiv is unavailable (404)**: Run pdfplumber extraction as before:
+**If AlphaXiv is unavailable (404)**: Run OpenDataLoader extraction (fallback: pdfplumber):
 
 ```python
-import pdfplumber
+import opendataloader_pdf, os
 
-with pdfplumber.open("/tmp/arxiv-{ID}.pdf") as pdf:
-    text = "\n\n".join(page.extract_text() or "" for page in pdf.pages)
+pdf_path = "/tmp/arxiv-{ID}.pdf"
+output_dir = "/tmp/odl-output"
+os.makedirs(output_dir, exist_ok=True)
+
+try:
+    opendataloader_pdf.convert(input_path=pdf_path, output_dir=output_dir, format="markdown", quiet=True)
+    stem = os.path.splitext(os.path.basename(pdf_path))[0]
+    with open(os.path.join(output_dir, f"{stem}.md"), "r") as f:
+        text = f.read()
+except Exception:
+    import pdfplumber
+    with pdfplumber.open(pdf_path) as pdf:
+        text = "\n\n".join(page.extract_text() or "" for page in pdf.pages)
 
 with open("/tmp/arxiv-{ID}-extracted.md", "w") as f:
     f.write(text)
@@ -116,7 +127,7 @@ Combine all available sources into a structured document:
 {alphaxiv overview content, if available — omit this section if 404}
 
 ## Full Paper Content
-{extracted text from PDF, if pdfplumber was run — omit if skipped}
+{extracted text from PDF, if OpenDataLoader/pdfplumber was run — omit if skipped}
 ```
 
 Skills used: **anthropic-pdf** (patterns, conditional)
@@ -328,7 +339,7 @@ outputs/papers/
 This will:
 1. Parse ID `2509.04664` from the URL
 2. Download PDF and extract abstract via Defuddle
-3. Extract full text using pdfplumber
+3. Extract full text using OpenDataLoader (fallback: pdfplumber)
 4. Rewrite into expert EN + KO documents with visual hints
 5. Create notebook "arXiv: Why Language Models Hallucinate - Analysis"
 6. Upload PDF + EN + KO as sources
@@ -349,7 +360,8 @@ This will run the pipeline without web research and also generate a deep-dive po
 |-------|-------|---------|
 | alphaxiv-paper-lookup | 2 | Structured arXiv overview (token-efficient, primary metadata source) |
 | defuddle | 2 | Extract arXiv abstract page metadata (fallback when AlphaXiv unavailable) |
-| anthropic-pdf | 3 | PDF text extraction via pdfplumber (conditional, skippable when AlphaXiv available) |
+| opendataloader | 3 | High-fidelity PDF-to-Markdown conversion (primary, conditional) |
+| anthropic-pdf | 3 | PDF text extraction via pdfplumber (fallback, skippable when AlphaXiv available) |
 | nlm-slides | 4 | Expert rewrite + visual hint patterns |
 | notebooklm | 5-6, 8 | Notebook CRUD + source add + query |
 | notebooklm-research | 7 | Web research enrichment |
@@ -361,7 +373,8 @@ This will run the pipeline without web research and also generate a deep-dive po
 |---------|-----|
 | Authentication expired | Run `nlm login` in terminal, then call `refresh_auth` MCP tool |
 | PDF download fails | Check arXiv URL is valid; try adding `v1` suffix (e.g., `2509.04664v1`) |
-| pdfplumber not found | Run `pip install pdfplumber` in the backend venv |
+| opendataloader-pdf not found | `pip install opendataloader-pdf` + verify JDK 11+; falls back to pdfplumber |
+| pdfplumber not found | Run `pip install pdfplumber` in the backend venv (fallback parser) |
 | Extracted text garbled | Paper may use complex layouts; fall back to uploading PDF directly via `source_add(source_type="file")` |
 | Slides lack depth | Ensure expert rewrite produced substantive content; check `references/system-prompt.md` was applied |
 | Generation timeout | Poll `studio_status` every 30-60s; slides take **5-8 minutes** typically |

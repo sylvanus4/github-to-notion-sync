@@ -274,9 +274,11 @@ Full pipeline:
 4. Hot stock discovery (NASDAQ/KOSPI/KOSDAQ 100)
 5. Multi-factor screening (P/E, RSI, volume, MA, FCF yield)
 6. Turtle + Bollinger + Oscillator analysis (SMA 20/55/200, RSI, MACD, Stochastic, ADX)
-7. Optional: `alphaear-news` + `alphaear-sentiment`
-8. .docx report generation
-9. Slack posting to `#h-report` with stock thread to `#h-daily-stock-check`
+7. TradingView Extended stages (default): live prices, backtests, sentiment, multi-timeframe analysis — skip with `--skip-tradingview`
+8. Optional: `alphaear-news` + `alphaear-sentiment`
+9. .docx report generation (includes TV data when available)
+10. Slack posting to `#h-report` with stock thread to `#h-daily-stock-check`
+11. Optional: AI-Trader platform sync (phase 5.6) — market intel fetch, signal feed browse, heartbeat poll. Skipped when `AI_TRADER_*` credentials not set or `--skip-ai-trader` flag passed.
 
 ```python
 results["phases"]["phase4"] = {

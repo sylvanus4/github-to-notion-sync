@@ -131,7 +131,8 @@ Output includes `sell_limit_price` so the Toss bridge can immediately place a pa
       "win_rate": 0.58,
       "total_return": 0.124,
       "max_drawdown": -0.082,
-      "score": 7.35
+      "score": 7.85,
+      "tv_consensus": "agree"
     },
     {
       "symbol": "000660",
@@ -175,6 +176,16 @@ Output includes `sell_limit_price` so the Toss bridge can immediately place a pa
 }
 ```
 
+## TradingView Cross-Validation
+
+When TradingView backtest data is available (produced by default during the `today` pipeline; skip with `--skip-tradingview`), each strategy card is enriched with a `tv_consensus` field:
+
+- **agree** — TV backtest confirms the signal direction (score bonus +0.5)
+- **disagree** — TV backtest contradicts the signal (no bonus)
+- **no_data** — no TV data available for this symbol/strategy pair (no bonus)
+
+Cards are re-ranked after applying the consensus bonus. The `tv_consensus` field appears in the output JSON alongside each card.
+
 ## Scoring Formula
 
 Composite score (0–10 scale):
@@ -184,6 +195,7 @@ Composite score (0–10 scale):
 - **Total Return** — net of commissions
 - **Risk-Reward Ratio** — (target − entry) / (entry − stop)
 - **Drawdown Penalty** — reduces score for deep drawdowns
+- **TV Consensus Bonus** — +0.5 when TradingView backtest agrees (applied post-scoring)
 
 ## Pipeline Integration
 

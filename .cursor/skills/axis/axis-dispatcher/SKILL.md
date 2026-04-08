@@ -253,7 +253,7 @@ automations:
     action:
       skill: axis-dispatcher
       args: { routine: "morning" }
-    
+
   - name: "6-Axis Evening"
     trigger:
       type: cron
@@ -261,7 +261,7 @@ automations:
     action:
       skill: axis-dispatcher
       args: { routine: "evening" }
-    
+
   - name: "6-Axis Weekly"
     trigger:
       type: cron

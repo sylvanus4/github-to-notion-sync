@@ -27,7 +27,7 @@ This skill is fully implemented as a Python script:
 python scripts/knowledge_daily_aggregator.py --date YYYY-MM-DD
 ```
 
-The script handles all 6 phases (collect → extract → cognee ingest → entity resolution → MEMORY.md update → report) and produces structured JSON output in `outputs/knowledge-daily-aggregator/{date}/`.
+The script handles all 7 phases (collect → extract → cognee ingest → entity resolution → MEMORY.md update → KB wiki routing → report) and produces structured JSON output in `outputs/knowledge-daily-aggregator/{date}/`.
 
 **Prerequisites**: `pip install cognee fastembed`, `.env` with `ANTHROPIC_API_KEY`, Cognee configured for Claude API (`LLM_PROVIDER=anthropic`, `LLM_MODEL=claude-sonnet-4-6`) + FastEmbed embeddings (see `.env.example`).
 
@@ -165,6 +165,7 @@ Example:
 | 3 | Cognee | `outputs/knowledge-daily-aggregator/{date}/phase-3-cognee.json` | Ingest job ids, dataset name, errors |
 | 4 | Entity resolution | `outputs/knowledge-daily-aggregator/{date}/phase-4-entity-resolution.json` | Merge map, dedupe stats |
 | 5 | MEMORY.md | `outputs/knowledge-daily-aggregator/{date}/phase-5-memory.json` | Paths/lines appended or diff summary |
+| 5.5 | KB Router | `outputs/knowledge-daily-aggregator/{date}/phase-5.5-kb-router.json` | topics_routed map, artifacts_classified, duplicates skipped |
 | 6 | Report | `outputs/knowledge-daily-aggregator/{date}/phase-6-report.json` | Structured report + optional plain text path |
 
 Index file: `outputs/knowledge-daily-aggregator/{date}/manifest.json`.
@@ -249,12 +250,24 @@ Append significant learnings to MEMORY.md:
 
 **Persist & manifest:** Write `phase-5-memory.json` with `memoryPath` (e.g. `MEMORY.md`), `entriesAppended`, `sectionAnchors` or diff summary, and `warnings`. Update `manifest.json` for phase 5.
 
+### Step 5.5: Route to LLM Wiki (KB Daily Router)
+
+Route today's collected artifacts to the 9-topic LLM Knowledge Base for long-term compound growth. Invoke the `kb-daily-router` skill (or `python scripts/kb_daily_router.py --date {date}`) to classify and ingest outputs into `knowledge-bases/{topic}/raw/`.
+
+1. Read `phase-1-collect.json` for the artifact list
+2. Classify each artifact by topic using keyword matching against the 9-topic taxonomy (trading-daily, trading-strategy, ai-research, intelligence, tech-trends, ai-knowledge-bases, product-platform, architecture-ops, skill-ecosystem)
+3. Deduplicate against existing raw files in each topic's `raw/` directory via `_log.md`
+4. Ingest new artifacts with YAML frontmatter (date_published, ingested, staleness_flag, kb_topic)
+5. Log routing results
+
+**Persist & manifest:** Write `phase-5.5-kb-router.json` with `topics_routed` (map of topic to count), `artifacts_classified`, `artifacts_skipped_duplicate`, and `errors`. Update `manifest.json` for phase 5.5.
+
 ### Step 6: Generate Knowledge Report
 
 **Input rule:** Build this step **only** from on-disk artifacts:
 
 - Read `outputs/knowledge-daily-aggregator/{date}/manifest.json`
-- Read `phase-1-collect.json` through `phase-5-memory.json` in the same directory
+- Read `phase-1-collect.json` through `phase-5.5-kb-router.json` in the same directory
 
 Do **not** restate counts, learnings, or graph metrics from prior chat turns unless they are reproduced by parsing these files. If a field is missing in a phase file, record `null` or `"unknown"` in `phase-6-report.json` and note the gap in `summary`.
 
@@ -284,6 +297,7 @@ Key Learnings:
 3. Samsung exploring on-prem inference deployment
 
 MEMORY.md entries added: 3
+KB articles routed: 12 (trading-daily: 4, ai-research: 3, intelligence: 2, architecture-ops: 1, tech-trends: 1, skill-ecosystem: 1)
 ```
 
 Optional: if posting to Slack or another channel, compose the message **only** from `phase-6-report.json` (or a path recorded there), not from undocumented context.
@@ -312,8 +326,9 @@ Actions:
 4. Ingest into Cognee KG → `phase-3-cognee.json`; update manifest
 5. Entity resolution → `phase-4-entity-resolution.json`; update manifest
 6. Update MEMORY.md → `phase-5-memory.json`; update manifest
-7. Generate report from phase JSON files only → `phase-6-report.json`; update manifest
-Result: Day's knowledge consolidated into persistent graph with a full file trail under `outputs/knowledge-daily-aggregator/{date}/`
+7. Route artifacts to LLM Wiki via kb-daily-router → `phase-5.5-kb-router.json`; update manifest
+8. Generate report from phase JSON files only → `phase-6-report.json`; update manifest
+Result: Day's knowledge consolidated into persistent graph + LLM Wiki with a full file trail under `outputs/knowledge-daily-aggregator/{date}/`
 
 ### Example 2: Retroactive aggregation
 User says: "Aggregate knowledge from last 3 days"

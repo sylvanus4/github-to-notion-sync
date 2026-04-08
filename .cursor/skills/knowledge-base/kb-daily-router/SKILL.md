@@ -43,15 +43,19 @@ knowledge-bases/{topic}/raw/daily-{date}-{source}.md
 The router maintains a configurable topic registry. Each topic maps keywords,
 file patterns, and pipeline sources to a KB topic directory.
 
-### Default Topics
+### Default Topics (9-Topic Taxonomy)
 
 | Topic ID | KB Path | Sources | Keywords |
 |---|---|---|---|
-| `trading-daily` | `knowledge-bases/trading-daily/` | `outputs/today/`, `outputs/toss/`, screener, analysis JSONs | stock, trading, signal, screener, bollinger, turtle, RSI, MACD |
-| `ai-research` | `knowledge-bases/ai-research/` | `outputs/paper-review/`, `outputs/hf-trending/`, paper archive | paper, model, benchmark, arxiv, huggingface, LLM, transformer |
-| `project-ops` | `knowledge-bases/project-ops/` | `outputs/daily-pm/`, `outputs/sprint/`, PR summaries | sprint, commit, PR, deploy, CI, release, incident |
-| `tech-trends` | `knowledge-bases/tech-trends/` | `outputs/twitter/`, `outputs/bespin-news/`, trend analyses | trend, open-source, framework, tool, startup, funding |
-| `meetings` | `knowledge-bases/meetings/` | `outputs/meeting-digest/`, `outputs/notion-meeting-sync/` | meeting, agenda, action item, decision, attendee |
+| `trading-daily` | `knowledge-bases/trading-daily/` | `outputs/today/`, `outputs/toss/`, `outputs/daily/`, `outputs/reports/` | stock, trading, signal, screener, bollinger, turtle, RSI, MACD, daily-report, market-breadth |
+| `trading-strategy` | `knowledge-bases/trading-strategy/` | `outputs/mirofish/` | mirofish, simulation, swarm, scenario, strategy, backtest, position-size, edge-candidate |
+| `ai-research` | `knowledge-bases/ai-research/` | `outputs/paper-review/`, `outputs/hf-trending/`, paper archive | paper, model, benchmark, arxiv, huggingface, LLM, transformer, fine-tune, training |
+| `intelligence` | `knowledge-bases/intelligence/` | `outputs/intel/`, `outputs/x-to-slack/`, `outputs/twitter/`, `outputs/bespin-news-digest/`, `outputs/google-daily/` | intel, news, tweet, press, bespin, google-daily, email, triage, calendar, decision |
+| `tech-trends` | `knowledge-bases/tech-trends/` | `outputs/tech-trends/`, `outputs/hf-trending/`, `outputs/carbonyl-analysis/` | trend, open-source, framework, tool, startup, funding, leaderboard, ranking |
+| `ai-knowledge-bases` | `knowledge-bases/ai-knowledge-bases/` | `outputs/axis/`, `outputs/research/` | axis, knowledge-base, kb, learning, curriculum, deep-learn, research-pipeline |
+| `product-platform` | `knowledge-bases/product-platform/` | `outputs/role-analysis/`, `outputs/sentinel/` | role, strategy, platform, product, OKR, roadmap, stakeholder, PRD |
+| `architecture-ops` | `knowledge-bases/architecture-ops/` | `outputs/daily-pm/`, `outputs/eod/`, `outputs/pipeline-state/`, `outputs/sprint/` | sprint, commit, PR, deploy, CI, release, incident, pipeline, eod, shipping |
+| `skill-ecosystem` | `knowledge-bases/skill-ecosystem/` | `outputs/agentos-skill-ecosystem/`, `outputs/autoskill-candidates/`, `outputs/autoskill-decisions/`, `outputs/autoskill-reports/`, `outputs/skill-utilization/`, `outputs/harness-refs/` | skill, autoskill, harness, evolution, trigger, agent, orchestrator, sefo |
 
 ### Custom Topics
 
@@ -102,7 +106,7 @@ For each artifact, apply classification in order of specificity:
 3. **Keyword match**: Read the file content (first 2000 chars for large files),
    count keyword hits per topic, assign to topic with highest score
 4. **Fallback**: If no topic scores above threshold (3+ keyword hits),
-   assign to `project-ops` as catch-all
+   assign to `intelligence` as catch-all
 
 Output: `{ file, topic, confidence, method }` per artifact.
 
@@ -150,9 +154,10 @@ Write `outputs/kb-daily-router/{date}/routing-report.json`:
   "artifacts_skipped_duplicate": 2,
   "artifacts_unclassifiable": 1,
   "topics_routed": {
-    "trading-daily": 6,
+    "trading-daily": 4,
     "ai-research": 3,
-    "project-ops": 2,
+    "intelligence": 2,
+    "architecture-ops": 1,
     "tech-trends": 1
   },
   "compile_flagged": ["trading-daily", "ai-research"],

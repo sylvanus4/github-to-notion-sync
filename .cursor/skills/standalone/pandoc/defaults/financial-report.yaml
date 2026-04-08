@@ -1,0 +1,22 @@
+# financial-report.yaml
+# Pandoc defaults for converting markdown stock analysis reports to DOCX.
+#
+# Usage:
+#   pandoc report.md --defaults=.cursor/skills/standalone/pandoc/defaults/financial-report.yaml -o report.docx
+
+from: gfm
+to: docx
+
+# Uncomment after running templates/bootstrap.sh:
+# reference-doc: .cursor/skills/standalone/pandoc/templates/thaki-report.docx
+
+lua-filters:
+  - .cursor/skills/standalone/pandoc/filters/fix-korean-tables.lua
+  - .cursor/skills/standalone/pandoc/filters/korean-date-format.lua
+
+table-of-contents: true
+number-sections: false
+wrap: none
+
+metadata:
+  lang: ko-KR

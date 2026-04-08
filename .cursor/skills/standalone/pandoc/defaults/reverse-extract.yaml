@@ -1,0 +1,14 @@
+# reverse-extract.yaml
+# Pandoc defaults for extracting markdown from DOCX files.
+# Extracts embedded images to a media/ directory.
+#
+# Usage:
+#   pandoc input.docx --defaults=.cursor/skills/standalone/pandoc/defaults/reverse-extract.yaml -o output.md
+
+from: docx
+to: gfm
+
+extract-media: ./media
+wrap: none
+columns: 80
+strip-comments: true

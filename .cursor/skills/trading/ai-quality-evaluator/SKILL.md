@@ -2,8 +2,9 @@
 name: ai-quality-evaluator
 description: >-
   Score and validate AI-generated financial reports for accuracy, hallucination
-  detection, data consistency, coverage completeness, and actionability.
-  Implements a 5-dimension quality gate before Slack distribution. Use when the
+  detection, data consistency, coverage completeness, actionability, and
+  external consensus with TradingView data.
+  Implements a 6-dimension quality gate before Slack distribution. Use when the
   user asks to "check report quality", "validate AI output", "score this
   report", "detect hallucinations", "quality gate", "ai quality", "AI 품질
   평가", "리포트 검증", "환각 감지", or wants to verify AI-generated stock
@@ -20,7 +21,7 @@ metadata:
 
 # AI Quality Evaluator
 
-Validate AI-generated financial reports and analysis outputs against ground truth data, scoring across 5 quality dimensions. Acts as a quality gate between report generation and Slack distribution.
+Validate AI-generated financial reports and analysis outputs against ground truth data, scoring across 6 quality dimensions. Acts as a quality gate between report generation and Slack distribution.
 
 ## Meta-Orchestration
 
@@ -30,7 +31,7 @@ Use this section for multi-skill runs: **delegation order**, **failure handling*
 
 | # | Example prompt | This skill? | Delegation order (numbered) | Output merge strategy | User overrides |
 |---|----------------|-------------|------------------------------|------------------------|----------------|
-| 1 | AI 리포트 품질을 자동 평가해줘 | Yes | 1) Resolve `DATE` → 2) Load artifacts (docx/json) → 3) Ground truth (`weekly_stock_update.py --status`, `daily_stock_check.py --source db`, constants) → 4) Score 5 dimensions → 5) Emit gate markdown → 6) Optional: hand off to Slack MCP only if user asks and gate PASS/REVIEW | **Single** evaluation doc: gate line + weighted table + issues + hallucinations + recommendations (do not split across files) | `DATE=YYYY-MM-DD`; optional explicit paths for report/docx and `analysis-{date}.json`; `SKIP_DB=1` to run reduced accuracy mode (must label REVIEW) |
+| 1 | AI 리포트 품질을 자동 평가해줘 | Yes | 1) Resolve `DATE` → 2) Load artifacts (docx/json) → 3) Ground truth (`weekly_stock_update.py --status`, `daily_stock_check.py --source db`, constants) → 4) Score 6 dimensions → 5) Emit gate markdown → 6) Optional: hand off to Slack MCP only if user asks and gate PASS/REVIEW | **Single** evaluation doc: gate line + weighted table + issues + hallucinations + recommendations (do not split across files) | `DATE=YYYY-MM-DD`; optional explicit paths for report/docx and `analysis-{date}.json`; `SKIP_DB=1` to run reduced accuracy mode (must label REVIEW) |
 | 2 | 데일리 파이프라인을 설계해줘 | No | 1) `today` SKILL (run path) **or** `ai-workflow-integrator` (custom design) — pick one based on “run existing” vs “design new” | Downstream skill defines merge | As in target skill |
 | 3 | 이 프로세스를 자동화할지 결정해줘 | No | 1) `automation-strategist` → 2) if implement: `pipeline-builder` (cron/GHA) or `ai-workflow-integrator` (AI stages) | Strategist doc + optional build artifacts | ARIA thresholds user-adjustable |
 | 4 | 시스템 데이터 흐름을 분석해줘 | No | 1) `system-thinker` (map/bottleneck) → 2) optional `visual-explainer` | Map + bottleneck appendix | Diagram depth / scope from user |
@@ -49,10 +50,11 @@ Use this section for multi-skill runs: **delegation order**, **failure handling*
 
 | Dimension | Weight | What It Measures |
 |-----------|--------|------------------|
-| **Accuracy** | 30% | Do numbers match DB data? Are signals correct? |
-| **Consistency** | 20% | Do conclusions align with the underlying data? |
-| **Coverage** | 20% | Are all tracked tickers and categories represented? |
+| **Accuracy** | 25% | Do numbers match DB data? Are signals correct? |
+| **Consistency** | 15% | Do conclusions align with the underlying data? |
+| **Coverage** | 15% | Are all tracked tickers and categories represented? |
 | **Actionability** | 20% | Are buy/sell recommendations clear and justified? |
+| **External Consensus** | 15% | Do recommendations align with TradingView MCP cross-validation? |
 | **Tone** | 10% | Is the language professional, balanced, and disclaimer-compliant? |
 
 Final score: weighted average on a 0-10 scale.
@@ -139,7 +141,27 @@ Evaluate decision-support quality:
 | Entry/exit context | Price levels or conditions mentioned | -1 per missing context |
 | Time horizon | Implicit or explicit time frame stated | -1 if completely absent |
 
-#### 3e: Tone (10%)
+#### 3e: External Consensus (15%)
+
+Cross-validate report recommendations against TradingView MCP outputs:
+
+**Source files** (all in `backend/outputs/`):
+- `tv-backtest-{date}.json` — strategy comparison results per symbol
+- `tv-sentiment-{date}.json` — Reddit/news sentiment scores per symbol
+- `tv-multi-timeframe-{date}.json` — multi-timeframe TA and candlestick patterns per symbol
+
+| Check | Method | Deduction |
+|-------|--------|-----------|
+| Backtest alignment | BUY recommendation on a stock where TV backtest shows negative returns for all strategies | -2 per contradiction |
+| Sentiment alignment | Strong BUY recommendation on a stock with bearish TV sentiment (score < -0.3) without mentioning the risk | -1 per omission |
+| Multi-timeframe confirmation | BUY on a stock with bearish signals on weekly/monthly timeframes without caveat | -1 per missing caveat |
+| TV data acknowledged | Report should reference external validation when TV data is available | -2 if TV data exists but is completely ignored |
+
+**Graceful degradation**: If no TV output files exist for the evaluation date, score this dimension as 7/10 (neutral) and mark it with a note: "TV data unavailable — scored at neutral baseline." Do not penalize the report for missing TV data that was never generated.
+
+Score: Start at 10, apply deductions, floor at 0. If TV files are absent, default to 7.
+
+#### 3f: Tone (10%)
 
 Evaluate professional standards:
 
@@ -161,10 +183,11 @@ Produce a structured evaluation:
 
 | Dimension | Score | Weight | Weighted |
 |-----------|-------|--------|----------|
-| Accuracy | {score}/10 | 30% | {weighted} |
-| Consistency | {score}/10 | 20% | {weighted} |
-| Coverage | {score}/10 | 20% | {weighted} |
+| Accuracy | {score}/10 | 25% | {weighted} |
+| Consistency | {score}/10 | 15% | {weighted} |
+| Coverage | {score}/10 | 15% | {weighted} |
 | Actionability | {score}/10 | 20% | {weighted} |
+| External Consensus | {score}/10 | 15% | {weighted} |
 | Tone | {score}/10 | 10% | {weighted} |
 
 ### Issues Found

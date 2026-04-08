@@ -67,6 +67,7 @@ While the run is in progress, `overall_status` may be `"running"` until Phase 6 
 | Phase | Label | Output file | Skip flag |
 | --- | --- | --- | --- |
 | 1 | Knowledge consolidation | `outputs/daily-pm/{date}/phase-1-knowledge-consolidation.json` | (none; first phase) |
+| 1.5 | Role-Based Wiki KB Build | `outputs/daily-pm/{date}/phase-1.5-kb-build.json` | `--skip-kb-build`, `--skip-phase 1.5` |
 | 1.8 | Strategic KB query | `outputs/daily-pm/{date}/phase-1.8-strategic-context.json` | `--skip-kb-context`, `--skip-phase 1.8` |
 | 2 | Strategic analysis | `outputs/daily-pm/{date}/phase-2-strategic-analysis.json` | `--skip-strategy`, `--skip-phase 2` |
 | 3 | Code shipping | `outputs/daily-pm/{date}/phase-3-code-shipping.json` | `--skip-phase 3` |
@@ -162,6 +163,39 @@ results["phases"]["phase1"] = {
 **Persist & manifest**: Copy the script's report (`outputs/knowledge-daily-aggregator/{date}/phase-6-report.json`) to `outputs/daily-pm/{date}/phase-1-knowledge-consolidation.json`. Append or update `manifest.json` → `phases[]` with `id: "phase-1"`, `label: "knowledge-consolidation"`, `status`, `output_file`, `started_at`, `elapsed_ms`, and a one-line `summary`.
 
 On failure: **Warn and continue** — knowledge consolidation failure should not block shipping or strategy phases.
+
+---
+
+### Phase 1.5: Role-Based Wiki KB Build (kb-daily-build-orchestrator)
+
+**Duration**: ~5-15 min | **Dependencies**: Phase 1 | **PARALLEL with Phase 1.8**
+
+**Skip if** `--skip-kb-build` or `--skip-phase 1.5` is set.
+
+Run the `kb-daily-build-orchestrator` skill (`.cursor/skills/kb-collectors/kb-daily-build-orchestrator/SKILL.md`).
+
+Triggers all 7 role-specific KB collectors in parallel (sales, marketing, PM, engineering, design, finance, research), then compiles updated KB topics into wiki format.
+
+1. Dispatch `/daily-kb-build` (or invoke the orchestrator skill directly)
+2. Collectors run in 2 parallel batches:
+   - Batch A: sales, marketing, PM (heavier — competitor scraping, Notion sync)
+   - Batch B: engineering, design, finance, research (lighter — repo scan, web search)
+3. After collection, compile updated topics with `kb-compile` and `kb-index`
+4. Run `kb-lint` quality check
+
+```python
+results["phases"]["phase1_5"] = {
+  "status": "pass|partial|fail|skipped",
+  "files_collected": N,
+  "topics_compiled": N,
+  "lint_issues": N,
+  "duration_s": N
+}
+```
+
+**Persist & manifest**: Write Phase 1.5 result to `outputs/daily-pm/{date}/phase-1.5-kb-build.json`. Update `manifest.json` → `phases[]` with `id: "phase-1.5"`, `label: "kb-build"`.
+
+On failure: **Warn and continue** — KB build failure does not block strategy, shipping, or skill evolution.
 
 ---
 
@@ -431,6 +465,7 @@ results["phases"]["phase5"] = {
 | Batch | Phases | Notes |
 |---|---|---|
 | Sequential | Phase 1 (Knowledge) | Must run first |
+| Parallel D | Phase 1.5 (KB Build) | After Phase 1, parallel with Phase 1.8 |
 | Sequential | Phase 1 → Phase 1.8 (KB Context) → Phase 2 (Strategy) | Needs aggregated intelligence + historical context |
 | Parallel A | Phase 3 (Code Shipping) | After Phase 1 |
 | Parallel B | Phase 4 (Skill Evolution) | After Phase 1 |

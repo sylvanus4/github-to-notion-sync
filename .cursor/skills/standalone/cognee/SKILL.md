@@ -83,6 +83,31 @@ await cognee.add(["/path/to/doc1.pdf", "/path/to/doc2.txt"], dataset_name="batch
 
 Supported formats: `.txt`, `.md`, `.csv`, `.pdf`, `.png`, `.jpg`, `.mp3`, `.wav`, `.py`, `.js`, `.docx`, `.pptx`
 
+#### PDF Pre-Processing with OpenDataLoader (Recommended)
+
+Cognee's built-in PDF parser is not directly controllable. For higher-fidelity
+extraction (complex tables, LaTeX, multi-column layouts), convert PDFs to
+Markdown first using the `opendataloader` skill, then feed the Markdown to Cognee:
+
+```python
+import opendataloader_pdf, os, cognee, asyncio
+
+pdf_path = "/path/to/complex-paper.pdf"
+output_dir = "/tmp/odl-output"
+os.makedirs(output_dir, exist_ok=True)
+
+opendataloader_pdf.convert(input_path=pdf_path, output_dir=output_dir, format="markdown", quiet=True)
+md_path = os.path.join(output_dir, os.path.splitext(os.path.basename(pdf_path))[0] + ".md")
+
+async def main():
+    await cognee.add(md_path, dataset_name="research")
+    await cognee.cognify(datasets=["research"])
+
+asyncio.run(main())
+```
+
+For simple PDFs without complex layouts, passing `.pdf` directly to `cognee.add()` is fine.
+
 ### Step 2: Build Knowledge Graph (Cognify)
 
 Process ingested data into a structured knowledge graph with entities, relationships, and embeddings.

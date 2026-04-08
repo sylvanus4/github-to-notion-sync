@@ -13,8 +13,10 @@ description: >-
   optionally run setup-doctor pre-flight and twitter-timeline-to-slack post-pipeline,
   and ingest daily outputs into the trading-daily Knowledge Base for compound growth.
   Optionally cross-validates screener and TA results against TradingView MCP
-  servers (--with-tradingview) and generates Pine Script v5 indicators for top
-  stocks (--with-pine).
+  servers (--with-tradingview). Runs extended TradingView stages by default for
+  live prices, backtesting, sentiment, and multi-timeframe analysis (skip with
+  --skip-tradingview). Generates Pine Script v5 indicators for top stocks
+  (--with-pine).
   Use when the user asks to run a daily pipeline, sync stock data, discover hot
   stocks, screen stocks, or generate a daily report.
   Do NOT use for weekly price updates only (use weekly-stock-update). Do NOT use
@@ -83,6 +85,10 @@ outputs/today/{date}/
   phase-tv-screener.json       # TV screener cross-check (optional, --with-tradingview)
   phase-tv-ta.json             # TV TA cross-validation (optional, --with-tradingview)
   phase-pine-scripts.json      # Pine Script generation manifest (optional, --with-pine)
+  phase-tv-live.json           # TV live prices + market snapshot (default, skip with --skip-tradingview)
+  phase-tv-backtest.json       # TV strategy backtests for top stocks (default, skip with --skip-tradingview)
+  phase-tv-sentiment.json      # TV market sentiment + financial news (default, skip with --skip-tradingview)
+  phase-tv-mtf.json            # TV multi-timeframe + candlestick patterns (default, skip with --skip-tradingview)
 ```
 
 ### Manifest Schema
@@ -676,6 +682,30 @@ On failure: Per-symbol errors are logged and skipped; other symbols continue.
 
 **Step PS.b — Persist & manifest:** Save generation manifest to `outputs/today/{date}/phase-pine-scripts.json`. Update `manifest.json`.
 
+### Phase TV-EXT: TradingView Extended (Default — skip with `--skip-tradingview`)
+
+Four pipeline stages that leverage the full breadth of the `tradingview-mcp-server` (27 tools). Runs by default; skip with `--skip-tradingview`. All stages degrade gracefully — if the MCP server is unreachable, each stage logs a warning and continues.
+
+**Stage TV-LIVE — Live Data:**
+
+Calls `yahoo_price` for each top-screened symbol to fetch real-time OHLCV + change data, and `market_snapshot` for a global overview (US indices, VIX, commodities, forex, crypto). Results are merged into `outputs/today/{date}/phase-tv-live.json`.
+
+**Stage TV-BT — Strategy Backtest:**
+
+Runs `backtest_strategy` for up to 3 strategies (SMA Crossover, RSI Mean Reversion, MACD Trend) on each top-screened symbol, then calls `compare_strategies` to produce a side-by-side performance comparison. Optionally runs `walk_forward_backtest_strategy` for robustness validation. Results are saved to `outputs/today/{date}/phase-tv-backtest.json`.
+
+Depends on: `screening` (needs the list of top stocks).
+
+**Stage TV-ST — Sentiment:**
+
+Calls `market_sentiment` for Reddit-sourced sentiment data across tracked tickers and `financial_news` for the latest headlines. Combines both with `combined_analysis` to produce a unified sentiment + technical + fundamental view. Results are saved to `outputs/today/{date}/phase-tv-sentiment.json`.
+
+**Stage TV-MTF — Multi-Timeframe:**
+
+Runs `get_multi_timeframe_analysis` (1h/4h/1d/1w) and `advanced_candle_pattern` / `consecutive_candles_scan` for each top-screened symbol to detect chart patterns and timeframe alignment. Results are saved to `outputs/today/{date}/phase-tv-mtf.json`.
+
+On failure: Each stage catches exceptions independently; partial results are persisted with an error field. Other stages and subsequent pipeline phases continue unaffected.
+
 ### Phase 5: Report and Post
 
 **Step 5a — Generate report content (File-First — 반드시 한국어로 작성):**
@@ -1064,7 +1094,7 @@ Reads phase output files from `outputs/today/{date}/` or `outputs/daily/{date}/`
 python scripts/kb_daily_router.py --date {date}
 ```
 
-Scans all `outputs/` directories, classifies artifacts by topic (trading-daily, ai-research, tech-trends, project-ops), and routes each to its `knowledge-bases/{topic}/raw/` directory. Auto-initializes new KB directories. Deduplicates against existing raw files.
+Scans all `outputs/` directories, classifies artifacts by topic across the 9-topic taxonomy (trading-daily, trading-strategy, ai-research, intelligence, tech-trends, ai-knowledge-bases, product-platform, architecture-ops, skill-ecosystem), and routes each to its `knowledge-bases/{topic}/raw/` directory. Auto-initializes new KB directories. Deduplicates against existing raw files. Fallback topic: `intelligence`.
 
 **Step 7c — Incremental compile (optional, skip if `skip-kb-compile`):**
 
@@ -1133,7 +1163,8 @@ On failure: **Continue** — KB accumulation is optional; the pipeline succeeds 
 | `skip-kb` | off | Skip Phase 7, no KB ingest | `/today skip-kb` |
 | `skip-kb-compile` | off | Skip Phase 7b incremental compile | `/today skip-kb-compile` |
 | `twitter-only` | off | Phase 6 only | `/today twitter-only` |
-| `--with-tradingview` | off | Enable TradingView MCP cross-validation (Phases TV-SC + TV-TA) | `/today --with-tradingview` |
+| `--with-tradingview` | off | Enable legacy TradingView MCP cross-validation (Phases TV-SC + TV-TA) | `/today --with-tradingview` |
+| `--skip-tradingview` | off | Skip default TradingView extended stages (TV-LIVE, TV-BT, TV-ST, TV-MTF) | `/today --skip-tradingview` |
 | `--with-pine` | off | Enable Pine Script v5 generation (Phase PS) | `/today --with-pine` |
 
 **Combined flags:** Multiple tokens stack (e.g. `dry-run` + `skip-twitter`). Example: `/today dry-run skip-twitter` — full analysis and `.docx`, no Slack, no Twitter phase.
@@ -1313,6 +1344,12 @@ Phase 4 — Strategy + Reporting (depends on analysis):
   report_generation      → Template-based multi-format reports (MD, DOCX, PPTX, XLSX via build_spec + renderers)
   pattern_refresh        → GET /patterns
   slack_notification     → Slack #h-report posting (Jinja2 templates + strategy cards thread)
+
+Phase TV-EXT — TradingView Extended (default, skip with --skip-tradingview, degrades gracefully):
+  tv_live_data           → yahoo_price + market_snapshot (depends on analysis)
+  tv_backtest            → backtest_strategy + compare_strategies (depends on screening)
+  tv_sentiment           → market_sentiment + financial_news + combined_analysis (depends on analysis)
+  tv_multi_timeframe     → multi_timeframe + candle_patterns (depends on analysis)
 ```
 
 ### Strategy Engine Stage

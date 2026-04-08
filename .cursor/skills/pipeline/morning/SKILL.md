@@ -83,6 +83,7 @@ Pass through any Today-specific flags from the morning command:
 - `--skip-fundamentals` → skip fundamental data collection
 - `--skip-discover` → skip hot stock discovery
 - `--skip-screener` → skip multi-factor screening
+- `--skip-tradingview` → skip TradingView extended stages (live prices, backtests, sentiment, multi-timeframe)
 - `--skip-news` → skip market news context
 - `--skip-sentiment` → skip sentiment scoring
 - `--skip-docx` → skip .docx report generation
@@ -166,6 +167,7 @@ If `slack_send_message` fails: **retry once** after a short backoff (2–3s). If
 | `--skip-fundamentals` | Pass to Today: skip fundamental data | Fundamentals enabled |
 | `--skip-discover` | Pass to Today: skip hot stock discovery | Discovery enabled |
 | `--skip-screener` | Pass to Today: skip multi-factor screening | Screener enabled |
+| `--skip-tradingview` | Pass to Today: skip TradingView extended stages (live, backtest, sentiment, MTF) | TV enabled |
 | `--skip-news` | Pass to Today: skip market news | News enabled |
 | `--skip-sentiment` | Pass to Today: skip sentiment scoring | Sentiment enabled |
 | `--skip-docx` | Pass to Today: skip .docx report | DOCX enabled |

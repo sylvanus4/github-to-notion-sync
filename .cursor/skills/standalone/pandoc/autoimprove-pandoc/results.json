@@ -1,0 +1,79 @@
+{
+  "skill_name": "pandoc",
+  "status": "running",
+  "current_experiment": 5,
+  "baseline_score": 100.0,
+  "best_score": 100.0,
+  "experiments": [
+    {
+      "id": 0,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "baseline",
+      "description": "Original SKILL.md - all 5 scenarios pass all 5 evals"
+    },
+    {
+      "id": 1,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "kept",
+      "description": "Added Quick Reference Card with 5 most common conversions at top",
+      "hypothesis": "Quick Ref at top helps LLM find correct commands faster",
+      "improvements": ["Quick Reference enables faster E1/E2 derivation", "CJK+xelatex and --extract-media consolidated in one place"],
+      "regressions": ["Batch loop may omit --pdf-engine if agent copies blindly"]
+    },
+    {
+      "id": 2,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "kept",
+      "description": "Added inline error recovery callouts to Modes 1-4",
+      "hypothesis": "Inline 'If X fails' callouts per mode strengthens E3 Verification by providing immediate recovery paths",
+      "improvements": ["PDF failure recovery inline in Mode 1", "Batch PDF engine warning in Mode 2", "Reference-doc path check in Mode 3", "Lua filter path check in Mode 4"],
+      "regressions": ["Minor duplication with Error Handling table (~200 tokens)"]
+    },
+    {
+      "id": 3,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "kept",
+      "description": "Added --wrap=none to all Korean/reverse output examples and defaults file",
+      "hypothesis": "Explicit --wrap=none in all CJK-relevant commands prevents mid-word line break issues and strengthens E2 Format-Specific Flags",
+      "improvements": ["Mode 1 DOCX->MD now includes --wrap=none", "Mode 6 all 4 reverse commands include --wrap=none", "Defaults YAML includes wrap: none", "Mode 6 prose updated to explain CJK rationale"],
+      "regressions": ["Slightly longer command lines in Mode 6"]
+    },
+    {
+      "id": 4,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "kept",
+      "description": "Replaced generic verification bash with per-format validation table",
+      "hypothesis": "Per-format validation table guides agent to choose format-appropriate verification commands, strengthening E3",
+      "improvements": ["DOCX: pandoc --to plain spot-check", "PDF: pdfinfo page count", "PPTX: unzip slide count", "MD reverse: head for binary artifact check", "Korean: mojibake check guidance", "All: universal non-empty check"],
+      "regressions": ["Table occupies more vertical space than inline bash (~50 tokens)"]
+    },
+    {
+      "id": 5,
+      "score": 25,
+      "max_score": 25,
+      "pass_rate": 100.0,
+      "status": "kept",
+      "description": "Project-specific filenames replace generic placeholders in Modes 3-4",
+      "hypothesis": "Generic filenames (corporate.docx, a.lua) cause file-not-found errors when agent copies them directly",
+      "improvements": ["Mode 3: templates/thaki-report.docx and thaki-slides.pptx", "Mode 4 chain: fix-korean-tables.lua + comma-numbers.lua"],
+      "regressions": ["Slightly less generic -- new projects would need to adapt filenames"]
+    }
+  ],
+  "eval_breakdown": [
+    {"name": "CLI Correctness", "pass_count": 5, "total": 5},
+    {"name": "Format-Specific Flags", "pass_count": 5, "total": 5},
+    {"name": "Verification Step", "pass_count": 5, "total": 5},
+    {"name": "Skill Boundary Respect", "pass_count": 5, "total": 5},
+    {"name": "Output Discipline", "pass_count": 5, "total": 5}
+  ]
+}

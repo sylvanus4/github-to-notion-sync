@@ -87,7 +87,7 @@ Save to `outputs/feynman/<slug>-replication-plan.md` and present to the user.
 | **Virtual env** | Isolated Python deps | Python, venv/conda |
 | **Docker** | Full isolation, reproducibility | Docker Desktop |
 | **HF Jobs** | Burst GPU, managed infra | `hf` CLI, HF account |
-| **RunPod** | Long-running, SSH access | `runpodctl`, RUNPOD_API_KEY |
+| **RunPod** | Long-running, SSH access | `runpodctl` via `runpod-setup` skill, RUNPOD_API_KEY |
 | **Modal** | Serverless GPU bursts | `modal` CLI, Modal account |
 | **Plan only** | No execution, just the plan | None |
 
@@ -118,10 +118,15 @@ docker run --gpus all replication-<slug>
 hf jobs run --flavor gpu-t4-small replication-<slug>.py
 ```
 
-**RunPod:**
+**RunPod** (uses `runpod-pods` and `runpod-transfer` skills):
 ```bash
-runpodctl create pod --name replication-<slug> --gpu "NVIDIA A100" --image pytorch/pytorch:latest
-runpodctl ssh <pod-id>
+# Create pod — see runpod-pods skill for full flag reference and GPU IDs
+runpodctl pod create --name replication-<slug> --gpu-id A100_SXM --image runpod/pytorch:latest --volume-size 50 --ssh
+# SSH into pod
+runpodctl pod ssh <pod-id>
+# Transfer data/results — see runpod-transfer skill
+runpodctl send ./data/  # local -> pod
+runpodctl receive <code> # pod -> local
 ```
 
 **Modal:**

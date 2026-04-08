@@ -1,0 +1,20 @@
+# batch-html.yaml
+# Pandoc defaults for generating standalone HTML output with embedded CSS.
+# Suitable for Slack Canvas uploads or self-contained web reports.
+#
+# Usage:
+#   pandoc report.md --defaults=.cursor/skills/standalone/pandoc/defaults/batch-html.yaml -o report.html
+
+from: gfm
+to: html5
+
+standalone: true
+embed-resources: true
+wrap: none
+
+lua-filters:
+  - .cursor/skills/standalone/pandoc/filters/signal-colors.lua
+
+metadata:
+  lang: ko-KR
+  title-prefix: "ThakiCloud"

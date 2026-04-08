@@ -14,6 +14,7 @@ alwaysApply: true
 - Documents must be self-contained, substantive prose — never skeleton/template-only output
 - Slack → #효정-할일 (C0AA8NT4T8T), never DM; threaded replies; decision routing via decision-router
 - After skill create/modify: test e2e, create command, setup-doctor, skill-guide-sync, /autoskill-evolve
+- Broker/data integration skills: hook into today pipeline or documented daily steps; scaffold-only unused skills are unacceptable
 - cursor-sync = .cursor/ asset copying ONLY; confirm direction before bulk sync jobs
 - Do not modify .plan.md files during implementation; do not recreate existing todos; with pre-created todos mark first in_progress and finish the list
 - Before claiming Slack/MCP broken: verify .env keys and session tool availability; do not dismiss user credentials without mismatch evidence
@@ -38,7 +39,8 @@ alwaysApply: true
 - Daily KB raw from today: `python scripts/kb_daily_ingest.py`; Karpathy loop ingest→compile→query→lint via kb-* skills → memory/topics/pipeline-ops.md
 - Trading: agent-desk, MiroFish L5, Toss/KIS/Kiwoom integrations → memory/topics/trading-stack.md
 - Slack: #h-report, #효정-할일, #deep-research-trending, #bespin-news → memory/topics/slack-routing.md
-- Skills: 109+ in 23 subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/` → memory/topics/skill-ecosystem.md
+- Skills: 109+ in 23 subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/`; RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
+- Role-based RAG pack: `knowledge-bases/_role-registry.json`, `docs/role-based-wiki-strategy*.md`, `docs/role-wiki-quick-reference*.md` → memory/topics/workspace-facts.md
 - GitHub: hyojunguy/ai-model-event-stock-analytics; project board #22; tmp branch = webui ONLY
 - gws CLI: `gws` not `gwcli`; gmail +triage --max N; strip keyring prefix → memory/topics/runbooks.md
 - 7-tier platform (Free→Enterprise); Thaki model names only; CPU-first Phase 0 path in financial models

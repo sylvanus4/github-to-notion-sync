@@ -22,6 +22,8 @@ composable_with:
   - simplify
   - ship
   - release-commander
+  - tool_registry (pre-hook auto-checkpoint before destructive tool calls)
+  - result_spillover (checkpoint spillover files alongside source files)
 do_not_use_for:
   - Git commit management (use domain-commit)
   - Git branch operations (use standard git)
@@ -213,6 +215,28 @@ Maintain a lightweight checkpoint ledger at `~/.hermes-checkpoints/ledger.json`:
 This enables cross-session checkpoint awareness — the agent can report
 "you have 3 checkpoints from yesterday's session" at the start of a new session.
 Prune entries older than 7 days.
+
+## ToolRegistry Hook Integration
+
+When the project's `ToolRegistry` is active, register a pre-hook that
+auto-checkpoints before any tool tagged with `destructive: true`:
+
+```python
+from backend.app.services.tool_registry import get_registry
+
+def checkpoint_pre_hook(tool_name: str, args: dict, _result=None):
+    tool = get_registry().get(tool_name)
+    if tool and tool.metadata.get("destructive"):
+        # Take shadow checkpoint (implementation in Mode B above)
+        pass
+    return None
+
+get_registry().add_pre_hook(checkpoint_pre_hook)
+```
+
+This pairs with the `result_spillover` post-hook -- oversized tool results
+are spilled to temp files, and the checkpoint captures both source files
+and spillover artifacts for complete rollback.
 
 ## Error Handling
 

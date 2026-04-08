@@ -81,6 +81,21 @@ Parse for entries with actionable signals (the screener uses three values):
 - **CAUTION** (score 15–39): mixed technicals — watch only
 - **AVOID** (score < 15): unfavorable — potential exits if currently held
 
+### Step 1.5: TV Sentiment Pre-Filter
+
+Before generating order previews, check TradingView sentiment data to flag emotionally-charged symbols. Load the TV sentiment output:
+
+```bash
+cat backend/outputs/tv-sentiment-$(date +%Y-%m-%d).json
+```
+
+For each candidate symbol, look up `sentiments[SYMBOL]`:
+- **Bearish sentiment (score < -0.3)** on a BUY signal: Downgrade to WATCH. Add warning: "⚠️ TV 감성 부정적 — 매수 보류 권장"
+- **Bullish sentiment (score > 0.3)** on a SELL signal: Add caution note: "ℹ️ TV 감성 긍정적 — 매도 재확인 필요"
+- **Neutral or no data**: Proceed normally
+
+This filter is advisory — it downgrades signals but never blocks user-approved execution. TV sentiment data is produced by default during the `today` pipeline. If the TV sentiment file is missing (TradingView MCP unavailable or `--skip-tradingview` was used), skip this step entirely and proceed.
+
 ### Step 2: Filter Tradeable Symbols
 
 Filter to symbols tradeable on Toss Securities:
@@ -148,24 +163,27 @@ Without `--execute`, this returns a preview showing estimated cost, fees, and or
 
 ### Step 8: Ranked Presentation
 
-Present all candidates ranked by signal strength, in Korean:
+Present all candidates ranked by signal strength, in Korean. Include TV sentiment status where available:
 
 ```
 🔗 시그널 → 주문 미리보기 (2026-03-24)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-파이프라인 시그널 8개 → 실행 가능 5개
+파이프라인 시그널 8개 → 실행 가능 5개 (TV 감성 필터 적용)
 
 📈 매수 후보:
-┌─────────┬──────────┬────────┬────────┬──────────┐
-│ 순위    │ 종목     │ 시그널 │ 수량   │ 예상 비용│
-├─────────┼──────────┼────────┼────────┼──────────┤
-│ 1       │ NVDA     │ ★★★★★ │ 5주    │ $4,250   │
-│ 2       │ 005930   │ ★★★★  │ 10주   │ ₩780,000 │
-│ 3       │ AMD      │ ★★★   │ 15주   │ $2,100   │
-└─────────┴──────────┴────────┴────────┴──────────┘
+┌──────┬────────┬────────┬──────┬──────────┬────────────┐
+│ 순위 │ 종목   │ 시그널 │ 수량 │ 예상 비용│ TV 감성    │
+├──────┼────────┼────────┼──────┼──────────┼────────────┤
+│ 1    │ NVDA   │ ★★★★★ │ 5주  │ $4,250   │ 긍정 (+0.6)│
+│ 2    │ 005930 │ ★★★★  │ 10주 │ ₩780,000 │ 중립       │
+│ 3    │ AMD    │ ★★★   │ 15주 │ $2,100   │ —          │
+└──────┴────────┴────────┴──────┴──────────┴────────────┘
+
+⚠️ TV 감성 필터 보류:
+- PLTR: BUY 시그널 but TV 감성 부정적 (-0.45) → 매수 보류 권장
 
 📉 매도 후보:
-- TSLA: AVOID (보유 중, 손익 -8.2%)
+- TSLA: AVOID (보유 중, 손익 -8.2%) ℹ️ TV 감성 긍정적 — 매도 재확인
 
 💡 실행하려면 tossinvest-trading 스킬을 사용하세요.
    (6-layer 안전 모델 적용됨)

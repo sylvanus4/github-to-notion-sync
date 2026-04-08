@@ -1,0 +1,30 @@
+# korean-pdf.yaml
+# Pandoc defaults for generating Korean PDF output with CJK font support.
+#
+# Requires: TeX Live with xelatex and Korean fonts (e.g., Noto Sans CJK KR)
+#
+# Usage:
+#   pandoc report.md --defaults=.cursor/skills/standalone/pandoc/defaults/korean-pdf.yaml -o report.pdf
+
+from: gfm
+to: pdf
+
+pdf-engine: xelatex
+
+lua-filters:
+  - .cursor/skills/standalone/pandoc/filters/fix-korean-tables.lua
+  - .cursor/skills/standalone/pandoc/filters/korean-date-format.lua
+
+table-of-contents: true
+number-sections: false
+wrap: none
+
+variables:
+  mainfont: "Noto Sans CJK KR"
+  monofont: "JetBrains Mono"
+  fontsize: "11pt"
+  geometry: "margin=2.5cm"
+  documentclass: "article"
+
+metadata:
+  lang: ko-KR

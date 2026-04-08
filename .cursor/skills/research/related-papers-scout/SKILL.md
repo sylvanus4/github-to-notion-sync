@@ -23,7 +23,7 @@ institutions or with high community traction, given an input paper.
 
 ## Prerequisites
 
-- `pdfplumber` Python package (`pip install pdfplumber`) for PDF extraction
+- `opendataloader-pdf` Python package + JDK 11+ (preferred PDF parser); `pdfplumber` as fallback
 - `curl` for arXiv PDF download and Defuddle extraction
 - Internet access for Semantic Scholar API, WebSearch, and Slack MCP
 - `SLACK_BOT_TOKEN` in `.env` for Slack distribution (Phase 6)
@@ -74,12 +74,25 @@ curl -s "https://defuddle.md/arxiv.org/abs/{ID}"
 
 Parse Defuddle output for title, authors, abstract, date, and arXiv categories.
 
-Extract text from the first 5 pages with pdfplumber:
+Extract text from the first 5 pages (OpenDataLoader preferred, pdfplumber fallback):
 
 ```python
-import pdfplumber
-with pdfplumber.open("/tmp/arxiv-{ID}.pdf") as pdf:
-    text = "\n\n".join(page.extract_text() or "" for page in pdf.pages[:5])
+import opendataloader_pdf, os
+
+pdf_path = "/tmp/arxiv-{ID}.pdf"
+output_dir = "/tmp/odl-output"
+os.makedirs(output_dir, exist_ok=True)
+
+try:
+    opendataloader_pdf.convert(input_path=pdf_path, output_dir=output_dir, format="markdown", quiet=True)
+    stem = os.path.splitext(os.path.basename(pdf_path))[0]
+    with open(os.path.join(output_dir, f"{stem}.md"), "r") as f:
+        text = f.read()
+except Exception:
+    import pdfplumber
+    with pdfplumber.open(pdf_path) as pdf:
+        text = "\n\n".join(page.extract_text() or "" for page in pdf.pages[:5])
+
 with open("/tmp/arxiv-{ID}-extracted.md", "w") as f:
     f.write(text)
 ```
@@ -89,7 +102,7 @@ related work which contain the key terms needed for search.
 
 ### Local PDF Input
 
-Extract text with pdfplumber (first 5 pages). Infer title and authors from
+Extract text with OpenDataLoader (fallback: pdfplumber, first 5 pages). Infer title and authors from
 the first page content.
 
 ### Local Markdown/Text Input
@@ -364,7 +377,8 @@ Only consider papers from the last 6 months (stricter than default 9) and post t
 |---------|-----|
 | Semantic Scholar API 429 | Rate limited; add 3-second delays between requests |
 | Semantic Scholar returns empty | Paper may be too new; fall back to WebSearch-only discovery. Also try Exa Search via agent-reach: `mcporter call 'exa.web_search_exa(query: "related:{paper_title}", numResults: 10)'` |
-| pdfplumber not found | `pip install pdfplumber` |
+| opendataloader-pdf not found | `pip install opendataloader-pdf` + verify JDK 11+; falls back to pdfplumber |
+| pdfplumber not found | `pip install pdfplumber` (fallback parser) |
 | Defuddle fails | Fall back to extracting metadata from PDF first page |
 | WebSearch returns too few results | Supplement with Exa Search (agent-reach MCP channel): `mcporter call 'exa.find_similar(url: "https://arxiv.org/abs/{arxiv_id}", numResults: 10)'` for semantically similar papers |
 | Too few institution matches | Relax institution filter per Phase 3 selection rules |

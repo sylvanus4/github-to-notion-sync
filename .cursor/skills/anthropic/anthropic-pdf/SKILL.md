@@ -86,7 +86,28 @@ with open("rotated.pdf", "wb") as output:
     writer.write(output)
 ```
 
-### pdfplumber - Text and Table Extraction
+### OpenDataLoader — High-Fidelity Text Extraction (Preferred)
+
+For complex PDFs with tables, multi-column layouts, or LaTeX equations, prefer
+`opendataloader-pdf` (see the `opendataloader` skill for full details):
+
+```python
+import opendataloader_pdf, os
+
+opendataloader_pdf.convert(
+    input_path="document.pdf",
+    output_dir="/tmp/odl-output",
+    format="markdown",
+    quiet=True,
+)
+with open("/tmp/odl-output/document.md", "r") as f:
+    text = f.read()
+```
+
+Requires JDK 11+ and `pip install opendataloader-pdf`. Falls back to pdfplumber
+below when unavailable.
+
+### pdfplumber - Text and Table Extraction (Fallback)
 
 #### Extract Text with Layout
 ```python
@@ -309,7 +330,8 @@ with open("encrypted.pdf", "wb") as output:
 |------|-----------|--------------|
 | Merge PDFs | pypdf | `writer.add_page(page)` |
 | Split PDFs | pypdf | One page per file |
-| Extract text | pdfplumber | `page.extract_text()` |
+| Extract text (high-fidelity) | opendataloader-pdf | `opendataloader_pdf.convert(...)` → reads `.md` output |
+| Extract text (fallback) | pdfplumber | `page.extract_text()` |
 | Extract tables | pdfplumber | `page.extract_tables()` |
 | Create PDFs | reportlab | Canvas or Platypus |
 | Command line merge | qpdf | `qpdf --empty --pages ...` |
@@ -329,7 +351,8 @@ with open("encrypted.pdf", "wb") as output:
 
 - Do not add pages or sections beyond what was requested
 - Match PDF complexity to the task — simple text extraction does not need reportlab
-- Try pypdf or pdfplumber first; escalate to reportlab only when creating new PDFs with complex layouts
+- For text extraction, try opendataloader-pdf first for highest fidelity; fall back to pypdf or pdfplumber
+- Escalate to reportlab only when creating new PDFs with complex layouts
 - Do not add watermarks, headers, footers, or formatting elements unless explicitly requested
 
 ## Verification

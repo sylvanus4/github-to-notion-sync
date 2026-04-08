@@ -25,6 +25,7 @@ composable_with:
   - autoskill-merger
   - semantic-guard
   - security-expert
+  - tool_registry (scan tool definitions registered via ToolRegistry for unsafe patterns)
 do_not_use_for:
   - General code security review (use security-expert)
   - Runtime prompt injection detection (use semantic-guard)
@@ -261,6 +262,7 @@ Benefits:
 - **Pre-merge gate**: Run before `autoskill-merger` applies changes
 - **Periodic audit**: Composable with `ci-quality-gate` for scheduled scans
 - **Complements semantic-guard**: skills-guard is static analysis of skill files; semantic-guard is runtime analysis of data flow
+- **ToolRegistry audit**: Scan tool definitions for destructive patterns by iterating `get_registry().list_tools()` and checking each tool's function body and metadata for threat category patterns
 
 ## Error Handling
 

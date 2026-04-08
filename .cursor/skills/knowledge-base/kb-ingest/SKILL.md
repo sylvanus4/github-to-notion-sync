@@ -108,7 +108,7 @@ For each source, determine the type:
 | `https://youtube.com/...` or `youtu.be/...` | `youtube` | defuddle → transcript markdown |
 | `https://arxiv.org/abs/...` | `arxiv-paper` | defuddle + alphaxiv lookup |
 | `https://github.com/...` | `github-repo` | WebFetch README + key files |
-| Local `.pdf` file | `pdf` | Copy to raw/, extract text with anthropic-pdf |
+| Local `.pdf` file | `pdf` | Copy to raw/, extract text with opendataloader (fallback: anthropic-pdf) |
 | Local `.md` file | `markdown` | Copy to raw/ with frontmatter |
 | Local image file | `image` | Copy to raw/assets/ |
 | Raw text/paste | `text` | Save as markdown with frontmatter |
@@ -143,7 +143,29 @@ curl -s "https://defuddle.md/youtube.com/watch?v={video_id}" > knowledge-bases/{
 **For local files:**
 
 1. Copy file to `raw/` directory
-2. For PDFs, extract text content and save as companion `.md`
+2. For PDFs, extract text via OpenDataLoader (preferred) with anthropic-pdf fallback:
+
+```python
+import opendataloader_pdf, os
+
+pdf_path = "knowledge-bases/{topic}/raw/{slug}.pdf"
+output_dir = "/tmp/odl-output"
+os.makedirs(output_dir, exist_ok=True)
+
+try:
+    opendataloader_pdf.convert(input_path=pdf_path, output_dir=output_dir, format="markdown", quiet=True)
+    stem = os.path.splitext(os.path.basename(pdf_path))[0]
+    md_path = os.path.join(output_dir, f"{stem}.md")
+    with open(md_path, "r") as f:
+        text = f.read()
+except Exception:
+    # Fallback: use anthropic-pdf skill (pdfplumber/pypdf)
+    import pdfplumber
+    with pdfplumber.open(pdf_path) as pdf:
+        text = "\n\n".join(page.extract_text() or "" for page in pdf.pages)
+```
+
+Save extracted text as companion `.md` file in `raw/`.
 
 ### Step 4: Download Associated Images
 
@@ -262,7 +284,7 @@ Generate slugs from titles:
 
 **Actions:**
 1. Copy PDF to `knowledge-bases/robotics/raw/sim-to-real.pdf`
-2. Extract text via anthropic-pdf skill
+2. Extract text via OpenDataLoader (fallback: anthropic-pdf)
 3. Save extracted text as `knowledge-bases/robotics/raw/sim-to-real.md`
 4. Add frontmatter
 5. Update manifest

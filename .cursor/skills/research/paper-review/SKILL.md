@@ -37,7 +37,8 @@ and Notion links to Slack.
 
 ## Prerequisites
 
-- `pdfplumber` Python package (`pip install pdfplumber`)
+- `opendataloader-pdf` Python package + JDK 11+ (preferred PDF parser; `pip install opendataloader-pdf`)
+- `pdfplumber` Python package (`pip install pdfplumber`) — fallback PDF parser
 - `curl` for arXiv PDF download and Defuddle extraction
 - `docx` npm package (`npm install -g docx`) for Word generation
 - `pptxgenjs` npm package (`npm install -g pptxgenjs`) for PowerPoint generation
@@ -138,14 +139,36 @@ curl -s "https://defuddle.md/arxiv.org/abs/{ID}"
 
 **Step 3 — Full text extraction (still required for deep review):**
 
-Even when AlphaXiv overview is available, extract full text with pdfplumber for
-sections the overview may not cover (equations, tables, appendices):
+Even when AlphaXiv overview is available, extract full text for sections
+the overview may not cover (equations, tables, appendices).
+
+**Primary**: OpenDataLoader (high-fidelity Markdown with layout, tables, LaTeX):
+
+```python
+import opendataloader_pdf, os
+
+output_dir = "/tmp/odl-output"
+os.makedirs(output_dir, exist_ok=True)
+opendataloader_pdf.convert(
+    input_path=f"/tmp/arxiv-{ID}.pdf",
+    output_dir=output_dir,
+    format="markdown",
+    quiet=True,
+)
+md_path = os.path.join(output_dir, f"arxiv-{ID}.md")
+with open(md_path) as f:
+    text = f.read()
+with open(f"/tmp/arxiv-{ID}-extracted.md", "w") as f:
+    f.write(text)
+```
+
+**Fallback** (if OpenDataLoader is unavailable — no JDK or package not installed):
 
 ```python
 import pdfplumber
-with pdfplumber.open("/tmp/arxiv-{ID}.pdf") as pdf:
+with pdfplumber.open(f"/tmp/arxiv-{ID}.pdf") as pdf:
     text = "\n\n".join(page.extract_text() or "" for page in pdf.pages)
-with open("/tmp/arxiv-{ID}-extracted.md", "w") as f:
+with open(f"/tmp/arxiv-{ID}-extracted.md", "w") as f:
     f.write(text)
 ```
 
@@ -158,8 +181,8 @@ verbatim evidence (figures, tables, equations) for citation.
 
 ### Local PDF Input
 
-Extract text directly with pdfplumber using the same pattern above.
-Infer title and authors from the first page content.
+Extract text directly using OpenDataLoader (or pdfplumber fallback) with
+the same pattern above. Infer title and authors from the first page content.
 
 ### Local Markdown/Text Input
 
@@ -182,7 +205,7 @@ Combine into a structured document:
 {alphaxiv overview content, if available — omit this section if 404}
 
 ## Full Paper Content
-{section-segmented extracted text from pdfplumber}
+{section-segmented extracted text from OpenDataLoader (or pdfplumber fallback)}
 ```
 
 Identify section boundaries (Introduction, Related Work, Methods, Experiments,
@@ -535,7 +558,8 @@ This will create Notion pages under a custom parent page without posting to Slac
 |-------|-------|---------|
 | alphaxiv-paper-lookup | 1 | Structured arXiv paper overview (token-efficient, primary metadata source) |
 | defuddle | 1 | Extract arXiv abstract metadata (fallback when AlphaXiv unavailable) |
-| anthropic-pdf | 1 | PDF text extraction patterns |
+| opendataloader | 1 | High-fidelity PDF-to-Markdown conversion (primary parser) |
+| anthropic-pdf | 1 | PDF text extraction patterns (fallback) |
 | pm-product-strategy | 3 | SWOT, lean canvas, value proposition |
 | pm-market-research | 3 | Market sizing, competitive, personas |
 | pm-product-discovery | 3 | Assumptions, OST, experiments |
@@ -556,7 +580,8 @@ This will create Notion pages under a custom parent page without posting to Slac
 
 | Symptom | Fix |
 |---------|-----|
-| pdfplumber not found | `pip install pdfplumber` |
+| opendataloader-pdf not found | `pip install opendataloader-pdf` + verify JDK 11+ (`java -version`); falls back to pdfplumber |
+| pdfplumber not found | `pip install pdfplumber` (fallback parser) |
 | docx npm not found | `npm install -g docx` |
 | pptxgenjs not found | `npm install -g pptxgenjs` |
 | PDF text garbled | Complex layouts; extract what you can, note gaps |

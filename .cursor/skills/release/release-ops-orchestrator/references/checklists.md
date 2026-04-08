@@ -77,13 +77,13 @@ Run by / 담당: **효정님** (Release Owner) + **App Owners / 앱 오너**
 - Hotfixes this week / 이번 주 핫픽스: {N}
 
 ### What went well / 잘된 점
-1. 
+1.
 
 ### What could improve / 개선할 점
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ### Action items for next week / 다음 주 액션 아이템
-- [ ] 
+- [ ]
 ```

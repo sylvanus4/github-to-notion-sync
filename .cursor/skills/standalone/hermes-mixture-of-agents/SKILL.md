@@ -23,6 +23,8 @@ composable_with:
   - alphaear-deepear-lite
   - critical-review
   - first-principles-analysis
+  - message_sanitizer (sanitize multi-turn conversations before each model call)
+  - result_spillover (spill oversized aggregation outputs)
 do_not_use_for:
   - Simple questions with clear answers (use single model directly)
   - Code generation that needs consistent style (style varies across models)
@@ -198,6 +200,33 @@ MoA is expensive. Do NOT use it when:
 - The total conversation already used > $5.00 in MoA costs this session
 
 Default to budget mode (2 Sonnet refs + Sonnet aggregator). Escalate to Opus-heavy configuration ONLY when the user explicitly requests "maximum quality" or the topic is a $100K+ financial decision.
+
+## Integration with Project Modules
+
+### Message Sanitization
+
+Before sending the aggregated prompt to the aggregator model, sanitize the
+collected multi-turn message list to prevent orphaned `tool_call`/`tool_result`
+pairs from causing API validation errors:
+
+```python
+from backend.app.services.message_sanitizer import sanitize_messages
+
+aggregator_messages = sanitize_messages(aggregator_messages)
+response = await llm_client.chat_messages(aggregator_messages, sanitize=False)
+```
+
+### Result Spillover
+
+When the combined reference model responses exceed context limits, use
+`result_spillover` to keep the aggregator prompt lean:
+
+```python
+from backend.app.services.result_spillover import maybe_spill
+
+combined = "\n---\n".join(reference_responses)
+combined = maybe_spill(combined, "moa_aggregation", threshold=80_000)
+```
 
 ## Safety Rules
 

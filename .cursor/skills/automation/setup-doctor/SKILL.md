@@ -47,6 +47,7 @@ The user provides:
 | browser | Playwright browsers installed | playwright-runner, e2e-testing, stock-csv-downloader |
 | media | ffmpeg, yt-dlp | transcribee, video-compress |
 | trading-apis | KIWOOM_APP_KEY, FRED_API_KEY, JINA_API_KEY | tab-kiwoom, today, alphaear-search |
+| tradingview-mcp | `tradingview-mcp-server` Python pkg | tab-tradingview-ta, tab-tradingview-screener, tv-backtest, tv-live-data, tv-sentiment, tv-multi-timeframe, today (--with-tradingview) |
 | ci-cd | act, Docker, pre-commit, ruff | ci-quality-gate, domain-commit |
 | github | `gh` CLI (authenticated) | github-workflow-automation, release-ship, ship |
 | mirofish | `uv`, Node ≥18, MiroFish repo, LLM + Zep keys | mirofish, mirofish-financial-sim, mirofish-opinion-sim, mirofish-graph-explorer |
@@ -55,7 +56,7 @@ The user provides:
 | paperclip | `pnpm` ≥9.15, Node ≥20, Docker, BETTER_AUTH_SECRET | paperclip-setup, paperclip-agents, paperclip-tasks, paperclip-control |
 | agent-browser | `agent-browser` CLI, Chromium | agent-browser |
 | security-scanning | `gitleaks` CLI | security-expert |
-| document-generation | pdfplumber, python-docx, pypdf, pillow, Node `docx`/`pptxgenjs`, pandoc | paper-review, anthropic-docx, anthropic-pptx, anthropic-pdf, bespin-news-digest |
+| document-generation | pdfplumber, python-docx, pypdf, pillow, opendataloader-pdf, JDK 11+, Node `docx`/`pptxgenjs`, pandoc | paper-review, anthropic-docx, anthropic-pptx, anthropic-pdf, opendataloader, bespin-news-digest |
 | scrapling | `scrapling` Python pkg | scrapling |
 | tossinvest | `tossctl`, Go ≥1.21, Playwright, Chromium | tossinvest-setup, tossinvest-cli, tossinvest-trading |
 | dev-browser | `dev-browser` CLI (npm), Chromium | dev-browser |
@@ -76,6 +77,7 @@ The user provides:
 | remotion-video | `remotion` + `@remotion/cli` (npm), ffmpeg, Node ≥18 | remotion-motion-forge |
 | paperclip-agents | `paperclip` CLI (npm), Docker, PAPERCLIP_API_KEY (opt) | paperclip-agents, paperclip-tasks, paperclip-control, paperclip-setup |
 | reddit-reaction | ffmpeg, yt-dlp, gTTS, moviepy, Pillow | reddit-reaction-maker |
+| runpod-gpu-cloud | `runpodctl` CLI, RUNPOD_API_KEY | runpod-setup, runpod-pods, runpod-volumes, runpod-transfer, feynman-replication (RunPod env) |
 
 For full details on each group (install commands, env vars, verification), see [references/capability-map.md](references/capability-map.md).
 
@@ -88,7 +90,7 @@ For the complete env var registry, see [references/env-var-registry.md](referenc
 Check each tool via `command -v`:
 
 ```bash
-for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp agent-reach rdt mcporter rhwp cargo carbonyl obsidian alpha dot lat paperclip; do
+for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp agent-reach rdt mcporter rhwp cargo carbonyl obsidian alpha dot lat paperclip runpodctl java; do
   command -v "$tool" >/dev/null 2>&1 && echo "PASS $tool" || echo "FAIL $tool"
 done
 ```
@@ -100,7 +102,7 @@ Record results in a table: `Tool | Status | Required By | Install Command`.
 **Python packages** — check critical packages via `pip show`:
 
 ```bash
-for pkg in fastapi uvicorn sqlalchemy asyncpg alembic pandas numpy yfinance pykrx openai anthropic playwright feedparser huggingface-hub pdfplumber defusedxml lxml python-docx pypdf pillow scrapling cognee beautifulsoup4 pyyaml imageio requests fal-client nemo-curator fastembed data-designer gTTS moviepy; do
+for pkg in fastapi uvicorn sqlalchemy asyncpg alembic pandas numpy yfinance pykrx openai anthropic playwright feedparser huggingface-hub pdfplumber defusedxml lxml python-docx pypdf pillow opendataloader-pdf scrapling cognee beautifulsoup4 pyyaml imageio requests fal-client nemo-curator fastembed data-designer gTTS moviepy tradingview-mcp-server; do
   pip show "$pkg" >/dev/null 2>&1 && echo "PASS $pkg" || echo "FAIL $pkg"
 done
 ```
@@ -118,7 +120,7 @@ done
 1. Check if `.env` file exists in project root
 2. Parse `.env.example` for all variable names
 3. For each variable in `.env.example`, check if it exists and is non-empty in `.env`
-4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`, `ELEVEN_LABS_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `BETTER_AUTH_SECRET`, `BROWSERBASE_API_KEY`, `FINVIZ_API_KEY`, `FMP_API_KEY`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN`, `SLACK_USER_TOKEN`, `FAL_KEY`, `SLEEK_API_KEY`, `NVIDIA_API_KEY`, `OPENROUTER_API_KEY`, `LAT_LLM_KEY`, `GOOGLE_CREDENTIALS_FILE`, `KB_ROOT`, `EMBEDDING_PROVIDER`, `EMBEDDING_DIMENSIONS`, `RESEARCH_REPO`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NOTION_API_TOKEN`, `SLACK_BOT_TOKEN`, `GITHUB_TOKEN`, `PAPERCLIP_API_KEY`
+4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`, `ELEVEN_LABS_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `BETTER_AUTH_SECRET`, `BROWSERBASE_API_KEY`, `FINVIZ_API_KEY`, `FMP_API_KEY`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN`, `SLACK_USER_TOKEN`, `FAL_KEY`, `SLEEK_API_KEY`, `NVIDIA_API_KEY`, `OPENROUTER_API_KEY`, `LAT_LLM_KEY`, `GOOGLE_CREDENTIALS_FILE`, `KB_ROOT`, `EMBEDDING_PROVIDER`, `EMBEDDING_DIMENSIONS`, `RESEARCH_REPO`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NOTION_API_TOKEN`, `SLACK_BOT_TOKEN`, `GITHUB_TOKEN`, `PAPERCLIP_API_KEY`, `RUNPOD_API_KEY`
 5. Classify each as: SET (non-empty), EMPTY (exists but blank), MISSING (not in .env)
 
 Present results grouped by capability group.
