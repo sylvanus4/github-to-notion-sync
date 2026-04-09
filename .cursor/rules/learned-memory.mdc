@@ -41,6 +41,7 @@ alwaysApply: true
 - Slack: #h-report, #효정-할일, #deep-research-trending, #bespin-news → memory/topics/slack-routing.md
 - Skills: 109+ in 23 subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/`; RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
 - Role-based RAG pack: `knowledge-bases/_role-registry.json`, `docs/role-based-wiki-strategy*.md`, `docs/role-wiki-quick-reference*.md` → memory/topics/workspace-facts.md
+- PDF: OpenDataLoader local extract for kb-ingest / paper-review / Cognee (skill `opendataloader`) → memory/topics/workspace-facts.md
 - GitHub: hyojunguy/ai-model-event-stock-analytics; project board #22; tmp branch = webui ONLY
 - gws CLI: `gws` not `gwcli`; gmail +triage --max N; strip keyring prefix → memory/topics/runbooks.md
 - 7-tier platform (Free→Enterprise); Thaki model names only; CPU-first Phase 0 path in financial models
@@ -48,3 +49,4 @@ alwaysApply: true
 - ATG: optional accelerator at port 4000; direct MCP fallback when unavailable
 - Weekly release ops: Tue collect → Wed QA → Thu deploy; GitHub labels + Notion Weekly Release/Hotfix Queue; Slack #release-control / #hotfix-alert; skills under `.cursor/skills/release/` → memory/topics/workspace-facts.md
 - Pre-push hook can hang >4min on E2E tests — use git push --no-verify as workaround
+- Vibe-Trading at ~/thaki/Vibe-Trading/; MCP `user-vibe-trading`; 7 skills under `.cursor/skills/vibe-trading/`; MCP-only (no venv merge) → memory/topics/skill-ecosystem.md, workspace-facts.md

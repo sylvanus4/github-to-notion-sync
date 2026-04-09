@@ -86,4 +86,3 @@ Added Korean mojibake check guidance in the prose below the table.
 **Decision**: KEPT -- Generic placeholders (`corporate.docx`, `a.lua`, `b.lua`) eliminated. Agent can now copy Mode 3/4 examples directly without encountering file-not-found errors. Quick Reference, Mode 4 single example, and defaults YAML already used real filenames from earlier experiments, so this completes the consistency pass across all modes.
 
 ---
-

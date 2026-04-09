@@ -108,6 +108,15 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `trading-options-theta` — 12 quant-firm-style options theta prompts (0DTE, iron condor, regime, skew, earnings IV crush, etc.)
 - `trading-agent-desk` — Multi-agent debate-based trading desk (4 analysts → bull/bear debate → research manager → risk evaluator + BM25 memory)
 
+**Vibe-Trading** (MCP-integrated multi-agent finance workspace):
+- `vibe-trading-setup` — Install, configure env, register MCP, health checks
+- `vibe-trading-mcp` — 16-tool reference (schemas, chaining patterns)
+- `vibe-trading-data` — Multi-market OHLCV via get_market_data (US/HK/A-shares/crypto)
+- `vibe-trading-backtest` — Vectorized backtests with custom signal_engine.py
+- `vibe-trading-swarm` — Multi-agent DAG teams (29 presets)
+- `vibe-trading-quant` — Factor IC/IR, Black-Scholes options, chart patterns
+- `vibe-trading-orchestrator` — 4 modes: Discovery/Research/Cross-Validation/Strategy
+
 **NLM x PM composite skills** (PM frameworks → NotebookLM multi-format outputs):
 - `nlm-strategy-hub` — PM strategy + market research → NLM research hub (slides, podcast, mind map, report)
 - `nlm-launch-kit` — GTM + execution + marketing → NLM launch kit (slides, video, infographic, flashcards, quiz)
