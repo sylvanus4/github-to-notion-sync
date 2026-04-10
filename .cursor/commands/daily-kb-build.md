@@ -1,6 +1,6 @@
 ## Daily KB Build — Role-Based Wiki Pipeline
 
-Run the daily Knowledge Base collection and compilation pipeline. Triggers all 7 role-specific collectors (sales, marketing, PM, engineering, design, finance, research) in parallel, then compiles updated topics into wiki format.
+Run the daily Knowledge Base collection, compilation, and reporting pipeline. Triggers all 7 role-specific collectors (sales, marketing, PM, engineering, design, finance, research) in parallel, compiles updated topics into wiki format, and posts a consolidated Korean intelligence report to `#효정-의사결정`.
 
 ### Usage
 
