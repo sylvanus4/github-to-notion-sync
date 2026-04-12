@@ -6,7 +6,7 @@ description: "Market prediction using Kronos time-series model with news-aware a
 
 ## Skill Reference
 
-Read and follow the skill at `.cursor/skills/alphaear-predictor/SKILL.md`.
+Read and follow the skill at `.cursor/skills/alphaear/alphaear-predictor/SKILL.md`.
 
 ## Your Task
 

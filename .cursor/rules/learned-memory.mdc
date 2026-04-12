@@ -22,6 +22,7 @@ alwaysApply: true
 - Subagent outputs must be verified — missing files = pipeline failure
 - today Slack must include BUY/SELL thread (sector/RSI/ADX); DOCX must be substantive Korean; orchestrator must call generate_daily_report message builders (no title-only main posts)
 - twitter-timeline-to-slack: never #random; default #press; #ai-coding-radar for Claude/Cursor only
+- x-to-slack: channel root = Korean headline + tweet URL only; Slack MCP `slack_send_message` uses `message` not `text`
 - skill-autoimprove: pure-output skills only, not execution skills with side effects
 - Apply Karpathy Opposite Direction Test on all analyses, reviews, and validations
 - Markdown→Notion: follow md-to-notion SKILL.md with table conversion + validation steps
@@ -39,14 +40,17 @@ alwaysApply: true
 - Daily KB raw from today: `python scripts/kb_daily_ingest.py`; Karpathy loop ingest→compile→query→lint via kb-* skills → memory/topics/pipeline-ops.md
 - Trading: agent-desk, MiroFish L5, Toss/KIS/Kiwoom integrations → memory/topics/trading-stack.md
 - Slack: #h-report, #효정-할일, #deep-research-trending, #bespin-news → memory/topics/slack-routing.md
-- Skills: 109+ in 23 subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/`; RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
+- Skills: 109+ in 23 subdirs, 8 harness orchestrators, 9 domain harnesses, 11 marketing skills; Pika under `.cursor/skills/pika/`; RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
 - Role-based RAG pack: `knowledge-bases/_role-registry.json`, `docs/role-based-wiki-strategy*.md`, `docs/role-wiki-quick-reference*.md` → memory/topics/workspace-facts.md
 - PDF: OpenDataLoader local extract for kb-ingest / paper-review / Cognee (skill `opendataloader`) → memory/topics/workspace-facts.md
 - GitHub: hyojunguy/ai-model-event-stock-analytics; project board #22; tmp branch = webui ONLY
 - gws CLI: `gws` not `gwcli`; gmail +triage --max N; strip keyring prefix → memory/topics/runbooks.md
+- gws decrypt/keyring issues: `~/.config/gws/.encryption_key` + logout/login → memory/topics/workspace-facts.md
 - 7-tier platform (Free→Enterprise); Thaki model names only; CPU-first Phase 0 path in financial models
 - AutoResearchClaw at ~/thaki/AutoResearchClaw/; MiroFish at ~/thaki/MiroFish/ (L5 escalation only)
 - ATG: optional accelerator at port 4000; direct MCP fallback when unavailable
 - Weekly release ops: Tue collect → Wed QA → Thu deploy; GitHub labels + Notion Weekly Release/Hotfix Queue; Slack #release-control / #hotfix-alert; skills under `.cursor/skills/release/` → memory/topics/workspace-facts.md
 - Pre-push hook can hang >4min on E2E tests — use git push --no-verify as workaround
 - Vibe-Trading at ~/thaki/Vibe-Trading/; MCP `user-vibe-trading`; 7 skills under `.cursor/skills/vibe-trading/`; MCP-only (no venv merge) → memory/topics/skill-ecosystem.md, workspace-facts.md
+- Continual-learning transcript index: `.cursor/hooks/state/continual-learning-index.json`; rebuild `files` when `~/.cursor/projects/<slug>/` path changes (UUID folders unchanged) → memory/topics/workspace-facts.md
+- gbrain (garrytan/gbrain) → `~/thaki/gbrain/`; bridge skills `gbrain-bridge` / `gbrain-ingest` / `unified-knowledge-search` under `.cursor/skills/knowledge-base/` → memory/topics/skill-ecosystem.md

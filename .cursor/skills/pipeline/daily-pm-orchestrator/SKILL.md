@@ -11,7 +11,7 @@ description: >-
   pipeline (use daily-am-orchestrator).
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "1.2.0"
   category: "orchestration"
 ---
 # Daily PM Orchestrator — Evening Pipeline (4:30 PM)
@@ -66,6 +66,7 @@ While the run is in progress, `overall_status` may be `"running"` until Phase 6 
 
 | Phase | Label | Output file | Skip flag |
 | --- | --- | --- | --- |
+| 0.5 | Paperclip evening check | `outputs/daily-pm/{date}/phase-0.5-paperclip.json` | (optional; graceful degradation) |
 | 1 | Knowledge consolidation | `outputs/daily-pm/{date}/phase-1-knowledge-consolidation.json` | (none; first phase) |
 | 1.5 | Role-Based Wiki KB Build | `outputs/daily-pm/{date}/phase-1.5-kb-build.json` | `--skip-kb-build`, `--skip-phase 1.5` |
 | 1.8 | Strategic KB query | `outputs/daily-pm/{date}/phase-1.8-strategic-context.json` | `--skip-kb-context`, `--skip-phase 1.8` |
@@ -110,6 +111,58 @@ While the run is in progress, `overall_status` may be `"running"` until Phase 6 
    ```
 5. Determine if today is Friday (for weekly reports)
 6. Parse flags (`--skip-phase`, `--only-phase`, `--friday`, etc.) and append parsed flags to `manifest.json` → `flags`
+
+---
+
+### Phase 0.5: Paperclip Evening Check (Optional)
+
+**Duration**: ~30s | **Dependencies**: None | **Critical**: NO
+
+Run Paperclip end-of-day governance tasks: daily cost summary, task sync, and agent status update. Skip if Paperclip is unavailable (graceful degradation).
+
+**Step 0.5a — Health check:**
+
+```
+Tool: paperclip_dashboard
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+If the call fails (connection refused, timeout), log "Paperclip unavailable — skipping evening governance" and skip the rest of Phase 0.5.
+
+**Step 0.5b — Daily cost summary:**
+
+```
+Tool: paperclip_get_budget
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+Record today's spend vs budget for inclusion in the Phase 6 briefing. If budget >= 90% spent, add a warning to `manifest.json` → `warnings[]`.
+
+**Step 0.5c — Task sync (paperclip-bridge):**
+
+Run bidirectional sync between `tasks/todo.md` and Paperclip issues:
+
+1. Read `tasks/todo.md` for items without `[PC:xxx]` annotations → create Paperclip issues via `paperclip_create_issue`
+2. Query Paperclip for issues completed today → mark corresponding todo items as done
+3. Update `[PC:xxx]` annotations in `tasks/todo.md`
+
+Follow the `paperclip-bridge` skill workflow for conflict resolution rules.
+
+**Step 0.5d — Heartbeat all agents (EOD status):**
+
+```
+Tool: paperclip_list_agents
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+For each agent with `status != "terminated"`:
+
+```
+Tool: paperclip_heartbeat
+Input: { "agentId": "<agent-id>", "status": "evening pipeline completed" }
+```
+
+**Persist & manifest**: Write `outputs/daily-pm/{date}/phase-0.5-paperclip.json`. Update `manifest.json`.
 
 ---
 
@@ -448,6 +501,7 @@ results["phases"]["phase5"] = {
 *Shipping*: N/5 프로젝트, N commits, N issues
 *Skills*: N candidates (N added, N merged, N discarded)
 *Weekly*: {보고서 링크 | N/A (금요일 아님)}
+*Paperclip*: 일일 비용 ${cost_today}, 예산 {budget_pct}% 사용, 태스크 동기화 {sync_count}건
 
 {[INCOMPLETE] sections if any phase failed}
 ```

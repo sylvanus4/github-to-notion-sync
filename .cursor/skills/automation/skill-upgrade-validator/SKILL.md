@@ -1,26 +1,28 @@
 ---
 name: skill-upgrade-validator
 description: >-
-  Validate SKILL.md files against the 10 prompt engineering patterns defined in
-  skill-prompt-patterns.mdc. Scores compliance (0-10), generates upgrade
-  suggestions, and produces a summary report. Use when the user asks to
-  "validate skill patterns", "check skill compliance", "score skill patterns",
-  "pattern coverage check", "skill pattern audit", "upgrade validator",
-  "skill-upgrade-validator", "스킬 패턴 검증", "스킬 패턴 점수", "패턴 커버리지",
-  "스킬 업그레이드 검증", "패턴 준수 확인".
+  Validate SKILL.md files against the 12 prompt engineering patterns defined in
+  skill-prompt-patterns.mdc. Scores compliance (0-12), generates upgrade
+  suggestions, and produces a summary report. Patterns 11-12 cover YAML trigger
+  quality (Anthropic 5-component guide) and failure mode prevention (5 failure modes).
+  Use when the user asks to "validate skill patterns", "check skill compliance",
+  "score skill patterns", "pattern coverage check", "skill pattern audit",
+  "upgrade validator", "skill-upgrade-validator", "trigger quality check",
+  "failure mode check", "스킬 패턴 검증", "스킬 패턴 점수", "패턴 커버리지",
+  "스킬 업그레이드 검증", "패턴 준수 확인", "트리거 품질 검증", "실패 모드 검증".
   Do NOT use for general skill quality auditing without pattern focus (use
   skill-optimizer). Do NOT use for autonomous prompt mutation (use
   skill-autoimprove). Do NOT use for creating new skills (use create-skill).
   Do NOT use for skill trigger accuracy testing (use skill-optimizer eval mode).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "automation"
 ---
 
 # Skill Upgrade Validator
 
-Validate SKILL.md files against the 10 prompt engineering patterns from `skill-prompt-patterns.mdc`. Produces a compliance score (0-10) per skill and actionable upgrade suggestions.
+Validate SKILL.md files against the 12 prompt engineering patterns from `skill-prompt-patterns.mdc`. Produces a compliance score (0-12) per skill and actionable upgrade suggestions. Patterns 11-12 cover YAML trigger quality engineering and Anthropic's 5 failure mode prevention.
 
 ## Input
 
@@ -45,6 +47,8 @@ Each pattern maps to specific text markers in a SKILL.md file.
 | 8 | Domain Memory | Contains: "update memory", "domain.*memory", "what you found.*where.*why", or a section titled `## Domain Memory` |
 | 9 | Gotchas Section | Contains a section titled `## Gotchas` or `## Known Issues` or `## Common Pitfalls`, with at least 2 bullet items documenting failure patterns |
 | 10 | Progressive Disclosure via Filesystem | Skill directory contains `references/`, `scripts/`, `assets/`, or `config.json`; OR SKILL.md references reading from companion files (e.g., "read references/", "see scripts/", "load config.json") |
+| 11 | Trigger Quality Engineering | YAML `description` contains: (a) 5+ distinct trigger phrases (count comma/quote-separated phrases in description), (b) at least one `Do NOT use for` clause, (c) directive language ("ALWAYS invoke", "Use when the user asks to", "Use when") — must satisfy all 3. Partial credit (0.5) if only 2 of 3 are met. |
+| 12 | Failure Mode Prevention | Contains at least 2 of: (a) `## Gotchas` or `## Known Issues` section (reuse Pattern 9 signal), (b) `## Constraints` with freedom level mention ("high freedom", "medium freedom", "low freedom") or explicit scope boundaries, (c) output format specification (`## Output Format` or inline format examples), (d) `disable-model-invocation: true` for side-effect skills, (e) explicit `## Edge Cases` or edge case handling section. Partial credit (0.5) if only 1 of the above is met. |
 
 ## Tier Classification
 
@@ -52,11 +56,12 @@ Skills are classified into tiers based on their category and function:
 
 | Tier | Expected Minimum | Skill Types |
 |------|-----------------|-------------|
-| Tier-1 | 4/10 (Patterns 1, 2, 3, 5) | Document generation: anthropic-docx, anthropic-pptx, anthropic-pdf, anthropic-canvas-design, anthropic-frontend-design, docx-template-engine, ppt-template-engine, office-template-enforcer |
-| Tier-2 | 5/10 (Patterns 1, 4, 5, 6, 9) | Pipeline orchestrators: today, morning-ship, daily-am-orchestrator, daily-pm-orchestrator, eod-ship, google-daily, deep-review, simplify, ship, release-commander, mission-control |
-| Tier-3 | 5/10 (Patterns 1, 3, 5, 7, 9) | Review/quality: quality-gate-orchestrator, code-review-all, test-suite, security-expert, ai-quality-evaluator, ecc-verification-loop, ecc-eval-harness, skill-autoimprove |
-| Tier-API | 4/10 (Patterns 1, 9, 10) | Library/API reference: anthropic-claude-api, anthropic-mcp-builder, hf-cli, tossinvest-cli, gws-*, context7-mcp |
-| General | 2/10 (Pattern 1 + any other) | All other skills |
+| Tier-1 | 5/12 (Patterns 1, 2, 3, 5, 11) | Document generation: anthropic-docx, anthropic-pptx, anthropic-pdf, anthropic-canvas-design, anthropic-frontend-design, docx-template-engine, ppt-template-engine, office-template-enforcer |
+| Tier-2 | 6/12 (Patterns 1, 4, 5, 6, 9, 11) | Pipeline orchestrators: today, morning-ship, daily-am-orchestrator, daily-pm-orchestrator, eod-ship, google-daily, deep-review, simplify, ship, release-commander, mission-control |
+| Tier-3 | 6/12 (Patterns 1, 3, 5, 7, 9, 11) | Review/quality: quality-gate-orchestrator, code-review-all, test-suite, security-expert, ai-quality-evaluator, ecc-verification-loop, ecc-eval-harness, skill-autoimprove |
+| Tier-API | 5/12 (Patterns 1, 9, 10, 11) | Library/API reference: anthropic-claude-api, anthropic-mcp-builder, hf-cli, tossinvest-cli, gws-*, context7-mcp |
+| Tier-SideEffect | 6/12 (Patterns 1, 3, 11, 12) | Side-effect skills: tossinvest-trading, release-deployer, eod-ship, domain-commit, deploy-related skills |
+| General | 3/12 (Patterns 1, 11 + any other) | All other skills |
 
 ## Workflow
 
@@ -76,9 +81,9 @@ If scope is a single file:
 For each SKILL.md file:
 
 1. Read the file content
-2. Apply all 10 pattern detection rules (case-insensitive matching)
-3. Record which patterns are present (1) or absent (0)
-4. Calculate score: sum of present patterns (0-10)
+2. Apply all 12 pattern detection rules (case-insensitive matching)
+3. Record which patterns are present (1), partial (0.5), or absent (0)
+4. Calculate score: sum of present/partial patterns (0-12)
 5. Determine the skill's tier from the classification table
 6. Check if the score meets the tier's expected minimum
 
@@ -98,6 +103,8 @@ For each absent pattern in a skill, generate a specific suggestion:
 | 8 (Domain Memory) | "Add domain-specific memory update instructions for knowledge that accumulates across runs" |
 | 9 (Gotchas Section) | "Add `## Gotchas` section documenting 2-3 common failure patterns (symptom → root cause → correct approach)" |
 | 10 (Progressive Disclosure) | "Move large reference material to `references/*.md`, add executable helpers to `scripts/`, and create `config.json` for user settings" |
+| 11 (Trigger Quality) | "Ensure YAML `description` includes 5-7+ trigger phrases with directive language ('ALWAYS invoke', 'Use when'), at least one `Do NOT use for...` negative boundary naming alternative skills, and third-person narration" |
+| 12 (Failure Mode Prevention) | "Add `## Constraints` with freedom level (High/Medium/Low), `## Output Format` with explicit structure, `## Gotchas` with edge case handling. Side-effect skills MUST use `disable-model-invocation: true` equivalent and Low freedom" |
 
 Only suggest patterns that are marked as Required or Optional for the skill's tier in the Application Guide.
 
@@ -111,7 +118,7 @@ Produce a structured markdown report:
 **Date:** YYYY-MM-DD
 **Scope:** [what was scanned]
 **Skills scanned:** N
-**Average score:** X.X / 10
+**Average score:** X.X / 12
 **Skills below threshold:** N
 
 ## Summary by Tier
@@ -126,7 +133,7 @@ Produce a structured markdown report:
 
 ## Detailed Results
 
-### [skill-name] — Score: X/10 [PASS/FAIL]
+### [skill-name] — Score: X/12 [PASS/FAIL]
 
 | Pattern | Status |
 |---------|--------|
@@ -140,6 +147,8 @@ Produce a structured markdown report:
 | 8. Domain Memory | ✓ / ✗ |
 | 9. Gotchas Section | ✓ / ✗ |
 | 10. Progressive Disclosure | ✓ / ✗ |
+| 11. Trigger Quality | ✓ / △ / ✗ |
+| 12. Failure Mode Prevention | ✓ / △ / ✗ |
 
 **Suggestions:**
 - [specific suggestion for each missing required/optional pattern]

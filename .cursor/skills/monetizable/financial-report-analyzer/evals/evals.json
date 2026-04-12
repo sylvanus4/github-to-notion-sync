@@ -1,0 +1,60 @@
+[
+  {
+    "id": "full-10k-analysis",
+    "description": "Complete 10-K annual report analysis pipeline",
+    "input": "Analyze this 10-K filing: ~/documents/AAPL-10K-2025.pdf. Focus on revenue trends, margin analysis, and risk factors. Generate an executive briefing.",
+    "expected_behavior": [
+      "Phase 1: Extracts text and tables from PDF via opendataloader",
+      "Phase 2: Identifies and extracts key financial statements (income statement, balance sheet, cash flow)",
+      "Phase 3: Computes ratios (gross margin, net margin, ROE, D/E, current ratio) and YoY trends",
+      "Phase 4: Detects anomalies and flags risk factors from MD&A section",
+      "Phase 5: Generates executive-briefing.docx via anthropic-docx with visual financial dashboard",
+      "Phase 6: Saves all outputs to outputs/financial-report-analyzer/{date}/ with manifest.json"
+    ],
+    "success_criteria": "Financial statements extracted correctly; ratios computed; trends identified; executive-briefing.docx generated; visual dashboard with charts"
+  },
+  {
+    "id": "quarterly-earnings-comparison",
+    "description": "Compare two quarterly earnings reports",
+    "input": "Compare Q3 and Q4 2025 earnings for NVDA. PDFs: ~/reports/NVDA-Q3-2025.pdf and ~/reports/NVDA-Q4-2025.pdf. Highlight changes in revenue segments and margins.",
+    "expected_behavior": [
+      "Processes both PDFs in parallel",
+      "Extracts comparable financial metrics from both quarters",
+      "Generates variance analysis highlighting revenue segment changes",
+      "Produces comparison table and trend charts"
+    ],
+    "success_criteria": "Both reports parsed; variance analysis with segment breakdowns; comparison table present in output"
+  },
+  {
+    "id": "korean-financial-report",
+    "description": "Korean annual report (사업보고서) analysis",
+    "input": "이 사업보고서 분석해줘: ~/documents/삼성전자-사업보고서-2025.pdf. 매출 추이와 영업이익률 중심으로 경영진 브리핑 생성.",
+    "expected_behavior": [
+      "Handles Korean financial terminology (매출액, 영업이익, 당기순이익, etc.)",
+      "Extracts Korean financial statements correctly",
+      "Generates Korean executive briefing via sentence-polisher",
+      "Financial ratios labeled in Korean with English equivalents"
+    ],
+    "success_criteria": "Korean report parsed; ratios computed; Korean executive briefing generated with correct terminology"
+  },
+  {
+    "id": "should-not-trigger-stock-analysis",
+    "description": "Stock price analysis should route to daily-stock-check",
+    "input": "What's the current stock price of AAPL and should I buy?",
+    "expected_behavior": [
+      "Skill should NOT be invoked for stock price queries",
+      "Request should route to daily-stock-check or trading-us-stock-analysis"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to stock analysis skills"
+  },
+  {
+    "id": "should-not-trigger-accounting-close",
+    "description": "Month-end close process should route to kwp-finance-close-management",
+    "input": "Help me manage the month-end close process. What tasks need to be completed?",
+    "expected_behavior": [
+      "Skill should NOT be invoked for close management",
+      "Request should route to kwp-finance-close-management"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to kwp-finance-close-management"
+  }
+]

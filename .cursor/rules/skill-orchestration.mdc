@@ -1,5 +1,5 @@
 ---
-description: "Skill registry (109 project skills + 11 marketing skills + 8 harness orchestrators), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
+description: "Skill registry (110 project skills + 11 marketing skills + 8 harness orchestrators + 9 domain harnesses), workflow commands (/full-quality-audit, etc.), and subagent orchestration rules. KWP/PM/GWS skills are documented separately in kwp-index.mdc."
 alwaysApply: false
 ---
 
@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (107 project skills + 11 marketing skills + 8 harness orchestrators + 68 agency agents)
+## Skill Registry (108 project skills + 11 marketing skills + 8 harness orchestrators + 9 domain harnesses + 68 agency agents)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -62,6 +62,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `design-architect` — 4-phase Jobs/Ive design audit
 - `problem-definition` — 5D problem definition framework
 - `first-principles-analysis` — Strip assumptions to bedrock truths, rebuild understanding from fundamentals
+- `karpathy-coding-guard` — Pre-implementation behavioral guardrails (assumptions, simplicity, surgical changes, verifiable goals)
 - `codebase-archaeologist` — Git history ownership maps, churn hotspots, bus factor
 - `refactor-simulator` — Blast radius analysis before code changes
 - `skill-optimizer` — Audit, evaluate, benchmark agent skills
@@ -170,6 +171,17 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `prd-lifecycle-orchestrator` — Pipeline with quality gates: research → quality loop → cascade → review
 - `review-team-orchestrator` — 3-way fan-out (deep-review, simplify, test-suite) + dedup merge
 - `autoresearch-orchestrator` — 2-stage pipeline: AutoResearchClaw CLI → multi-channel distribution
+
+**Domain Harnesses** (9-domain enterprise harnesses):
+- `data-analyst-orchestrator` — Pipeline + Expert Pool: data exploration → SQL → statistics → validation → visualization → dashboard (11 skills)
+- `finance-harness` — Pipeline: journal entry → reconciliation → close → statements → variance → audit (8 skills)
+- `customer-support-harness` — Pipeline + Supervisor: ticket triage → research → response → knowledge → escalation (6 skills)
+- `legal-harness` — Pipeline + Producer-Reviewer: NDA triage → contract review → risk → compliance → meeting → responses (7 skills)
+- `hr-harness` — Fan-out/Fan-in: parallel recruiting, org planning, compensation, analytics + handbook Q&A (6 skills)
+- `sales-harness` — Pipeline + Expert Pool: lead discovery → enrichment → research → call prep → outreach → competitive intel → assets → deal tracking (19 skills)
+- `pm-harness` — Composite: parallel discovery + market research → sequential strategy → PRD → sprint → GTM (14 skills)
+- `marketing-harness` — Composite: sequential brand foundation → parallel channel execution → growth → performance → repurpose (31 skills)
+- `engineering-harness` — Fan-out/Fan-in + Evaluator-Optimizer: 4 parallel review agents → auto-fix → deps → perf → CI gate loop → commit+ship (12 skills)
 
 **Marketing skills** (11 skills from [ai-marketing-skills](https://github.com/ericosiu/ai-marketing-skills)):
 - `marketing-growth-engine` — Growth experiment lifecycle with Bayesian scoring and weekly scorecards
@@ -305,7 +317,7 @@ Functional classification based on Thariq Shihipar's 9-category framework (Anthr
 | Data Fetching & Analysis | Connect to data and monitoring stacks | `alphaear-stock`, `alphaear-news`, `hf-dataset-viewer`, `tab-*`, `weekly-stock-update`, `daily-stock-check` |
 | Business Process & Team Automation | Automate repetitive workflows into one command | `standup-digest`, `commit-to-issue`, `meeting-digest`, `google-daily`, `eod-ship`, `sod-ship` |
 | Code Scaffolding & Templates | Generate framework boilerplate | `fsd-development`, `create-skill`, `anthropic-skill-creator`, `office-template-enforcer`, `fe-pipeline` |
-| Code Quality & Review | Enforce quality standards and review code | `deep-review`, `simplify`, `omc-ai-slop-cleaner`, `code-review-all`, `test-suite`, `security-expert` |
+| Code Quality & Review | Enforce quality standards and review code | `karpathy-coding-guard`, `deep-review`, `simplify`, `omc-ai-slop-cleaner`, `code-review-all`, `test-suite`, `security-expert` |
 | CI/CD & Deployment | Fetch, push, deploy code | `ci-quality-gate`, `release-commander`, `ship`, `release-ship`, `domain-commit` |
 | Runbooks | Map symptoms to multi-tool investigation procedures | `diagnose`, `incident-to-improvement`, `service-health-doctor`, `infra-runbook-generator` |
 | Infrastructure Operations | Routine maintenance with guardrails for destructive actions | `dependency-auditor`, `infra-drift-detector`, `compliance-gate`, `slack-orphan-cleaner`, `helm-validator` |

@@ -53,7 +53,7 @@ The user provides:
 | mirofish | `uv`, Node ≥18, MiroFish repo, LLM + Zep keys | mirofish, mirofish-financial-sim, mirofish-opinion-sim, mirofish-graph-explorer |
 | auto-research | Python 3.11+, AutoResearchClaw repo, OPENAI_API_KEY | auto-research, auto-research-distribute |
 | cognee | `cognee` Python pkg, LLM_API_KEY | cognee |
-| paperclip | `pnpm` ≥9.15, Node ≥20, Docker, BETTER_AUTH_SECRET | paperclip-setup, paperclip-agents, paperclip-tasks, paperclip-control |
+| paperclip | `pnpm` ≥9.15, Node ≥20, Paperclip instance at `127.0.0.1:3100`, `~/work/thakicloud/paperclip` repo | paperclip-setup, paperclip-agents, paperclip-tasks, paperclip-control |
 | agent-browser | `agent-browser` CLI, Chromium | agent-browser |
 | security-scanning | `gitleaks` CLI | security-expert |
 | document-generation | pdfplumber, python-docx, pypdf, pillow, opendataloader-pdf, JDK 11+, Node `docx`/`pptxgenjs`, pandoc | paper-review, anthropic-docx, anthropic-pptx, anthropic-pdf, opendataloader, bespin-news-digest |
@@ -75,7 +75,7 @@ The user provides:
 | feynman-research | `alpha` CLI | feynman-alpha-research, feynman-peer-review, feynman-paper-audit, feynman-replication, feynman-source-comparison, feynman-research-watch |
 | diagrams | `dot` (graphviz) | diagrams-generator, visual-explainer, alphaear-logic-visualizer |
 | remotion-video | `remotion` + `@remotion/cli` (npm), ffmpeg, Node ≥18 | remotion-motion-forge |
-| paperclip-agents | `paperclip` CLI (npm), Docker, PAPERCLIP_API_KEY (opt) | paperclip-agents, paperclip-tasks, paperclip-control, paperclip-setup |
+| paperclip-agents | Paperclip health at `127.0.0.1:3100/api/health`, ThakiCloud company exists (`/api/companies`) | paperclip-agents, paperclip-tasks, paperclip-control, paperclip-setup |
 | reddit-reaction | ffmpeg, yt-dlp, gTTS, moviepy, Pillow | reddit-reaction-maker |
 | runpod-gpu-cloud | `runpodctl` CLI, RUNPOD_API_KEY | runpod-setup, runpod-pods, runpod-volumes, runpod-transfer, feynman-replication (RunPod env) |
 

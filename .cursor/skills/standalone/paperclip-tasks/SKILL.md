@@ -11,190 +11,117 @@ description: >-
   (use paperclip-agents). Do NOT use for installation (use paperclip-setup).
 metadata:
   author: thaki
-  version: "1.0.0"
+  version: "2.0.0"
   category: execution
 ---
 
-# Paperclip Tasks — Issue Management
+# Paperclip Tasks — Issue Management (MCP-Integrated)
 
-Manage the full lifecycle of Paperclip issues: create, assign, checkout, update, comment, delegate, and release.
+Manage the full lifecycle of Paperclip issues via MCP tools: create, checkout, update, release, and delegate.
+**v2.0**: All CRUD operations use MCP tools; checkout/release integrated with mission-control task flow.
 
 ## Prerequisites
 
-- Paperclip server running (default `http://localhost:3100`). If not running, see `paperclip-setup`.
-- CLI available via `pnpm paperclipai` from `~/work/thakicloud/paperclip/`
-- Context profile configured with `company-id`. See `paperclip-control` for environment setup.
-- Set `API_BASE` and `API_KEY` env vars for curl examples (see `paperclip-control`).
+- Paperclip server running at `http://localhost:3100`. If not, see `paperclip-setup`.
+- `paperclip-mcp` server registered in `.cursor/mcp.json`
+- ThakiCloud company ID: `b573bdbe-785a-4f39-b1e9-f2b623e40a92`
 
 ## Issue Lifecycle
 
 Status values: `backlog`, `todo`, `in_progress`, `in_review`, `done`, `blocked`, `cancelled`.
 Priority values: `critical`, `high`, `medium`, `low`.
 
-For the full lifecycle diagram, blocked task protocol, and comment conventions, see `references/issue-lifecycle.md`.
-
-## Workflow
+## Workflow (MCP-First)
 
 ### 1. List Issues
 
-```bash
-pnpm paperclipai issue list --company-id <company-id> \
-  [--status todo,in_progress] \
-  [--assignee-agent-id <agent-id>] \
-  [--match "search text"]
+```
+Tool: paperclip_list_issues
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
 ```
 
-Search with the `q` parameter via REST:
+### 2. Create Issue
 
-```bash
-curl -sS "$API_BASE/api/companies/<company-id>/issues?q=dockerfile&status=todo" \
-  -H "Authorization: Bearer $API_KEY"
+```
+Tool: paperclip_create_issue
+Input: {
+  "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92",
+  "title": "Implement cost dashboard",
+  "body": "Show per-agent token spend visualization",
+  "priority": "high",
+  "labels": ["frontend", "feature"]
+}
 ```
 
-### 2. Get Issue Details
+### 3. Atomic Checkout
 
-```bash
-pnpm paperclipai issue get <issue-id-or-identifier>
+**Critical**: Always checkout before working on a task. Returns `409` if another agent owns it.
+
 ```
-
-Returns: issue fields, project context, ancestor chain (parent hierarchy), workspace details.
-
-### 3. Create Issue
-
-```bash
-pnpm paperclipai issue create --company-id <company-id> \
-  --title "Implement cost dashboard" \
-  [--description "Show per-agent token spend..."] \
-  [--status todo] \
-  [--priority high]
-```
-
-Via REST (with parent and goal linkage for subtasks):
-
-```bash
-curl -sS -X POST "$API_BASE/api/companies/<company-id>/issues" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Implement cost chart component",
-    "description": "React component for per-agent spend visualization",
-    "status": "todo",
-    "priority": "medium",
-    "parentId": "<parent-issue-id>",
-    "goalId": "<goal-id>",
-    "projectId": "<project-id>",
-    "assigneeAgentId": "<agent-id>"
-  }'
-```
-
-Always set `parentId` and `goalId` on subtasks.
-
-### 4. Update Issue
-
-```bash
-pnpm paperclipai issue update <issue-id> \
-  [--status in_progress] \
-  [--comment "Starting work on this"]
-```
-
-Updatable fields: `title`, `description`, `status`, `priority`, `assigneeAgentId`, `projectId`, `goalId`, `parentId`, `billingCode`.
-
-### 5. Atomic Checkout
-
-**Critical**: Always checkout before working on a task. Checkout is atomic — returns `409 Conflict` if another agent owns the task.
-
-```bash
-pnpm paperclipai issue checkout <issue-id> --agent-id <agent-id> \
-  [--expected-statuses todo,backlog,blocked]
-```
-
-Via REST:
-
-```bash
-curl -sS -X POST "$API_BASE/api/issues/<issue-id>/checkout" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
-  -H "Content-Type: application/json" \
-  -d '{"agentId":"<agent-id>","expectedStatuses":["todo","backlog","blocked"]}'
+Tool: paperclip_checkout_issue
+Input: { "issueId": "<issue-uuid>", "agentId": "<agent-uuid>" }
 ```
 
 **Never retry a 409.** Pick a different task instead.
 
-### 6. Release Task
+**Mission-control integration**: When `mission-control` delegates a sub-task, it should:
+1. Call `paperclip_create_issue` with the task details
+2. Call `paperclip_checkout_issue` to atomically claim it
+3. Execute the work via subagent
+4. Call `paperclip_update_issue` to set status to `done`
+5. Call `paperclip_release_issue` to release the lock
+
+### 4. Update Issue
+
+```
+Tool: paperclip_update_issue
+Input: {
+  "issueId": "<issue-uuid>",
+  "status": "in_progress",
+  "body": "Updated: completed API integration, starting tests"
+}
+```
+
+### 5. Release Task
 
 Unassign a checked-out task:
 
-```bash
-pnpm paperclipai issue release <issue-id>
+```
+Tool: paperclip_release_issue
+Input: { "issueId": "<issue-uuid>" }
 ```
 
-### 7. Comments
+### 6. Delegation (Subtasks)
 
-```bash
-pnpm paperclipai issue comment <issue-id> --body "Progress update" [--reopen]
-```
+Create child issues via `paperclip_create_issue` with parent context in the body.
+Link to GitHub issues using the `pr-to-issue-linker` pattern:
 
-Via REST:
+1. Create Paperclip issue with `labels: ["github-synced"]`
+2. Create corresponding GitHub issue via `gh issue create`
+3. Include Paperclip issue ID in the GitHub issue body for cross-reference
 
-```bash
-curl -sS -X POST "$API_BASE/api/issues/<issue-id>/comments" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"body":"## Update\n\n- Completed API integration\n- Next: add tests"}'
-```
+## MCP Tool Reference
 
-### 8. Delegation (Subtasks)
-
-Create child issues to delegate work:
-
-```bash
-curl -sS -X POST "$API_BASE/api/companies/<company-id>/issues" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Write unit tests for cost API",
-    "parentId": "<parent-issue-id>",
-    "goalId": "<goal-id>",
-    "assigneeAgentId": "<subordinate-agent-id>",
-    "status": "todo",
-    "priority": "medium"
-  }'
-```
-
-Rules:
-- Always set `parentId` to link to the parent task
-- Always set `goalId` unless creating top-level company work
-- Set `billingCode` for cross-team delegation
-- Never cancel cross-team tasks — reassign to your manager instead
+| Tool | Purpose |
+|------|---------|
+| `paperclip_list_issues` | List all issues in company |
+| `paperclip_create_issue` | Create new task/issue |
+| `paperclip_checkout_issue` | Atomic task lock |
+| `paperclip_release_issue` | Release task lock |
+| `paperclip_update_issue` | Update status/fields |
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `409 Conflict` on checkout | Task owned by another agent | Pick a different task; never retry |
-| `404` on issue get | Wrong issue ID or identifier | Use `issue list` to find correct ID |
-| `400` on create | Missing required fields | Ensure `title` and `company-id` are provided |
-| Task stuck in `in_progress` | Agent paused or crashed | Release the task, then reassign |
-| Missing parent chain | `parentId` not set on subtask | Update issue to set `parentId` |
-| Invalid `goalId` or `projectId` | ID does not exist in company | Verify with `goal list` or `project list` via REST |
-
-## References
-
-- `references/issue-lifecycle.md` — Status transitions, blocked protocol, delegation rules, comment conventions
+| `409 Conflict` on checkout | Task owned by another agent | Pick a different task |
+| MCP tool returns connection error | Paperclip not running | See `paperclip-setup` |
+| `400` on create | Missing required `title` | Ensure title is provided |
+| Task stuck in `in_progress` | Agent crashed without releasing | Call `paperclip_release_issue` |
 
 ## Related Skills
 
-- `paperclip-control` — Company, goals, approvals, dashboard
-- `paperclip-agents` — Agent creation, heartbeats, budgets
+- `paperclip-control` — Company, goals, approvals, dashboard (MCP-integrated)
+- `paperclip-agents` — Agent creation, heartbeats, budgets (MCP-integrated)
 - `paperclip-setup` — Installation and configuration
-
-## Examples
-
-### Example 1: Standard usage
-
-**User says:** "Create a paperclip task"
-
-**Actions:**
-1. Gather necessary context from the project and user
-2. Execute the skill workflow as documented above
-3. Deliver results and verify correctness
+- `paperclip-bridge` — Bidirectional sync between mission-control and Paperclip

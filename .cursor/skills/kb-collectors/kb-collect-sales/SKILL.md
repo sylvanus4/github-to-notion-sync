@@ -14,9 +14,9 @@ description: >-
   Korean triggers: "영업 KB 수집", "경쟁사 수집", "세일즈 데이터 수집".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
-  tags: ["knowledge-base", "sales", "competitive-intel", "daily-collector"]
+  tags: ["knowledge-base", "sales", "competitive-intel", "daily-collector", "3-day-window"]
 ---
 
 # KB Collect Sales — Daily Sales Intelligence Collector
@@ -39,6 +39,21 @@ No user input required for daily runs. Reads configuration from:
 
 Optional: `--product-line <iaas|ai_platform|agent_studio|autonomous_agent>` to scope to one product line.
 
+## Collection Window
+
+> **NEWS_WINDOW_DAYS=3** — All external content searches (press releases, industry news, social signals, reviews) use a 3-day rolling window. This balances freshness with coverage for items published on weekends or off-hours.
+
+## Deduplication (collector-side)
+
+Before writing any raw file, check existing files in the target `raw/` directory from the last 3 days:
+
+1. **Scan** all `*.md` files in `knowledge-bases/{topic}/raw/` with dates within the last 3 days (based on filename `{date}-` prefix).
+2. **Parse YAML frontmatter** of each file to extract `source` (URL) and `title`.
+3. **Skip** writing a new file if either condition matches:
+   - Same `source` URL already exists in any file from the last 3 days.
+   - Same `title` (case-insensitive, trimmed) already exists in any file from the last 3 days.
+4. **Track** the count of skipped items and report as `dedup_skipped` in the collector summary returned to the orchestrator.
+
 ## Workflow
 
 ### Phase 1: Competitor Page Collection (parallel per product line)
@@ -46,7 +61,7 @@ Optional: `--product-line <iaas|ai_platform|agent_studio|autonomous_agent>` to s
 For each competitor in `competitor-registry.yaml`:
 
 1. **Product/Pricing Pages** — Use defuddle to extract clean markdown from competitor URLs (product pages, pricing pages, blog posts).
-2. **Press Releases** — WebSearch for `"{competitor_name}" press release site:{competitor_domain} after:YYYY-MM-DD` (last 24 hours).
+2. **Press Releases** — WebSearch for `"{competitor_name}" press release site:{competitor_domain} after:YYYY-MM-DD` (last 3 days).
 3. **G2/Capterra Reviews** — WebSearch for `site:g2.com/products/{g2_slug}/reviews` and `site:capterra.com/software/{capterra_slug}/reviews` to find recent reviews.
 4. Save each result as a markdown file in `knowledge-bases/competitive-intel/raw/` with frontmatter:
    ```yaml
@@ -62,8 +77,8 @@ For each competitor in `competitor-registry.yaml`:
 
 ### Phase 2: Industry News & Analyst Reports
 
-1. WebSearch for recent cloud/AI industry news (last 24 hours):
-   - "cloud infrastructure market news today"
+1. WebSearch for recent cloud/AI industry news (last 3 days):
+   - "cloud infrastructure market news"
    - "AI platform industry report"
    - "agent platform enterprise adoption"
 2. Use defuddle to extract content from top results.
@@ -72,8 +87,8 @@ For each competitor in `competitor-registry.yaml`:
 ### Phase 3: Social Signal Collection
 
 1. Read `social-feeds.yaml` → `sales.twitter_accounts` and `sales.hashtags`.
-2. For each account/hashtag, WebSearch for recent tweets (last 24 hours):
-   - `site:x.com "{account}" after:YYYY-MM-DD`
+2. For each account/hashtag, WebSearch for recent tweets (last 3 days):
+   - `site:x.com "{account}" after:YYYY-MM-DD` (DATE minus 3 days)
 3. Compile social signals into a daily digest: `knowledge-bases/competitive-intel/raw/{date}-social-signals.md`.
 
 ### Phase 4: Sales Playbook Updates

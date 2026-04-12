@@ -42,7 +42,7 @@ Sync meeting notes from Notion, analyze with PM skills, generate comprehensive K
 **Phase 5 — PPTX Generation:**
 
 - Read `.cursor/skills/anthropic-pptx/SKILL.md` → follow "Creating from Scratch" path
-- Read `.cursor/skills/anthropic-theme-factory/SKILL.md` → apply professional theme
+- Read `.cursor/skills/anthropic/anthropic-theme-factory/SKILL.md` → apply professional theme
 - Run content QA + visual QA with fix-and-verify loop
 - Save to `output/meetings/YYYY-MM-DD/meeting-summary.pptx`
 

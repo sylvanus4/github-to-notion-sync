@@ -4,9 +4,10 @@ description: >-
   Interactive skill discovery and usage guide: scans the local skills library,
   matches user intent to available skills, suggests chains, and gives copy-paste
   invocation patterns without opening every SKILL.md manually.
-  Korean triggers: "어떤 스킬 써야 해?", "스킬 찾기", "스킬 추천", "스킬 가이드".
+  Korean triggers: "어떤 스킬 써야 해?", "스킬 찾기", "스킬 추천", "스킬 가이드",
+  "스택 기반 추천", "기술 스택 맞는 스킬".
   English triggers: "skill guide", "find skill", "which skill", "help me choose",
-  "recommend a skill", "skill picker", "what skill for".
+  "recommend a skill", "skill picker", "what skill for", "stack-aware skills".
   Do NOT use for creating new skills (use create-skill), auditing skill quality
   (use skill-optimizer), or transcript-based skill mining (use autoskill-extractor).
 metadata:
@@ -51,6 +52,28 @@ Use this block when the user asks for “skills in English but outputs in Korean
 2. **Exclude Tier D** skills from default recommendations for this project (not applicable here unless the user explicitly names a Tier D use case).
 3. **Prioritize** trading and financial analysis skills (e.g. `today`, `daily-stock-check`, `weekly-stock-update`, `tab-*`, `trading-*`, `alphaear-*`) when intent matches markets or portfolio workflows.
 4. When a skill includes **Project-Specific Overrides** (bottom of its SKILL.md) or points to [.cursor/skills/references/project-overrides/](../references/project-overrides/README.md), **say so** in the rationale so the user knows policy-aligned context is available.
+
+## Modes
+
+### Default Mode (intent-based)
+
+Standard interactive discovery matching user intent to available skills.
+
+### Stack-Aware Mode (`--stack-aware`)
+
+Pre-filters skills by detected project tech stack before intent matching.
+Activated when the user says "스택 기반 추천", "stack-aware", "기술 스택 맞는 스킬",
+or when the user's request implies project-specific technology context.
+
+**Stack-Aware Procedure:**
+
+1. Run `python scripts/skill_recommender.py --top=30` to get the ranked skill list
+2. Use the ranked output as the candidate pool instead of scanning all skills
+3. Continue with the standard Procedure below, but only match against the pre-filtered set
+4. In the output, add a "🔧 Detected Stack" summary line showing which technologies were found
+
+This mode reduces noise from 700+ skills to the ~30 most stack-relevant candidates,
+making recommendations more precise for project-specific tasks.
 
 ## Procedure
 

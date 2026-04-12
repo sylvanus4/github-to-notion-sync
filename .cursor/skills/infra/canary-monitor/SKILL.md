@@ -11,7 +11,7 @@ description: >-
   infrastructure drift detection (use infra-drift-detector).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # Canary Monitor — Post-Deploy Verification Loop
@@ -27,6 +27,10 @@ Automated monitoring loop that runs after deployment to catch regressions before
 /canary-monitor --duration 10m                     # monitor for 10 minutes (default: 5m)
 /canary-monitor --interval 30s                     # check every 30 seconds (default: 60s)
 /canary-monitor --pages /,/dashboard,/settings     # specific pages to monitor
+/canary-monitor --manifest canary-manifest.yaml    # use a multi-page manifest
+/canary-monitor --budget strict                    # enforce performance budgets
+/canary-monitor --logs                             # capture browser + server logs
+/canary-monitor --alert slack                      # send structured alerts to Slack
 ```
 
 ## Concepts
@@ -155,9 +159,260 @@ If all pages pass clean for the entire monitoring duration:
 | `--duration` | 5m | Total monitoring time |
 | `--interval` | 60s | Time between checks |
 | `--pages` | `/` | Pages to monitor (comma-separated) |
+| `--manifest` | none | Path to YAML manifest file |
+| `--budget` | standard | Budget enforcement level: relaxed, standard, strict |
+| `--alert` | none | Alert channel: slack, log-only |
+| `--logs` | false | Enable browser + server log capture |
 | LCP regression threshold | 20% | Flag if LCP increases by this % |
 | TTFB regression threshold | 50% | Flag if TTFB increases by this % |
 | Console error tolerance | 0 | New errors above baseline |
+
+## Multi-Page Manifest
+
+Instead of passing `--pages` as a comma list, define a YAML manifest for repeatable, version-controlled canary runs.
+
+### Manifest Format
+
+Save as `canary-manifest.yaml` in the project root or `output/canary-baselines/`:
+
+```yaml
+target: https://staging.example.com
+duration: 10m
+interval: 30s
+budget: strict
+
+pages:
+  - path: /
+    label: Landing Page
+    budget:
+      lcp: 2500
+      fcp: 1800
+      ttfb: 800
+    critical: true
+    auth: false
+
+  - path: /dashboard
+    label: Dashboard
+    budget:
+      lcp: 3000
+      fcp: 2000
+      ttfb: 1000
+    critical: true
+    auth: true
+    auth_cookie: session_token
+
+  - path: /api/health
+    label: Health Endpoint
+    type: api
+    expected_status: 200
+    expected_body_contains: '"status":"ok"'
+    critical: true
+
+  - path: /settings
+    label: Settings Page
+    budget:
+      lcp: 3500
+    critical: false
+    auth: true
+
+  - path: /docs
+    label: Documentation
+    critical: false
+```
+
+### Manifest Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `path` | string | URL path to monitor |
+| `label` | string | Human-readable name for reports |
+| `budget` | object | Per-page performance budgets (overrides global) |
+| `critical` | boolean | If true, failure triggers immediate alert; if false, warning only |
+| `auth` | boolean | Whether page requires authentication |
+| `auth_cookie` | string | Cookie name to inject for authenticated pages |
+| `type` | string | `page` (default) or `api` for JSON endpoint checks |
+| `expected_status` | number | Expected HTTP status for API-type pages |
+| `expected_body_contains` | string | Substring that must appear in API response body |
+
+### Usage
+
+```
+/canary-monitor --manifest canary-manifest.yaml
+```
+
+When a manifest is used, `--pages`, `--duration`, and `--interval` flags are ignored (manifest values take precedence).
+
+## Performance Budgets
+
+Define per-metric thresholds that trigger alerts when exceeded, independent of baseline comparison.
+
+### Budget Levels
+
+| Level | Enforcement | Use Case |
+|---|---|---|
+| `relaxed` | Warn only, never fail | Early development, internal tools |
+| `standard` | Warn on first breach, fail on 2-consecutive | Staging, pre-production |
+| `strict` | Fail immediately on any budget breach | Production, SLA-bound pages |
+
+### Default Budgets (when no manifest overrides)
+
+| Metric | Relaxed | Standard | Strict | Unit |
+|---|---|---|---|---|
+| LCP | 4000 | 2500 | 1800 | ms |
+| FCP | 3000 | 1800 | 1200 | ms |
+| TTFB | 1500 | 800 | 400 | ms |
+| Console errors (new) | 5 | 2 | 0 | count |
+| Network failures (new) | 3 | 1 | 0 | count |
+| JS bundle size | — | 500 | 350 | KB |
+| Total transfer size | — | 3000 | 2000 | KB |
+
+### Budget Report Section
+
+Added to the final monitoring report:
+
+```
+Performance Budget Report
+=========================
+Budget level: strict
+
+Page             LCP     Budget  Status   FCP     Budget  Status   TTFB    Budget  Status
+────────────     ─────   ──────  ──────   ─────   ──────  ──────   ─────   ──────  ──────
+/                1.2s    1.8s    ✓ PASS   0.9s    1.2s    ✓ PASS   0.3s    0.4s    ✓ PASS
+/dashboard       2.1s    1.8s    ✗ OVER   1.5s    1.2s    ✗ OVER   0.6s    0.4s    ✗ OVER
+/settings        1.4s    3.5s    ✓ PASS   1.0s    1.2s    ✓ PASS   0.4s    0.4s    ✓ PASS
+
+Budget violations: 3 (2 critical pages)
+```
+
+## Structured Alerts
+
+Replace plain-text alerts with structured, machine-readable alerts that integrate with Slack and incident management.
+
+### Alert Format
+
+```json
+{
+  "alert_id": "canary-2026-04-10-001",
+  "severity": "critical",
+  "target": "https://staging.example.com",
+  "page": "/dashboard",
+  "page_label": "Dashboard",
+  "critical_page": true,
+  "timestamp": "2026-04-10T14:05:00Z",
+  "confirmed_at": "2026-04-10T14:06:00Z",
+  "issues": [
+    {
+      "type": "performance_budget",
+      "metric": "LCP",
+      "baseline": 1800,
+      "current": 3200,
+      "budget": 1800,
+      "delta_pct": 77.8
+    },
+    {
+      "type": "console_error",
+      "message": "TypeError: Cannot read properties of undefined",
+      "source": "dashboard.js:142",
+      "count": 3
+    }
+  ],
+  "recommendation": "investigate",
+  "rollback_suggested": false
+}
+```
+
+### Severity Classification
+
+| Severity | Condition |
+|---|---|
+| `critical` | Critical page has confirmed regression OR budget breach in strict mode |
+| `warning` | Non-critical page regression OR budget breach in standard mode |
+| `info` | Suspicious (unconfirmed) OR minor metric degradation |
+
+### Slack Alert Integration
+
+When `--alert slack` is used, post structured alerts to the configured Slack channel:
+
+```
+🚨 Canary Alert — critical
+
+Target: https://staging.example.com
+Page: /dashboard (Dashboard)
+
+Issues:
+  • LCP budget exceeded: 3.2s (budget: 1.8s, +78%)
+  • 3 new console errors: TypeError at dashboard.js:142
+
+Confirmed at: 14:06 UTC (first seen 14:05 UTC)
+Recommendation: Investigate — possible regression in latest deploy
+
+Alert ID: canary-2026-04-10-001
+```
+
+Alert channel routing:
+- `critical` severity → #hotfix-alert
+- `warning` severity → #release-control
+- `info` severity → logged only, no Slack post
+
+### Alert History
+
+All alerts are appended to `outputs/canary-alerts/{domain}-alerts.jsonl` for trend analysis.
+
+## Log Capture
+
+When `--logs` is enabled, capture browser and server logs during each check interval for post-incident analysis.
+
+### Captured Log Types
+
+| Source | Method | Storage |
+|---|---|---|
+| Browser console | `browser_console_messages` via browser MCP | Per-check snapshot |
+| Browser network | `browser_network_requests` via browser MCP | Failed requests only |
+| Server logs (if accessible) | `kubectl logs` or `docker logs` for the deployed service | Tail last 50 lines per check |
+| Application errors | Parse structured error responses from API endpoints | Full response body |
+
+### Log Storage
+
+Logs are stored per monitoring session:
+
+```
+outputs/canary-logs/{domain}/{date}/
+├── check-001/
+│   ├── console.json      # Browser console messages
+│   ├── network.json      # Failed network requests
+│   └── server.log        # Server-side log tail
+├── check-002/
+│   ├── ...
+└── session-summary.json  # Aggregated log stats
+```
+
+### Session Summary
+
+After monitoring completes, generate a log summary:
+
+```json
+{
+  "session_id": "canary-2026-04-10-staging",
+  "total_checks": 10,
+  "unique_console_errors": 3,
+  "unique_network_failures": 1,
+  "server_error_lines": 12,
+  "error_timeline": [
+    {"check": 3, "timestamp": "...", "new_errors": ["TypeError at dashboard.js:142"]},
+    {"check": 4, "timestamp": "...", "new_errors": []}
+  ],
+  "top_errors": [
+    {"message": "TypeError: Cannot read properties of undefined", "occurrences": 7, "source": "dashboard.js:142"},
+    {"message": "Failed to fetch /api/metrics", "occurrences": 3, "source": "network"}
+  ]
+}
+```
+
+### Log Retention
+
+- Keep logs for 7 days by default
+- Logs associated with confirmed regressions are preserved indefinitely (moved to `outputs/incidents/`)
+- Run `canary-monitor --prune-logs` to manually clean up old sessions
 
 ## Examples
 

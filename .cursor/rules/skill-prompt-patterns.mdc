@@ -7,7 +7,7 @@ alwaysApply: false
 
 # Skill Prompt Engineering Patterns
 
-8 patterns extracted from Claude Code's internal prompt architecture. Apply when creating or upgrading SKILL.md files.
+12 patterns for writing effective SKILL.md files. Patterns 1-10 are distilled from Claude Code's internal prompt architecture. Patterns 11-12 are derived from the Anthropic engineer guide to building Claude Skills (5-component structure, 5 failure modes, 5-step test protocol).
 
 ## Pattern 1: Sectioned Prompt Structure
 
@@ -205,15 +205,81 @@ Anti-patterns:
 - Storing transient data in the skill directory (use `outputs/` or
   `_workspace/` instead)
 
+## Pattern 11: Trigger Quality Engineering
+
+The YAML `description` field is the single most important determinant of whether a skill activates autonomously. Apply these rules to every skill's frontmatter:
+
+### Activation Phrase Requirements
+
+- Include **5-7+ distinct trigger phrases** covering synonyms, abbreviations, and Korean equivalents
+- Use **directive language**: start with "ALWAYS invoke this skill when..." or "Use when the user asks to..."
+- Write in **third-person narration**: "the user asks to..." not "you should invoke when..."
+
+### Negative Boundaries
+
+- Every description MUST include at least one `Do NOT use for...` clause
+- Negative boundaries prevent the **Hijacker** failure mode (over-activation stealing work from other skills)
+- List the most likely confusion targets: `Do NOT use for [similar-skill-domain] (use [correct-skill])`
+
+### YAML Description Anti-Patterns
+
+| Anti-Pattern | Fix |
+|-------------|-----|
+| Multi-line block scalar (`>-`) exceeding 300 chars | Keep under 300 chars or split into `description` + inline `## When to Use` section |
+| Missing trigger phrases | Add 5-7+ natural language triggers in both English and Korean |
+| Passive voice ("can be used for...") | Directive voice ("ALWAYS invoke when...") |
+| No negative boundary | Add `Do NOT use for...` with skill name redirects |
+
+### Token Budget Awareness
+
+Claude loads only YAML frontmatter (~100 tokens per skill) at session start. If total skill metadata exceeds the system prompt budget (~15,000 chars / ~4,000 tokens), descriptions are truncated and skills stop triggering. Monitor with `token-diet` skill.
+
+## Pattern 12: Failure Mode Prevention
+
+Embed awareness of the 5 Anthropic failure modes into skills that are prone to them:
+
+### The 5 Failure Modes
+
+| Mode | Symptom | Root Cause | Prevention Pattern |
+|------|---------|------------|-------------------|
+| **Silent Skill** | Skill never activates | Description lacks directive language or trigger phrases | Apply Pattern 11 — directive triggers + 5-7 phrases |
+| **Hijacker** | Skill activates for unrelated tasks | Description too broad, no negative boundaries | Add `Do NOT use for...` clauses naming specific alternative skills |
+| **Drifter** | Skill activates but produces wrong output | Missing `## Output Format` section or vague instructions | Add explicit output format with examples (Pattern 1) |
+| **Fragile** | Skill breaks on unusual input | No edge case handling or input validation | Add `## Gotchas` (Pattern 9) + input validation in `## Constraints` |
+| **Overachiever** | Skill adds unnecessary steps or content | No anti-gold-plating constraints | Apply Pattern 2 — explicit scope boundaries |
+
+### Applying the 5-Step Test Protocol
+
+When creating or upgrading a skill, verify against all 5 failure modes using this protocol:
+
+1. **Happy path** — Invoke with the most common trigger phrase. Does it activate and produce correct output?
+2. **Minimal input** — Invoke with the shortest possible valid input. Does it still work without hallucinating missing context?
+3. **Edge case** — Invoke with unusual but valid input (empty strings, very long input, non-English). Does it handle gracefully?
+4. **Negative test** — Invoke with a prompt that sounds similar but should NOT trigger this skill. Does it correctly stay silent?
+5. **Repeat test (3x)** — Run the happy path 3 times. Is the output structure consistent across all runs?
+
+### Freedom Level Classification
+
+Tag skills with a freedom level in the `## Constraints` section:
+
+| Level | When to Use | Constraint Style |
+|-------|------------|-----------------|
+| **High freedom** | Creative tasks, brainstorming, exploration | Minimal constraints, broad output format |
+| **Medium freedom** | Analysis, reviews, reports | Structured output format, but flexible content |
+| **Low freedom** | Deployment, trading, data mutation, compliance | Exact step sequence, mandatory confirmation gates, no deviation |
+
+Skills with side effects (file writes, API calls, orders) MUST be Low freedom with `disable-model-invocation: true` equivalent behavior.
+
 ## Application Guide
 
 | Skill Type | Required Patterns | Optional Patterns |
 |-----------|------------------|-------------------|
-| Document generation | 1, 2, 3, 5 | 8, 9 |
-| Pipeline orchestrator | 1, 4, 5 | 6, 8, 9, 10 |
-| Code review / audit | 1, 3, 5, 7 | 6, 9 |
-| Multi-agent orchestrator | 1, 4, 5, 6 | 7, 9 |
-| Subagent-heavy skill | 1, 6 | 5, 9 |
-| Knowledge-accumulating skill | 1, 8 | 5, 9, 10 |
-| Library/API reference skill | 1, 9, 10 | 2, 3 |
-| Infrastructure operations | 1, 3, 9 | 5, 7 |
+| Document generation | 1, 2, 3, 5, 11 | 8, 9, 12 |
+| Pipeline orchestrator | 1, 4, 5, 11 | 6, 8, 9, 10, 12 |
+| Code review / audit | 1, 3, 5, 7, 11 | 6, 9, 12 |
+| Multi-agent orchestrator | 1, 4, 5, 6, 11 | 7, 9, 12 |
+| Subagent-heavy skill | 1, 6, 11 | 5, 9, 12 |
+| Knowledge-accumulating skill | 1, 8, 11 | 5, 9, 10, 12 |
+| Library/API reference skill | 1, 9, 10, 11 | 2, 3, 12 |
+| Infrastructure operations | 1, 3, 9, 11 | 5, 7, 12 |
+| Side-effect skills (deploy, trade, delete) | 1, 3, 11, 12 | 5, 7, 9 |

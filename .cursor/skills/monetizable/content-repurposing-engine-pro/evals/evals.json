@@ -1,0 +1,60 @@
+[
+  {
+    "id": "full-10-platform-kit",
+    "description": "Full pipeline from a blog post URL to 10 platform-specific outputs",
+    "input": "Repurpose this blog post into a full 10-platform content kit: https://example.com/ai-automation-trends-2026",
+    "expected_behavior": [
+      "Phase 1: Extracts content via defuddle, saves source.md",
+      "Phase 2: Analyzes content to identify 3-5 core messages and key quotes",
+      "Phase 3: Generates 10 platform outputs (Twitter thread, LinkedIn post, newsletter, blog summary, YouTube Shorts script, TikTok script, Instagram carousel, email snippet, infographic brief, Slack announcement)",
+      "Phase 4: Generates hooks via hook-generator for each platform",
+      "Phase 5: Scores each output on platform compliance (length, format, hashtags) with 0-100 score",
+      "Phase 6: Saves all outputs to outputs/content-repurposing-engine-pro/{date}/ with manifest.json"
+    ],
+    "success_criteria": "10 platform-specific files exist in output directory; manifest.json lists all 10 with quality scores; each output respects platform length limits"
+  },
+  {
+    "id": "batch-mode-multiple-sources",
+    "description": "Batch processing of 3 articles into content kits",
+    "input": "Batch repurpose these 3 articles into content kits: https://example.com/article1, https://example.com/article2, https://example.com/article3. Focus on LinkedIn and Twitter only.",
+    "expected_behavior": [
+      "Creates 3 separate output directories under outputs/content-repurposing-engine-pro/{date}/",
+      "Each directory contains LinkedIn post and Twitter thread output files",
+      "Uses batch-agent-runner or parallel subagents for concurrent processing",
+      "Generates a batch-summary.md with cross-article themes and posting schedule recommendation"
+    ],
+    "success_criteria": "3 output directories created; each contains at least LinkedIn and Twitter outputs; batch-summary.md exists with consolidated overview"
+  },
+  {
+    "id": "korean-source-content",
+    "description": "Korean source content repurposed with bilingual output",
+    "input": "이 한국어 블로그 글을 10채널 콘텐츠 킷으로 만들어줘: https://example.com/korean-ai-article",
+    "expected_behavior": [
+      "Detects Korean source language",
+      "Generates platform outputs in Korean with English alternatives where appropriate",
+      "Applies sentence-polisher to all Korean text outputs",
+      "Twitter/LinkedIn posts use appropriate Korean hashtags"
+    ],
+    "success_criteria": "All 10 platform outputs generated in Korean; quality scores applied; Korean-specific formatting (e.g., Korean hashtags) present"
+  },
+  {
+    "id": "should-not-trigger-single-platform",
+    "description": "Single-platform request should route to base content-repurposing-engine",
+    "input": "Turn this article into just a LinkedIn post",
+    "expected_behavior": [
+      "Skill should NOT be invoked for this request",
+      "Request should route to content-repurposing-engine instead"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to content-repurposing-engine"
+  },
+  {
+    "id": "should-not-trigger-podcast",
+    "description": "Podcast repurposing should route to marketing-podcast-ops",
+    "input": "I have a podcast episode recording. Can you turn it into social media content and a newsletter?",
+    "expected_behavior": [
+      "Skill should NOT be invoked for this request",
+      "Request should route to marketing-podcast-ops instead"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to marketing-podcast-ops"
+  }
+]

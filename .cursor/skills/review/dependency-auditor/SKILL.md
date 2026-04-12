@@ -8,7 +8,7 @@ description: >-
   security reviews or threat modeling (use security-expert) or running the full
   CI pipeline (use ci-quality-gate). Korean triggers: "감사", "리뷰", "생성", "체크".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
   author: "thaki"
 ---
@@ -106,6 +106,41 @@ cd services/call-manager && go list -m -u all 2>&1
 **Node.js:**
 ```bash
 cd frontend && npm outdated --json 2>&1
+```
+
+### Step 3.5: Paperclip Approval for Critical/High CVEs (Optional)
+
+When Critical or High severity CVEs are found and auto-patching would modify production dependencies, request Paperclip governance approval before applying patches.
+
+**Check Paperclip availability:**
+```
+Tool: paperclip_dashboard
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+If unavailable, proceed directly to Step 4 with standard patch flow.
+
+**Create approval request (if Critical/High CVEs found):**
+```
+Tool: paperclip_create_issue
+Input: {
+  "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92",
+  "title": "Dependency patch approval: {N} Critical/{M} High CVEs",
+  "body": "CVEs: {list}\nPackages affected: {list}\nPatch strategy: auto-apply patch-level\nTest plan: per-service regression",
+  "priority": "high",
+  "labels": ["dependency-patch", "security", "approval-required"]
+}
+```
+
+Wait for approval before applying patches. Log the outcome:
+```
+Tool: paperclip_log_cost
+Input: {
+  "agentId": "<dependency-auditor-agent-id>",
+  "amountCents": 0,
+  "description": "Dependency patch {approved/skipped}: {N} CVEs addressed",
+  "metadata": { "critical_count": N, "high_count": M }
+}
 ```
 
 ### Step 4: Apply Safe Updates

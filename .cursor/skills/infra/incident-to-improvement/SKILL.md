@@ -12,7 +12,7 @@ description: >-
   monitoring setup only (use sre-devops-expert).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # Incident to Improvement — Closed-Loop Incident Response
@@ -182,7 +182,37 @@ Generate slug from incident title: lowercase, replace spaces and special charact
 
 Save to: `docs/post-mortems/{YYYY-MM-DD}-{slug}.md`
 
-### Step 5: Update KNOWN_ISSUES.md
+### Step 5: Evidence Log Enforcement
+
+Every phase must produce structured evidence. No claim ("root cause found", "fix applied", "tests pass") is accepted without a corresponding evidence entry.
+
+**Evidence log format** — maintained as `outputs/incidents/{date}-{slug}/evidence.jsonl`:
+
+```jsonl
+{"phase":"triage","timestamp":"2026-04-10T14:05:00Z","type":"log","content":"Error 500 on /api/users at line 42: null pointer","source":"kubectl logs pod/api-7f8b9"}
+{"phase":"diagnose","timestamp":"2026-04-10T14:12:00Z","type":"hypothesis","content":"Missing null check on user.profile field added in commit abc123","confidence":"high","evidence_refs":["log-1","diff-1"]}
+{"phase":"fix","timestamp":"2026-04-10T14:20:00Z","type":"diff","content":"src/api/users.go:42 — added nil guard","files":["src/api/users.go"]}
+{"phase":"test","timestamp":"2026-04-10T14:25:00Z","type":"test_result","content":"3/3 regression tests pass","test_files":["tests/api/users_test.go"]}
+```
+
+**Evidence types**:
+
+| Type | Required Fields | When |
+|---|---|---|
+| `log` | content, source | Every log snippet cited during diagnosis |
+| `hypothesis` | content, confidence, evidence_refs | Each root cause hypothesis |
+| `diff` | content, files | Every code change applied |
+| `test_result` | content, test_files | After test suite runs |
+| `metric` | content, metric_name, before, after | Performance or availability metrics |
+| `screenshot` | path, description | Visual evidence of UI issues |
+| `command` | command, output, exit_code | CLI commands executed during investigation |
+
+**Enforcement rules**:
+- Gate check between phases rejects progression if evidence count is 0 for the completing phase
+- Post-mortem generation pulls directly from evidence.jsonl — no manual reconstruction
+- Evidence log is appended to the post-mortem as an appendix
+
+### Step 5b: Update KNOWN_ISSUES.md
 
 Append an entry following the bugfix-loop format:
 
@@ -221,6 +251,106 @@ Phase 3 — Prevent:
 
 Improvement Loop Closed: YES
 ```
+
+## Multi-Incident Triage Matrix
+
+When multiple incidents are reported simultaneously (e.g., during a deployment gone wrong), use a triage matrix to prioritize response order.
+
+### Matrix Construction
+
+For each active incident, score across 3 dimensions:
+
+| Dimension | 1 (Low) | 2 | 3 (High) |
+|---|---|---|---|
+| **Blast radius** | Single user / edge case | Team / feature area | All users / platform-wide |
+| **Data risk** | No data impact | Read-path affected | Write-path / data loss risk |
+| **Cascading potential** | Isolated | Could affect 1 dependency | Could trigger chain failure |
+
+**Composite score** = Blast radius + Data risk + (Cascading potential × 2)
+
+### Matrix Output
+
+```markdown
+## Active Incident Triage Matrix
+
+| # | Incident | Severity | Blast | Data | Cascade | Score | Status | Owner |
+|---|----------|----------|-------|------|---------|-------|--------|-------|
+| 1 | DB pool exhaustion | P1 | 3 | 3 | 3 | 12 | Investigating | @sre |
+| 2 | Auth token refresh | P2 | 2 | 1 | 2 | 7 | Mitigated | @backend |
+| 3 | Dashboard timeout | P3 | 1 | 0 | 1 | 3 | Queued | — |
+
+**Recommendation**: Address #1 first (cascading risk), #2 workaround holds, #3 can wait.
+```
+
+### Usage
+
+```
+/incident-to-improvement --multi "DB pool exhaustion" "Auth token refresh" "Dashboard timeout"
+```
+
+When `--multi` is used:
+1. Run triage for all incidents in parallel
+2. Build the matrix from triage outputs
+3. Present the matrix with a recommended response order
+4. Process incidents sequentially by composite score (highest first)
+
+## Status Page Template
+
+Generate a customer-facing status page update alongside internal post-mortem. The status page uses neutral, non-technical language.
+
+### Status Levels
+
+| Level | Badge | Meaning |
+|---|---|---|
+| Operational | 🟢 | All systems functioning normally |
+| Degraded Performance | 🟡 | System is slow or partially impaired |
+| Partial Outage | 🟠 | Some features are unavailable |
+| Major Outage | 🔴 | Critical systems are down |
+
+### Status Page Update Template
+
+Generated automatically from incident triage data:
+
+```markdown
+## [Service Name] — [Status Level]
+
+**Started**: [YYYY-MM-DD HH:MM UTC]
+**Last updated**: [YYYY-MM-DD HH:MM UTC]
+
+### Current Status
+
+[1-2 sentence non-technical summary of what customers are experiencing]
+
+### Impact
+
+- [Affected feature/service 1]
+- [Affected feature/service 2]
+
+### Updates (newest first)
+
+**[HH:MM UTC]** — [Update message: what changed, what we're doing]
+**[HH:MM UTC]** — [Previous update]
+
+### Workaround
+
+[If available: steps customers can take to work around the issue]
+```
+
+### Status Page Generation Rules
+
+- Language must be customer-facing — no internal jargon, no blame, no stack traces
+- Updates are appended chronologically (newest first)
+- Status level is auto-derived from severity: P1 → Major Outage, P2 → Partial Outage, P3 → Degraded Performance
+- Save to `outputs/incidents/{date}-{slug}/status-page.md`
+- When incident is resolved, append a final "Resolved" update with duration and brief explanation
+
+### Usage
+
+```
+/incident-to-improvement --status-page "500 errors on /api/users"
+```
+
+When `--status-page` is used, Group C additionally generates the status page update alongside the post-mortem.
 
 ## Examples
 

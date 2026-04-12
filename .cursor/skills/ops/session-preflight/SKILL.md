@@ -62,6 +62,7 @@ Report: present / missing / expired (if checkable).
 | Scan history | Last scan date per portal | > 7 days for daily portals |
 | Batch state | `batch/batch-state.tsv` running items | Running > 30 min (likely stale) |
 | Report index | `data/ops/report-index.jsonl` size | > 5000 entries (prune needed) |
+| gbrain | `gbrain doctor --json` stale embeddings count | > 50 stale embeddings |
 
 ### 4. Pending Items
 
@@ -80,6 +81,7 @@ Quick connectivity check (non-blocking, skip on timeout):
 | Slack | Verify `SLACK_BOT_TOKEN` format |
 | Notion | Check MCP server availability |
 | GitHub | `gh auth status` |
+| gbrain | `~/.local/bin/gbrain doctor --json` (check page count, stale embeddings) |
 
 ## Execution Flow
 
@@ -138,6 +140,7 @@ Based on findings, suggest the most productive first action:
 - **setup-doctor**: Delegates to setup-doctor for deep environment issues
 - **pipeline-inbox**: Checks inbox queue depth
 - **batch-agent-runner**: Checks for stale running items
+- **gbrain**: Checks entity page count and stale embedding ratio
 
 ## Constraints
 

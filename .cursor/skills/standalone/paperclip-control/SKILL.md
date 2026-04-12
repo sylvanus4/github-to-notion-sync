@@ -12,159 +12,121 @@ description: >-
   installation or deployment (use paperclip-setup).
 metadata:
   author: thaki
-  version: "1.0.0"
+  version: "2.0.0"
   category: execution
 ---
 
-# Paperclip Control — Core Orchestration
+# Paperclip Control — Core Orchestration (MCP-Integrated)
 
-Manage the Paperclip control plane: companies, agents, goals, approvals, costs, and dashboard overview.
+Manage the Paperclip control plane via MCP tool calls: dashboard, agents, approvals, costs, and governance.
+**v2.0**: All primary operations use MCP tools instead of curl/CLI.
 
 ## Prerequisites
 
-- Paperclip server running (default `http://localhost:3100`). If not running, see `paperclip-setup`.
-- CLI available via `pnpm paperclipai` from `~/work/thakicloud/paperclip/`
-- Context profile configured (or use `--api-base` / `--company-id` flags)
+- Paperclip server running at `http://localhost:3100`. If not, see `paperclip-setup`.
+- `paperclip-mcp` server registered in `.cursor/mcp.json`
+- ThakiCloud company ID: `b573bdbe-785a-4f39-b1e9-f2b623e40a92`
 
-## Environment
-
-Set these before using curl examples:
-
-```bash
-export API_BASE="http://localhost:3100"
-export API_KEY="<your-api-key>"  # or from context: pnpm paperclipai context show
-```
-
-Or configure a persistent context profile:
-
-```bash
-cd ~/work/thakicloud/paperclip
-pnpm paperclipai context set --api-base http://localhost:3100 --company-id <company-id>
-pnpm paperclipai context show
-```
-
-All CLI commands inherit `api-base` and `company-id` from the active context.
-
-## Workflow
+## Workflow (MCP-First)
 
 ### 1. Dashboard Overview
 
-```bash
-pnpm paperclipai dashboard get --company-id <company-id>
+Use MCP tool `paperclip_dashboard`:
+
+```
+Tool: paperclip_dashboard
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
 ```
 
 Returns: agent count, active/paused/terminated counts, pending approvals, total spend, stale tasks, recent activity.
 
-### 2. Company Management
+### 2. List Agents
 
-```bash
-pnpm paperclipai company list
-pnpm paperclipai company get <company-id>
-pnpm paperclipai company delete <id-or-prefix> --yes --confirm <same-id-or-prefix>
+Use MCP tool `paperclip_list_agents`:
+
 ```
-
-Company deletion requires server-side `PAPERCLIP_ENABLE_COMPANY_DELETION=true`.
-
-### 3. Agent Overview
-
-```bash
-pnpm paperclipai agent list --company-id <company-id>
-pnpm paperclipai agent get <agent-id>
+Tool: paperclip_list_agents
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
 ```
 
 For agent lifecycle operations (pause/resume/terminate), heartbeats, and agent budgets, see `paperclip-agents`.
 
-### 4. Goal Management
+### 3. Approval Governance
+
+**List pending approvals** via MCP:
+
+```
+Tool: paperclip_list_approvals
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+**Approve/reject** via CLI (approval mutations require board-level access):
+
+```bash
+cd ~/work/thakicloud/paperclip
+pnpm paperclipai approval approve <approval-id> --decision-note "Approved"
+pnpm paperclipai approval reject <approval-id> --decision-note "Not now"
+```
+
+**Slack notification pattern**: After processing approvals, post a summary to Slack `#효정-할일`:
+
+```
+Tool: slack_send_message (plugin-slack-slack MCP)
+Input: {
+  "channel_id": "C0AA8NT4T8T",
+  "text": "Paperclip Approvals: N pending, M approved today"
+}
+```
+
+### 4. Budget Overview
+
+Use MCP tool `paperclip_get_budget`:
+
+```
+Tool: paperclip_get_budget
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+Returns monthly budget, current spend, remaining balance, and per-agent breakdown.
+
+### 5. Goal Management (CLI)
 
 Goals align all work to the company mission. Levels: `company`, `team`, `agent`, `task`.
 
 ```bash
-# List goals
-curl -sS "$API_BASE/api/companies/<company-id>/goals" -H "Authorization: Bearer $API_KEY"
-
-# Create goal
-curl -sS -X POST "$API_BASE/api/companies/<company-id>/goals" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"...","level":"company","description":"..."}'
-
-# Update goal
-curl -sS -X PATCH "$API_BASE/api/goals/<goal-id>" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Updated title"}'
+cd ~/work/thakicloud/paperclip
+pnpm paperclipai goal list --company-id <company-id>
+pnpm paperclipai goal create --company-id <company-id> --title "..." --level company
 ```
 
-### 5. Approval Governance
+### 6. Activity Log (CLI)
 
 ```bash
-pnpm paperclipai approval list --company-id <company-id> [--status pending]
-pnpm paperclipai approval get <approval-id>
-pnpm paperclipai approval approve <approval-id> [--decision-note "Approved"]
-pnpm paperclipai approval reject <approval-id> [--decision-note "Not now"]
-pnpm paperclipai approval request-revision <approval-id> [--decision-note "Revise config"]
-pnpm paperclipai approval resubmit <approval-id> [--payload '{"...":"..."}']
-pnpm paperclipai approval comment <approval-id> --body "Discussion note"
+pnpm paperclipai activity list --company-id <company-id> [--agent-id <id>]
 ```
 
-Approval types: `hire_agent`, `approve_ceo_strategy`.
+## MCP Tool Reference
 
-### 6. Cost and Budget Overview
-
-```bash
-# Summary
-curl -sS "$API_BASE/api/companies/<company-id>/costs/summary" -H "Authorization: Bearer $API_KEY"
-
-# By agent
-curl -sS "$API_BASE/api/companies/<company-id>/costs/by-agent" -H "Authorization: Bearer $API_KEY"
-
-# By project
-curl -sS "$API_BASE/api/companies/<company-id>/costs/by-project" -H "Authorization: Bearer $API_KEY"
-
-# Update company budget
-curl -sS -X PATCH "$API_BASE/api/companies/<company-id>/budgets" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"monthlyBudgetCents": 100000}'
-```
-
-For agent-level budgets, see `paperclip-agents`. Budget rules: soft alert at 80%, hard pause at 100%.
-
-### 7. Activity Log
-
-```bash
-pnpm paperclipai activity list --company-id <company-id> [--agent-id <id>] [--entity-type issue]
-```
+| Tool | Purpose |
+|------|---------|
+| `paperclip_dashboard` | Full company overview |
+| `paperclip_list_agents` | All registered agents |
+| `paperclip_list_approvals` | Pending approval requests |
+| `paperclip_get_budget` | Budget and spend summary |
+| `paperclip_log_cost` | Record a cost event |
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `ECONNREFUSED` on `:3100` | Server not running | `cd ~/work/thakicloud/paperclip && pnpm dev` |
-| `401 Unauthorized` | Missing or invalid API key | Set `--api-key` or configure context |
-| `403 Forbidden` | Valid token but insufficient permissions | Check agent role and company scope |
-| `404` on company endpoints | Wrong `company-id` | Run `pnpm paperclipai company list` |
-| `429 Too Many Requests` | Rate limited | Wait and retry with backoff |
-| Approval stuck in `pending` | Board has not reviewed | Check dashboard, notify board |
-
-## References
-
-- `references/api-endpoints.md` — Full REST API endpoint reference
-- `references/cli-commands.md` — Complete CLI command reference
+| MCP tool returns connection error | Paperclip not running | See `paperclip-setup` auto-repair |
+| `401 Unauthorized` | API key mismatch | Check `PAPERCLIP_API_KEY` in `.cursor/mcp.json` |
+| `404` on company endpoints | Wrong `companyId` | Use `b573bdbe-785a-4f39-b1e9-f2b623e40a92` |
+| Approval stuck in `pending` | Board has not reviewed | Check dashboard, process via CLI |
 
 ## Related Skills
 
-- `paperclip-tasks` — Issue/task CRUD and checkout
-- `paperclip-agents` — Agent creation, heartbeats, budgets
+- `paperclip-tasks` — Issue/task CRUD and checkout (MCP-integrated)
+- `paperclip-agents` — Agent creation, heartbeats, budgets (MCP-integrated)
 - `paperclip-setup` — Installation and configuration
-
-## Examples
-
-### Example 1: Standard usage
-
-**User says:** "Check paperclip status"
-
-**Actions:**
-1. Gather necessary context from the project and user
-2. Execute the skill workflow as documented above
-3. Deliver results and verify correctness
+- `paperclip-bridge` — Bidirectional sync between mission-control and Paperclip

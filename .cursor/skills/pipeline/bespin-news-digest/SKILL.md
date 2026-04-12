@@ -331,9 +331,10 @@ All messages use Slack mrkdwn. Rules:
 **Message 1 — Title (post to `#bespin-news` = `C0ANL38CBPG`)**
 
 ```
-{1-2 line Korean title capturing the core insight of the article}
+*{topic_emoji} {Subject} — {Korean description}*
+
+{One-line Korean summary with key features, numbers, or core insight}
 {original article URL}
->>>
 ```
 
 Use MCP tool `slack_send_message` on server `plugin-slack-slack`.
@@ -753,9 +754,10 @@ For article "아마존, 세레브라스 AI칩 도입":
 
 **Message 1 (#bespin-news):**
 ```
-아마존 AWS가 세레브라스 웨이퍼급 AI칩 도입 — 엔비디아 독점 균열과 추론 인프라 판도 변화
+*:cloud: 세레브라스 AI칩 — 아마존 AWS 도입으로 엔비디아 독점 균열과 추론 인프라 판도 변화*
+
+웨이퍼스케일 WSE-3 칩으로 추론 단계 분리 효율화, GPU 독점 구조에 균열 시작
 https://www.yna.co.kr/view/AKR20260314003200091
->>>
 ```
 
 **Message 2 (thread reply):**

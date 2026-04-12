@@ -10,7 +10,7 @@ This composite command chains multiple HF skills:
 - `.cursor/skills/hf-datasets/SKILL.md` — Dataset preparation
 - `.cursor/skills/hf-model-trainer/SKILL.md` — Model training
 - `.cursor/skills/hf-trackio/SKILL.md` — Experiment monitoring
-- `.cursor/skills/hf-evaluation/SKILL.md` — Model evaluation
+- `.cursor/skills/hf/hf-evaluation/SKILL.md` — Model evaluation
 - `.cursor/skills/hf-jobs/SKILL.md` — Compute jobs
 
 ## Your Task

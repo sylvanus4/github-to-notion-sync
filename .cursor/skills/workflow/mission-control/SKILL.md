@@ -10,7 +10,7 @@ description: >-
   Korean triggers: "감사", "리뷰", "파이프라인", "워크플로우".
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "2.0.0"
   category: "execution"
 ---
 # Mission Control — Agent Orchestrator
@@ -27,6 +27,7 @@ The meta-skill that coordinates all other skills. Decomposes high-level goals in
 6. **Track progress**: Update `tasks/todo.md` with checkable items
 7. **Aggregate results**: Combine outputs into a unified report
 8. **Handle failures with classification**: When a sub-task fails, classify the failure before retrying (see Failure Classification below)
+9. **Track in Paperclip**: When Paperclip is available, create issues for orchestrated work, checkout atomically, log costs, and release on completion
 
 ## Skill Registry
 
@@ -45,6 +46,20 @@ Read the user's request and identify:
 - **Scope**: Which parts of the codebase are affected
 - **Constraints**: Time, safety, or scope limitations
 - **Matching workflow**: Does it match a predefined workflow?
+
+### Step 1.5: Paperclip Budget Gate
+
+Before planning work, check Paperclip budget (if Paperclip is running):
+
+```
+Tool: paperclip_get_budget
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+Budget enforcement rules:
+- **>= 80% spent**: Log warning, prefer `model: "fast"` for all subagents
+- **>= 100% spent**: Abort with budget exceeded message; only proceed if user explicitly overrides
+- **Paperclip unavailable**: Continue without budget tracking (graceful degradation)
 
 ### Step 2: Create Task Plan
 
@@ -83,6 +98,30 @@ Document the pattern choice in the task plan (Step 2). Example:
 Pattern: Parallel (review) → Evaluator-Optimizer (fix+verify) → Sequential (commit+PR)
 ```
 
+### Step 2.8: Register in Paperclip
+
+If Paperclip is available, create a tracked issue for the orchestrated work:
+
+```
+Tool: paperclip_create_issue
+Input: {
+  "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92",
+  "title": "[Goal Title]",
+  "body": "Orchestrated by mission-control. Sub-tasks: N. Pattern: [pattern].",
+  "priority": "high",
+  "labels": ["mission-control", "orchestrated"]
+}
+```
+
+Then checkout the issue atomically:
+
+```
+Tool: paperclip_checkout_issue
+Input: { "issueId": "<returned-issue-id>" }
+```
+
+**If Paperclip is unavailable**: Skip this step silently. The orchestration proceeds without tracking.
+
 ### Step 3: Delegate via Subagents
 
 Use the Task tool to run skills in parallel. Maximum 4 concurrent subagents.
@@ -110,6 +149,27 @@ Task(
 - CI quality gate should run after code modifications
 - domain-commit should be the final execution step
 
+### Step 3.5: Log Subagent Costs
+
+After each subagent completes, log the cost to Paperclip if available:
+
+```
+Tool: paperclip_log_cost
+Input: {
+  "agentId": "<agent-uuid-if-registered>",
+  "amountCents": <estimated-cost>,
+  "description": "[skill-name] execution for [sub-task]",
+  "metadata": { "skill": "[skill-name]", "model": "[model-used]", "scope": "[diff|today|full]" }
+}
+```
+
+Cost estimation heuristic:
+- `model: "fast"` subagent: ~2 cents per run
+- Default model subagent: ~8 cents per run
+- Opus-tier subagent: ~35 cents per run
+
+**If no agent is registered in Paperclip**, skip cost logging. Track in `tasks/todo.md` notes instead.
+
 ### Step 4: Aggregate Results
 
 Collect outputs from all subagents and:
@@ -117,6 +177,20 @@ Collect outputs from all subagents and:
 2. De-duplicate overlapping findings
 3. Create a unified summary
 4. Update `tasks/todo.md` with completed items
+
+### Step 4.5: Complete Paperclip Issue
+
+If a Paperclip issue was created in Step 2.8:
+
+```
+Tool: paperclip_update_issue
+Input: { "issueId": "<issue-id>", "status": "done", "body": "Completed. Summary: [brief]" }
+```
+
+```
+Tool: paperclip_release_issue
+Input: { "issueId": "<issue-id>" }
+```
 
 ### Step 5: Present Results
 
@@ -213,6 +287,33 @@ Result: Root cause identified, fix applied, tests passing, incident documented.
 - **Skill not found at expected path**: Check [references/skill-registry.md](references/skill-registry.md) — it may be a planned skill. Handle inline or skip.
 - **Subagent returns empty results**: Verify the skill exists and the prompt includes sufficient context (file paths, error messages).
 - **Workflow command not recognized**: Supported commands are listed under Predefined Workflows. Check [references/workflows.md](references/workflows.md) for definitions.
+
+## Paperclip Integration
+
+Mission-control integrates with Paperclip for governed task execution when available.
+
+### Sequence
+
+```
+1. Budget check (Step 1.5)     → paperclip_get_budget
+2. Create + checkout (Step 2.8) → paperclip_create_issue + paperclip_checkout_issue
+3. Cost logging (Step 3.5)      → paperclip_log_cost (per subagent)
+4. Complete + release (Step 4.5) → paperclip_update_issue + paperclip_release_issue
+```
+
+### Graceful Degradation
+
+All Paperclip calls are optional. If the Paperclip server is unreachable:
+- Log a note in `tasks/todo.md`: "Paperclip unavailable — costs not tracked"
+- Continue orchestration without budget enforcement or issue tracking
+- Never fail a workflow because Paperclip is down
+
+### Related Paperclip Skills
+
+- `paperclip-tasks` — Individual issue CRUD
+- `paperclip-agents` — Agent lifecycle and heartbeats
+- `paperclip-control` — Dashboard, approvals, governance
+- `paperclip-bridge` — Bidirectional sync with `tasks/todo.md`
 
 ## Integration Notes
 

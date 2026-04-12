@@ -148,7 +148,7 @@ For each sub-task from Phase 2 decomposition:
 |-------|------|------|-----------------|
 | x-to-slack | `.cursor/skills/x-to-slack/SKILL.md` | Execution | tweet, X/Twitter, Slack post |
 | slack-agent | `.cursor/skills/slack-agent/SKILL.md` | Execution | Slack bot, Slack app, Bolt |
-| notion-docs-sync | `.cursor/skills/notion-docs-sync/SKILL.md` | Execution | Notion sync, sync docs |
+| notion-docs-sync | `.cursor/skills/notion/notion-docs-sync/SKILL.md` | Execution | Notion sync, sync docs |
 
 ### Onboarding
 

@@ -97,7 +97,7 @@ Skills are organized into subdirectories under `.cursor/skills/` (e.g., `trading
 - Default behavior: use per-repo whitelist from sync-targets.md
 - `--skill-groups review,infra`: override — push only these groups to all targets in this run
 - `--all-skills`: override — push ALL skill groups to every target (full sync, ignores whitelist)
-- Root-level items in `.cursor/skills/` (files like `README.md`, `SKILL.md`, and non-skill directories like `docs/`, `references/`) are always synced to all targets
+- Root-level items in `.cursor/skills/` (files like `README.md`, `SKILL.md`, and shared companion directories -- any subdirectory containing no `SKILL.md` at any depth, e.g. `docs/`, `references/`, `scripts/`, `templates/`) are always synced to all targets
 
 ## Workflow
 
@@ -109,7 +109,7 @@ For each target in the order listed in sync-targets.md:
 
 #### 0a. Detect new files (comm-based diff)
 
-For each sync directory (`commands/`, `skills/`, `rules/`), find files that exist in the target but NOT in research:
+For each sync directory (`commands/`, `skills/`, `rules/`, `.claude/skills/`), find files that exist in the target but NOT in research:
 
 ```bash
 comm -23 <(ls TARGET/.cursor/DIR/ | sort) <(ls RESEARCH/.cursor/DIR/ | sort)
@@ -128,12 +128,14 @@ This gives exact new file counts per target per directory.
 #### 0b. Execute pull (rsync -au)
 
 ```bash
-rsync -au TARGET/.cursor/commands/ RESEARCH/.cursor/commands/
-rsync -au TARGET/.cursor/skills/   RESEARCH/.cursor/skills/
-rsync -au TARGET/.cursor/rules/    RESEARCH/.cursor/rules/
+EXCLUDES="--exclude node_modules/ --exclude __pycache__/"
+rsync -au $EXCLUDES TARGET/.cursor/commands/ RESEARCH/.cursor/commands/
+rsync -au $EXCLUDES TARGET/.cursor/skills/   RESEARCH/.cursor/skills/
+rsync -au $EXCLUDES TARGET/.cursor/rules/    RESEARCH/.cursor/rules/
+rsync -au $EXCLUDES TARGET/.claude/skills/   RESEARCH/.claude/skills/
 ```
 
-Pull always syncs ALL skill groups from a target into research (the merge hub absorbs everything).
+Pull always syncs ALL skill groups from a target into research (the merge hub absorbs everything). `.claude/skills/` is synced as a flat directory (no group filtering).
 
 Flags:
 - `-a` (archive): preserve structure, permissions, timestamps
@@ -217,13 +219,33 @@ If `--dry-run` flag was set, stop here.
 
 ### Step 4: Execute Sync
 
-Push research to each target. For `commands/` and `rules/`, sync the entire directory. For `skills/`, apply **skill group filtering**.
+#### 4-pre. Orphan-skill guard
 
-#### 4a. commands/ and rules/ (always full sync)
+Before pushing, warn if any root-level directory under `skills/` contains a `SKILL.md` directly but has no sub-skills (indicating it should be nested inside a group):
 
 ```bash
-rsync -ac RESEARCH/.cursor/commands/ TARGET/.cursor/commands/
-rsync -ac RESEARCH/.cursor/rules/    TARGET/.cursor/rules/
+for d in RESEARCH/.cursor/skills/*/; do
+  dir=$(basename "$d")
+  if [ -f "$d/SKILL.md" ]; then
+    subskills=$(find "$d" -mindepth 2 -name SKILL.md 2>/dev/null | wc -l)
+    if [ "$subskills" -eq 0 ]; then
+      echo "WARNING: Orphaned skill at root: $dir -- move to a group"
+    fi
+  fi
+done
+```
+
+If warnings appear, the agent should report them but **continue the sync** (non-blocking). Orphaned skills still get synced; the warning is informational for future cleanup.
+
+Push research to each target. For `commands/`, `rules/`, and `.claude/skills/`, sync the entire directory. For `.cursor/skills/`, apply **skill group filtering**.
+
+#### 4a. commands/, rules/, and .claude/skills/ (always full sync)
+
+```bash
+EXCLUDES="--exclude node_modules/ --exclude __pycache__/"
+rsync -ac $EXCLUDES RESEARCH/.cursor/commands/ TARGET/.cursor/commands/
+rsync -ac $EXCLUDES RESEARCH/.cursor/rules/    TARGET/.cursor/rules/
+rsync -ac $EXCLUDES RESEARCH/.claude/skills/   TARGET/.claude/skills/
 ```
 
 #### 4b. skills/ (group-filtered sync)
@@ -238,15 +260,19 @@ For each allowed skill group, sync that subdirectory:
 
 ```bash
 mkdir -p TARGET/.cursor/skills/GROUP/
-rsync -ac RESEARCH/.cursor/skills/GROUP/ TARGET/.cursor/skills/GROUP/
+rsync -ac $EXCLUDES RESEARCH/.cursor/skills/GROUP/ TARGET/.cursor/skills/GROUP/
 ```
 
-Also sync root-level files in `skills/` (README.md, SKILL.md, etc.) and non-skill directories (docs/, references/):
+Also sync root-level files in `skills/` (README.md, SKILL.md, etc.) and shared companion directories (any root-level subdirectory that contains no SKILL.md at any depth, e.g. `docs/`, `references/`, `scripts/`, `templates/`, and any future additions):
 
 ```bash
-rsync -ac --exclude='*/' RESEARCH/.cursor/skills/ TARGET/.cursor/skills/
-for d in docs references scripts templates; do
-  [ -d "RESEARCH/.cursor/skills/$d" ] && rsync -ac "RESEARCH/.cursor/skills/$d/" "TARGET/.cursor/skills/$d/"
+rsync -ac $EXCLUDES --exclude='*/' RESEARCH/.cursor/skills/ TARGET/.cursor/skills/
+for d in RESEARCH/.cursor/skills/*/; do
+  dir=$(basename "$d")
+  case "$dir" in node_modules|__pycache__) continue ;; esac
+  if [ -z "$(find "$d" -name SKILL.md -print -quit 2>/dev/null)" ]; then
+    rsync -ac $EXCLUDES "$d" "TARGET/.cursor/skills/$dir/"
+  fi
 done
 ```
 
@@ -261,37 +287,60 @@ Execute targets **one at a time, sequentially** (not in a for loop). Each target
 ```bash
 # $BASE and RESEARCH are set by environment detection (see Configuration section)
 RESEARCH="$BASE/research"
+EXCLUDES="--exclude node_modules/ --exclude __pycache__/"
 
 # Target 1: github-to-notion-sync (groups: gws, nlm, pipeline, workflow, anthropic, standalone)
-rsync -ac $RESEARCH/.cursor/commands/ $BASE/github-to-notion-sync/.cursor/commands/
-rsync -ac $RESEARCH/.cursor/rules/    $BASE/github-to-notion-sync/.cursor/rules/
-rsync -ac --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/github-to-notion-sync/.cursor/skills/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/github-to-notion-sync/.cursor/commands/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/rules/    $BASE/github-to-notion-sync/.cursor/rules/
+rsync -ac $EXCLUDES $RESEARCH/.claude/skills/   $BASE/github-to-notion-sync/.claude/skills/
+rsync -ac $EXCLUDES --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/github-to-notion-sync/.cursor/skills/
+# Shared companion dirs (no SKILL.md = not a skill group)
+for d in $RESEARCH/.cursor/skills/*/; do
+  dir=$(basename "$d")
+  case "$dir" in node_modules|__pycache__) continue ;; esac
+  [ -z "$(find "$d" -name SKILL.md -print -quit 2>/dev/null)" ] && rsync -ac $EXCLUDES "$d" "$BASE/github-to-notion-sync/.cursor/skills/$dir/"
+done
 for g in gws nlm pipeline workflow anthropic standalone; do
   mkdir -p $BASE/github-to-notion-sync/.cursor/skills/$g/
-  rsync -ac $RESEARCH/.cursor/skills/$g/ $BASE/github-to-notion-sync/.cursor/skills/$g/
+  rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/$g/ $BASE/github-to-notion-sync/.cursor/skills/$g/
 done
 
 # Target 2: ai-platform-webui (groups: review, infra, frontend, workflow, ce, ecc, anthropic, standalone)
-rsync -ac $RESEARCH/.cursor/commands/ $BASE/ai-platform-webui/.cursor/commands/
-rsync -ac $RESEARCH/.cursor/rules/    $BASE/ai-platform-webui/.cursor/rules/
-rsync -ac --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/ai-platform-webui/.cursor/skills/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/ai-platform-webui/.cursor/commands/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/rules/    $BASE/ai-platform-webui/.cursor/rules/
+rsync -ac $EXCLUDES $RESEARCH/.claude/skills/   $BASE/ai-platform-webui/.claude/skills/
+rsync -ac $EXCLUDES --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/ai-platform-webui/.cursor/skills/
+# Shared companion dirs (no SKILL.md = not a skill group)
+for d in $RESEARCH/.cursor/skills/*/; do
+  dir=$(basename "$d")
+  case "$dir" in node_modules|__pycache__) continue ;; esac
+  [ -z "$(find "$d" -name SKILL.md -print -quit 2>/dev/null)" ] && rsync -ac $EXCLUDES "$d" "$BASE/ai-platform-webui/.cursor/skills/$dir/"
+done
 for g in review infra frontend workflow ce ecc anthropic standalone; do
   mkdir -p $BASE/ai-platform-webui/.cursor/skills/$g/
-  rsync -ac $RESEARCH/.cursor/skills/$g/ $BASE/ai-platform-webui/.cursor/skills/$g/
+  rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/$g/ $BASE/ai-platform-webui/.cursor/skills/$g/
 done
 
 # Target 3: ai-model-event-stock-analytics (groups: all)
-rsync -ac $RESEARCH/.cursor/commands/ $BASE/ai-model-event-stock-analytics/.cursor/commands/
-rsync -ac $RESEARCH/.cursor/rules/    $BASE/ai-model-event-stock-analytics/.cursor/rules/
-rsync -ac $RESEARCH/.cursor/skills/   $BASE/ai-model-event-stock-analytics/.cursor/skills/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/ai-model-event-stock-analytics/.cursor/commands/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/rules/    $BASE/ai-model-event-stock-analytics/.cursor/rules/
+rsync -ac $EXCLUDES $RESEARCH/.claude/skills/   $BASE/ai-model-event-stock-analytics/.claude/skills/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/   $BASE/ai-model-event-stock-analytics/.cursor/skills/
 
 # Target 4: ai-template (groups: workflow, anthropic, ce, ecc, standalone)
-rsync -ac $RESEARCH/.cursor/commands/ $BASE/ai-template/.cursor/commands/
-rsync -ac $RESEARCH/.cursor/rules/    $BASE/ai-template/.cursor/rules/
-rsync -ac --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/ai-template/.cursor/skills/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/ai-template/.cursor/commands/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/rules/    $BASE/ai-template/.cursor/rules/
+rsync -ac $EXCLUDES $RESEARCH/.claude/skills/   $BASE/ai-template/.claude/skills/
+rsync -ac $EXCLUDES --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/ai-template/.cursor/skills/
+# Shared companion dirs (no SKILL.md = not a skill group)
+for d in $RESEARCH/.cursor/skills/*/; do
+  dir=$(basename "$d")
+  case "$dir" in node_modules|__pycache__) continue ;; esac
+  [ -z "$(find "$d" -name SKILL.md -print -quit 2>/dev/null)" ] && rsync -ac $EXCLUDES "$d" "$BASE/ai-template/.cursor/skills/$dir/"
+done
 for g in workflow anthropic ce ecc standalone; do
   mkdir -p $BASE/ai-template/.cursor/skills/$g/
-  rsync -ac $RESEARCH/.cursor/skills/$g/ $BASE/ai-template/.cursor/skills/$g/
+  rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/$g/ $BASE/ai-template/.cursor/skills/$g/
 done
 ```
 
@@ -304,8 +353,9 @@ for repo in research github-to-notion-sync ai-platform-webui ai-model-event-stoc
   path="$BASE/$repo"
   cmd_count=$(find "$path/.cursor/commands/" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
   skill_count=$(find "$path/.cursor/skills/" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+  claude_count=$(find "$path/.claude/skills/" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
   rule_count=$(find "$path/.cursor/rules/" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
-  echo "$repo: commands=$cmd_count skills=$skill_count rules=$rule_count"
+  echo "$repo: commands=$cmd_count skills=$skill_count claude_skills=$claude_count rules=$rule_count"
 done
 ```
 

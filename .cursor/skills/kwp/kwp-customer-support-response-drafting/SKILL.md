@@ -296,18 +296,47 @@ What I need: [Specific help or decision needed]
 Deadline: [When this needs to be resolved by]
 ```
 
+## KB-Backed Response Drafting
+
+Before drafting any response, query the project's Knowledge Base to ground answers in documented solutions.
+
+### Workflow
+
+1. **Extract key terms** from the customer's ticket (product area, error code, feature name)
+2. **Query KB**: Run `kb-query` with the extracted terms against the relevant knowledge base topic
+3. **Check KB results**:
+   - If KB returns relevant articles → incorporate the solution with a citation: `[Source: KB/{topic}/{article}]`
+   - If KB returns partial match → use as context but note the gap
+   - If KB returns nothing → draft from general knowledge and flag for KB backfill
+4. **Draft response** using the KB-grounded answer + response templates above
+5. **Append KB metadata** as an internal note (not visible to customer):
+
+```
+--- Internal ---
+KB articles consulted: [{article_path}, {article_path}]
+KB confidence: high / medium / none
+KB gap identified: {description of missing documentation, if any}
+```
+
+### KB Backfill Trigger
+
+When a response is drafted without KB backing (confidence = none):
+- Flag the topic for KB ingestion via `kb-ingest`
+- After ticket resolution, the resolution summary should be ingested as a new KB article
+
 ## Using This Skill
 
 When drafting customer responses:
 
-1. Identify the situation type first (good news, bad news, technical, etc.)
-2. Consider the customer's relationship stage and stakeholder level
-3. Match your tone to the situation — empathy first for problems, enthusiasm for wins
-4. Be specific with dates, names, and commitments
-5. Always include a clear next step
-6. Read the draft from the customer's perspective before finalizing
-7. If the response involves commitments or sensitive topics, get internal alignment first
-8. Keep it concise — every sentence should earn its place
+1. **Query KB first** — always check if a documented solution exists before composing
+2. Identify the situation type (good news, bad news, technical, etc.)
+3. Consider the customer's relationship stage and stakeholder level
+4. Match your tone to the situation — empathy first for problems, enthusiasm for wins
+5. Be specific with dates, names, and commitments
+6. Always include a clear next step
+7. Read the draft from the customer's perspective before finalizing
+8. If the response involves commitments or sensitive topics, get internal alignment first
+9. Keep it concise — every sentence should earn its place
 
 ## Examples
 

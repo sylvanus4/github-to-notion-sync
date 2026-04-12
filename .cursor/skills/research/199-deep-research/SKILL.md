@@ -1,7 +1,12 @@
 ---
 name: 199-deep-research
-version: 1.0.0
-description: Enterprise-grade autonomous research engine producing citation-backed reports with source credibility scoring, multi-provider search, and automated validation. Based on 199-biotechnologies/claude-deep-research-skill.
+version: 1.1.0
+description: >
+  Enterprise-grade autonomous research engine producing citation-backed reports
+  with source credibility scoring, multi-provider search, and automated validation.
+  Supports industry research mode (TAM/SAM, competitive landscape), qualitative
+  data coding (thematic analysis), product-spec linking (assumption mapping),
+  and UltraDeep subagent fan-out. Based on 199-biotechnologies/claude-deep-research-skill.
 triggers:
   - "deep research"
   - "199 deep research"
@@ -9,16 +14,31 @@ triggers:
   - "research report with citations"
   - "exhaustive research"
   - "thorough investigation with bibliography"
+  - "industry research"
+  - "market research report"
+  - "competitive landscape research"
+  - "TAM SAM analysis"
+  - "qualitative research"
+  - "thematic analysis"
+  - "research with product spec"
   - "딥 리서치 보고서"
   - "인용 기반 리서치"
   - "심층 조사 보고서"
   - "199 리서치"
+  - "산업 리서치"
+  - "시장 조사 보고서"
+  - "정성적 연구"
+  - "주제 분석"
 do_not_use:
   - For normal research/lookup requests (use parallel-web-search)
   - For daily stock analysis (use today)
   - For paper review (use paper-review)
   - For general web search (use WebSearch directly)
   - When user just needs quick answers without a formal report
+  - For single-company competitive intel without full research (use kwp-sales-competitive-intelligence)
+  - For survey design or user research planning (use kwp-design-user-research)
+composes:
+  - pm-product-discovery
 ---
 
 # 199 Deep Research Skill
@@ -42,14 +62,27 @@ Execute comprehensive research using an 8-phase pipeline that produces professio
 | Quick | 3 (Scope → Retrieve → Package) | 5-10 min | 10-15 | 2,000-5,000 |
 | Standard | 6 (+ Plan, Triangulate, Synthesize) | 15-30 min | 15-25 | 5,000-10,000 |
 | Deep | 8 (Full pipeline) | 30-60 min | 25-40 | 10,000-15,000 |
-| UltraDeep | 8 (+ extended iterations) | 60-120 min | 40-75 | 15,000-20,000 |
+| UltraDeep | 8 (+ parallel subagent fan-out) | 60-120 min | 40-75 | 15,000-20,000 |
+
+### Mode Modifiers
+
+Modifiers can be combined with any mode:
+
+| Modifier | Flag | Effect |
+|---|---|---|
+| Industry | `--mode industry` | Business-intelligence templates (TAM/SAM, competitive matrix, market map) |
+| Qualitative | `--qualitative` | Thematic analysis with codebook generation for interview/survey data |
+| Product-Spec | `--product-spec` | Appends product implications section (assumptions, opportunities, user stories) |
 
 ### Mode Selection Decision Tree
 
 1. User says "quick overview" or "brief summary" → **Quick**
 2. User says "research [topic]" (default) → **Standard**
 3. User says "deep research" or "comprehensive analysis" → **Deep**
-4. User says "exhaustive" or "thorough investigation" → **UltraDeep**
+4. User says "exhaustive" or "thorough investigation" → **UltraDeep** (with parallel subagent fan-out)
+5. Topic is market/company/industry → add `--mode industry` modifier
+6. Source material includes interviews/surveys → add `--qualitative` modifier
+7. Research is for product decisions → add `--product-spec` modifier
 
 ## 8-Phase Pipeline
 
@@ -230,6 +263,210 @@ Agent: Runs Deep mode (8 phases), produces ~12,000 word report with 35+ sources,
 User: "Quick research on WebAssembly adoption trends"
 Agent: Runs Quick mode (3 phases), produces ~3,000 word report with 12 sources
 ```
+
+## Industry Research Mode
+
+Activate with `--mode industry` for company/market-focused research. This mode replaces the default academic-oriented pipeline with business-intelligence templates.
+
+### When to Use Industry Mode
+
+- Company or market analysis (competitive landscape, market share, positioning)
+- TAM/SAM/SOM sizing for a specific product or market segment
+- Industry trend synthesis across multiple verticals
+- Vendor evaluation and technology landscape mapping
+- Go-to-market research for a new product or region
+
+### Industry Mode Pipeline Modifications
+
+| Phase | Standard Mode | Industry Mode |
+|---|---|---|
+| SCOPE | Academic research question decomposition | Market definition, segment boundaries, key players identification |
+| PLAN | Academic + news + government sources | Industry reports, SEC filings, earnings calls, analyst notes, trade publications |
+| RETRIEVE | Balanced source diversity | Weighted toward: Crunchbase, PitchBook, Statista, industry blogs, LinkedIn, G2/Capterra |
+| SYNTHESIZE | Pattern identification | Competitive matrix, Porter's Five Forces, market map generation |
+| PACKAGE | Academic report format | Business intelligence format with executive summary, market map, competitive matrix |
+
+### Industry Mode Report Template
+
+```markdown
+# Market Intelligence Report — {topic}
+
+## Executive Summary
+[3-5 bullet market insights]
+
+## Market Definition & Sizing
+- TAM: [total addressable market with methodology]
+- SAM: [serviceable addressable market]
+- SOM: [serviceable obtainable market]
+- Growth rate: [CAGR with source]
+
+## Competitive Landscape
+| Company | Position | Strengths | Weaknesses | Est. Revenue |
+|---|---|---|---|---|
+[top 5-10 players]
+
+## Market Map
+[Segment × capability matrix or Mermaid diagram]
+
+## Trend Analysis
+[3-5 macro trends with evidence and timeline]
+
+## Strategic Implications
+[Opportunities, threats, and recommended actions]
+
+## Bibliography
+[standard citation format]
+```
+
+## Qualitative Data Coding
+
+When research involves interview transcripts, survey open-text, user feedback, or forum discussions, apply thematic analysis with codebook generation.
+
+### Activation
+
+Auto-activates when source material contains:
+- Interview or survey transcript format (Q&A patterns, speaker labels)
+- User feedback collections (app reviews, forum threads, support tickets)
+- User explicitly requests `--qualitative` flag
+
+### Coding Workflow
+
+1. **Open coding**: Read through source material; generate initial codes (short labels) for recurring concepts
+2. **Axial coding**: Group related codes into categories; identify relationships between categories
+3. **Selective coding**: Identify core themes that unify the categories; build a thematic hierarchy
+
+### Codebook Output
+
+Append to the report as an appendix:
+
+```markdown
+## Appendix: Qualitative Codebook
+
+### Theme 1: {theme_name}
+- **Definition**: {what this theme captures}
+- **Categories**:
+  - {category_a}: {definition} — Sources: [N1], [N2]
+  - {category_b}: {definition} — Sources: [N3]
+- **Representative quotes**:
+  - "{exact quote}" — Source [N1]
+  - "{exact quote}" — Source [N3]
+- **Frequency**: Mentioned in N of M sources
+
+### Theme 2: ...
+```
+
+### Quality Criteria
+
+- Each theme must be grounded in 3+ source passages
+- Codes must be mutually exclusive at the category level
+- Inter-coder reliability: when multiple subagents code, compare agreement rate (target >80%)
+- Negative cases: explicitly note sources that contradict the theme
+
+## Product-Spec Linking
+
+New output section that maps research findings to actionable product requirements. Composes `pm-product-discovery` assumption format.
+
+### Activation
+
+- User includes `--product-spec` flag
+- Research topic is product/feature-related (auto-detected from SCOPE phase)
+
+### Output Format
+
+Append after Recommendations section:
+
+```markdown
+## Product Implications
+
+### Validated Assumptions
+| ID | Assumption | Evidence | Confidence | Source |
+|---|---|---|---|---|
+| A1 | {assumption text} | {supporting evidence} | High/Medium/Low | [N] |
+
+### New Opportunities
+| ID | Opportunity | Market Signal | Effort Est. | Priority |
+|---|---|---|---|---|
+| O1 | {opportunity} | {what data suggests this} | S/M/L | P0/P1/P2 |
+
+### Risk Register
+| ID | Risk | Likelihood | Impact | Mitigation |
+|---|---|---|---|---|
+| R1 | {risk description} | High/Medium/Low | High/Medium/Low | {suggested action} |
+
+### Suggested User Stories
+- As a {persona}, I want {capability} so that {outcome} — backed by finding [N]
+- ...
+
+### Next Steps for Product
+1. {specific next step with owner suggestion}
+2. {validation experiment to run}
+3. {data to collect before deciding}
+```
+
+### Integration with pm-product-discovery
+
+The Product Implications section uses the same assumption format as `pm-product-discovery`, enabling direct import into Opportunity Solution Trees and assumption testing workflows.
+
+## UltraDeep Subagent Fan-Out
+
+For `UltraDeep` mode, spawn parallel Researcher subagents per research question using Cursor's `Task` tool. Adapted from Anthropic's research-agent Lead Agent pattern.
+
+### Architecture
+
+```
+Lead Agent (this skill)
+├── SCOPE & PLAN phases (sequential, in main context)
+├── RETRIEVE phase (parallel fan-out)
+│   ├── Researcher Subagent 1: Research Question A
+│   ├── Researcher Subagent 2: Research Question B
+│   ├── Researcher Subagent 3: Research Question C
+│   ├── Data Analyst Subagent: Quantitative data collection
+│   └── Contrarian Subagent: Counter-evidence and alternative viewpoints
+├── TRIANGULATE & SYNTHESIZE (sequential, merge results)
+├── CRITIQUE (parallel)
+│   ├── Red Team Subagent: Attack the synthesis
+│   └── Gap Analyst Subagent: Identify missing perspectives
+└── REFINE & PACKAGE (sequential)
+```
+
+### Subagent Dispatch Rules
+
+- Max 4 concurrent subagents (Cursor Task tool constraint)
+- Each subagent receives: research question, source type assignment, search query list, and output file path
+- Each subagent returns: `{ status, file, summary, source_count, key_findings: string[] }`
+- Lead Agent merges all subagent results before TRIANGULATE phase
+- If any subagent fails, Lead Agent re-runs that question directly (no retry subagent)
+
+### UltraDeep Subagent Prompt Template
+
+```
+You are a research subagent. Your single goal is: {research_question}
+
+Source assignment: {source_types} (e.g., "academic papers, preprints, conference proceedings")
+
+Search queries to execute:
+1. {query_1}
+2. {query_2}
+3. {query_3}
+
+Requirements:
+- Execute ALL search queries via WebSearch
+- WebFetch the top 3-5 most promising results
+- Extract: key claims, supporting data, source credibility assessment
+- Write findings to: {output_file_path}
+- Return JSON: { status, file, summary, source_count, key_findings }
+
+Do NOT synthesize across sources — the Lead Agent handles synthesis.
+Do NOT write prose — write structured findings only.
+```
+
+### Merge Protocol
+
+After all subagents complete:
+1. Read all subagent output files
+2. Deduplicate sources (by URL and title similarity)
+3. Build a unified source registry with credibility scores
+4. Proceed to TRIANGULATE with the merged dataset
 
 ## Subagent Contract
 

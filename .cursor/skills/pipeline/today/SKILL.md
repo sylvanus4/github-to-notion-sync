@@ -3,7 +3,7 @@ name: today
 description: >-
   Run the daily data sync, fundamental collection, hot stock discovery,
   multi-factor screening, Turtle/Bollinger/Oscillator analysis, and Korean .docx
-  report pipeline — check DB vs CSV freshness, backfill from Yahoo Finance,
+  report pipeline — check DB vs CSV freshness, backfill via multi-provider fallback (Yahoo/Polygon/Tiingo/Alpha Vantage/Finnhub),
   discover hot stocks from NASDAQ/KOSPI/KOSDAQ 100, screen (P/E, RSI, volume,
   MA crossovers, FCF yield), run SMA 20/55/200 + RSI/MACD/Stochastic/ADX,
   optionally fetch news (alphaear-news) and sentiment (alphaear-sentiment),
@@ -24,7 +24,7 @@ description: >-
   CSV downloads from investing.com (use stock-csv-downloader).
 metadata:
   author: thaki
-  version: "7.1.0"
+  version: "7.2.0"
   category: execution
 ---
 
@@ -54,6 +54,12 @@ Orchestrates a multi-phase pipeline: optional setup-doctor pre-flight, data fres
 | `OPENAI_API_KEY` | For LLM | — | Used by LLM agent stages |
 | `ANTHROPIC_API_KEY` | For LLM | — | Used by quality evaluator |
 | `FRED_API_KEY` | For macro | — | Federal Reserve economic data |
+| `ALPHA_VANTAGE_API_KEY` | No | — | Fallback price source (4th priority) |
+| `FINNHUB_API_KEY` | No | — | Fallback price source (5th priority) + ticker news |
+| `POLYGON_API_KEY` | No | — | Fallback price source (1st priority) + options/crypto |
+| `NASDAQ_DATA_LINK_API_KEY` | No | — | CFTC COT data, alternative economic datasets |
+| `TWELVE_DATA_API_KEY` | No | — | TA cross-validation service |
+| `TIINGO_API_KEY` | No | — | Fallback price source (2nd priority), 20+ year history |
 
 ## Pipeline Output Protocol
 
@@ -198,6 +204,40 @@ Read the `setup-doctor` skill and run Phase 1-3 checks for `--group core-platfor
 
 **Step 0c — Persist & manifest:** Save check results to `outputs/today/{date}/phase-0-doctor.json`. Create the initial `manifest.json` with pipeline metadata and this phase entry.
 
+### Phase 0.5: Paperclip Pipeline Gate (Optional)
+
+Check Paperclip agent orchestrator health, register this pipeline run as an agent heartbeat, and enforce budget guardrails. Skip with `skip-paperclip` or if Paperclip is unavailable (graceful degradation).
+
+**Step 0.5a — Health check:**
+
+```
+Tool: paperclip_dashboard
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+If the call fails (connection refused, timeout), set `paperclip_available = false`, log "Paperclip unavailable — running pipeline without governance" and skip the rest of Phase 0.5.
+
+**Step 0.5b — Heartbeat (pipeline start):**
+
+```
+Tool: paperclip_heartbeat
+Input: { "agentId": "<today-pipeline-agent-id>", "status": "today pipeline started" }
+```
+
+The `today-pipeline-agent-id` should be pre-registered via `paperclip-agents` skill. If no agent is registered for this pipeline, skip this step.
+
+**Step 0.5c — Budget gate:**
+
+```
+Tool: paperclip_get_budget
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+- If budget >= 90% spent → add warning to `manifest.json` → `warnings[]`, prefer `model: "fast"` for all subagents, skip optional phases (4.8 agent-desk, 5.1 edge, 7 KB)
+- If budget >= 100% spent → halt pipeline with "Budget exhausted" error, post alert to Slack `#효정-의사결정`
+
+**Persist & manifest:** Write `outputs/today/{date}/phase-0.5-paperclip.json`. Update `manifest.json`.
+
 ### Phase 1.5: Toss Snapshot + Monitoring (Optional — via toss-ops-orchestrator)
 
 Delegates to `toss-ops-orchestrator` (`.cursor/skills/trading/toss-ops-orchestrator/SKILL.md`) for the snapshot and monitoring phases. Skip with `skip-toss`.
@@ -255,14 +295,14 @@ python scripts/import_csv.py ../data/latest --directory
 
 This imports all CSVs; the upsert prevents duplicates.
 
-**Step 2b — Fetch recent data from Yahoo Finance (if stale gaps exist):**
+**Step 2b — Fetch recent data via multi-provider fallback (if stale gaps exist):**
 
 ```bash
 cd backend
 python scripts/weekly_stock_update.py --days 3
 ```
 
-The 3-day lookback covers weekends and short holidays. For longer gaps (>3 trading days), increase `--days` accordingly.
+The 3-day lookback covers weekends and short holidays. For longer gaps (>3 trading days), increase `--days` accordingly. `ExternalStockAPI` tries providers in order: Yahoo Finance → Polygon → Tiingo → Alpha Vantage → Finnhub, with per-provider circuit breakers (see ADR-003).
 
 **Step 2c — Verify sync:**
 
@@ -1046,6 +1086,50 @@ Before posting to Slack or proceeding to Phase 6, verify report quality:
 
 If ANY criterion fails, log the discrepancy in the report's appendix and flag it in the Slack message. Do NOT suppress the report — post it with warnings attached.
 
+### Phase 5.8: Paperclip Pipeline Completion (Optional)
+
+If `paperclip_available` was set in Phase 0.5, log the pipeline run costs and send a completion heartbeat. Skip if Paperclip was unavailable or `skip-paperclip`.
+
+**Step 5.8a — Log pipeline cost:**
+
+Estimate total token cost for this pipeline run (sum of all subagent invocations) and log it:
+
+```
+Tool: paperclip_log_cost
+Input: {
+  "agentId": "<today-pipeline-agent-id>",
+  "amountCents": <estimated_cost_cents>,
+  "description": "today pipeline run {date}",
+  "metadata": { "phases_run": [...], "tickers_analyzed": N, "date": "{date}" }
+}
+```
+
+**Step 5.8b — Heartbeat (pipeline complete):**
+
+```
+Tool: paperclip_heartbeat
+Input: { "agentId": "<today-pipeline-agent-id>", "status": "today pipeline completed — {N} tickers, {M} signals" }
+```
+
+**Step 5.8c — Trading decision approval gate:**
+
+If any BUY/SELL signals with confidence >= 0.8 were generated and `toss-signal-bridge` produced order previews, route them through Paperclip approval:
+
+```
+Tool: paperclip_create_issue
+Input: {
+  "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92",
+  "title": "Trading decision: {BUY/SELL} {ticker} @ {price}",
+  "body": "Signal source: {strategy}\nConfidence: {score}\nOrder preview: {preview_summary}",
+  "priority": "high",
+  "labels": ["trading-decision", "approval-required"]
+}
+```
+
+This creates a tracked issue requiring human approval before execution. The approval flow is managed via `paperclip_list_approvals` or the Paperclip UI at `http://127.0.0.1:3100`.
+
+**Persist & manifest:** Write `outputs/today/{date}/phase-5.8-paperclip.json`. Update `manifest.json`.
+
 ### Phase 6: Twitter Timeline to Slack (Optional)
 
 Fetch the user's latest tweets and post to classified Slack channels. Skip with `skip-twitter`.
@@ -1160,6 +1244,7 @@ On failure: **Continue** — KB accumulation is optional; the pipeline succeeds 
 | `skip-toss` | off | Skip Phase 1.5 (snapshot) and Phase 5.5 (signal bridge + risk) | `/today skip-toss` |
 | `skip-twitter` | off | Skip Phase 6 | `/today skip-twitter` |
 | `skip-kb-context` | off | Skip Phase 4.9, no KB historical context enrichment | `/today skip-kb-context` |
+| `skip-paperclip` | off | Skip Phase 0.5 and 5.8, no Paperclip governance | `/today skip-paperclip` |
 | `skip-kb` | off | Skip Phase 7, no KB ingest | `/today skip-kb` |
 | `skip-kb-compile` | off | Skip Phase 7b incremental compile | `/today skip-kb-compile` |
 | `twitter-only` | off | Phase 6 only | `/today twitter-only` |
@@ -1180,6 +1265,7 @@ User says: "Run today's pipeline" or `오늘의 파이프라인 전체 실행해
 Actions (execute in order; each depends on the previous completing successfully unless error recovery says otherwise):
 
 0. **Phase 0** — `setup-doctor` core-platform pre-flight (unless `skip-setup-doctor`).
+0.3. **Phase 0.5** — Paperclip health + budget gate (unless `skip-paperclip` or Paperclip unavailable).
 0.5. **Phase 1.5** — `toss-daily-snapshot` archive (unless `skip-toss` or tossctl unavailable).
 1. **Phase 1** — DB `--status` + CSV freshness + gap report (halt here if `status`).
 2. **Phase 2** — `import_csv` (if needed) + `weekly_stock_update.py --days 3` + verify `--status`.
@@ -1198,6 +1284,7 @@ Actions (execute in order; each depends on the previous completing successfully 
 12. **Phase 5c** — Slack main + **mandatory thread** (unless `dry-run`, `skip-slack`, or no MCP).
 13. **Phase 5d** — `decision-router` posts (unless `skip-decisions`).
 13.5. **Phase 5.5** — `toss-signal-bridge` order previews + `toss-risk-monitor` assessment (unless `skip-toss` or tossctl unavailable).
+13.8. **Phase 5.8** — Paperclip cost log + completion heartbeat + trading decision approval gate (unless `skip-paperclip`).
 14. **Phase 6** — `twitter-timeline-to-slack` (unless `skip-twitter` or missing `TWITTER_COOKIE`).
 
 Result: All default phases complete; `.docx` at `outputs/reports/daily-{date}.docx`; analysis/screener/discovery JSON under `outputs/`; `#h-report` main + threaded BUY/SELL detail; optional decisions and Twitter distribution.
@@ -1227,7 +1314,7 @@ User says: "today skip-report"
 
 Actions:
 1. Check data freshness (Phase 1)
-2. Import CSVs and fetch from Yahoo Finance (Phase 2)
+2. Import CSVs and fetch via multi-provider fallback (Phase 2)
 3. Discover hot stocks (Phase 3)
 4. Stop — no analysis or report generated
 
@@ -1286,11 +1373,11 @@ Cause: First-time setup or directory cleared.
 
 Solution: Run `stock-csv-downloader` first: `/stock-csv-download --all --import`
 
-### Yahoo Finance returns no data
+### Primary data source returns no data
 
-Cause: Market closed (weekend/holiday) or rate limiting.
+Cause: Market closed (weekend/holiday), rate limiting, or provider outage.
 
-Solution: Check if yesterday was a trading day. If rate limited, retry with `--delay 2`. For persistent issues, use `stock-csv-downloader` as fallback.
+Solution: Check if yesterday was a trading day. The pipeline automatically falls back through 5 providers (Yahoo → Polygon → Tiingo → Alpha Vantage → Finnhub) via circuit breakers. If all sources fail, retry with `--delay 2` or use `stock-csv-downloader` as a manual fallback. Check `data_source_health.py` probe results for provider status.
 
 ### Slack channel not found
 

@@ -42,7 +42,7 @@ These skills exist in the repository and can be delegated to:
 | daiso-mcp | Korean retail store/inventory search | `.cursor/skills/daiso-mcp/SKILL.md` | Execution |
 | public-apis | Search 1,400+ free public APIs | `.cursor/skills/public-apis/SKILL.md` | Execution |
 | scrapling | Python web scraping with anti-bot bypass | `.cursor/skills/scrapling/SKILL.md` | Execution |
-| notion-docs-sync | Sync markdown docs to Notion | `.cursor/skills/notion-docs-sync/SKILL.md` | Execution |
+| notion-docs-sync | Sync markdown docs to Notion | `.cursor/skills/notion/notion-docs-sync/SKILL.md` | Execution |
 
 ### Review Skills
 

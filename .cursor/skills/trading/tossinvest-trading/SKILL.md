@@ -1,10 +1,10 @@
 ---
 name: tossinvest-trading
-version: 1.0.0
+version: 1.1.0
 description: >-
   Execute trading operations (buy, sell, cancel, amend) on Toss Securities
-  via tossctl with mandatory enforcement of the 6-layer Safety Model.
-  Every live mutation requires all 6 layers to pass.
+  via tossctl with mandatory enforcement of the 7-layer Safety Model.
+  Every live mutation requires all layers to pass (Layer 0 is Paperclip governance).
   Use when the user asks to "buy stock on toss", "toss sell", "toss order",
   "토스 매수", "토스 매도", "토스 주문", "토스 거래", or needs to place,
   cancel, or amend orders on Toss Securities.
@@ -38,7 +38,7 @@ metadata:
 
 # tossinvest-trading
 
-Execute live trading operations on Toss Securities via tossctl. **Every mutation is gated by the 6-layer Safety Model — no layer may be skipped.**
+Execute live trading operations on Toss Securities via tossctl. **Every mutation is gated by the 7-layer Safety Model — no layer may be skipped.**
 
 ## When to Use
 
@@ -51,11 +51,12 @@ Use when the user asks to buy stock, sell stock, cancel a pending order, amend a
 - For Kiwoom Securities trading → use `tab-kiwoom`
 - For paper trading or backtesting → use `trading-backtest-expert`
 
-## CRITICAL: 6-Layer Safety Model
+## CRITICAL: 7-Layer Safety Model
 
-**ALL 6 LAYERS ARE MANDATORY for every live trading operation. There are no shortcuts.**
+**ALL 7 LAYERS ARE MANDATORY for every live trading operation. There are no shortcuts.**
 
 ```
+Layer 0: Paperclip approval gate  → Governance approval for orders above threshold
 Layer 1: config.json trading flags → Must explicitly allow the operation type
 Layer 2: permissions grant (TTL)  → Time-limited execution window must be active
 Layer 3: preview (dry run)        → Always preview first, never skip to execute
@@ -63,6 +64,52 @@ Layer 4: --execute flag           → Explicit flag to attempt live mutation
 Layer 5: --dangerously-skip-permissions → Explicit risk acknowledgement
 Layer 6: --confirm <token>        → Cryptographic confirmation from preview output
 ```
+
+### Layer 0: Paperclip Governance Gate (Optional but Recommended)
+
+Before proceeding with any live trading operation, check if Paperclip governance is available. If available, create an approval request for orders exceeding the cost threshold.
+
+**Threshold**: Orders with estimated total cost >= KRW 500,000 (or USD equivalent) require Paperclip board approval.
+
+**Step 0a — Check Paperclip availability:**
+
+```
+Tool: paperclip_dashboard
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+If Paperclip is unavailable (connection refused), log "Paperclip unavailable — proceeding with standard 6-layer safety" and skip to Layer 1.
+
+**Step 0b — Create approval request (if above threshold):**
+
+```
+Tool: paperclip_create_issue
+Input: {
+  "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92",
+  "title": "Trading approval: {BUY/SELL} {symbol} x {qty} @ {price}",
+  "body": "Estimated cost: {total}\nStrategy: {source}\nMarket: {KR/US}\nRisk assessment: {risk_level}",
+  "priority": "critical",
+  "labels": ["trading-approval", "live-order", "governance-required"]
+}
+```
+
+**Step 0c — Wait for approval:**
+
+Poll `paperclip_list_approvals` or direct the user to approve via Paperclip UI at `http://127.0.0.1:3100`. Do NOT proceed to Layer 1 until the approval is granted or the user explicitly overrides with "skip-paperclip-approval".
+
+**Step 0d — Log the approval decision:**
+
+```
+Tool: paperclip_log_cost
+Input: {
+  "agentId": "<trading-agent-id>",
+  "amountCents": 0,
+  "description": "Trading approval {approved/overridden}: {symbol} x {qty}",
+  "metadata": { "approval_status": "approved", "override": false }
+}
+```
+
+**Graceful degradation**: If Paperclip is unavailable, the existing 6-layer safety model remains fully enforced. Layer 0 adds governance tracking, not a replacement for user confirmation.
 
 ### Layer 1: Configuration Gate
 

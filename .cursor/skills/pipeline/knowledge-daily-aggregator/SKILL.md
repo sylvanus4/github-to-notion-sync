@@ -81,6 +81,8 @@ outputs/knowledge-daily-aggregator/{date}/phase-{N}-{label}.json
 | Ingest into Cognee | 3 | `cognee` | `phase-3-cognee.json` |
 | Entity resolution | 4 | `entity-resolution` | `phase-4-entity-resolution.json` |
 | Update MEMORY.md | 5 | `memory` | `phase-5-memory.json` |
+| KB Router | 5.5 | `kb-router` | `phase-5.5-kb-router.json` |
+| gbrain entity ingest | 5.7 | `gbrain` | `phase-5.7-gbrain.json` |
 | Knowledge report | 6 | `report` | `phase-6-report.json` |
 
 ### Manifest
@@ -166,6 +168,7 @@ Example:
 | 4 | Entity resolution | `outputs/knowledge-daily-aggregator/{date}/phase-4-entity-resolution.json` | Merge map, dedupe stats |
 | 5 | MEMORY.md | `outputs/knowledge-daily-aggregator/{date}/phase-5-memory.json` | Paths/lines appended or diff summary |
 | 5.5 | KB Router | `outputs/knowledge-daily-aggregator/{date}/phase-5.5-kb-router.json` | topics_routed map, artifacts_classified, duplicates skipped |
+| 5.7 | gbrain | `outputs/knowledge-daily-aggregator/{date}/phase-5.7-gbrain.json` | Entity staging + import results (non-blocking) |
 | 6 | Report | `outputs/knowledge-daily-aggregator/{date}/phase-6-report.json` | Structured report + optional plain text path |
 
 Index file: `outputs/knowledge-daily-aggregator/{date}/manifest.json`.
@@ -175,7 +178,7 @@ Index file: `outputs/knowledge-daily-aggregator/{date}/manifest.json`.
 ### Initialization (run once per `{date}`)
 
 1. Create the run directory: `outputs/knowledge-daily-aggregator/{date}/`.
-2. Write an initial `manifest.json` with `skill`, `date`, `createdAt` = `updatedAt` = now (ISO 8601), and `phases` containing six entries (phase 1–6) each with `status`: `"pending"` and the correct `file` paths.
+2. Write an initial `manifest.json` with `skill`, `date`, `createdAt` = `updatedAt` = now (ISO 8601), and `phases` containing entries for phases 1–6 (including 5.5 and 5.7) each with `status`: `"pending"` and the correct `file` paths.
 3. Proceed to Step 1; after each phase completes, update `manifest.json` (`updatedAt`, phase `status`, `summary`, `completedAt`).
 
 ### Step 1: Collect Daily Outputs
@@ -262,12 +265,81 @@ Route today's collected artifacts to the 9-topic LLM Knowledge Base for long-ter
 
 **Persist & manifest:** Write `phase-5.5-kb-router.json` with `topics_routed` (map of topic to count), `artifacts_classified`, `artifacts_skipped_duplicate`, and `errors`. Update `manifest.json` for phase 5.5.
 
+### Step 5.7: gbrain Entity Ingest (non-blocking)
+
+After KB routing, push entity-relevant items to gbrain for entity-centric knowledge compounding. This phase is **non-blocking** — failures do not affect `overall_status`.
+
+**Prerequisites**: `gbrain` CLI at `~/.local/bin/gbrain`, PostgreSQL running.
+
+**Skip conditions** (set status to `"skipped"`):
+- `gbrain` CLI not found at `~/.local/bin/gbrain`
+- PostgreSQL unreachable (`gbrain doctor --json` fails)
+- Phase 2 extracted zero entities
+
+**Procedure:**
+
+1. Read `phase-2-extract.json` for extracted entities (people, companies, technologies, products)
+2. Create staging directory: `STAGING=$(mktemp -d /tmp/gbrain-kda-XXXXXX)`
+3. For each entity, generate a markdown file with YAML frontmatter (tags):
+
+   People → `$STAGING/people/{slug}.md`:
+   ```markdown
+   ---
+   tags: [daily-aggregate, {source-type}]
+   ---
+   # {Person Name}
+
+   - **Source**: {artifact where mentioned}
+   - **Date**: {date}
+   - **Context**: {relationship or role info from extraction}
+   ```
+
+   Companies → `$STAGING/companies/{slug}.md`:
+   ```markdown
+   ---
+   tags: [daily-aggregate, {source-type}]
+   ---
+   # {Company Name}
+
+   Mentioned in {source artifact} on {date}.
+
+   ## Context
+   - {relevant details from extraction}
+   ```
+
+   Ideas/Decisions → `$STAGING/ideas/{slug}.md`:
+   ```markdown
+   ---
+   tags: [daily-aggregate, decision]
+   ---
+   # {Decision/Idea Title}
+
+   {rationale and context from phase-2 extraction}
+   ```
+
+4. Run batch import:
+   ```bash
+   ~/.local/bin/gbrain import "$STAGING" --no-embed --json
+   ```
+   Use `--no-embed` to avoid OpenAI API dependency during pipeline execution. Embeddings are generated in batch by `gbrain embed --stale` during the PM orchestrator's maintenance phase.
+
+5. Clean up staging directory after successful import.
+
+**Persist & manifest:** Write `phase-5.7-gbrain.json` with:
+- `entities_staged`: `{ people: N, companies: N, ideas: N }`
+- `import_result`: parsed JSON from `gbrain import` output
+- `staging_dir`: path (cleaned up after import)
+- `status`: `"success"` | `"skipped"` | `"failed"`
+- `skipped_reason`: string (only if skipped)
+
+Update `manifest.json` for phase 5.7. Phase 5.7 failure sets its own status to `"failed"` but does NOT change `overall_status`.
+
 ### Step 6: Generate Knowledge Report
 
 **Input rule:** Build this step **only** from on-disk artifacts:
 
 - Read `outputs/knowledge-daily-aggregator/{date}/manifest.json`
-- Read `phase-1-collect.json` through `phase-5.5-kb-router.json` in the same directory
+- Read `phase-1-collect.json` through `phase-5.7-gbrain.json` in the same directory
 
 Do **not** restate counts, learnings, or graph metrics from prior chat turns unless they are reproduced by parsing these files. If a field is missing in a phase file, record `null` or `"unknown"` in `phase-6-report.json` and note the gap in `summary`.
 
@@ -327,8 +399,9 @@ Actions:
 5. Entity resolution → `phase-4-entity-resolution.json`; update manifest
 6. Update MEMORY.md → `phase-5-memory.json`; update manifest
 7. Route artifacts to LLM Wiki via kb-daily-router → `phase-5.5-kb-router.json`; update manifest
-8. Generate report from phase JSON files only → `phase-6-report.json`; update manifest
-Result: Day's knowledge consolidated into persistent graph + LLM Wiki with a full file trail under `outputs/knowledge-daily-aggregator/{date}/`
+8. Push entity-relevant items to gbrain → `phase-5.7-gbrain.json`; update manifest (non-blocking)
+9. Generate report from phase JSON files only → `phase-6-report.json`; update manifest
+Result: Day's knowledge consolidated into persistent graph + LLM Wiki + gbrain entities with a full file trail under `outputs/knowledge-daily-aggregator/{date}/`
 
 ### Example 2: Retroactive aggregation
 User says: "Aggregate knowledge from last 3 days"

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "full-onboarding-pipeline",
+    "description": "Complete client onboarding automation from client details",
+    "input": "Onboard new client: Acme Corp. Primary contact: Jane Smith (jane@acme.com, CTO). Project: AI Infrastructure Setup. Start date: 2026-05-01. Service tier: Enterprise.",
+    "expected_behavior": [
+      "Phase 1: Collects and validates client details, creates client profile",
+      "Phase 2: Generates welcome-kit.docx with company intro, team contacts, SLA overview, communication protocols",
+      "Phase 3: Creates onboarding-checklist.md with 15-20 tasks across 4 categories (admin, technical, communication, training)",
+      "Phase 4: Creates shared Google Drive folder with subfolder structure via gws-drive",
+      "Phase 5: Creates Notion project page with linked database entries via md-to-notion",
+      "Phase 6: Schedules kick-off meeting via gws-calendar for start date",
+      "Phase 7: Drafts welcome email sequence (Day 0, Day 3, Day 7) via gws-gmail",
+      "All outputs saved to outputs/client-onboarding-automator/{date}/acme-corp/"
+    ],
+    "success_criteria": "welcome-kit.docx generated; checklist created; Drive folder exists; Notion page created; calendar invite sent; email drafts prepared; manifest.json complete"
+  },
+  {
+    "id": "korean-client-onboarding",
+    "description": "Korean client onboarding with Korean documentation",
+    "input": "새 클라이언트 온보딩: 삼성SDS. 담당자: 김철수 (chulsoo@samsung.com, 부장). 프로젝트: GPU 클러스터 구축. 시작일: 2026-06-01. 서비스 티어: Enterprise.",
+    "expected_behavior": [
+      "Generates Korean welcome kit document",
+      "Checklist items in Korean",
+      "Korean welcome email sequence",
+      "Drive folder named with Korean convention",
+      "Applies sentence-polisher to all Korean outputs"
+    ],
+    "success_criteria": "Korean documentation generated; welcome emails in Korean with proper honorifics (합니다체); all outputs polished"
+  },
+  {
+    "id": "minimal-input-prompts",
+    "description": "Minimal input triggers clarifying questions",
+    "input": "Onboard a new client for us",
+    "expected_behavior": [
+      "Asks for required information: company name, primary contact, project name, start date",
+      "Suggests optional fields: service tier, special requirements",
+      "Does NOT proceed with onboarding without at minimum company name and contact"
+    ],
+    "success_criteria": "AskQuestion or clarifying questions invoked before any document generation"
+  },
+  {
+    "id": "should-not-trigger-meeting-setup",
+    "description": "Simple meeting scheduling should route to gws-calendar",
+    "input": "Schedule a kick-off call with our new client for next Monday at 10am",
+    "expected_behavior": [
+      "Skill should NOT be invoked for simple meeting scheduling",
+      "Request should route to gws-calendar or smart-meeting-scheduler"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to calendar skills"
+  },
+  {
+    "id": "should-not-trigger-employee-onboarding",
+    "description": "Employee onboarding should route to HR skills",
+    "input": "We have a new developer joining the team next week. Set up their onboarding process.",
+    "expected_behavior": [
+      "Skill should NOT be invoked for employee/team member onboarding",
+      "Request should route to onboarding-accelerator or HR skills"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to onboarding-accelerator or kwp-human-resources skills"
+  }
+]

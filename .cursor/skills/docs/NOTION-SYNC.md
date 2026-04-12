@@ -29,13 +29,13 @@ Markdown → Notion 동기화 문서 디렉토리.
 export NOTION_TOKEN="<Notion Integration Token>"
 
 # 전체 동기화 (CWD에 .notion-sync.yaml이 있을 때)
-node ~/.cursor/skills/notion-docs-sync/scripts/sync.mjs
+node ~/.cursor/skills/notion/notion-docs-sync/scripts/sync.mjs
 
 # yaml 경로 지정
-node ~/.cursor/skills/notion-docs-sync/scripts/sync.mjs path/to/.notion-sync.yaml
+node ~/.cursor/skills/notion/notion-docs-sync/scripts/sync.mjs path/to/.notion-sync.yaml
 
 # 특정 파일만
-node ~/.cursor/skills/notion-docs-sync/scripts/sync.mjs .notion-sync.yaml spec/api-design.md guide/setup.md
+node ~/.cursor/skills/notion/notion-docs-sync/scripts/sync.mjs .notion-sync.yaml spec/api-design.md guide/setup.md
 ```
 
 ## Usage

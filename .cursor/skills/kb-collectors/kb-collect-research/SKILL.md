@@ -10,9 +10,9 @@ description: >-
   Korean triggers: "연구 KB 수집", "논문 수집", "AI 리서치 수집".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
-  tags: ["knowledge-base", "research", "papers", "daily-collector"]
+  tags: ["knowledge-base", "research", "papers", "daily-collector", "3-day-window"]
 ---
 
 # KB Collect Research — Daily Research Intelligence Collector
@@ -24,11 +24,28 @@ Automated daily collector for AI/ML research papers, HuggingFace trending conten
 - WebSearch tool available
 - `knowledge-bases/_config/social-feeds.yaml` — research Twitter accounts and arXiv RSS feeds
 
+## Collection Window
+
+> **NEWS_WINDOW_DAYS=3** — All external content searches (HF papers, arXiv feeds, community signals) use a 3-day rolling window. This ensures papers published on weekends or late evenings are not missed.
+
+## Deduplication (collector-side)
+
+Before writing any raw file, check existing files in the target `raw/` directory from the last 3 days:
+
+1. **Scan** all `*.md` files in `knowledge-bases/{topic}/raw/` with dates within the last 3 days (based on filename `{date}-` prefix).
+2. **Parse YAML frontmatter** of each file to extract `source` (URL or arXiv ID) and `title`.
+3. **Skip** writing a new file if either condition matches:
+   - Same `source` URL/arXiv ID already exists in any file from the last 3 days.
+   - Same `title` (case-insensitive, trimmed) already exists in any file from the last 3 days.
+4. **Track** the count of skipped items and report as `dedup_skipped` in the collector summary returned to the orchestrator.
+
+> For arXiv papers: extract the paper ID from the URL (e.g., `2401.12345`) for more reliable dedup matching.
+
 ## Workflow
 
 ### Phase 1: HuggingFace Daily Papers
 
-1. WebSearch for "huggingface daily papers today" or use HF papers API.
+1. WebSearch for "huggingface papers" or use HF papers API (last 3 days).
 2. Filter for papers relevant to: LLM, multi-agent, GPU optimization, inference.
 3. Save top 5 paper summaries to `knowledge-bases/product-strategy/raw/{date}-hf-papers.md`.
 

@@ -103,7 +103,7 @@ If all steps fail to find a channel, ask the user to clarify.
 ### Step 3.5: Pre-Post Quality Gate
 
 Before posting to Slack, verify all 3 thread messages are ready:
-- [ ] Message 1 (Title): Contains author handle, engagement metrics, and direct tweet URL
+- [ ] Message 1 (Title): Bold Korean title with topic emoji, one-line summary, and direct tweet URL
 - [ ] Message 2 (Summary): Contains Korean summary, 3+ key insights from web research, source links
 - [ ] Message 3 (AI GPU Cloud): Contains ThakiCloud relevance analysis OR explicit "관련 없음" statement
 - [ ] All messages use Slack mrkdwn (not markdown) — no `**` or `##`
@@ -121,14 +121,18 @@ All messages use Slack mrkdwn format. Rules:
 
 FORMATTING RULES — VIOLATING ANY OF THESE IS A QUALITY FAILURE:
 
-1. NO decorative emojis in section headers or body text.
-   - ALLOWED emojis (exhaustive list): ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ (engagement stats and thread numbering only)
-   - FORBIDDEN: 🔍 💡 🚀 📊 🎯 ✅ ⚡ 🔗 📌 💰 🏆 or ANY other decorative emoji
+0. **MESSAGE 1 IS PLAIN TEXT ONLY** — exactly 2 lines: one Korean headline sentence + source URL.
+   NO emojis, NO bold, NO italic, NO author info, NO engagement stats, NO "원문 보기", NO flag emojis.
+   Author/engagement data belongs ONLY in Message 2.
+1. NO decorative emojis in section headers or body text (Messages 2 and 3).
+   - ALLOWED emojis (exhaustive list, Message 2/3 only): ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ (engagement stats and thread numbering only)
+   - FORBIDDEN everywhere: 🔍 💡 🚀 📊 🎯 ✅ ⚡ 🔗 📌 💰 🏆 🧠 👤 📝 or ANY other decorative emoji
+   - Flag emojis (🇮🇹 🇺🇸 🇰🇷 etc.) are FORBIDDEN everywhere
 2. ALL body text MUST be in Korean. English is allowed ONLY for:
    - Proper nouns (product names, person names, company names)
    - Technical terms with no standard Korean translation
    - URLs and code snippets
-3. Section headers use *bold text* ONLY — no emojis before or after.
+3. Section headers (Messages 2 and 3 only) use *bold text* ONLY — no emojis before or after.
    Correct: *핵심 내용*
    Wrong:   🔍 *핵심 내용* or 💡 Key Insights
 4. Do NOT invent new section headers. Use ONLY the headers defined in the template:
@@ -145,15 +149,39 @@ Send to the channel using `slack_send_message`:
 - Tool: `slack_send_message`
 - Arguments: `channel_id`, `message`
 
-Format:
+Format — Message 1 is EXACTLY 2-3 lines, nothing more:
 
 ```
-{1-2 line Korean title summarizing the core insight of the tweet}
-{original tweet URL (tweet.url)}
->>>
+{Korean headline — one sentence summarizing the core insight or news}
+{source URL}
 ```
 
-The `>>>` at the end creates a blockquote visual separator in Slack.
+**Message 1 MUST contain ONLY:**
+1. A concise Korean headline (one sentence, no emoji prefix, no bold markup)
+2. The original tweet URL
+
+**Message 1 MUST NOT contain (these belong in Message 2):**
+- Author info (`@username`, name, bio, follower count) — NEVER in Message 1
+- Engagement stats (likes, retweets, views, bookmarks) — NEVER in Message 1
+- "원문 보기" link text — NEVER in Message 1
+- Flag emojis (🇮🇹 🇺🇸 🇰🇷 etc.) — NEVER in Message 1
+- Decorative emojis (🧠 👤 🔗 📝 🔍 💡 🚀 etc.) — NEVER in Message 1
+- Multiple lines of description — NEVER in Message 1
+- Bold/italic formatting — NEVER in Message 1
+
+Anti-pattern (HARD FAILURE — must never produce this):
+```
+🧠 Claude Code + Obsidian = 세컨드 브레인 구축 완전 가이드
+👤 @defileo | DeFi & AI 인사이트 크리에이터 (팔로워 41.7K)
+🔗 원문 보기
+🇮🇹 👀 365만 | ❤️ 5,331 | 🔄 429 | 📝 26,583
+```
+
+Correct example:
+```
+Claude Code + Obsidian으로 세컨드 브레인 구축하는 완전 가이드 — Karpathy LLM Wiki 기반 지식 관리 시스템
+https://x.com/defileo/status/2042241063612502162
+```
 
 **CRITICAL**: Capture the `message_ts` (timestamp) from the response. This is needed for thread replies.
 

@@ -12,222 +12,136 @@ description: >-
   paperclip-control). Do NOT use for installation (use paperclip-setup).
 metadata:
   author: thaki
-  version: "1.0.0"
+  version: "2.0.0"
   category: execution
 ---
 
-# Paperclip Agents — Agent Setup and Operations
+# Paperclip Agents — Agent Setup and Operations (MCP-Integrated)
 
-Create agents, configure adapters, manage heartbeats, enforce budgets, and inject skills at runtime.
+Create agents, manage heartbeats, enforce budgets, and track costs via MCP tools.
+**v2.0**: Core operations use MCP tools; heartbeat integrated with daily pipeline.
 
 ## Prerequisites
 
-- Paperclip server running (default `http://localhost:3100`). If not running, see `paperclip-setup`.
-- CLI available via `pnpm paperclipai` from `~/work/thakicloud/paperclip/`
-- Context profile configured with `company-id`. See `paperclip-control` for environment setup.
-- Set `API_BASE` and `API_KEY` env vars for curl examples (see `paperclip-control`).
+- Paperclip server running at `http://localhost:3100`. If not, see `paperclip-setup`.
+- `paperclip-mcp` server registered in `.cursor/mcp.json`
+- ThakiCloud company ID: `b573bdbe-785a-4f39-b1e9-f2b623e40a92`
 
 ## Agent Adapter Types
 
 | Adapter | Description | Key Config |
 |---------|-------------|------------|
-| `process` | Spawn local child process | `command`, `args`, `cwd`, `env`, `timeoutSec` |
+| `process` | Spawn local child process | `command`, `args`, `cwd`, `env` |
 | `claude_local` | Claude Code local agent | `cwd`, `model`, `instructionsFilePath` |
 | `codex_local` | OpenAI Codex local agent | `cwd`, `model` |
 | `cursor_local` | Cursor agent (local) | `cwd`, `model` |
-| `opencode_local` | OpenCode local agent | `cwd`, `model` |
-| `http` | External webhook agent | `url`, `method`, `headers`, `payloadTemplate` |
-| `openclaw` | OpenClaw SSE/webhook | `callbackUrl`, `paperclipApiUrl` |
+| `http` | External webhook agent | `url`, `method`, `headers` |
 
-Full JSON examples for each adapter: `references/adapter-configs.md`.
+## Workflow (MCP-First)
 
-## Workflow
+### 1. List Agents
 
-### 1. Discover Adapter Options
-
-Before creating an agent, check available adapter configurations:
-
-```bash
-curl -sS "$API_BASE/llms/agent-configuration.txt" -H "Authorization: Bearer $API_KEY"
-curl -sS "$API_BASE/llms/agent-configuration/claude_local.txt" -H "Authorization: Bearer $API_KEY"
-curl -sS "$API_BASE/llms/agent-icons.txt" -H "Authorization: Bearer $API_KEY"
 ```
-
-Compare existing agent configs:
-
-```bash
-curl -sS "$API_BASE/api/companies/<company-id>/agent-configurations" \
-  -H "Authorization: Bearer $API_KEY"
+Tool: paperclip_list_agents
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
 ```
 
 ### 2. Create Agent (Hire Request)
 
-Submit a hire request (goes through governance approval):
+Submit via CLI (goes through governance approval):
 
 ```bash
-curl -sS -X POST "$API_BASE/api/companies/<company-id>/agent-hires" \
-  -H "Authorization: Bearer $API_KEY" \
+cd ~/work/thakicloud/paperclip
+curl -sS -X POST "http://localhost:3100/api/companies/b573bdbe-785a-4f39-b1e9-f2b623e40a92/agent-hires" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "frontend-dev",
     "role": "engineer",
     "title": "Frontend Engineer",
-    "icon": "code",
-    "reportsTo": "<manager-agent-id>",
-    "capabilities": "React, TypeScript, Tailwind CSS development",
-    "adapterType": "claude_local",
-    "adapterConfig": {
-      "cwd": "/path/to/project",
-      "model": "claude-sonnet-4-20250514"
-    },
-    "runtimeConfig": {
-      "heartbeat": {
-        "enabled": true,
-        "intervalSec": 300,
-        "wakeOnDemand": true
-      }
-    },
-    "sourceIssueId": "<issue-id>"
+    "adapterType": "cursor_local",
+    "adapterConfig": { "cwd": "/Users/hanhyojung/work/thakicloud/ai-platform-webui" },
+    "runtimeConfig": { "heartbeat": { "enabled": true, "intervalSec": 300 } }
   }'
 ```
 
-If governance is enabled, the response includes an `approval` object with `pending_approval` status. Monitor via `paperclip-control` skill.
+Monitor approval status via `paperclip_list_approvals` MCP tool.
 
-### 3. Agent API Keys
+### 3. Send Heartbeat
 
-Agents authenticate with Bearer tokens. Keys are hashed at rest (SHA-256).
+Use MCP tool `paperclip_heartbeat`:
 
-```bash
-# Create a new API key for an agent
-curl -sS -X POST "$API_BASE/api/agents/<agent-id>/keys" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{}'
+```
+Tool: paperclip_heartbeat
+Input: { "agentId": "<agent-uuid>", "status": "active — processing daily pipeline" }
 ```
 
-### 4. Run Heartbeat
+**Daily pipeline integration**: The `daily-am-orchestrator` should call `paperclip_heartbeat` for each registered agent during Phase 0.5 to keep agents alive and report status.
 
-Heartbeats are short execution windows. The agent wakes, checks assignments, works, and exits.
+### 4. Cost Tracking
 
-```bash
-pnpm paperclipai heartbeat run --agent-id <agent-id> \
-  [--api-base http://localhost:3100] \
-  [--api-key <token>]
+Use MCP tool `paperclip_log_cost` after any agent work:
+
+```
+Tool: paperclip_log_cost
+Input: {
+  "agentId": "<agent-uuid>",
+  "amountCents": 12,
+  "description": "daily-stock-check analysis run",
+  "metadata": { "provider": "anthropic", "model": "claude-sonnet-4-20250514", "inputTokens": 15000, "outputTokens": 3000 }
+}
 ```
 
-Via REST:
+**MEMORY.md integration**: After logging costs, update `memory/topics/workspace-facts.md` with cumulative daily spend if it exceeds the soft alert threshold (80% of monthly budget).
 
-```bash
-curl -sS -X POST "$API_BASE/api/agents/<agent-id>/heartbeat/invoke" \
-  -H "Authorization: Bearer $API_KEY"
+### 5. Budget Check
+
+Use MCP tool `paperclip_get_budget`:
+
 ```
-
-Heartbeat states: `queued` → `running` → `succeeded` | `failed` | `cancelled` | `timed_out`.
-
-Skip conditions: agent paused/terminated, active run already exists, budget exceeded.
-
-### 5. Budget Management
-
-```bash
-# Set agent monthly budget (in cents)
-curl -sS -X PATCH "$API_BASE/api/agents/<agent-id>/budgets" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"budgetMonthlyCents": 50000}'
+Tool: paperclip_get_budget
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
 ```
 
 Budget rules:
-- **80% threshold**: Soft alert — agent should focus on critical tasks only
-- **100% threshold**: Hard pause — agent is auto-paused, no new checkouts
+- **80% threshold**: Soft alert — record in MEMORY.md, notify Slack
+- **100% threshold**: Hard pause — do not spawn expensive subagents
 
-For company-level budgets, see `paperclip-control`.
-
-### 6. Cost Event Ingestion
-
-Report token usage after agent work:
+### 6. Agent Lifecycle (CLI)
 
 ```bash
-curl -sS -X POST "$API_BASE/api/companies/<company-id>/cost-events" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agentId": "<agent-id>",
-    "issueId": "<issue-id>",
-    "provider": "anthropic",
-    "model": "claude-sonnet-4-20250514",
-    "inputTokens": 15000,
-    "outputTokens": 3000,
-    "costCents": 12
-  }'
-```
+cd ~/work/thakicloud/paperclip
 
-### 7. Runtime Skill Injection
-
-Agents load skills at runtime without retraining:
-
-```bash
-# List available skills
-curl -sS "$API_BASE/api/skills/index" -H "Authorization: Bearer $API_KEY"
-
-# Get specific skill content
-curl -sS "$API_BASE/api/skills/paperclip" -H "Authorization: Bearer $API_KEY"
-```
-
-Skills are markdown files resolved from `skills/` directories.
-
-### 8. Set Agent Instructions Path
-
-```bash
-curl -sS -X PATCH "$API_BASE/api/agents/<agent-id>/instructions-path" \
-  -H "Authorization: Bearer $API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"path": "agents/frontend-dev/AGENTS.md"}'
-```
-
-Relative paths resolve against the agent's `adapterConfig.cwd`.
-
-### 9. Agent Lifecycle
-
-```bash
 # Pause agent
-curl -sS -X POST "$API_BASE/api/agents/<agent-id>/pause" -H "Authorization: Bearer $API_KEY"
+curl -sS -X POST "http://localhost:3100/api/agents/<agent-id>/pause"
 
 # Resume agent
-curl -sS -X POST "$API_BASE/api/agents/<agent-id>/resume" -H "Authorization: Bearer $API_KEY"
+curl -sS -X POST "http://localhost:3100/api/agents/<agent-id>/resume"
 
 # Terminate agent
-curl -sS -X POST "$API_BASE/api/agents/<agent-id>/terminate" -H "Authorization: Bearer $API_KEY"
+curl -sS -X POST "http://localhost:3100/api/agents/<agent-id>/terminate"
 ```
+
+## MCP Tool Reference
+
+| Tool | Purpose |
+|------|---------|
+| `paperclip_list_agents` | List all agents in company |
+| `paperclip_heartbeat` | Keep agent alive, update status |
+| `paperclip_log_cost` | Record cost event (tokens, API calls) |
+| `paperclip_get_budget` | Check remaining budget |
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | Heartbeat skipped | Agent paused or budget exceeded | Resume agent or increase budget |
-| `409` on heartbeat invoke | Active run already exists | Wait for current run to complete |
-| Agent not waking | Heartbeat disabled in runtimeConfig | Set `heartbeat.enabled: true` |
-| Cost events rejected | Invalid `agentId` or `issueId` | Verify IDs exist in the company |
+| `409` on heartbeat | Active run already exists | Wait for current run to complete |
+| Cost events rejected | Invalid `agentId` | Verify with `paperclip_list_agents` |
 | Hire request pending | Governance approval required | Approve via `paperclip-control` |
-| Invalid `adapterType` | Unsupported adapter | Check `$API_BASE/llms/agent-configuration.txt` |
-| `400` on hire request | Invalid `adapterConfig` payload | Validate against adapter-specific docs |
-
-## References
-
-- `references/adapter-configs.md` — Full JSON examples for all adapter types and injected env vars
 
 ## Related Skills
 
-- `paperclip-control` — Company, goals, approvals, dashboard
-- `paperclip-tasks` — Issue/task CRUD and checkout
+- `paperclip-control` — Company, goals, approvals, dashboard (MCP-integrated)
+- `paperclip-tasks` — Issue/task CRUD and checkout (MCP-integrated)
 - `paperclip-setup` — Installation and configuration
-
-## Examples
-
-### Example 1: Standard usage
-
-**User says:** "Create a paperclip agent"
-
-**Actions:**
-1. Gather necessary context from the project and user
-2. Execute the skill workflow as documented above
-3. Deliver results and verify correctness
+- `paperclip-bridge` — Bidirectional sync between mission-control and Paperclip

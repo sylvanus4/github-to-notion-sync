@@ -1,0 +1,60 @@
+[
+  {
+    "id": "full-icp-to-outreach",
+    "description": "Complete ICP-to-leads-to-outreach pipeline",
+    "input": "Research leads for our AI infrastructure product. ICP: Series B+ SaaS companies with 50-500 employees in North America, currently using AWS or GCP, with a VP of Engineering or CTO as decision maker. Find top 10 leads and draft outreach for the top 3.",
+    "expected_behavior": [
+      "Phase 1: Parses ICP into structured criteria (company size, funding stage, geography, tech stack, decision-maker titles)",
+      "Phase 2a: Runs Apollo prospect search for matching companies and contacts",
+      "Phase 2b: In parallel, runs Common Room account research (if available) or web-based company research",
+      "Phase 3: Merges results, scores each lead on 5 dimensions (ICP fit, recency, seniority, engagement, data completeness)",
+      "Phase 4: Generates personalized outreach drafts for top 3 leads with signal-anchored hooks",
+      "Phase 5: Saves leads-ranked.md, outreach-drafts.md, manifest.json to outputs/lead-research-agent/{date}/"
+    ],
+    "success_criteria": "10 leads ranked with composite scores; top 3 have email + LinkedIn outreach drafts; no fabricated signals; manifest.json complete"
+  },
+  {
+    "id": "korean-icp-input",
+    "description": "Korean ICP description with Korean output",
+    "input": "리드 리서치 해줘. ICP: 한국 핀테크 스타트업, 시리즈 A 이상, 직원 20-100명, CTO 또는 기술이사가 의사결정자. 상위 5개 리드 찾아줘.",
+    "expected_behavior": [
+      "Accepts Korean ICP description",
+      "Adjusts search to Korean market (KOSPI/KOSDAQ companies, Korean LinkedIn)",
+      "Generates Korean report with bilingual outreach drafts",
+      "Scores and ranks 5 leads"
+    ],
+    "success_criteria": "5 leads found and scored; output in Korean; ICP criteria correctly parsed from Korean input"
+  },
+  {
+    "id": "single-company-deep-dive",
+    "description": "Deep research on a specific target company rather than ICP search",
+    "input": "Research Databricks as a potential customer. Find the right decision makers for our GPU orchestration platform and draft a personalized outreach email.",
+    "expected_behavior": [
+      "Runs deep company research via kwp-sales-account-research",
+      "Identifies relevant decision-makers (VP Eng, Head of Infra, etc.)",
+      "Enriches contacts via Apollo",
+      "Generates highly personalized outreach anchored to company-specific signals (recent funding, tech blog posts, job postings)"
+    ],
+    "success_criteria": "Company profile generated; 3+ decision-makers identified; outreach draft references real company signals"
+  },
+  {
+    "id": "should-not-trigger-call-prep",
+    "description": "Sales call preparation should route to kwp-sales-call-prep",
+    "input": "I have a call with the CTO of Stripe tomorrow. Help me prepare talking points and research their infrastructure needs.",
+    "expected_behavior": [
+      "Skill should NOT be invoked for call preparation",
+      "Request should route to kwp-sales-call-prep"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to kwp-sales-call-prep"
+  },
+  {
+    "id": "should-not-trigger-competitive-intel",
+    "description": "Competitive intelligence should route to kwp-sales-competitive-intelligence",
+    "input": "Research our competitors in the GPU orchestration space and build a battlecard comparing our features",
+    "expected_behavior": [
+      "Skill should NOT be invoked for competitive analysis",
+      "Request should route to kwp-sales-competitive-intelligence"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to kwp-sales-competitive-intelligence"
+  }
+]

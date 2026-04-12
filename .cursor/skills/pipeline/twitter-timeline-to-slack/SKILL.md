@@ -206,6 +206,7 @@ FORMATTING RULES — VIOLATING ANY OF THESE IS A QUALITY FAILURE:
 
 1. NO decorative emojis in section headers or body text.
    - ALLOWED emojis (exhaustive list): ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ (engagement stats and thread numbering only)
+     + ONE topic emoji per Message 1 title (`:robot_face:`, `:books:`, `:mag:`, `:newspaper:`, `:bulb:`, `:chart_with_upwards_trend:`, `:writing_hand:`, `:cloud:`, `:memo:`)
    - FORBIDDEN: 🔍 💡 🚀 📊 🎯 ✅ ⚡ 🔗 📌 💰 🏆 or ANY other decorative emoji
 2. ALL body text MUST be in Korean. English is allowed ONLY for:
    - Proper nouns (product names, person names, company names)
@@ -224,9 +225,10 @@ FORMATTING RULES — VIOLATING ANY OF THESE IS A QUALITY FAILURE:
 **Message 1: Title (Channel Post)**
 
 ```
-{1-2 line Korean title summarizing the core insight}
-{original tweet URL}
->>>
+*{topic_emoji} {Subject} — {Korean description}*
+
+{One-line Korean summary with key features, numbers, or core insight}
+{source URL}
 ```
 
 CRITICAL: Capture the `message_ts` from the response for thread replies.
@@ -426,8 +428,7 @@ Before proceeding to the next tweet, verify the posted thread against ALL
 quality gate items. If ANY item below is missing, you MUST edit or re-post
 the deficient message:
 
-- [ ] Message 1 has a substantive Korean title (not just a translation of
-      the tweet — add analytical framing)
+- [ ] Message 1 has bold Korean title with topic emoji, one-line summary, and source URL (no `>>>`)
 - [ ] Message 2 includes author bio context (not just @handle)
 - [ ] Message 2 includes engagement stats with ❤️/🔁/👀 emoji formatting
 - [ ] Message 2 "핵심 내용" section has 3+ sentences of substantive analysis
@@ -561,9 +562,10 @@ For a tweet like `https://x.com/altryne/status/2032223053116260367`:
 
 **Message 1 (channel post):**
 ```
-Shopify CEO가 Karpathy의 Autoresearch로 20년 된 Liquid 엔진을 53% 빠르게 만들다 — AI 코딩 에이전트의 실전 성능 최적화 사례
+*:robot_face: Autoresearch — Shopify CEO가 20년 된 Liquid 엔진을 53% 빠르게 만든 AI 코딩 에이전트 사례*
+
+Karpathy의 자율 실험 루프로 parse+render 53% 단축, 오브젝트 할당 61% 감소 달성
 https://x.com/altryne/status/2032223053116260367
->>>
 ```
 
 **Message 2 (thread reply) — MUST include all sections:**
@@ -631,9 +633,10 @@ After `run_pipeline.js`:
 
 **Message 1 (channel post):**
 ```
-월가 AI 에이전트를 1인 오픈소스로 구현 — 리서치, 퀀트, 트레이딩, 리스크 관리 풀스택
+*:chart_with_upwards_trend: OpenAlice — 월가 AI 에이전트를 1인 오픈소스로 구현한 풀스택 트레이딩 시스템*
+
+리서치, 퀀트, 트레이딩, 리스크 관리 에이전트를 100% 오픈소스로 공개
 https://x.com/quantscience_/status/2032849537975357665
->>>
 ```
 
 **Message 2 (thread reply — thread variant):**

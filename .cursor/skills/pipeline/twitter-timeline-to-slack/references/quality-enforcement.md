@@ -26,7 +26,7 @@ Every posted Slack thread MUST pass ALL items below. Check after each tweet.
 
 ### Formatting (ALL Messages)
 
-- [ ] NO decorative emojis anywhere (only ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ allowed)
+- [ ] NO decorative emojis anywhere (only ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ + ONE topic emoji in Message 1 title allowed)
 - [ ] ALL body text in Korean (English only for proper nouns, technical terms, URLs)
 - [ ] Section headers use `*bold*` ONLY — no emojis before/after
 - [ ] Only template-defined headers used (no invented headers)
@@ -35,9 +35,11 @@ Every posted Slack thread MUST pass ALL items below. Check after each tweet.
 
 ### Message 1 (Title Post)
 
-- [ ] Substantive Korean title with analytical framing (not a literal translation)
-- [ ] Original tweet URL included
-- [ ] `>>>` block quote marker present
+- [ ] Bold Korean title with topic emoji: `*{emoji} {Subject} — {Korean description}*`
+- [ ] Empty line after title
+- [ ] One-line Korean summary with key features, numbers, or core insight
+- [ ] Source URL included
+- [ ] NO `>>>` block quote marker (removed)
 - [ ] `message_ts` captured for thread replies
 
 ### Media Upload
@@ -101,7 +103,7 @@ These formatting violations have been observed in degraded output. Each is a har
 | Invented header | `*📊 Data Analysis*` | Use only template-defined headers |
 | Oversized emoji icons | `🔍💡🚀📊🎯✅⚡🔗📌💰🏆` throughout | Only ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ |
 
-**Allowed emojis (exhaustive list)**: ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ — engagement stats and thread numbering only.
+**Allowed emojis (exhaustive list)**: ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ — engagement stats and thread numbering only. + ONE topic emoji per Message 1 title (`:robot_face:`, `:books:`, `:mag:`, `:newspaper:`, `:bulb:`, `:chart_with_upwards_trend:`, `:writing_hand:`, `:cloud:`, `:memo:`).
 
 **English exceptions**: Proper nouns (Claude, NVIDIA, ThakiCloud), technical terms without Korean equivalent, URLs, code.
 

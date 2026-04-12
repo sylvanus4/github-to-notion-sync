@@ -24,16 +24,63 @@ def build_media_lookup(media_entities: list) -> dict:
         media_id = str(me.get("media_id", ""))
         info = me.get("media_info", {})
         typename = info.get("__typename", "")
-        if typename == "ApiImage":
-            lookup[media_id] = info.get("original_img_url", "")
-        elif typename == "ApiVideo":
+
+        is_video = typename == "ApiVideo" or (not typename and _looks_like_video(info))
+        is_image = typename == "ApiImage" or (not typename and not is_video and _looks_like_image(info))
+
+        if is_image:
+            url = (
+                info.get("original_img_url")
+                or info.get("url")
+                or info.get("media_url_https")
+                or ""
+            )
+            if url:
+                lookup[media_id] = url
+            else:
+                print(f"[warn] Image media {media_id}: no resolvable URL", file=sys.stderr)
+
+        elif is_video:
             preview = info.get("preview_image", {})
-            lookup[media_id] = preview.get("original_img_url", "")
-            for v in info.get("variants", []):
+            preview_url = (
+                preview.get("original_img_url")
+                or preview.get("url")
+                or info.get("media_url_https")
+                or ""
+            )
+            if preview_url:
+                lookup[media_id] = preview_url
+
+            variants = info.get("variants") or []
+            if not variants:
+                vi = info.get("video_info", {})
+                variants = vi.get("variants", [])
+            mp4_found = False
+            for v in variants:
                 if v.get("content_type") == "video/mp4":
                     lookup[f"{media_id}_video"] = v.get("url", "")
+                    mp4_found = True
                     break
+            if not mp4_found and variants:
+                lookup[f"{media_id}_video"] = variants[-1].get("url", "")
+            if not preview_url and not mp4_found:
+                print(f"[warn] Video media {media_id}: no resolvable URL", file=sys.stderr)
+
+        elif typename:
+            print(f"[warn] Unknown media type '{typename}' for {media_id}", file=sys.stderr)
+
     return lookup
+
+
+def _looks_like_image(info: dict) -> bool:
+    return bool(
+        info.get("original_img_url")
+        or info.get("media_url_https", "").endswith((".jpg", ".png", ".webp"))
+    )
+
+
+def _looks_like_video(info: dict) -> bool:
+    return bool(info.get("variants") or info.get("video_info"))
 
 
 def _render_styled_segment(text: str, bold_flags: list, italic_flags: list) -> str:

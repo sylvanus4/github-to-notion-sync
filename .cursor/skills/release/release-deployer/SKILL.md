@@ -10,7 +10,7 @@ description: >-
   deployment pipeline. Do NOT use for Tuesday collection (use release-collector),
   Wednesday QA (use release-qa-gate), or hotfix deployment (use hotfix-manager).
 metadata:
-  version: "3.0.0"
+  version: "3.1.0"
   category: "execution"
   author: "thaki"
 ---
@@ -35,6 +35,48 @@ Thursday deployment lifecycle: lock the release list, promote the QA-verified RC
 - Reference: `release-ops-rules.mdc` for deployment rules
 
 ## Workflow
+
+### Phase 0: Paperclip Deployment Approval Gate (Optional)
+
+Before locking the release list, request Paperclip governance approval for production deployment. Skip if Paperclip is unavailable (graceful degradation).
+
+**Step 0a — Check Paperclip availability:**
+
+```
+Tool: paperclip_dashboard
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+If unavailable, log "Paperclip unavailable — proceeding with standard deployment" and skip to Phase 1.
+
+**Step 0b — Create deployment approval request:**
+
+```
+Tool: paperclip_create_issue
+Input: {
+  "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92",
+  "title": "Production deploy approval: {production_tag} ({N} items, {high_risk} high-risk)",
+  "body": "RC image: {rc_image_tag}\nDeploy candidates: {N}\nRisk profile: {high}/{medium}/{low}\nHigh-risk items: {list}",
+  "priority": "critical",
+  "labels": ["production-deploy", "approval-required", "governance"]
+}
+```
+
+**Step 0c — Wait for approval:**
+
+Poll `paperclip_list_approvals` or direct the user to approve via Paperclip UI. Do NOT proceed to Phase 1 until approval is granted. For urgent deployments, the user can override with "skip-paperclip".
+
+**Step 0d — Log approval:**
+
+```
+Tool: paperclip_log_cost
+Input: {
+  "agentId": "<release-deployer-agent-id>",
+  "amountCents": 0,
+  "description": "Production deploy approved: {production_tag}",
+  "metadata": { "rc_image_tag": "...", "item_count": N, "approval_status": "approved" }
+}
+```
 
 ### Phase 1: Lock Release List
 

@@ -83,6 +83,7 @@ This skill uses **file-first** orchestration: every phase persists structured ou
 | 3 | pm-analysis | `phase-3-pm-analysis.json` |
 | 4 | generate | `phase-4-generate.json` |
 | 5 | deliver | `phase-5-deliver.json` |
+| 6 | gbrain | `phase-6-gbrain.json` |
 
 ### Subagent Return Contract
 
@@ -143,6 +144,7 @@ Update `manifest.json` after **each** phase completes (merge into `phases`, refr
 | 3 | PM analysis | `phase-3-pm-analysis.json` | Merges core + parallel subagent artifacts |
 | 4 | Generate | `phase-4-generate.json` | References `summary.md`, `action-items.md` |
 | 5 | Deliver | `phase-5-deliver.json` | Notion/Slack/PPTX results |
+| 6 | gbrain | `phase-6-gbrain.json` | Entity extraction (non-blocking) |
 
 ## Input Modes
 
@@ -161,6 +163,7 @@ Phase 2: Classify      → Detect meeting type, select PM sub-skills
 Phase 3: PM Analysis   → Run multi-perspective analysis (parallel, max 4 agents)
 Phase 4: Generate      → Structured Korean summary + action items documents
 Phase 5: Deliver       → Save files + upload to Notion; optionally PPTX, Slack
+Phase 6: gbrain        → Extract entities (people, companies) → gbrain (non-blocking)
 ```
 
 **Pattern**: Sequential (Phase 1 → 2 → 3 → 4 → 5).
@@ -617,6 +620,7 @@ outputs/meeting-digest/
     ├── phase-3-pm-analysis.json
     ├── phase-4-generate.json
     ├── phase-5-deliver.json
+    ├── phase-6-gbrain.json       # Entity extraction results (non-blocking)
     ├── raw/                      # Normalized source content
     │   └── {sanitized-title}.md
     ├── summary.md                # Korean summary with PM analysis
@@ -685,6 +689,103 @@ Actions:
 5. Upload to custom Notion parent `abc123...`
 
 Result: Discovery-perspective analysis with Notion upload to custom parent
+
+---
+
+## Phase 6: gbrain Entity Extraction (auto, non-blocking)
+
+After Phase 5 delivery, extract entities from the meeting and push them to gbrain for entity-centric knowledge compounding. This phase is **non-blocking** — failures do not affect the overall pipeline status.
+
+**Prerequisites**: `gbrain` CLI available at `~/.local/bin/gbrain`, PostgreSQL running.
+
+### 6.1 Extract Entities from Phase 3 Output
+
+Read `phase-3-pm-analysis.json` and `phase-1-ingest.json`. Extract:
+
+1. **People** — meeting participants (names, roles if available)
+2. **Companies** — organizations mentioned in the discussion
+3. **Ideas** — key concepts, product ideas, or strategic themes discussed
+
+### 6.2 Stage Entity Files
+
+Create a temporary staging directory and generate markdown files with YAML frontmatter:
+
+```bash
+STAGING=$(mktemp -d /tmp/gbrain-meeting-XXXXXX)
+```
+
+For each person:
+```markdown
+---
+tags: [meeting-contact, {meeting-type}]
+---
+# {Person Name}
+
+- **Role**: {role if known}
+- **Context**: Participated in [{meeting-title}] on {date}
+
+## Meeting Notes
+- {relevant discussion points involving this person}
+```
+→ Save as `$STAGING/people/{slugified-name}.md`
+
+For each company:
+```markdown
+---
+tags: [company, {meeting-type}]
+---
+# {Company Name}
+
+Mentioned in [{meeting-title}] on {date}.
+
+## Context
+- {relevant discussion points about this company}
+```
+→ Save as `$STAGING/companies/{slugified-name}.md`
+
+For the meeting itself:
+```markdown
+---
+tags: [meeting, {meeting-type}]
+---
+# {Meeting Title} ({date})
+
+## Participants
+{list of attendees}
+
+## Key Decisions
+{from Phase 3 analysis}
+
+## Action Items
+{from Phase 4 action-items.md}
+```
+→ Save as `$STAGING/meetings/{date}-{slugified-title}.md`
+
+### 6.3 Import to gbrain
+
+```bash
+~/.local/bin/gbrain import "$STAGING" --no-embed --json
+```
+
+Use `--no-embed` to avoid OpenAI API dependency during pipeline execution. Embeddings are generated in batch by `gbrain embed --stale` during the PM orchestrator's maintenance phase.
+
+### 6.4 Persist & manifest (Phase 6)
+
+1. Write `outputs/meeting-digest/{date}/phase-6-gbrain.json` containing:
+   - `entities_extracted`: `{ people: N, companies: N, meetings: 1 }`
+   - `import_result`: parsed JSON from `gbrain import` output
+   - `staging_dir`: path (cleaned up after import)
+   - `status`: `"success"` | `"skipped"` (if gbrain unavailable) | `"failed"`
+2. Update `manifest.json`: append phase `id: 6`, `label: "gbrain"`, timings, summary.
+3. Phase 6 failure sets its own status to `"failed"` but does NOT change `overall_status` from Phase 5's result.
+
+### 6.5 Skip Conditions
+
+Skip Phase 6 entirely (status: `"skipped"`) when:
+- `gbrain` CLI is not found at `~/.local/bin/gbrain`
+- PostgreSQL is not reachable (test with `gbrain doctor --json`)
+- `--no-gbrain` flag is provided
+- Phase 3 produced no extractable entities
 
 ---
 

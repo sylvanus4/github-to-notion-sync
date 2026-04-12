@@ -306,7 +306,7 @@ Design the deck with these slides (adjust count based on content volume):
 
 ### 5.3 Apply Theme
 
-Read `.cursor/skills/anthropic-theme-factory/SKILL.md`.
+Read `.cursor/skills/anthropic/anthropic-theme-factory/SKILL.md`.
 
 Select a theme appropriate for business meeting summaries:
 - **Recommended**: "Modern Minimalist" or "Ocean Depths" for professional tone

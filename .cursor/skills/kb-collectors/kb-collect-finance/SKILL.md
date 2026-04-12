@@ -9,9 +9,9 @@ description: >-
   Korean triggers: "재무 KB 수집", "가격 모니터링", "SaaS 지표 수집".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
-  tags: ["knowledge-base", "finance", "pricing", "daily-collector"]
+  tags: ["knowledge-base", "finance", "pricing", "daily-collector", "3-day-window"]
 ---
 
 # KB Collect Finance — Daily Finance Intelligence Collector
@@ -22,6 +22,21 @@ Automated daily collector for SaaS financial metrics, cloud pricing changes, and
 
 - WebSearch tool available
 - `knowledge-bases/competitive-intel/competitor-registry.yaml` for pricing page URLs
+
+## Collection Window
+
+> **NEWS_WINDOW_DAYS=3** — All external content searches (pricing pages, SaaS benchmarks, financial reports) use a 3-day rolling window. Cloud pricing changes are typically infrequent, so a wider window captures updates reliably.
+
+## Deduplication (collector-side)
+
+Before writing any raw file, check existing files in the target `raw/` directory from the last 3 days:
+
+1. **Scan** all `*.md` files in `knowledge-bases/{topic}/raw/` with dates within the last 3 days (based on filename `{date}-` prefix).
+2. **Parse YAML frontmatter** of each file to extract `source` (URL) and `title`.
+3. **Skip** writing a new file if either condition matches:
+   - Same `source` URL already exists in any file from the last 3 days.
+   - Same `title` (case-insensitive, trimmed) already exists in any file from the last 3 days.
+4. **Track** the count of skipped items and report as `dedup_skipped` in the collector summary returned to the orchestrator.
 
 ## Workflow
 

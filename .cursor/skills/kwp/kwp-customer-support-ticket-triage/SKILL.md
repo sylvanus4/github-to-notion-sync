@@ -188,17 +188,89 @@ We'll follow up with you within [timeframe] with our findings.
 [protective action]."]
 ```
 
+## Mood & Urgency Detection
+
+Assess customer mood and urgency as structured metadata on every triaged ticket.
+
+### Mood Classification
+
+| Mood | Signal Words / Patterns | Response Adjustment |
+|---|---|---|
+| **Frustrated** | "again", "still", "unacceptable", "how many times", ALL CAPS, multiple exclamation marks, threatening language | Lead with empathy, acknowledge history, offer escalation path |
+| **Anxious** | "urgent", "deadline", "boss is asking", "need this ASAP", "blocking", time pressure | Acknowledge urgency, provide specific timeline, offer workaround |
+| **Neutral** | Factual description, no emotional language, straightforward question | Standard professional tone |
+| **Positive** | "love the product", "great feature", "thanks for", constructive feedback | Match enthusiasm, reinforce positive relationship |
+
+### Urgency Scoring (1-5)
+
+| Score | Indicators |
+|---|---|
+| 5 | Production down, data loss, security breach, regulatory deadline |
+| 4 | Core workflow blocked, multiple users affected, customer-stated deadline within 24h |
+| 3 | Feature broken but workaround exists, single user blocked, deadline within 1 week |
+| 2 | Inconvenience, cosmetic issue, feature request with rationale |
+| 1 | General question, minor suggestion, no time pressure |
+
+### Triage Output Format
+
+Include mood and urgency in every triage output:
+
+```
+## Ticket Triage
+
+**Category**: {primary} / {secondary}
+**Priority**: P{1-4}
+**Mood**: {frustrated/anxious/neutral/positive}
+**Urgency Score**: {1-5}/5
+**Route**: {Tier 1/Tier 2/Engineering/Product/Security/Billing}
+**SLA Deadline**: {timestamp}
+**SLA Status**: {within SLA / approaching / breached}
+
+**Summary**: {one-line summary}
+**Customer Impact**: {what's broken for them}
+**Recommended Action**: {specific next step}
+```
+
+## SLA Tracking
+
+Map priorities to SLA targets and track compliance.
+
+### SLA Table
+
+| Priority | First Response | Update Cadence | Resolution Target |
+|---|---|---|---|
+| P1 — Critical | 1 hour | Every 1-2 hours | 4 hours |
+| P2 — High | 4 hours | Every 4 hours | 1 business day |
+| P3 — Medium | 1 business day | Every 1 business day | 3 business days |
+| P4 — Low | 2 business days | As needed | 5 business days |
+
+### SLA Breach Warnings
+
+When triaging, calculate time remaining to SLA:
+
+- **Green** (>50% time remaining): Standard handling
+- **Yellow** (<50% time remaining): Flag as approaching SLA, prioritize in queue
+- **Red** (SLA breached or <1 hour remaining): Immediate escalation, auto-bump priority by one level
+
+### SLA Escalation Rules
+
+1. If first response SLA is within 30 minutes of breach → auto-assign to next available agent
+2. If resolution SLA is breached → auto-escalate to Tier 2 or manager
+3. If a ticket has been re-opened 3+ times → auto-escalate to engineering regardless of category
+
 ## Using This Skill
 
 When triaging tickets:
 
 1. Read the full ticket before categorizing — context in later messages often changes the assessment
-2. Categorize by **root cause**, not just the symptom described
-3. When in doubt on priority, err on the side of higher — it's easier to de-escalate than to recover from a missed SLA
-4. Always check for duplicates and known issues before routing
-5. Write internal notes that help the next person pick up context quickly
-6. Include what you've already checked or ruled out to avoid duplicate investigation
-7. Flag patterns — if you're seeing the same issue repeatedly, escalate the pattern even if individual tickets are low priority
+2. **Assess mood and urgency** as part of every triage (use the classification tables above)
+3. Categorize by **root cause**, not just the symptom described
+4. When in doubt on priority, err on the side of higher — it's easier to de-escalate than to recover from a missed SLA
+5. **Calculate SLA deadline** based on priority and flag breach risks
+6. Always check for duplicates and known issues before routing
+7. Write internal notes that help the next person pick up context quickly
+8. Include what you've already checked or ruled out to avoid duplicate investigation
+9. Flag patterns — if you're seeing the same issue repeatedly, escalate the pattern even if individual tickets are low priority
 
 ## Examples
 

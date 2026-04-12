@@ -57,6 +57,30 @@ Start application services in dependency order:
 For each service, verify it responds on its health endpoint before starting
 the next tier.
 
+### Step 4.5: Start Paperclip Agent Orchestrator
+
+Start the Paperclip instance if not already running:
+
+```bash
+# Check if Paperclip is already listening
+curl -sf --max-time 2 http://127.0.0.1:3100/api/health >/dev/null 2>&1 && echo "Paperclip already running" && exit 0
+
+# Start Paperclip (onboard --yes handles first-time setup automatically)
+cd ~/work/thakicloud/paperclip && pnpm paperclipai run &
+```
+
+Wait for the health endpoint before proceeding:
+
+```bash
+for i in $(seq 1 30); do
+  curl -sf --max-time 2 http://127.0.0.1:3100/api/health >/dev/null 2>&1 && break
+  sleep 1
+done
+```
+
+Paperclip provides agent orchestration, cost governance, and task management
+at `http://127.0.0.1:3100`. The ThakiCloud company is pre-configured.
+
 ### Step 5: Health Check
 
 Verify all services are healthy:
@@ -118,8 +142,9 @@ pkill -f "<service-pattern>"
 **User says:** "Stop the dev environment"
 
 **Actions:**
-1. Stop application services (pkill or script)
-2. Stop Docker containers (`docker compose down`)
-3. Verify no lingering processes
+1. Stop Paperclip (`pkill -f "paperclipai" || true`)
+2. Stop application services (pkill or script)
+3. Stop Docker containers (`docker compose down`)
+4. Verify no lingering processes
 
 **Result:** All services stopped cleanly.

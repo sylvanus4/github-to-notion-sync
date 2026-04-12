@@ -2,21 +2,27 @@
 name: kb-lint
 description: >-
   Run health checks over an LLM Knowledge Base wiki to find inconsistencies,
-  stale data, broken links, missing coverage, imputable gaps, and interesting
-  connection candidates. Generates an actionable report with severity-ranked
-  issues and auto-fix suggestions. Optionally performs web searches to
-  impute missing data. Use when the user asks to "lint the KB", "health
-  check knowledge base", "kb lint", "check wiki consistency", "find gaps
-  in KB", "improve wiki quality", or wants to incrementally enhance the
+  stale data, broken links, missing coverage, imputable gaps, evidence
+  timeline issues, cross-topic gaps, and interesting connection candidates.
+  Computes Unified Freshness Score (0-100) per article and topic-level
+  freshness summaries. Validates evidence diversity and compiled truth
+  completeness. Detects cross-topic entity gaps, coverage asymmetry, and
+  contradictory claims across topics. Generates an actionable report with
+  severity-ranked issues and auto-fix suggestions. Optionally performs web
+  searches to impute missing data. Use when the user asks to "lint the KB",
+  "health check knowledge base", "kb lint", "check wiki consistency",
+  "find gaps in KB", "improve wiki quality", "freshness score", "evidence
+  validation", "cross-topic gaps", or wants to incrementally enhance the
   wiki's data integrity.
   Do NOT use for compiling the wiki (use kb-compile).
   Do NOT use for querying the KB (use kb-query).
   Do NOT use for rebuilding indexes (use kb-index).
   Korean triggers: "KB 린트", "위키 건강 점검", "지식베이스 점검",
-  "KB 일관성 검사", "위키 품질 검사".
+  "KB 일관성 검사", "위키 품질 검사", "신선도 점수", "증거 검증",
+  "크로스토픽 갭".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "execution"
   tags: ["knowledge-base", "lint", "quality", "health-check"]
 ---
@@ -87,15 +93,76 @@ Identify concepts mentioned but never given their own article:
   Suggestion: Create wiki/concepts/dropout-regularization.md
 ```
 
-#### Check 5: Stale Data
+#### Check 5: Stale Data + Unified Freshness Score
 
-Check `last_compiled` dates and source publication dates:
+Check `last_compiled` dates and source publication dates. Compute a **Unified Freshness Score (0-100)** for each article:
+
+**Score formula** (weighted average):
+
+| Factor | Weight | Scoring |
+|--------|--------|---------|
+| `ingested_at` age | 40% | 100 if < 7 days, 80 if < 30, 60 if < 90, 30 if < 180, 0 if > 180 |
+| `last_compiled` age | 30% | 100 if < 14 days, 70 if < 60, 40 if < 120, 0 if > 120 |
+| Source date spread | 20% | 100 if newest source < 30 days, linear decay to 0 at 365 days |
+| `staleness_flag` | 10% | 100 if absent or "fresh", 50 if "review", 0 if "stale" |
+
+**Article-level output:**
+```
+ℹ FRESHNESS: wiki/concepts/gpt-architecture.md
+  → Score: 42/100 (🟡 MEDIUM)
+  → ingested_at: 2025-06-15 (10 months ago) → 0/100
+  → last_compiled: 2026-01-10 (3 months ago) → 40/100
+  → Newest source: 2026-03-01 (41 days ago) → 89/100
+  → staleness_flag: absent → 100/100
+  Suggestion: Recompile with latest sources
+```
+
+**Topic-level freshness summary** (appended to lint report):
+```
+## Freshness Summary
+
+| Bracket | Count | % |
+|---------|-------|---|
+| 🟢 Fresh (80-100) | 12 | 55% |
+| 🟡 Aging (50-79) | 6 | 27% |
+| 🔴 Stale (0-49) | 4 | 18% |
+
+Average freshness: 67/100
+Bottom 5 stalest articles: ...
+```
+
+#### Check 5b: Evidence Timeline Validation
+
+Consume the `evidence_diversity` and orphan evidence data from `kb-compile` output and validate:
+
+1. **Orphan Evidence Detection** — for each concept article, verify every `## Evidence Timeline` entry has at least one corresponding claim in `## Compiled Truth`. Flag entries that exist in the timeline but are never synthesized:
 
 ```
-ℹ STALE: wiki/concepts/gpt-architecture.md
-  → Last compiled: 2025-06-15 (10 months ago)
-  → Newer raw sources exist: raw/gpt4o-paper.md (2026-03-01)
-  Suggestion: Recompile with latest sources
+⚠ ORPHAN EVIDENCE: wiki/concepts/gpu-inference-cost.md
+  → Evidence Timeline entry [2026-02-14] "NVIDIA H200 pricing at $3.50/hr"
+  → Not reflected in any Compiled Truth paragraph
+  → Severity: Medium
+  Suggestion: Either incorporate into Compiled Truth or mark as superseded
+```
+
+2. **Evidence Diversity Validation** — flag articles with `evidence_diversity: low` that rely on a single source or narrow date window:
+
+```
+ℹ LOW DIVERSITY: wiki/concepts/model-distillation.md
+  → evidence_diversity: low
+  → 1 unique source, 1-day date spread, 1 source type
+  → Severity: Medium
+  Suggestion: Ingest additional sources via kb-ingest to diversify evidence
+```
+
+3. **Source-Claim Ratio** — flag articles where the Evidence Timeline has > 2x entries compared to Compiled Truth paragraphs (evidence accumulation without synthesis):
+
+```
+ℹ SYNTHESIS GAP: wiki/concepts/rlhf-alignment.md
+  → 14 Evidence Timeline entries, 3 Compiled Truth paragraphs
+  → Ratio: 4.7:1 (threshold: 2.0:1)
+  → Severity: Low
+  Suggestion: Recompile to synthesize accumulated evidence
 ```
 
 #### Check 6: Missing Connections
@@ -130,6 +197,41 @@ If `--impute` flag is set, use WebSearch to find data that could fill gaps:
   Suggestion: kb-ingest the source, then kb-compile to update
 ```
 
+#### Check 9: Cross-Topic Gap Detection
+
+When linting with `--all-topics` or when multiple topics are specified, scan across topic boundaries:
+
+1. **Shared Entity, Missing Cross-Reference** — identify entities (company names, model names, technical terms) that appear in 2+ topics but have no `connections/` document or frontmatter `related` link bridging them:
+
+```
+ℹ CROSS-TOPIC GAP: Entity "NVIDIA H100"
+  → Appears in topics: gpu-infrastructure (5 articles), competitive-intel (3 articles), finance-policies (1 article)
+  → No cross-topic connections/ document exists
+  → Severity: Medium
+  Suggestion: Create a connection article in the most relevant topic, or add cross-topic related links
+```
+
+2. **Topic Coverage Asymmetry** — detect when a concept is deeply covered in one topic but only superficially mentioned in another where it should have depth:
+
+```
+ℹ COVERAGE ASYMMETRY: "inference cost optimization"
+  → Deep coverage in gpu-infrastructure (4 concept articles, 12 raw sources)
+  → Shallow mention in finance-policies (1 passing reference, 0 dedicated articles)
+  → Severity: Low
+  Suggestion: Create dedicated article in finance-policies or add reference link to gpu-infrastructure
+```
+
+3. **Contradictory Claims Across Topics** — extend Check 3 (Consistency) across topic boundaries:
+
+```
+⚠ CROSS-TOPIC INCONSISTENCY:
+  → Topic "competitive-intel" says: "AWS GPU market share is 45%"
+  → Topic "finance-policies" says: "AWS GPU market share is 38%"
+  → Different source dates: 2026-01 vs 2025-09
+  → Severity: High
+  Suggestion: Reconcile using the more recent source
+```
+
 ### Step 3: Generate Report
 
 Write the full report to `knowledge-bases/{topic}/outputs/lint-report-{date}.md`:
@@ -161,6 +263,29 @@ Write the full report to `knowledge-bases/{topic}/outputs/lint-report-{date}.md`
 ## Low Priority
 
 ### 4. [CONNECTION] ...
+
+## Freshness Summary
+
+| Bracket | Count | % |
+|---------|-------|---|
+| 🟢 Fresh (80-100) | {N} | {P}% |
+| 🟡 Aging (50-79) | {N} | {P}% |
+| 🔴 Stale (0-49) | {N} | {P}% |
+
+Average freshness: {score}/100
+Bottom 5 stalest: ...
+
+## Evidence Timeline Health
+
+- Orphan evidence entries: {N}
+- Low-diversity articles: {N}
+- Synthesis gaps (ratio > 2:1): {N}
+
+## Cross-Topic Gaps
+
+- Shared entities without cross-references: {N}
+- Coverage asymmetries: {N}
+- Cross-topic inconsistencies: {N}
 
 ## Suggested New Articles
 
@@ -269,3 +394,35 @@ The CLI wrapper supports this via: `python scripts/kb_cli.py lint-report {topic}
 | No wiki | Empty wiki/ directory | Prompt to run kb-compile first |
 | Very large KB | > 200 articles | Process in batches, summarize checks |
 | Web search fails | API unavailable for --impute | Skip imputation, note in report |
+
+## Gotchas
+
+- **Symptom:** Flood of cross-topic "gaps" (Check 9). **Root cause:** Same entity, intentional different angles per topic. **Correct approach:** Verify missing coverage vs deliberate separation before acting.
+- **Symptom:** Reference articles (glossaries) drag freshness down. **Root cause:** Unified score treats age uniformly. **Correct approach:** Exclude or down-weight frontmatter-marked evergreen articles when interpreting scores.
+- **Symptom:** "Low diversity" on one comprehensive source. **Root cause:** Timeline rule counts entries, not depth. **Correct approach:** Use manual review for single-source-but-thorough articles.
+
+## Constraints
+
+- Lint reads compiled `wiki/` only; run **kb-compile** first.
+- Check 9 needs at least two topics; single-topic runs skip or no-op cross-topic detection.
+- Freshness decays over calendar time by design to prompt review, not only on edits.
+- Lint outputs diagnostics and suggestions; it does not auto-mutate `wiki/` unless an explicit `--fix` path is documented and invoked.
+
+## Composability
+
+- **kb-compile** — must produce `wiki/` before lint.
+- **kb-coverage-dashboard** — ingests lint outputs (freshness, links) for rollups.
+- **kb-daily-report** — cites lint/freshness in KB Health sections.
+- **kb-orchestrator** — runs lint in `enhance` (and related) workflows.
+
+## Output Discipline
+
+- Report every check's findings; do not trim long lists to save tokens.
+- Severity is qualitative: one Critical outweighs many Low items; do not rank by count alone.
+- Do not suggest fixes that require editing `raw/`; lint scope is `wiki/` (ingest/compile handles raw).
+
+## Honest Reporting
+
+- Use exact counts (e.g. 47 broken links), not rounded approximations.
+- If all checks pass, state zero-issue clearly; do not fabricate findings.
+- A topic-level freshness score of 0 is critical; surface it explicitly, not buried in averages.

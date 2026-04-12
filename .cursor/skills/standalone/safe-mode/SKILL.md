@@ -11,7 +11,7 @@ description: >-
   auditing (use security-expert), or CI checks (use ci-quality-gate).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "safety"
 ---
 # Safe Mode — Destructive Command Interception + Directory Scope Locking
@@ -68,13 +68,30 @@ These destructive-looking commands are safe in development context:
 When a destructive command is detected:
 
 1. **STOP** — do not execute the command
-2. **Display warning** with the exact command and risk category
-3. **Ask for explicit confirmation** using the AskQuestion tool:
+2. **Paperclip Governance Gate (Optional)**: If Paperclip is available and the command falls in the Git destructive or Database destructive category:
+   ```
+   Tool: paperclip_dashboard
+   Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+   ```
+   If available, create an approval request:
+   ```
+   Tool: paperclip_create_issue
+   Input: {
+     "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92",
+     "title": "Destructive op approval: {command_summary}",
+     "body": "Command: {full_command}\nRisk: {category}\nScope: {affected_resources}",
+     "priority": "critical",
+     "labels": ["destructive-op", "governance-required"]
+   }
+   ```
+   Wait for Paperclip approval before presenting options to the user. If Paperclip is unavailable, fall through to the standard interception flow.
+3. **Display warning** with the exact command and risk category
+4. **Ask for explicit confirmation** using the AskQuestion tool:
    - Option A: "Execute as-is (I understand the risk)"
    - Option B: "Show me a safer alternative"
    - Option C: "Cancel — do not execute"
-4. If Option B: suggest a safer equivalent (e.g., `mv` to trash instead of `rm -rf`)
-5. Log the interception event
+5. If Option B: suggest a safer equivalent (e.g., `mv` to trash instead of `rm -rf`)
+6. Log the interception event (and via `paperclip_log_cost` if Paperclip is available)
 
 ### Safer Alternatives Table
 

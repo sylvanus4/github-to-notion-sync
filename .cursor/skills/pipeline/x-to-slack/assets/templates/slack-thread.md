@@ -3,7 +3,7 @@
 Three-message thread structure for posting tweet intelligence to Slack.
 
 > **FORMATTING CONSTRAINTS (MANDATORY — violation = quality failure)**
-> - NO decorative emojis in headers or body. ALLOWED: ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ only.
+> - NO decorative emojis in headers or body. ALLOWED: ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ (engagement/thread numbering only) + ONE topic emoji per Message 1 title line.
 > - ALL body text in Korean (English only for proper nouns, technical terms, URLs, code).
 > - Section headers = `*bold text*` only, no emojis before/after.
 > - Use ONLY headers defined in templates below. Do NOT invent new ones.
@@ -12,13 +12,43 @@ Three-message thread structure for posting tweet intelligence to Slack.
 
 ## Message 1: Title (Channel Post)
 
+Message 1 is EXACTLY 2 lines — a Korean headline and the URL. Nothing else.
+
 ```
-{1-2 line Korean title summarizing the core insight of the tweet}
-{original tweet URL (tweet.url)}
->>>
+{Korean headline — one sentence summarizing the core insight or news, NO emojis, NO bold}
+{source URL}
 ```
 
-The `>>>` creates a blockquote visual separator. Capture `message_ts` from the response for thread replies.
+Capture `message_ts` from the response for thread replies.
+
+### Message 1 Strict Rules
+
+**MUST contain ONLY:** one Korean headline sentence + source URL (2 lines total).
+
+**MUST NOT contain (QUALITY FAILURE if present):**
+- Author info (@username, name, bio, follower count)
+- Engagement stats (likes, retweets, views, bookmarks)
+- "원문 보기" link text
+- Flag emojis (🇮🇹 🇺🇸 🇰🇷 etc.)
+- Decorative emojis (🧠 👤 🔗 📝 🔍 💡 🚀 📊 🎯 ✅ ⚡ 📌 💰 🏆)
+- Topic emojis in the text
+- Bold or italic formatting (`*text*` or `_text_`)
+- Multiple description lines
+- Bullet points or section headers
+
+**GOOD example:**
+```
+Claude Code + Obsidian으로 세컨드 브레인 구축하는 완전 가이드 — Karpathy LLM Wiki 기반 지식 관리 시스템
+https://x.com/defileo/status/2042241063612502162
+```
+
+**BAD example (HARD FAILURE):**
+```
+🧠 Claude Code + Obsidian = 세컨드 브레인 구축 완전 가이드
+👤 @defileo | DeFi & AI 인사이트 크리에이터 (팔로워 41.7K)
+🔗 원문 보기
+🇮🇹 👀 365만 | ❤️ 5,331 | 🔄 429 | 📝 26,583
+```
 
 ## Message 2: Detailed Summary (Thread Reply)
 

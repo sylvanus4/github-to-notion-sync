@@ -1,0 +1,11 @@
+{
+  "rrf_k": 60,
+  "default_top_n": 10,
+  "backends": {
+    "gbrain": { "enabled": true, "limit": 10 },
+    "kb": { "enabled": true, "limit": 10, "mode": "auto" },
+    "cognee": { "enabled": true, "limit": 10 },
+    "recall": { "enabled": true, "limit": 10 }
+  },
+  "dedup_similarity_threshold": 0.85
+}

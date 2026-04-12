@@ -91,7 +91,18 @@ The parser handles:
 
 **For regular tweets**:
 
-Construct simple markdown with tweet text, author info, media URLs, and engagement stats.
+Construct structured markdown with the following sections:
+
+1. **Header**: Title (first ~60 chars of tweet text), author info, engagement stats, original URL
+2. **Body**: Full tweet text
+3. **Media** (CRITICAL — do NOT skip): Extract ALL media from the FxTwitter API response:
+   - **Photos**: `tweet.media.photos[]` → for each photo, emit `![photo](photo.url)` on its own line
+   - **Videos**: `tweet.media.videos[]` → for each video, emit `[▶ Video](variant.url)` using the highest-quality `video/mp4` variant from `video.variants[]`
+   - **GIFs**: `tweet.media.videos[]` where `type == "gif"` → treat as video, emit `[▶ GIF](variant.url)`
+   - If `tweet.media` is absent or empty, check `tweet.media_extended[]` as a fallback
+   - Each media item MUST be on its own line so `md_to_blocks` can parse it into a Notion `image` or `video` block
+4. **Quote tweets**: If `tweet.quote` exists, add a blockquote section with the quoted tweet's text and media (same extraction rules)
+5. **Thread**: If the tweet is a self-reply thread, concatenate all thread tweets with their media
 
 Save output to `output/x-to-notion/{date}/{slug}.en.md`
 
@@ -114,13 +125,15 @@ Save output to `output/x-to-notion/{date}/{slug}.ko.md`
 Upload the Korean markdown to Notion.
 
 1. Read the `.ko.md` file
-2. Convert markdown to Notion API blocks:
+2. Convert markdown to Notion API blocks via `NotionClient.md_to_blocks()`:
    - Headings → `heading_2`, `heading_3`
    - Code blocks → `code` with language
    - Bullet lists → `bulleted_list_item`
    - Numbered lists → `numbered_list_item`
    - Blockquotes → `quote`
-   - Images → `image` (external URL)
+   - `![alt](url)` → `image` (external URL)
+   - `[text](url.mp4)` → `video` (external URL)
+   - Bare image URLs → `image` (external URL)
    - Dividers → `divider`
    - Paragraphs → `paragraph`
 3. Publish via `scripts/notion_api.py`:

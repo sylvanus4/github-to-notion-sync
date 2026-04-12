@@ -11,7 +11,7 @@ description: >-
   or evening pipeline (use daily-pm-orchestrator).
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "1.2.0"
   category: "orchestration"
 ---
 # Daily AM Orchestrator — Morning Pipeline (7:00 AM)
@@ -138,6 +138,58 @@ results["phases"]["phase0"] = {"status": "pass|fail", "checks": {...}, "duration
 1. Write full phase payload to `outputs/daily-am/{date}/phase-0-preflight.json` (include `results["phases"]["phase0"]` and any check details).
 2. Update `manifest.json`: append phase entry `id: phase-0`, `label: preflight`, `status` mapped to `completed|failed`, `output_file: phase-0-preflight.json`, `started_at`, `elapsed_ms`, `summary` (one line).
 3. Subagent/orchestrator return to parent: `{ "status", "file": ".../phase-0-preflight.json", "summary" }` only.
+
+---
+
+### Phase 0.5: Paperclip Morning Check (Optional)
+
+**Duration**: ~30s | **Dependencies**: Phase 0 | **Critical**: NO
+
+Check Paperclip agent orchestrator health and run morning governance tasks. Skip if Paperclip is unavailable (graceful degradation).
+
+**Step 0.5a — Health check:**
+
+```
+Tool: paperclip_dashboard
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+If the call fails (connection refused, timeout), log "Paperclip unavailable — skipping agent orchestration" and skip the rest of Phase 0.5.
+
+**Step 0.5b — Heartbeat all registered agents:**
+
+```
+Tool: paperclip_list_agents
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+For each agent with `status != "terminated"`:
+
+```
+Tool: paperclip_heartbeat
+Input: { "agentId": "<agent-id>", "status": "morning pipeline started" }
+```
+
+**Step 0.5c — Check pending approvals:**
+
+```
+Tool: paperclip_list_approvals
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+If pending approvals exist, include a summary line in the Phase 8 briefing:
+`*Paperclip*: N건 승인 대기 중 — dashboard: http://127.0.0.1:3100`
+
+**Step 0.5d — Budget check:**
+
+```
+Tool: paperclip_get_budget
+Input: { "companyId": "b573bdbe-785a-4f39-b1e9-f2b623e40a92" }
+```
+
+If budget >= 80% spent, add a warning to `manifest.json` → `warnings[]` and prefer `model: "fast"` for all subagents in this pipeline run.
+
+**Persist & manifest**: Write `outputs/daily-am/{date}/phase-0.5-paperclip.json`. Update `manifest.json`.
 
 ---
 
@@ -450,6 +502,7 @@ Post a master summary to `#효정-할일` using `slack_send_message` MCP tool.
 *News*: 기사 N건 (베스핀 N, 트위터 N)
 *Research*: 논문 N건 (Tier A: N, Tier B: N)
 *Dev*: N commits, N PRs, N blockers
+*Paperclip*: {agent_count}개 에이전트 활성, 승인 대기 {approval_count}건, 예산 {budget_pct}% 사용
 
 {[INCOMPLETE] sections if any phase failed}
 ```

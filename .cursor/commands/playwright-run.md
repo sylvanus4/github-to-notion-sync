@@ -24,7 +24,7 @@ Run ad-hoc Playwright browser automation scripts with a universal Node.js execut
 
 ### Execution
 
-Read and follow the `playwright-runner` skill (`.cursor/skills/playwright-runner/SKILL.md`) for common patterns, helper functions, and API reference.
+Read and follow the `playwright-runner` skill (`.cursor/skills/review/playwright-runner/SKILL.md`) for common patterns, helper functions, and API reference.
 
 ### Examples
 

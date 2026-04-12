@@ -13,9 +13,9 @@ description: >-
   Korean triggers: "마케팅 KB 수집", "콘텐츠 수집", "브랜드 데이터 수집".
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
-  tags: ["knowledge-base", "marketing", "content", "brand", "daily-collector"]
+  tags: ["knowledge-base", "marketing", "content", "brand", "daily-collector", "3-day-window"]
 ---
 
 # KB Collect Marketing — Daily Marketing Intelligence Collector
@@ -29,13 +29,28 @@ Automated daily collector that gathers marketing content, SEO data, competitor c
 - WebSearch tool available
 - defuddle API available
 
+## Collection Window
+
+> **NEWS_WINDOW_DAYS=3** — All external content searches (competitor blogs, SEO trends, benchmarks, brand updates, social signals) use a 3-day rolling window. This balances freshness with coverage for items published on weekends or off-hours.
+
+## Deduplication (collector-side)
+
+Before writing any raw file, check existing files in the target `raw/` directory from the last 3 days:
+
+1. **Scan** all `*.md` files in `knowledge-bases/{topic}/raw/` with dates within the last 3 days (based on filename `{date}-` prefix).
+2. **Parse YAML frontmatter** of each file to extract `source` (URL) and `title`.
+3. **Skip** writing a new file if either condition matches:
+   - Same `source` URL already exists in any file from the last 3 days.
+   - Same `title` (case-insensitive, trimmed) already exists in any file from the last 3 days.
+4. **Track** the count of skipped items and report as `dedup_skipped` in the collector summary returned to the orchestrator.
+
 ## Workflow
 
 ### Phase 1: Competitor Content Monitoring
 
 For each competitor in `competitor-registry.yaml` that has blog/RSS URLs:
 
-1. Check RSS feeds (if available) for new posts in the last 24 hours.
+1. Check RSS feeds (if available) for new posts in the last 3 days.
 2. Use defuddle to extract new blog posts.
 3. Analyze content type (product launch, thought leadership, case study, tutorial).
 4. Save to `knowledge-bases/content-library/raw/{date}-{competitor}-{slug}.md` with frontmatter:

@@ -3,10 +3,11 @@
 ## Table of Contents
 
 1. [Environment Configuration](#environment-configuration)
-2. [Target Registry](#target-registry)
-3. [Skill Group Whitelist](#skill-group-whitelist)
-4. [Per-Project Notes](#per-project-notes)
-5. [Managing Targets](#managing-targets)
+2. [Excluded Directories](#excluded-directories)
+3. [Target Registry](#target-registry)
+4. [Skill Group Whitelist](#skill-group-whitelist)
+5. [Per-Project Notes](#per-project-notes)
+6. [Managing Targets](#managing-targets)
 
 ## Environment Configuration
 
@@ -20,6 +21,17 @@ The sync skill auto-detects the current environment by checking which base path 
 Detection order: office first, then home. If neither matches, abort with an error listing both candidates.
 
 The hub path is always `{BASE}/research/.cursor/`.
+
+## Excluded Directories
+
+All `rsync` commands include global exclusions to prevent syncing build artifacts and caches:
+
+| Directory | Reason |
+|-----------|--------|
+| `node_modules/` | npm dependency tree; each repo installs its own |
+| `__pycache__/` | Python bytecode cache; machine-specific |
+
+These are applied via the `$EXCLUDES` variable defined in the sync procedure.
 
 ## Target Registry
 
@@ -42,37 +54,49 @@ Skills are organized into subdirectories under `.cursor/skills/`. During push, o
 | Alias | Skill Groups |
 |-------|-------------|
 | `ai-model-event-stock-analytics` | `all` |
-| `ai-platform-webui` | `review`, `infra`, `frontend`, `workflow`, `ce`, `ecc`, `anthropic`, `standalone` |
-| `github-to-notion-sync` | `gws`, `nlm`, `pipeline`, `workflow`, `anthropic`, `standalone` |
-| `ai-template` | `workflow`, `anthropic`, `ce`, `ecc`, `standalone` |
+| `ai-platform-webui` | `review`, `infra`, `frontend`, `workflow`, `ce`, `ecc`, `anthropic`, `standalone`, `addyosmani`, `omc`, `planning`, `notion`, `obs` |
+| `github-to-notion-sync` | `gws`, `nlm`, `pipeline`, `workflow`, `anthropic`, `standalone`, `addyosmani`, `omc`, `notion` |
+| `ai-template` | `workflow`, `anthropic`, `ce`, `ecc`, `standalone`, `addyosmani`, `omc` |
 
-### Available Skill Groups (23 total)
+### Available Skill Groups (33 total)
 
 | Group | Description | Skill Count |
 |-------|------------|-------------|
-| `trading` | Stock analysis, Toss Securities, MiroFish, screener tabs | 66 |
-| `agency` | AI specialist agent personas | 69 |
+| `standalone` | Miscellaneous skills without a clear group | 100 |
 | `kwp` | Anthropic Knowledge Work Plugins | 95 |
-| `planning` | PRD, spec, policy, planning docs | 35 |
-| `automation` | Autoskill, skill management, setup, sync | 34 |
-| `pipeline` | Daily orchestrators, morning/EOD, meeting, portfolio | 33 |
-| `review` | Code review, testing, shipping, CI | 31 |
-| `frontend` | FSD, Figma, design, screen implementation | 21 |
-| `hf` | HuggingFace Hub operations (customized) | 15 |
-| `infra` | Helm, Terraform, K8s, SRE, IaC | 15 |
+| `trading` | Stock analysis, Toss Securities, MiroFish, screener tabs | 87 |
+| `agency` | AI specialist agent personas | 69 |
+| `review` | Code review, testing, shipping, CI | 36 |
+| `planning` | PRD, spec, policy, planning docs | 36 |
+| `pipeline` | Daily orchestrators, morning/EOD, meeting, portfolio | 34 |
+| `automation` | Autoskill, skill management, setup, sync | 27 |
+| `frontend` | FSD, Figma, design, screen implementation | 23 |
+| `hf` | HuggingFace Hub operations (customized) | 21 |
+| `anthropic` | Document tools (DOCX, PPTX, PDF, templates) | 20 |
+| `addyosmani` | Software engineering best practices (Addy Osmani) | 20 |
+| `research` | Paper review, auto-research, paper archive | 19 |
+| `infra` | Helm, Terraform, K8s, SRE, IaC | 19 |
+| `patent` | Patent search, drafting, review (US/KR) | 15 |
 | `ce` | Context Engineering theory/methodology | 15 |
-| `gws` | Google Workspace (Gmail, Calendar, Drive, Sheets) | 14 |
 | `role` | Cross-role perspective analysis (CEO, CTO, PM, etc.) | 14 |
-| `nlm` | NotebookLM notebooks, slides, video, research | 11 |
-| `ecc` | Everything Claude Code patterns | 10 |
+| `nlm` | NotebookLM notebooks, slides, video, research | 14 |
+| `gws` | Google Workspace (Gmail, Calendar, Drive, Sheets) | 14 |
+| `knowledge-base` | Karpathy-style LLM Knowledge Base pipeline | 12 |
+| `marketing` | Marketing ops, content, SEO, growth | 11 |
 | `workflow` | Workflow patterns, orchestration, planning | 10 |
-| `alphaear` | AlphaEar financial intelligence suite | 9 |
+| `ecc` | Everything Claude Code patterns | 10 |
+| `alphaear` | AlphaEar financial intelligence suite | 10 |
 | `pm` | PM skills (phuryn-based) | 9 |
-| `research` | Paper review, auto-research, paper archive | 9 |
-| `anthropic` | Document tools (DOCX, PPTX, PDF, templates) | 7 |
+| `obsidian` | Obsidian vault management via CLI | 9 |
+| `kb-collectors` | Role-based KB daily collectors | 9 |
+| `release` | Weekly release ops (collect, QA, deploy) | 7 |
+| `pika` | AI video generation (Pika, Muapi) | 7 |
 | `notion` | Notion publishing, sync, templates | 7 |
+| `axis` | 6-Axis Personal Assistant system | 7 |
+| `ops` | Batch processing, evaluation, inbox patterns | 6 |
 | `omc` | Oh-My-ClaudeCode skills | 5 |
-| `standalone` | Miscellaneous skills without a clear group | 50 |
+
+> **Note**: `.claude/skills/` is also synced as a separate category (always full sync, no per-target group filtering).
 
 ### Rationale for Per-Repo Selection
 

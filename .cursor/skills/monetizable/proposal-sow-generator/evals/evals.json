@@ -1,0 +1,61 @@
+[
+  {
+    "id": "full-meeting-to-proposal",
+    "description": "Complete meeting-to-proposal pipeline from Notion meeting page",
+    "input": "Generate a proposal and SOW from this client meeting: https://www.notion.so/client-meeting-acme-corp-2026-abc123. Client: Acme Corp. Project: AI-powered customer support chatbot.",
+    "expected_behavior": [
+      "Phase 1: Fetches meeting content from Notion via meeting-digest",
+      "Phase 2: Extracts and structures requirements (functional, non-functional, constraints)",
+      "Phase 3: Generates proposal.docx with Executive Summary, Approach, Timeline, Team, Pricing",
+      "Phase 4: Generates sow.docx with Scope, Deliverables, Milestones, Payment Schedule, Change Order Process",
+      "Phase 5: Scores via evaluation-engine on completeness, consistency, professionalism",
+      "Phase 6: Saves to outputs/proposal-sow-generator/{date}/acme-corp/ with manifest.json"
+    ],
+    "success_criteria": "proposal.docx and sow.docx generated; pricing matches scope; all required sections present; quality score >= 80"
+  },
+  {
+    "id": "raw-transcript-proposal",
+    "description": "Generate proposal from pasted meeting notes",
+    "input": "Create a SOW from these meeting notes:\n\nClient: TechStart Inc\nProject: Migration from AWS to GCP\nBudget: $150K-200K\nTimeline: 3 months\nScope: Migrate 5 microservices, 2 databases, CI/CD pipeline\nKey contacts: Jane (CTO), Bob (DevOps Lead)\nAssumptions: Existing infra is well-documented, no legacy systems",
+    "expected_behavior": [
+      "Parses structured meeting notes without Notion source",
+      "Generates SOW with specific deliverables for each migration item",
+      "Budget aligned with $150K-200K range",
+      "Timeline broken into milestones within 3 months",
+      "Assumptions section reflects stated assumptions"
+    ],
+    "success_criteria": "SOW generated with 5 microservice migration deliverables; budget within stated range; 3-month timeline with milestones"
+  },
+  {
+    "id": "korean-proposal",
+    "description": "Korean client proposal generation",
+    "input": "이 미팅 내용으로 제안서와 SOW 만들어줘. 클라이언트: 한국전력. 프로젝트: AI 기반 전력 수요 예측 시스템. 예산: 5억원, 기간: 6개월.",
+    "expected_behavior": [
+      "Generates Korean-language proposal and SOW",
+      "Uses Korean business formatting conventions",
+      "Budget in KRW with appropriate breakdowns",
+      "Applies sentence-polisher for Korean text quality"
+    ],
+    "success_criteria": "Korean proposal.docx and sow.docx generated; budget in KRW; professional Korean business format"
+  },
+  {
+    "id": "should-not-trigger-meeting-digest",
+    "description": "Meeting digest without proposal intent should route to meeting-digest",
+    "input": "Summarize last Tuesday's team meeting and extract action items",
+    "expected_behavior": [
+      "Skill should NOT be invoked for meeting summarization without proposal intent",
+      "Request should route to meeting-digest or meeting-intelligence-system"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to meeting-digest"
+  },
+  {
+    "id": "should-not-trigger-nda",
+    "description": "NDA drafting should route to pm-toolkit",
+    "input": "Draft an NDA for our partnership with Acme Corp",
+    "expected_behavior": [
+      "Skill should NOT be invoked for legal document drafting",
+      "Request should route to pm-toolkit NDA or kwp-legal-contract-review"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to legal skills"
+  }
+]

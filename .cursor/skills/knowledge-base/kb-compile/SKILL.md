@@ -16,7 +16,7 @@ description: >-
   "위키 생성", "원본에서 위키 만들기".
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "3.0.0"
   category: "execution"
   tags: ["knowledge-base", "compile", "wiki"]
 ---
@@ -48,6 +48,49 @@ Every wiki article MUST use the two-part structure inspired by Garry Tan's GBrai
 ```
 
 On incremental updates, rewrite Compiled Truth with the new synthesis; append new entries to Evidence Timeline. Never delete timeline entries.
+
+### Evidence Diversity Scoring
+
+After building the Evidence Timeline for each article, score its source diversity:
+
+| Metric | Description |
+|--------|-------------|
+| **unique_sources** | Count of distinct raw source files cited |
+| **date_spread_days** | Span between earliest and latest evidence date |
+| **source_type_mix** | Number of distinct source types (web article, paper, report, slide, internal doc) |
+
+Compute a diversity grade and add it to frontmatter:
+
+```yaml
+evidence_diversity: high    # 3+ sources, 30+ day spread, 2+ types
+evidence_diversity: medium  # 2 sources OR 7-29 day spread
+evidence_diversity: low     # single source, <7 day spread
+```
+
+Flag `low` diversity articles in the compile output log with:
+
+```
+⚠ LOW EVIDENCE DIVERSITY: wiki/concepts/{name}.md
+  → Single source: raw/{source}.md
+  → Consider ingesting additional perspectives before next compile
+```
+
+### Compiled Truth Quality Gate
+
+Before finalizing the `## Compiled Truth` section of each article, verify that every Evidence Timeline entry is reflected in the compiled truth:
+
+1. List all evidence entries from `## Evidence Timeline`
+2. For each entry, confirm at least one sentence in `## Compiled Truth` addresses the information it contributed
+3. If an evidence entry is not reflected, flag it as **orphan evidence**:
+
+```
+⚠ ORPHAN EVIDENCE: wiki/concepts/{name}.md
+  → Timeline entry "2026-04-03 — Source B: Added pricing comparison data"
+    is not reflected in Compiled Truth section
+  → Action: Integrate this evidence or explain why it was excluded
+```
+
+Do not block compilation on orphan evidence — log the warnings and continue. The warnings feed into `kb-lint` for follow-up.
 
 ## Prerequisites
 
@@ -174,6 +217,25 @@ last_compiled: "2026-04-03"
 
 - [Question raised but not fully answered]
 ```
+
+### Step 4b: Connection Auto-Suggestion
+
+After generating all concept articles in Step 4, run a lightweight co-occurrence check:
+
+1. For each newly created or updated concept article, extract its `related` frontmatter and entity mentions
+2. Build a mention-overlap matrix: concept pairs that share 3+ entity mentions or 2+ raw sources but have no existing `connections/` document
+3. Log suggested connections in the compile output:
+
+```
+💡 SUGGESTED CONNECTION: [[gpu-inference-tco]] ↔ [[cogs-gpu-cost-structure]]
+   → Share 4 entity mentions: GPU, NVIDIA, cost-per-token, inference
+   → Share 2 raw sources: raw/gpu-pricing-2026.md, raw/cloud-cost-benchmark.md
+   → No existing connections/ document found
+   → Type suggestion: comparison (cost analysis perspectives)
+```
+
+4. Write all suggestions to `knowledge-bases/{topic}/outputs/connection-suggestions-{date}.md`
+5. Do NOT auto-create connection articles — suggestions are advisory for manual review or `wiki-connection-discoverer`
 
 ### Step 5: Generate Connection Articles
 
@@ -306,6 +368,9 @@ Update `manifest.json` with wiki stats:
   Total words: ~{W}K
   Index files: _index.md, _summary.md, _concept-map.md, _glossary.md
   SQLite index: brain_index.db updated ({P} pages indexed)
+  Evidence diversity: {H} high, {M} medium, {L} low
+  Orphan evidence warnings: {O}
+  Connection suggestions: {S} new pairs → outputs/connection-suggestions-{date}.md
 ```
 
 ## Incremental Compilation
@@ -354,7 +419,7 @@ Use wiki-style links for internal references:
 
 ## Obsidian Compatibility
 
-Compiled wiki articles use `[[wikilinks]]` for cross-references, which render natively in Obsidian. The `knowledge-bases/` vault includes pre-configured Graph View color groups — see `knowledge-bases/OBSIDIAN_SETUP.md`.
+Compiled wiki articles use `[[wikilinks]]` for cross-references, which render natively in Obsidian when you open `knowledge-bases/` (or a topic folder) as a vault. Configure Graph View, folders, and plugins in Obsidian locally; there is no repo-bundled Obsidian setup doc.
 
 ## Error Handling
 
@@ -364,3 +429,36 @@ Compiled wiki articles use `[[wikilinks]]` for cross-references, which render na
 | Source too large | Single raw file > 100K words | Split processing, use SemanticSearch within file |
 | Concept ambiguity | Same term means different things in different sources | Create disambiguation article |
 | Circular references | Concepts reference each other in loops | Acceptable — ensure backlinks are consistent |
+
+## Gotchas
+
+- **Symptom:** Empty `wiki/` after compile. **Root cause:** `raw/` had zero ingest files. **Correct approach:** Confirm `raw/` has content and `manifest.json` reflects sources before compiling.
+- **Symptom:** Low evidence-diversity score despite one excellent source. **Root cause:** Scoring measures source variety, not authority. **Correct approach:** Pair diversity flags with qualitative judgment; a single authoritative source can be sufficient.
+- **Symptom:** Implausible connection suggestions. **Root cause:** Shared generic terms (e.g. "cloud", "platform") inflate co-occurrence. **Correct approach:** Review every suggestion; do not auto-file without human or explicit follow-up skill pass.
+
+## Constraints
+
+- One topic per compile run; no multi-topic merge in a single invocation.
+- Compilation overwrites existing `wiki/`; commit or back up before full recompile.
+- Evidence diversity is heuristic: 0.3 from two strong sources may beat 0.9 from ten shallow posts.
+- Compiled Truth quality gate is advisory: it logs orphan evidence but does not block the compile.
+
+## Composability
+
+- **kb-ingest** — supplies `raw/` material the compiler consumes.
+- **kb-lint** — validates compiled `wiki/`; run after compile.
+- **kb-index** — rebuilds navigation metadata when wiki structure changes.
+- **wiki-connection-discoverer** — extends connection discovery beyond compile-time suggestions.
+- **kb-coverage-dashboard** — aggregates compile metrics (e.g. evidence diversity) for health views.
+
+## Output Discipline
+
+- Articles must synthesize and cross-reference; do not paste or lightly paraphrase raw text as the wiki body.
+- Do not add claims not grounded in Evidence Timeline entries (or clearly mark and source new ingest first).
+- Avoid boilerplate intros/outros that inflate length without new information.
+
+## Honest Reporting
+
+- State real compile stats: if half of articles fail the Compiled Truth gate, report that fraction explicitly.
+- Never hide or soften evidence-diversity warnings to "look green."
+- If connection auto-suggestion returns nothing, report **no suggestions**; do not invent pairs.

@@ -1,0 +1,60 @@
+[
+  {
+    "id": "full-feedback-pipeline",
+    "description": "End-to-end pipeline from multi-channel feedback to executive report",
+    "input": "Process all customer feedback from the last month: app store reviews are in ~/data/appstore-reviews.csv, NPS comments in ~/data/nps-q1.csv, and support tickets exported from Zendesk in ~/data/zendesk-export.csv. Generate a RICE-prioritized executive report.",
+    "expected_behavior": [
+      "Phase 1: Ingests 3 source files, normalizes into unified feedback items",
+      "Phase 2: Classifies each item by topic cluster, sentiment, urgency, feature area, customer tier",
+      "Phase 3: Applies RICE scoring (Reach, Impact, Confidence, Effort) via evaluation-engine",
+      "Phase 4: Synthesizes top themes with representative quotes and sentiment distribution",
+      "Phase 5: Generates executive-feedback-report.docx via anthropic-docx and visual dashboard via visual-explainer",
+      "Phase 6: Saves all outputs to outputs/customer-feedback-processor/{date}/ with manifest.json"
+    ],
+    "success_criteria": "executive-feedback-report.docx exists; RICE scores assigned to top themes; visual dashboard HTML generated; manifest.json complete"
+  },
+  {
+    "id": "slack-channel-feedback",
+    "description": "Process feedback from a Slack channel",
+    "input": "Analyze customer feedback from our #product-feedback Slack channel for the past 2 weeks and generate a prioritized report",
+    "expected_behavior": [
+      "Searches Slack channel via slack_search MCP tool",
+      "Extracts feedback messages, classifies, and scores",
+      "Handles Slack-specific formatting (threads, reactions as signal)",
+      "Generates report with Slack message permalinks as evidence"
+    ],
+    "success_criteria": "Feedback items extracted from Slack with permalinks; RICE scored; report generated"
+  },
+  {
+    "id": "korean-feedback-report",
+    "description": "Korean feedback with Korean executive report output",
+    "input": "고객 피드백 처리해줘. 앱스토어 리뷰 파일: ~/data/korean-reviews.csv. RICE 우선순위로 경영진 보고서 만들어줘.",
+    "expected_behavior": [
+      "Processes Korean-language feedback items",
+      "Generates Korean executive report via sentence-polisher",
+      "RICE scoring labels and theme names in Korean",
+      "Visual dashboard with Korean labels"
+    ],
+    "success_criteria": "Korean executive report generated; RICE categories labeled in Korean; sentiment analysis handles Korean text"
+  },
+  {
+    "id": "should-not-trigger-basic-mining",
+    "description": "Simple feedback clustering without executive report should use feedback-miner",
+    "input": "Cluster these app store reviews by topic and show me the sentiment breakdown",
+    "expected_behavior": [
+      "Skill should NOT be invoked for basic clustering without exec report",
+      "Request should route to feedback-miner"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to feedback-miner"
+  },
+  {
+    "id": "should-not-trigger-financial-sentiment",
+    "description": "Financial text sentiment should route to alphaear-sentiment",
+    "input": "Analyze the sentiment of these earnings call transcripts for AAPL and MSFT",
+    "expected_behavior": [
+      "Skill should NOT be invoked for financial sentiment analysis",
+      "Request should route to alphaear-sentiment"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to alphaear-sentiment"
+  }
+]

@@ -34,7 +34,7 @@ document splitting, and ASCII art preservation automatically.
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `<path>` | Yes | File path or folder path containing `.md` files |
-| `--parent <id>` | Yes | Notion parent page ID (32-char hex). Must be provided. |
+| `--parent <id>` | No | Notion parent page ID (32-char hex). Default: `3239eddc34e680e8a7a5d5b5eac18b38` (AI 자동 정리). Also reads `NOTION_DEFAULT_PAGE_ID` from `.env`. |
 | `--icon <emoji>` | No | Uniform emoji icon for all created pages (default: 📄) |
 | `--skip-meta` | No | Skip README.md, CHANGELOG.md, LICENSE.md |
 | `--no-table-convert` | No | Keep pipe tables as-is (skip conversion) |

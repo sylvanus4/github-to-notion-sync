@@ -6,7 +6,7 @@ description: "Evaluate model quality with lighteval/inspect-ai and manage evalua
 
 ## Skill Reference
 
-Read and follow the skill at `.cursor/skills/hf-evaluation/SKILL.md`.
+Read and follow the skill at `.cursor/skills/hf/hf-evaluation/SKILL.md`.
 
 ## Your Task
 

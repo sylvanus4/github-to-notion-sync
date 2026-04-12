@@ -1,0 +1,61 @@
+[
+  {
+    "id": "full-meeting-intelligence",
+    "description": "Complete meeting intelligence pipeline with decision tracking and action items",
+    "input": "Run meeting intelligence on this Notion meeting page: https://www.notion.so/meeting-q2-strategy-2026-abc123. Track all decisions and action items.",
+    "expected_behavior": [
+      "Phase 1: Fetches meeting content from Notion page",
+      "Phase 2: Runs multi-perspective PM analysis (pm-execution summarize-meeting)",
+      "Phase 3: Extracts decisions with context, rationale, and participants; logs to decision-tracker",
+      "Phase 4: Extracts action items with owners and deadlines; logs to meeting-action-tracker",
+      "Phase 5: Performs trend analysis against previous meetings (if history exists)",
+      "Phase 6: Generates summary.md and action-items.md; uploads to Notion as sub-pages"
+    ],
+    "success_criteria": "Notion sub-pages created for summary and action items; decisions logged; action items tracked with owners; outputs saved to outputs/meeting-intelligence-system/{date}/"
+  },
+  {
+    "id": "raw-transcript-input",
+    "description": "Process a raw meeting transcript pasted directly",
+    "input": "다음 회의록을 분석해줘:\n\n참석자: 김PM, 이개발, 박디자인\n일시: 2026-04-10\n\n김PM: Q3 런칭을 7월로 앞당기겠습니다.\n이개발: 기술적으로 가능하지만 테스트 기간이 부족합니다.\n박디자인: 디자인 QA는 6월 중순까지 완료 가능합니다.\n김PM: 결정: 7월 1일 런칭, 테스트는 6월 15일-30일.\n액션: 이개발 - 6월 14일까지 테스트 계획서 작성\n액션: 박디자인 - 6월 10일까지 최종 디자인 납품",
+    "expected_behavior": [
+      "Accepts raw transcript without Notion source",
+      "Identifies 1 decision: Q3 launch moved to July 1",
+      "Identifies 2 action items with owners and deadlines",
+      "Generates Korean summary with structured format"
+    ],
+    "success_criteria": "Decision extracted with rationale; 2 action items with owners (이개발, 박디자인) and dates; Korean output"
+  },
+  {
+    "id": "multi-meeting-trend",
+    "description": "Trend analysis across multiple meeting records",
+    "input": "Run trend analysis on the last 4 weekly team meetings in Notion. What topics keep recurring? Any unresolved actions?",
+    "expected_behavior": [
+      "Queries Notion for recent meeting pages",
+      "Reads existing meeting intelligence outputs from outputs/meeting-intelligence-system/",
+      "Identifies recurring topics across meetings",
+      "Flags overdue or unresolved action items from previous meetings",
+      "Produces trend-analysis.md with topic frequency, decision patterns, and action item completion rate"
+    ],
+    "success_criteria": "trend-analysis.md generated with cross-meeting patterns; overdue items flagged; topic frequency chart or table included"
+  },
+  {
+    "id": "should-not-trigger-simple-summary",
+    "description": "Simple meeting summary without intelligence should route to pm-execution",
+    "input": "Summarize this meeting transcript into bullet points",
+    "expected_behavior": [
+      "Skill should NOT be invoked for simple summarization",
+      "Request should route to pm-execution summarize-meeting or meeting-digest"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to pm-execution or meeting-digest"
+  },
+  {
+    "id": "should-not-trigger-calendar",
+    "description": "Calendar management should not trigger this skill",
+    "input": "Schedule a meeting with the engineering team for next Tuesday at 2pm",
+    "expected_behavior": [
+      "Skill should NOT be invoked for scheduling",
+      "Request should route to gws-calendar or smart-meeting-scheduler"
+    ],
+    "success_criteria": "Skill does not activate; routing goes to calendar skills"
+  }
+]
