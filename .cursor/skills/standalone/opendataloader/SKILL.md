@@ -1,14 +1,19 @@
 ---
 name: opendataloader
 description: >-
-  Convert PDF documents to high-fidelity Markdown, JSON, or HTML using the
-  OpenDataLoader engine (Hancom, Apache 2.0). Supports complex layouts,
-  tables, LaTeX equations, charts, and image OCR at 60+ pages/sec on CPU.
-  100% local processing with no external API calls.
+  PRIMARY PDF reader for all pipelines. Convert PDF documents to high-fidelity
+  Markdown, JSON (with bounding boxes), or HTML using OpenDataLoader v2.2.1
+  (Hancom, Apache 2.0). Benchmark #1 at 0.907 overall accuracy.
+  Two modes: Local (60+ pages/sec, no external API, JDK only) and Hybrid
+  (scanned PDFs, complex/borderless tables, LaTeX formulas, chart descriptions
+  via docling AI backend with built-in OCR for 80+ languages including Korean).
+  Built-in AI safety: prompt injection filtering for hidden text and off-page content.
+  Fallback chain: opendataloader → anthropic-pdf → pdfplumber.
   Use when the user asks to "convert PDF to markdown", "parse PDF",
   "extract text from PDF", "opendataloader", "PDF to markdown",
   "high-fidelity PDF extraction", "OpenDataLoader", "PDF 변환",
-  "PDF 마크다운 변환", "PDF 파싱", "고품질 PDF 추출",
+  "PDF 마크다운 변환", "PDF 파싱", "고품질 PDF 추출", "PDF OCR",
+  "스캔 PDF 변환", "PDF 수식 추출", "hybrid mode PDF",
   or when a pipeline skill needs PDF-to-Markdown conversion
   (kb-ingest, paper-review, cognee pre-processing).
   Do NOT use for PDF creation, merging, splitting, or form filling
@@ -17,17 +22,23 @@ description: >-
   Do NOT use for web page extraction (use defuddle or WebFetch).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "document"
-  tags: ["pdf", "markdown", "parsing", "document-processing"]
+  tags: ["pdf", "markdown", "parsing", "document-processing", "ocr", "hybrid", "ai-safety"]
+  priority: "primary"
 ---
 
-# OpenDataLoader — High-Fidelity PDF Parser
+# OpenDataLoader — PRIMARY PDF Parser (v2.2.1)
 
-Convert PDFs to structured Markdown, JSON, or HTML using Hancom's
-OpenDataLoader engine. XY-Cut++ layout analysis handles complex tables,
-multi-column layouts, nested elements, LaTeX equations, charts, and
-embedded images with benchmark score 0.90 (surpassing Marker and MinerU).
+Convert PDFs to structured Markdown, JSON, or HTML using Hancom's OpenDataLoader
+engine. XY-Cut++ layout analysis handles complex tables, multi-column layouts,
+nested elements, LaTeX equations, charts, and embedded images.
+**Benchmark #1 at 0.907 overall accuracy** (surpassing Marker 0.826, MinerU 0.863,
+Docling 0.710).
+
+> **This skill is the PRIMARY PDF reader.** All pipeline skills (kb-ingest,
+> paper-review, cognee, nlm-arxiv-slides) MUST attempt OpenDataLoader first.
+> Fall back to alternatives only on failure.
 
 ## Prerequisites
 
@@ -39,6 +50,16 @@ java -version   # must be >= 11
 # Ubuntu: sudo apt install openjdk-11-jdk
 ```
 
+**macOS Homebrew PATH setup** (if `java -version` fails after install):
+
+```bash
+export JAVA_HOME=/opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+Add these to `~/.zshrc` for persistence. Alternatively, create a system symlink
+with `sudo ln -sfn /opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-11.jdk`.
+
 2. **Python package** — `opendataloader-pdf`
 
 ```bash
@@ -49,88 +70,183 @@ pip install opendataloader-pdf
 
 ```bash
 python -c "import opendataloader_pdf; print('OK')"
+java -version 2>&1 | head -1
+```
+
+4. **Optional — Hybrid mode** requires network access to AI backend (no extra install)
+
+## Fallback Chain
+
+When OpenDataLoader is unavailable or fails, follow this chain:
+
+```
+opendataloader-pdf (PRIMARY)
+  ↓ Java not found / conversion error
+anthropic-pdf skill (Read tool on PDF files)
+  ↓ not available / file too large
+pdfplumber (simple text extraction)
+```
+
+**Decision logic:**
+
+```python
+def extract_pdf(pdf_path: str, output_dir: str) -> str:
+    """Try opendataloader first, then fallbacks."""
+    import os, shutil
+
+    os.makedirs(output_dir, exist_ok=True)
+    stem = os.path.splitext(os.path.basename(pdf_path))[0]
+
+    # Attempt 1: OpenDataLoader (primary)
+    try:
+        import opendataloader_pdf
+        opendataloader_pdf.convert(
+            input_path=pdf_path,
+            output_dir=output_dir,
+            format="markdown",
+            quiet=True,
+        )
+        md_path = os.path.join(output_dir, f"{stem}.md")
+        if os.path.exists(md_path) and os.path.getsize(md_path) > 50:
+            with open(md_path) as f:
+                return f.read()
+    except Exception:
+        pass
+
+    # Attempt 2: Use Cursor's Read tool on the PDF directly
+    #   (handled by the calling agent — return sentinel)
+    # Attempt 3: pdfplumber
+    try:
+        import pdfplumber
+        with pdfplumber.open(pdf_path) as pdf:
+            text = "\n\n".join(page.extract_text() or "" for page in pdf.pages)
+        if text.strip():
+            return text
+    except Exception:
+        pass
+
+    raise RuntimeError(f"All PDF extraction methods failed for {pdf_path}")
 ```
 
 ## Core API
-
-The primary function is `opendataloader_pdf.convert()`:
 
 ```python
 import opendataloader_pdf
 
 opendataloader_pdf.convert(
-    input_path="/path/to/document.pdf",      # str or List[str]
-    output_dir="/tmp/odl-output",            # where output files are written
-    format="markdown",                       # "markdown", "json", "html", or comma-separated
-    quiet=True,                              # suppress JVM stdout
+    input_path="/path/to/document.pdf",   # str or List[str]
+    output_dir="/tmp/odl-output",         # output directory
+    format="markdown",                    # "markdown", "json", "html", "text", or comma-separated
+    quiet=True,                           # suppress JVM stdout
 )
 ```
 
 **Key behaviors:**
 - Returns `None` — output is written to disk
 - Output filename: `{original_name}.md` (or `.json`, `.html`)
-- Each call spawns a JVM process via `subprocess.run(["java", "-jar", ...])`
-- Batch input (`List[str]`) is more efficient than repeated single-file calls
+- Each call spawns a JVM process; batch input is more efficient
+- JSON output includes bounding box coordinates per element
 
 ## Modes
 
-### Mode 1: Single File Conversion
+### Mode 1: Local (Default) — Fast, Offline
 
-```python
-import opendataloader_pdf
-import os
-
-pdf_path = "/tmp/arxiv-2509.04664.pdf"
-output_dir = "/tmp/odl-output"
-os.makedirs(output_dir, exist_ok=True)
-
-opendataloader_pdf.convert(
-    input_path=pdf_path,
-    output_dir=output_dir,
-    format="markdown",
-    quiet=True,
-)
-
-md_path = os.path.join(output_dir, "arxiv-2509.04664.md")
-with open(md_path, "r") as f:
-    text = f.read()
-```
-
-### Mode 2: Batch Conversion (Preferred)
-
-Batch mode amortizes the JVM startup cost across multiple files:
-
-```python
-import opendataloader_pdf
-
-pdf_files = [
-    "/tmp/paper1.pdf",
-    "/tmp/paper2.pdf",
-    "/tmp/paper3.pdf",
-]
-
-opendataloader_pdf.convert(
-    input_path=pdf_files,
-    output_dir="/tmp/odl-batch-output",
-    format="markdown",
-    quiet=True,
-)
-```
-
-### Mode 3: Multi-Format Output
-
-Generate Markdown and JSON simultaneously:
+60+ pages/sec on CPU. No external API calls. Best for well-formed digital PDFs.
 
 ```python
 opendataloader_pdf.convert(
     input_path="/tmp/report.pdf",
-    output_dir="/tmp/odl-multi",
+    output_dir="/tmp/output",
+    format="markdown",
+    quiet=True,
+)
+```
+
+### Mode 2: Hybrid — Scanned PDFs, Complex Tables, Formulas
+
+~2 pages/sec. Uses AI backend for pages that need it. Built-in OCR for 80+ languages.
+
+```python
+opendataloader_pdf.convert(
+    input_path="/tmp/scanned-doc.pdf",
+    output_dir="/tmp/output",
+    format="markdown",
+    hybrid="docling-fast",    # or "docling-full" for maximum accuracy
+    quiet=True,
+)
+```
+
+**When to use Hybrid:**
+- Scanned PDFs (image-only pages)
+- Complex or borderless tables
+- LaTeX formulas needing extraction
+- Charts requiring AI description
+- Documents mixing digital text with scanned pages
+
+**Hybrid backends:**
+| Backend | Speed | Accuracy | Use case |
+|---------|-------|----------|----------|
+| `docling-fast` | ~2 pg/s | High | Default hybrid choice |
+| `docling-full` | ~0.5 pg/s | Highest | Maximum quality needed |
+
+### Mode 3: Batch Conversion (Preferred)
+
+Amortizes JVM startup across multiple files:
+
+```python
+opendataloader_pdf.convert(
+    input_path=["paper1.pdf", "paper2.pdf", "folder/"],
+    output_dir="/tmp/batch-output",
     format="markdown,json",
     quiet=True,
 )
 ```
 
-### Mode 4: LangChain Integration
+### Mode 4: Multi-Format Output
+
+```python
+opendataloader_pdf.convert(
+    input_path="/tmp/report.pdf",
+    output_dir="/tmp/multi",
+    format="markdown,json,html",
+    quiet=True,
+)
+```
+
+### Mode 5: Sanitize Mode — AI Safety
+
+Strip hidden text and off-page content that could be prompt injection attacks:
+
+```python
+opendataloader_pdf.convert(
+    input_path="/tmp/untrusted.pdf",
+    output_dir="/tmp/safe-output",
+    format="markdown",
+    sanitize=True,
+    quiet=True,
+)
+```
+
+Use sanitize mode when processing PDFs from untrusted sources before feeding
+to LLMs for RAG or analysis.
+
+### Mode 6: CLI Usage
+
+```bash
+# Local mode
+opendataloader-pdf -i input.pdf -o output/ -f markdown
+
+# Hybrid mode
+opendataloader-pdf -i scanned.pdf -o output/ --hybrid docling-fast
+
+# Batch + multi-format
+opendataloader-pdf -i folder/ -o output/ -f markdown,json
+
+# Sanitize mode
+opendataloader-pdf -i untrusted.pdf -o output/ --sanitize
+```
+
+### Mode 7: LangChain Integration
 
 For RAG pipelines using LangChain:
 
@@ -152,20 +268,28 @@ java -version 2>&1 | head -1
 python -c "import opendataloader_pdf; print('OK')"
 ```
 
-If Java is missing, report and stop. If `opendataloader_pdf` is missing,
-suggest `pip install opendataloader-pdf`.
+If Java is missing, try Hybrid mode first (may still work depending on setup),
+then fall back to anthropic-pdf/pdfplumber.
 
-### Step 2: Prepare Output Directory
+### Step 2: Choose Mode
 
-```bash
-mkdir -p /tmp/odl-output
-```
+| PDF Type | Mode | Command |
+|----------|------|---------|
+| Digital, well-formed | Local (default) | `format="markdown"` |
+| Scanned / image-only | Hybrid | `hybrid="docling-fast"` |
+| Complex tables | Hybrid | `hybrid="docling-fast"` |
+| LaTeX formulas | Hybrid | `hybrid="docling-full"` |
+| Untrusted source | Sanitize | `sanitize=True` |
+| Multiple files | Batch | `input_path=[list]` |
 
 ### Step 3: Run Conversion
 
 ```python
 import opendataloader_pdf
 import os
+
+output_dir = "/tmp/odl-output"
+os.makedirs(output_dir, exist_ok=True)
 
 opendataloader_pdf.convert(
     input_path=pdf_path,
@@ -187,18 +311,26 @@ with open(md_path, "r") as f:
 
 ### Step 5: Verify Output Quality
 
-Check that the output is non-empty and contains expected content:
-
 ```python
 assert os.path.exists(md_path), f"Output not found: {md_path}"
-assert os.path.getsize(md_path) > 100, "Output suspiciously small"
+assert os.path.getsize(md_path) > 100, "Output suspiciously small — try hybrid mode"
+```
+
+If local mode produces empty or poor output, retry with hybrid:
+
+```python
+opendataloader_pdf.convert(
+    input_path=pdf_path,
+    output_dir=output_dir,
+    format="markdown",
+    hybrid="docling-fast",
+    quiet=True,
+)
 ```
 
 ## Pipeline Integration Patterns
 
 ### kb-ingest Integration
-
-When ingesting local PDFs into a Knowledge Base:
 
 ```python
 import opendataloader_pdf, os
@@ -207,19 +339,21 @@ pdf_src = "~/papers/sim-to-real.pdf"
 output_dir = "/tmp/odl-output"
 os.makedirs(output_dir, exist_ok=True)
 
-opendataloader_pdf.convert(input_path=pdf_src, output_dir=output_dir, format="markdown", quiet=True)
+opendataloader_pdf.convert(
+    input_path=pdf_src,
+    output_dir=output_dir,
+    format="markdown",
+    quiet=True,
+)
 
 stem = os.path.splitext(os.path.basename(pdf_src))[0]
 md_path = os.path.join(output_dir, f"{stem}.md")
 # Copy md_path to knowledge-bases/{topic}/raw/{slug}.md
 ```
 
-**Fallback**: If OpenDataLoader fails (Java not found, conversion error),
-fall back to `anthropic-pdf` skill for text extraction.
-
 ### paper-review Integration
 
-Replace pdfplumber full-text extraction in Phase 1:
+Replace pdfplumber in Phase 1 with automatic hybrid fallback:
 
 ```python
 import opendataloader_pdf, os
@@ -228,27 +362,31 @@ pdf_path = f"/tmp/arxiv-{ID}.pdf"
 output_dir = "/tmp/odl-output"
 os.makedirs(output_dir, exist_ok=True)
 
-opendataloader_pdf.convert(input_path=pdf_path, output_dir=output_dir, format="markdown", quiet=True)
+# Try local first, fall back to hybrid for scanned papers
+opendataloader_pdf.convert(
+    input_path=pdf_path,
+    output_dir=output_dir,
+    format="markdown",
+    quiet=True,
+)
 
 md_path = os.path.join(output_dir, f"arxiv-{ID}.md")
+if os.path.getsize(md_path) < 100:
+    opendataloader_pdf.convert(
+        input_path=pdf_path,
+        output_dir=output_dir,
+        format="markdown",
+        hybrid="docling-fast",
+        quiet=True,
+    )
+
 with open(md_path) as f:
     text = f.read()
-with open(f"/tmp/arxiv-{ID}-extracted.md", "w") as f:
-    f.write(text)
-```
-
-**Fallback**: If OpenDataLoader is unavailable, fall back to pdfplumber:
-
-```python
-import pdfplumber
-with pdfplumber.open(pdf_path) as pdf:
-    text = "\n\n".join(page.extract_text() or "" for page in pdf.pages)
 ```
 
 ### cognee Pre-processing
 
-Convert PDFs to Markdown before feeding to `cognee.add()` for higher
-quality knowledge graph extraction:
+Convert PDFs to Markdown before feeding to `cognee.add()`:
 
 ```python
 import opendataloader_pdf, cognee, os
@@ -256,7 +394,13 @@ import opendataloader_pdf, cognee, os
 pdf_path = "/path/to/report.pdf"
 output_dir = "/tmp/odl-output"
 os.makedirs(output_dir, exist_ok=True)
-opendataloader_pdf.convert(input_path=pdf_path, output_dir=output_dir, format="markdown", quiet=True)
+opendataloader_pdf.convert(
+    input_path=pdf_path,
+    output_dir=output_dir,
+    format="markdown",
+    sanitize=True,    # safety for external PDFs
+    quiet=True,
+)
 
 stem = os.path.splitext(os.path.basename(pdf_path))[0]
 md_path = os.path.join(output_dir, f"{stem}.md")
@@ -265,23 +409,39 @@ await cognee.add(md_path, dataset_name="research")
 await cognee.cognify(datasets=["research"])
 ```
 
-## Performance Notes
+## Output Formats
 
-- **Standard mode**: ~20 pages/sec on modern CPU
-- **Batch parallelism**: 60-100+ pages/sec with multiple files
-- **JVM cold start**: Each `convert()` call spawns a new JVM process (~1-2s overhead)
-- **Optimization**: Prefer batch `List[str]` input over repeated single-file calls
-- **No GPU required**: CPU-only processing; suitable for CPU-first Phase 0 environments
+| Format | Extension | Content |
+|--------|-----------|---------|
+| Markdown | `.md` | Clean markdown with tables, headers, lists |
+| JSON | `.json` | Structured elements with bounding boxes and coordinates |
+| HTML | `.html` | Semantic HTML preserving layout |
+| Text | `.txt` | Plain text extraction |
+| Annotated PDF | `.pdf` | Original PDF with layout annotations overlay |
+
+## Performance
+
+| Mode | Speed | Accuracy | Network |
+|------|-------|----------|---------|
+| Local | ~60 pg/s | 0.907 | None |
+| Hybrid (docling-fast) | ~2 pg/s | Higher | Required |
+| Hybrid (docling-full) | ~0.5 pg/s | Highest | Required |
+
+- **JVM cold start**: ~1-2s overhead per `convert()` call
+- **Optimization**: Prefer batch `List[str]` input over repeated calls
+- **No GPU required**: CPU-only processing
 
 ## Error Handling
 
 | Error | Symptom | Action |
 |-------|---------|--------|
-| Java not found | `FileNotFoundError` from subprocess | Install JDK 11+: `brew install openjdk@11` |
-| Package not installed | `ModuleNotFoundError: opendataloader_pdf` | `pip install opendataloader-pdf` |
-| Conversion fails | `subprocess.CalledProcessError` | Check PDF is valid; try with `quiet=False` to see Java error output |
-| Empty output | Output `.md` file is 0 bytes | PDF may be image-only (scanned); try with OCR-enabled mode or fall back to pytesseract |
-| Permission error | Cannot write to output_dir | Ensure output directory exists and is writable |
+| Java not found | `FileNotFoundError` | Install JDK 11+: `brew install openjdk@11`; set `JAVA_HOME` if needed |
+| JAVA_NOT_FOUND | `java -version` fails | Set `JAVA_HOME=/opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home` |
+| Package missing | `ModuleNotFoundError` | `pip install opendataloader-pdf` |
+| Conversion fails | `subprocess.CalledProcessError` | Run with `quiet=False`; try hybrid mode |
+| Empty output | `.md` file < 100 bytes | PDF may be scanned — retry with `hybrid="docling-fast"` |
+| Scanned PDF | Very short text, garbled chars | Use hybrid mode with OCR |
+| Permission error | Cannot write to output_dir | Ensure directory exists and is writable |
 
 ## Examples
 
@@ -291,33 +451,42 @@ await cognee.cognify(datasets=["research"])
 
 **Actions:**
 1. Verify JDK and opendataloader-pdf installed
-2. Run `opendataloader_pdf.convert(input_path="~/papers/attention.pdf", output_dir="/tmp/odl-output", format="markdown", quiet=True)`
-3. Read `/tmp/odl-output/attention.md`
+2. Convert with local mode
+3. If output is poor/empty, retry with hybrid
 4. Present the converted markdown
 
-### Example 2: Batch convert for KB ingestion
+### Example 2: Process scanned Korean document
 
-**User says:** "Convert all PDFs in ~/papers/ to markdown for the AI KB"
-
-**Actions:**
-1. Glob `~/papers/*.pdf` to get file list
-2. Run batch conversion with `input_path=file_list`
-3. Copy each `.md` output to `knowledge-bases/ai/raw/`
-4. Update manifest.json
-
-### Example 3: Pre-process for Cognee
-
-**User says:** "Index this PDF into the knowledge graph"
+**User says:** "이 스캔 PDF를 마크다운으로 변환해줘"
 
 **Actions:**
-1. Convert PDF to Markdown via OpenDataLoader
-2. Feed the Markdown file to `cognee.add()`
-3. Run `cognee.cognify()`
+1. Use hybrid mode directly (scanned → OCR needed)
+2. `opendataloader_pdf.convert(input_path=path, output_dir=out, format="markdown", hybrid="docling-fast", quiet=True)`
+3. OCR automatically handles Korean text (80+ languages supported)
+
+### Example 3: Safe extraction from untrusted PDF
+
+**User says:** "이 외부 PDF를 안전하게 추출해줘"
+
+**Actions:**
+1. Use sanitize mode to strip potential prompt injection
+2. `opendataloader_pdf.convert(input_path=path, output_dir=out, format="markdown", sanitize=True, quiet=True)`
+
+### Example 4: Extract with formulas
+
+**User says:** "수식이 있는 논문 PDF를 LaTeX 수식 포함해서 추출"
+
+**Actions:**
+1. Use hybrid mode for formula extraction
+2. `opendataloader_pdf.convert(input_path=path, output_dir=out, format="markdown", hybrid="docling-full", quiet=True)`
+3. Formulas are extracted as LaTeX notation in markdown
 
 ## Related Skills
 
-- **anthropic-pdf** — PDF creation, merging, splitting, form filling (complementary, not competing)
+- **anthropic-pdf** — PDF creation, merging, splitting, form filling (FALLBACK #2 for reading)
 - **kb-ingest** — Knowledge base ingestion (uses OpenDataLoader for PDF extraction)
 - **paper-review** — Academic paper review pipeline (uses OpenDataLoader in Phase 1)
 - **cognee** — Knowledge graph engine (benefits from OpenDataLoader pre-processing)
-- **pandoc** — Universal document format conversion (different scope: format conversion vs PDF parsing)
+- **nlm-arxiv-slides** — arXiv paper to slides pipeline (uses OpenDataLoader)
+- **pandoc** — Universal document format conversion (different scope)
+- **defuddle** — Web page extraction (not for PDFs)

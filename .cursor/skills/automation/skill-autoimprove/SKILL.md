@@ -9,6 +9,11 @@ description: >-
   Supports --harness-mode for optimizing single-file agent harnesses (agent.py)
   with Docker-isolated benchmark evaluation via autoagent-benchmark, operating
   on the editable section above the FIXED ADAPTER BOUNDARY.
+  Supports --synthetic-eval mode for auto-generating evaluation cases from
+  the skill text when no manual evals are provided.
+  Enforces constraint gates (size limit, growth rate, trigger/boundary
+  preservation) before accepting any mutation.
+  Includes holdout evaluation after the mutation loop to detect overfitting.
   Use when the user asks "skill-autoimprove", "auto-improve this skill",
   "스킬 자동 개선", "프롬프트 자동 개선", "스킬 실험 루프", "스킬 최적화 루프",
   "run evals and fix skill", "self-improve skill", "harness prompt optimize",
@@ -18,10 +23,11 @@ description: >-
   Do NOT use for static audits only (skill-optimizer audit), new skill creation
   (create-skill), single-doc polish without editing the skill (doc-quality-gate
   / workflow-patterns evaluator-optimizer), transcript mining (autoskill-evolve),
+  population-based multi-variant evolution (hermes-skill-evolver),
   or paper pipelines (paper-review).
 metadata:
   author: "thaki"
-  version: "2.2.0"
+  version: "2.3.0"
   category: "self-improvement"
 ---
 
@@ -64,9 +70,10 @@ For best results in **ai-model-event-stock-analytics** (stock analytics / tradin
 
 1. **Target skill** — Which skill to optimize? (need the exact path to SKILL.md under `.cursor/skills/`)
 2. **Test inputs** — 3-5 different prompts/scenarios to test the skill with. Variety matters — pick inputs that cover different use cases to avoid overfitting.
-3. **Eval criteria** — 3-6 binary yes/no checks that define a good output. See [references/eval-guide.md](references/eval-guide.md) and [references/eval-criteria.md](references/eval-criteria.md). **Scope**: optimize **project-specific** skills for this repo unless the user explicitly names another skill; evals must include finance/domain accuracy and POL-001 forbidden-term checks when the skill produces user-facing or domain copy.
+3. **Eval criteria** — 3-6 binary yes/no checks that define a good output. See [references/eval-guide.md](references/eval-guide.md) and [references/eval-criteria.md](references/eval-criteria.md). **Scope**: optimize **project-specific** skills for this repo unless the user explicitly names another skill; evals must include finance/domain accuracy and POL-001 forbidden-term checks when the skill produces user-facing or domain copy. **If no manual evals are available**, use `--synthetic-eval` to auto-generate eval cases from the skill text (see Synthetic Eval Mode below).
 4. **Runs per experiment** — How many times to run the skill per mutation. Default: 5. More runs = more reliable scores, but slower. 5 is the sweet spot.
 5. **Budget cap** — Optional. Max number of experiment cycles before stopping. Default: no cap (runs until stopped or ceiling hit).
+6. **Constraint gates** — Enabled by default. Pass `--no-gates` to disable. See Constraint Gates section below for the full gate list.
 
 ---
 
@@ -458,6 +465,137 @@ Each `case-NNN.log` is a JSON file:
   "wall_clock_ms": 3200
 }
 ```
+
+---
+
+## Constraint Gates
+
+Every mutation must pass all constraint gates before being accepted. Gates run automatically after scoring and before the keep/discard decision. If any gate fails, the mutation is discarded regardless of score improvement.
+
+### Gate List
+
+| Gate | Rule | Default | Override |
+|------|------|---------|----------|
+| **Max size** | Mutated SKILL.md must not exceed `max_chars` | 15,000 chars | `--max-chars N` |
+| **Growth rate** | Mutated body length ≤ baseline body length × `growth_cap` | 1.20 (20% growth) | `--growth-cap N` |
+| **Non-empty body** | The skill body (below frontmatter) must contain at least one non-whitespace line | Always on | Cannot disable |
+| **Trigger preservation** | All trigger phrases from the `description` field's "Use when" clause must remain present | Always on | Cannot disable |
+| **Boundary preservation** | All "Do NOT use" entries from the baseline must remain present | Always on | Cannot disable |
+| **Section structure** | H2 heading count ≥ baseline H2 count × 0.5 (prevents structural collapse) | Always on | `--min-h2-ratio N` |
+
+### Disabling Gates
+
+Pass `--no-gates` to skip all gates (useful for exploratory runs where structural constraints are not yet established). Individual gates cannot be disabled independently except via the override flags listed above.
+
+### Gate Failure Logging
+
+When a gate fails, the experiment entry in `changelog.md` includes:
+
+```markdown
+**Gate failure:** [gate name] — [reason]
+Example: "Growth rate — mutated body is 18,200 chars (baseline 14,500 × 1.20 = 17,400 max)"
+```
+
+The `results.tsv` entry records the status as `gate-fail` instead of `discard`.
+
+---
+
+## Synthetic Eval Mode (`--synthetic-eval`)
+
+When no manual eval criteria are available, `--synthetic-eval` auto-generates evaluation cases from the target skill's text. This removes the cold-start barrier for skills that lack pre-defined test inputs.
+
+### Activation
+
+```
+skill-autoimprove --synthetic-eval --target .cursor/skills/trading/daily-stock-check/SKILL.md
+```
+
+Or combine with other flags:
+
+```
+skill-autoimprove --synthetic-eval --trace-aware --target .cursor/skills/some-skill/SKILL.md
+```
+
+### How It Works
+
+1. **Parse the skill** — Extract the skill's name, description, triggers, constraints, and process steps from SKILL.md.
+2. **Generate eval cases** — Use an LLM subagent to produce 8-12 synthetic test cases, each containing:
+   - `task_input`: A realistic user prompt that should trigger the skill
+   - `expected_behavior`: What a correct execution looks like (binary-checkable)
+   - `anti_behavior`: What a bad execution looks like (the inverse check)
+   - `difficulty`: `easy` | `medium` | `hard` — distribution target: 30% easy, 50% medium, 20% hard
+3. **Split into train/holdout** — 80% of cases go to the training set (used during the mutation loop), 20% are reserved for holdout evaluation (see Holdout Evaluation below).
+4. **Convert to binary evals** — Each case becomes a binary eval following the standard format:
+   ```
+   EVAL [N]: [Short name from task_input]
+   Question: Does the output exhibit expected_behavior and NOT exhibit anti_behavior?
+   Pass condition: expected_behavior is present
+   Fail condition: anti_behavior is detected OR expected_behavior is missing
+   ```
+
+### Quality Controls
+
+- Generated cases must cover at least 3 distinct trigger phrases from the skill description
+- At least one case must test a "Do NOT use" boundary (negative trigger)
+- Cases are deduplicated by semantic similarity before use
+- The user is shown the generated eval suite and can approve, edit, or regenerate before the loop starts
+
+### Combining with Manual Evals
+
+If the user provides some manual evals but fewer than 3, `--synthetic-eval` supplements with generated cases up to the 8-12 target range. Manual evals always take priority and are never replaced.
+
+---
+
+## Holdout Evaluation
+
+After the mutation loop completes (either by reaching the score ceiling, budget cap, or user stop), a holdout evaluation runs to verify that improvements generalize and are not overfit to the training inputs.
+
+### How It Works
+
+1. **Reserve holdout set** — When `--synthetic-eval` is active, 20% of generated cases are held back and never used during the mutation loop. When manual evals are provided, the user can designate holdout inputs via `--holdout-inputs file.json` or the system reserves the last 20% of test inputs.
+2. **Run baseline on holdout** — Score the original `SKILL.md.baseline` against the holdout cases.
+3. **Run evolved on holdout** — Score the final evolved SKILL.md against the same holdout cases.
+4. **Compare** — Calculate the delta. If the evolved skill performs ≥ baseline on holdout cases, the improvement is validated. If it performs worse, a warning is logged.
+
+### Holdout Results
+
+Results are appended to `results.tsv` as a special entry:
+
+```
+experiment	score	max_score	pass_rate	status	description
+holdout-baseline	3	4	75.0%	holdout	baseline on unseen cases
+holdout-evolved	4	4	100.0%	holdout	evolved skill on unseen cases
+```
+
+The `results.json` includes a `holdout` section:
+
+```json
+{
+  "holdout": {
+    "baseline_score": 3,
+    "evolved_score": 4,
+    "max_score": 4,
+    "baseline_rate": 75.0,
+    "evolved_rate": 100.0,
+    "delta": 25.0,
+    "verdict": "validated"
+  }
+}
+```
+
+### Verdicts
+
+| Verdict | Condition | Action |
+|---------|-----------|--------|
+| `validated` | Evolved score ≥ baseline score on holdout | Accept the evolved skill |
+| `marginal` | Evolved score = baseline score on holdout | Accept with warning — improvement may be overfit to training inputs |
+| `overfit` | Evolved score < baseline score on holdout | Revert to baseline and log warning; the training-set improvements did not generalize |
+
+When the verdict is `overfit`, the skill is automatically reverted to `SKILL.md.baseline` and the changelog records the reversion reason.
+
+### Dashboard Integration
+
+The holdout results appear as a separate panel in the dashboard showing baseline vs evolved comparison on unseen data, with a clear PASS/WARN/FAIL badge.
 
 ---
 

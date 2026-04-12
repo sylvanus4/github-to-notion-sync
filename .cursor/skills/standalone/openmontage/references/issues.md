@@ -26,4 +26,3 @@ Recent issues from the repository (5 total).
 
 
 ## Recently Closed Issues (0)
-

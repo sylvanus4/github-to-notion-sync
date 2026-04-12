@@ -46,7 +46,7 @@ The user provides:
 | twitter | TWITTER_COOKIE | x-to-slack, twitter-timeline-to-slack |
 | browser | Playwright browsers installed | playwright-runner, e2e-testing, stock-csv-downloader |
 | media | ffmpeg, yt-dlp | transcribee, video-compress |
-| trading-apis | KIWOOM_APP_KEY, FRED_API_KEY, JINA_API_KEY | tab-kiwoom, today, alphaear-search |
+| trading-apis | KIWOOM_APP_KEY, FRED_API_KEY, JINA_API_KEY, FINNHUB_API_KEY, POLYGON_API_KEY, NASDAQ_DATA_LINK_API_KEY, TWELVE_DATA_API_KEY, TIINGO_API_KEY | tab-kiwoom, today, alphaear-search, daily-stock-check |
 | tradingview-mcp | `tradingview-mcp-server` Python pkg | tab-tradingview-ta, tab-tradingview-screener, tv-backtest, tv-live-data, tv-sentiment, tv-multi-timeframe, today (--with-tradingview) |
 | ci-cd | act, Docker, pre-commit, ruff | ci-quality-gate, domain-commit |
 | github | `gh` CLI (authenticated) | github-workflow-automation, release-ship, ship |
@@ -120,7 +120,7 @@ done
 1. Check if `.env` file exists in project root
 2. Parse `.env.example` for all variable names
 3. For each variable in `.env.example`, check if it exists and is non-empty in `.env`
-4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`, `ELEVEN_LABS_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `BETTER_AUTH_SECRET`, `BROWSERBASE_API_KEY`, `FINVIZ_API_KEY`, `FMP_API_KEY`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN`, `SLACK_USER_TOKEN`, `FAL_KEY`, `SLEEK_API_KEY`, `NVIDIA_API_KEY`, `OPENROUTER_API_KEY`, `LAT_LLM_KEY`, `GOOGLE_CREDENTIALS_FILE`, `KB_ROOT`, `EMBEDDING_PROVIDER`, `EMBEDDING_DIMENSIONS`, `RESEARCH_REPO`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NOTION_API_TOKEN`, `SLACK_BOT_TOKEN`, `GITHUB_TOKEN`, `PAPERCLIP_API_KEY`, `RUNPOD_API_KEY`
+4. Also check skill-specific vars NOT in `.env.example`: `HF_TOKEN`, `NOTION_TOKEN`, `JINA_API_KEY`, `AA_API_KEY`, `MIROFISH_LLM_API_KEY`, `MIROFISH_ZEP_API_KEY`, `TWITTER_COOKIE`, `ELEVEN_LABS_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `BETTER_AUTH_SECRET`, `BROWSERBASE_API_KEY`, `FINVIZ_API_KEY`, `FMP_API_KEY`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN`, `SLACK_USER_TOKEN`, `FAL_KEY`, `SLEEK_API_KEY`, `NVIDIA_API_KEY`, `OPENROUTER_API_KEY`, `LAT_LLM_KEY`, `GOOGLE_CREDENTIALS_FILE`, `KB_ROOT`, `EMBEDDING_PROVIDER`, `EMBEDDING_DIMENSIONS`, `RESEARCH_REPO`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NOTION_API_TOKEN`, `SLACK_BOT_TOKEN`, `GITHUB_TOKEN`, `PAPERCLIP_API_KEY`, `RUNPOD_API_KEY`, `FINNHUB_API_KEY`, `POLYGON_API_KEY`, `NASDAQ_DATA_LINK_API_KEY`, `TWELVE_DATA_API_KEY`, `TIINGO_API_KEY`
 5. Classify each as: SET (non-empty), EMPTY (exists but blank), MISSING (not in .env)
 
 Present results grouped by capability group.
