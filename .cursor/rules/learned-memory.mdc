@@ -38,7 +38,7 @@ alwaysApply: true
 - File-first pipeline: outputs/{pipeline}/{date}/ + manifest.json + phase files → memory/topics/pipeline-ops.md
 - Daily KB raw from today: `python scripts/kb_daily_ingest.py`; Karpathy loop ingest→compile→query→lint via kb-* skills → memory/topics/pipeline-ops.md
 - Trading: agent-desk, MiroFish L5, Toss/KIS/Kiwoom integrations → memory/topics/trading-stack.md
-- Slack: #h-report, #효정-할일, #deep-research-trending, #bespin-news → memory/topics/slack-routing.md
+- Slack: #h-report, #효정-할일, #deep-research-trending, #bespin-news; MCP `slack_send_message` uses `message` not `text`; `invalid_blocks` → simplify mrkdwn → memory/topics/slack-routing.md
 - Skills: 109+ in 23 subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/`; `.cursor/skills/persona/` — distillation meta-tools (nuwa, distill, self-distillation, etc.) plus founder/investor modes (buffett, munger, musk, naval, bezos, thiel, dalio, altman, zuckerberg); RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
 - Role-based RAG pack: `knowledge-bases/_role-registry.json`, `docs/role-based-wiki-strategy*.md`, `docs/role-wiki-quick-reference*.md` → memory/topics/workspace-facts.md
 - PDF: OpenDataLoader local extract for kb-ingest / paper-review / Cognee (skill `opendataloader`) → memory/topics/workspace-facts.md
