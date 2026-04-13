@@ -124,6 +124,9 @@ graph TD
     NP1 --> DIV1
 ```
 
+<!-- M1: Mermaid family tree completeness gate -->
+**Family Tree Gate:** The Mermaid diagram is **mandatory** — never deliver without it. Before proceeding, verify: (1) every existing filing the user disclosed appears as a node, (2) every recommended new filing appears as a `[planned]` node, (3) edges reflect correct parent→child priority chains, (4) each node shows application number (or placeholder), filing date, and claim theme.
+
 ### Step 6: Timeline Management
 
 Track critical dates:
@@ -147,6 +150,9 @@ Key deadlines:
 | File CIP B | $X,XXX | [description] | [impact] | ✅/⚠️/❌ |
 | Let expire | $0 | [scope lost] | [impact] | ✅/⚠️/❌ |
 
+<!-- M2: Strategic justification completeness gate -->
+**Justification Gate:** Scan the cost-benefit table row by row. Every row with a ✅ or ⚠️ recommendation **must** include (a) estimated cost range, (b) concrete scope gained or competitor blocked, and (c) business-goal alignment sentence. Rows missing any of the three → flag and complete before delivery.
+
 ### Step 8: Persist Output
 
 Write to `outputs/patent-us-portfolio/{date}/`:
@@ -160,6 +166,7 @@ Write to `outputs/patent-us-portfolio/{date}/`:
 
 1. **DO NOT** recommend continuations without verifying the parent application is still **pending** (or otherwise eligible for child filings per current USPTO practice).
 2. **DO NOT** recommend a CIP without clearly flagging that **new matter** in the CIP receives a **later priority date** than the parent’s effective date for that matter.
+   **CIP Priority Date Gate:** Every CIP recommendation must include a "Priority Date Impact" note stating: (i) which claims rest on parent-supported matter (parent priority date), (ii) which claims rely on new matter (CIP filing date), and (iii) any intervening prior art risk between these two dates.
 3. **DO NOT** suggest filing vehicles (continuation, CIP, divisional, provisional) without a **cost-benefit analysis** tied to business goals.
 4. **DO NOT** maintain continuation chains merely for continuity — **justify each** proposed filing with strategic value (scope, enforcement, lifecycle, or competitor response).
 5. **DO NOT** ignore **terminal disclaimer** implications when recommending family strategy (linked terms, enforcement, and expiry effects).
@@ -186,6 +193,7 @@ Before delivering portfolio recommendations, confirm:
 (c) The **timeline** lists **all critical dates** with **remaining days** (or “past due”) where calculable.
 (d) **Cost-benefit analysis** is present for **each** material recommendation (continuation, CIP, divisional, new filing).
 (e) **No** recommendation assumes a **continuation/CIP/divisional** from an **abandoned** parent or treats an **issued** parent as if still open for continuations **without** verifying current eligibility (e.g., continuing application practice constraints).
+(f) **Continuation Pendency Gate:** For each continuation/CIP recommendation, explicitly state: "Parent [App No.] — Status: [pending/granted/abandoned] — Eligible: [Y/N]". If the parent is no longer pending, flag the recommendation as blocked and suggest alternatives.
 
 ## Output Artifacts
 

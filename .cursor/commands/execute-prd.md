@@ -14,7 +14,7 @@ Implement a feature based on the PRD file.
 2.  **Must-have First**: Do not stop until all Must-have items in the PRD are completed.
 3.  **Production Ready**: **No Mocking**. Actual DB/API integration is required.
 4.  **Full-Stack Verification**: "Sent from Frontend" is not proof. You must verify **"Backend received and processed it (SQL)"**.
-5.  **Config Sync**: When modifying `helm/ai-platform-values-tkai.yaml`, you MUST also update the local `.env`.
+5.  **Config Sync**: When modifying Helm values in `tkai-deploy`, you MUST also update the local `.env`.
 
 ---
 

@@ -64,7 +64,7 @@ For Korean AI/SW patents, always include:
 
 ### Step 2: Assign Reference Numerals
 
-Create a reference numeral table BEFORE drawing:
+**MANDATORY: Output the reference numeral table FIRST, before ANY Mermaid diagram code.** The table must appear in the response before the first ` ```mermaid ` block. Never embed the table after diagrams or inline within diagram code.
 
 | Numeral | Component | First Appears In |
 |---------|-----------|-----------------|
@@ -151,10 +151,11 @@ Write to `outputs/patent-diagrams/{date}/`:
 ## Anti-Patterns (Common Mistakes)
 
 1. **DO NOT** include **more than 15 elements** in a single block diagram — split into FIG. 1A / 1B or separate figures.
-2. **DO NOT** use **color as the only** differentiator — patent drawings are effectively B/W; use labels, numerals, and line styles.
+2. **DO NOT** use **any color styling** in Mermaid diagrams — patent drawings are B/W. No `style`, `classDef`, or `fill:` color directives. Use labels, numerals, dashed/dotted line styles (`-.->`, `==>`) for differentiation.
 3. **DO NOT** create flowcharts where a **decision diamond has more than two exits** — refactor into nested decisions or separate steps.
 4. **DO NOT** skip the **reference numeral table** — build the full table **before** any Mermaid figure.
 5. **DO NOT** **reuse** the same reference numeral for different components across figures.
+6. **DO NOT** use **non-Mermaid diagram formats** (PlantUML, ASCII art, Draw.io XML, SVG, TikZ, Graphviz/DOT). ALL diagrams MUST be Mermaid syntax only — reject requests that specify other formats and convert to Mermaid equivalents.
 
 ## Worked Example (Test Invention Context)
 
@@ -189,7 +190,7 @@ Expand with data flows and interfaces in the final `figures.md` per invention de
 After Step 6 artifacts exist, before presenting the final bundle to the user:
 
 1. **Numeral coverage** — every numeral appearing in Mermaid/diagrams appears in **numeral-table.md**.
-2. **No collisions** — no duplicate numeral for different components; cross-figure consistency verified.
+2. **No collisions** — no duplicate numeral for different components; scan ALL figures and verify each numeral maps to exactly ONE component. If numeral N appears in FIG. X and FIG. Y, it MUST reference the identical component in both.
 3. **Decision diamonds** — each has **exactly two** exits (e.g., Yes/No).
 4. **KR labels** — if KR jurisdiction was selected, Korean labels (or bilingual KO/EN) appear in figure labels or descriptions as planned in Step 0.
 

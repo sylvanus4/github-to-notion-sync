@@ -1,0 +1,25 @@
+{
+  "skill": "patent-us-review",
+  "baseline_size_bytes": 10741,
+  "final_size_bytes": 12721,
+  "size_growth_pct": 18.4,
+  "constraint_gate": "PASS (< 20%)",
+  "mutations_applied": 5,
+  "baseline_avg_pass_rate": 60.0,
+  "v1_avg_pass_rate": 96.0,
+  "improvement_pct": 36.0,
+  "eval_criteria": [
+    "E1: 모든 독립청구에 Alice 2-step(2A/2B) 분석이 완료되었는가?",
+    "E2: CRITICAL 이슈마다 조문 근거 + 구체 예시 + 실행 가능한 수정안이 있는가?",
+    "E3: 청구별 스코어카드(101/102/103/112 등급)가 생성되었는가?",
+    "E4: configured to 등 잠재적 112(f) 표현이 점검되었는가?",
+    "E5: 소프트웨어라는 이유만으로 101 즉시 실패 처리되지 않았는가?"
+  ],
+  "test_inputs": [
+    "Review this US patent draft for AI code review system",
+    "Review claims for blockchain-based identity verification",
+    "Review software patent draft for cloud orchestration",
+    "Review hardware-software hybrid patent claims",
+    "Review biotech method patent with ML component"
+  ]
+}

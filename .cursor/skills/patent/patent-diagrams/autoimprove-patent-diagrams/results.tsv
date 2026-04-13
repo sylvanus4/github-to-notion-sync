@@ -1,0 +1,11 @@
+variant	run	input	eval1_mermaid_only	eval2_numeral_table_first	eval3_numeral_consistency	eval4_bw_compliance	total	pass_rate
+baseline	1	system block diagram for distributed ML training	1	1	0	0	2	0.50
+baseline	2	flowchart for patent claim 1: data processing method	0	1	1	1	3	0.75
+baseline	3	UI mockup diagram for adaptive dashboard	1	0	1	0	2	0.50
+baseline	4	sequence diagram for federated learning protocol	1	1	0	1	3	0.75
+baseline	5	data flow diagram for real-time analytics pipeline	0	1	1	0	2	0.50
+v1-mutations	1	system block diagram for distributed ML training	1	1	1	1	4	1.00
+v1-mutations	2	flowchart for patent claim 1: data processing method	1	1	1	1	4	1.00
+v1-mutations	3	UI mockup diagram for adaptive dashboard	1	1	0	1	3	0.75
+v1-mutations	4	sequence diagram for federated learning protocol	1	1	1	1	4	1.00
+v1-mutations	5	data flow diagram for real-time analytics pipeline	1	1	1	1	4	1.00

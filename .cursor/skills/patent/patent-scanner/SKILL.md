@@ -77,9 +77,8 @@ Scan for these patentable pattern categories:
 | Security methods | Authentication schemes, encryption approaches, access control patterns |
 | Performance optimizations | Resource scheduling, memory management, latency reduction techniques |
 
-For each detected pattern, verify it is not a well-known standard technique
-(e.g., standard sorting algorithms, common design patterns, textbook ML
-architectures).
+For each detected pattern, verify it is not a well-known standard technique.
+**Standard Pattern Blocklist** — novelty MUST NOT exceed 5 for well-known techniques (MVC, REST CRUD, vanilla Transformer, standard CNN/LSTM, BFS/DFS, OAuth PKCE, blue-green deploy, etc.) unless a provably new twist is documented in `differentiation_points`.
 
 ### Step 3: Score Each Candidate
 
@@ -95,7 +94,10 @@ Rate each candidate on a 1-10 scale across four dimensions:
 **Composite score** = weighted average: Novelty(0.3) + Non-obviousness(0.3) +
 Utility(0.2) + Commercial value(0.2)
 
-Only report candidates with composite score >= 5.0.
+Only report candidates with composite score >= 5.0. Candidates scoring below 5.0
+MUST be excluded from the final JSON `candidates` array — include them in
+`below_threshold_notes` (array of `{pattern, composite_score, reason}`) if the user
+requested an exhaustive scan; otherwise omit silently.
 
 ### Step 4: Generate Claim Angles
 
@@ -109,10 +111,10 @@ For each qualifying candidate, produce:
 3. **Concrete reference**: Exact file paths, function names, or code sections
    that embody the invention
 4. **Differentiation points**: How this differs from standard approaches
-5. **Jurisdiction notes**:
-   - US: potential 101 eligibility concerns (abstract idea, Alice/Mayo)
-   - KR: KIPO AI/SW examination guideline alignment, need for concrete
-     technical effects
+5. **Jurisdiction notes** (BOTH required for every candidate):
+   - **US**: potential 101 eligibility concerns (abstract idea, Alice/Mayo), with specific technical-improvement framing to survive subject-matter eligibility
+   - **KR**: KIPO AI/SW examination guideline alignment, need for concrete technical effects, hardware-software cooperation argument if applicable
+   Every candidate JSON object MUST contain both `us_jurisdiction` and `kr_jurisdiction` fields — omitting either is a delivery failure.
 
 ### Step 5: Persist Results
 
@@ -161,8 +163,14 @@ Also generate `outputs/patent-scanner/{date}/scan-summary.md` for human review.
 
 1. **DO NOT** flag standard design patterns (MVC, microservices, pub-sub, generic REST CRUD) as novel inventions — treat as baseline unless combined with a non-obvious technical effect.
 2. **DO NOT** score novelty above **5** for techniques that appear as-is in published papers or common tutorials without a clear differentiator (architecture, data structure, or measurable effect).
-3. **DO NOT** generate claim angles for **code-based** scans without **concrete_reference** file/function/line pointers — abstract angles alone are insufficient.
+3. **DO NOT** generate claim angles for **any** scan without **concrete_reference** — every candidate must include a reference regardless of input type:
+   - **Code scans**: file path + function name + line range (e.g., `src/algo/opt.py:45-120`)
+   - **Spec/PRD scans**: spec section title or heading reference (e.g., `"Section 3.2: Data Compression Module"`)
+   - **Idea/verbal scans**: user-provided technical description excerpt (verbatim quote of the key technical mechanism)
+   An empty `concrete_reference` is a delivery failure.
 4. **DO NOT** omit **KR jurisdiction notes** — always include `kr` alongside `us` in `jurisdiction_notes`, even when the user does not mention Korea.
+5. **DO NOT** submit any candidate without all 4 dimension scores (novelty, non-obviousness, utility, commercial_value) — each must be an integer 1-10. A candidate with any missing dimension score is invalid and must be fixed before delivery.
+6. **DO NOT** include candidates with composite score < 5.0 in the `candidates` array — route them to `below_threshold_notes` or omit entirely.
 
 ## Worked Example (Test Invention Context)
 
@@ -200,10 +208,12 @@ Also generate `outputs/patent-scanner/{date}/scan-summary.md` for human review.
 
 Before presenting JSON/summary to the user:
 
-1. **Threshold** — every reported candidate has **composite score >= 5.0**; drop or downgrade sub-threshold items with explicit note if user asked for full dump.
+1. **Threshold** — every reported candidate has **composite score >= 5.0**; candidates below 5.0 are excluded from `candidates` array (routed to `below_threshold_notes` if exhaustive scan was requested).
 2. **Claim angles** — each qualifying candidate includes **both** method- and system-oriented angles where applicable (and CRM only when justified).
-3. **Code scans** — `concrete_reference.files` (and key functions where relevant) is **non-empty** for code-derived candidates.
-4. **Jurisdiction** — `jurisdiction_notes` includes **both US and KR** keys with substantive content.
+3. **Concrete reference** — `concrete_reference` is **non-empty** for ALL candidates (code scans: file/function/line; spec scans: section title; idea scans: quoted excerpt).
+4. **Jurisdiction** — `jurisdiction_notes` includes **both** `us_jurisdiction` and `kr_jurisdiction` fields with substantive content.
+5. **4-dimension scores** — every candidate has all four dimension scores (novelty, non-obviousness, utility, commercial_value) as integers 1-10, with correctly computed composite score.
+6. **Standard pattern guard** — no blocklist pattern (MVC, REST CRUD, vanilla Transformer, etc.) has novelty > 5 without documented `differentiation_points`.
 
 If any check fails, revise before delivery.
 

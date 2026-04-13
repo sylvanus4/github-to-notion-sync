@@ -111,8 +111,10 @@ For each result, extract and score:
 | `jurisdiction` | US / KR / EP / WO / CN / JP |
 | `ipc_codes` | IPC classification codes |
 
-Rank by `relevance_score` descending. Flag any result scoring 8+ as a potential
-blocking reference.
+Rank by `relevance_score` descending. **Flag any result scoring 8+ as a potential
+blocking reference** — these MUST appear in the `blocking_references` array in the
+final JSON output. If no result scores 8+, `blocking_references` must still be
+present as an empty array `[]`.
 
 ### Step 5: Generate Search Report
 
@@ -159,9 +161,12 @@ When Korean jurisdiction is included:
 
 1. **DO NOT** use generic keywords like “machine learning system” alone — always combine with specific technical mechanisms (e.g., routing graph, embedding index, scheduler policy).
 2. **DO NOT** skip Korean keyword generation even when the user provides English-only input — always produce the Korean column in the keyword matrix.
-3. **DO NOT** search only Google Patents and skip specialized databases — all six sources in Step 3 must be queried per run unless a source is truly unreachable (then document the skip).
+3. **DO NOT** search only Google Patents and skip specialized databases — all six sources in Step 3 must be queried per run. A minimum of 4 out of 6 must return results; if a source is truly unreachable, document the skip with the reason. Fewer than 4 covered sources is a delivery failure.
 4. **DO NOT** treat academic paper publication dates as patent filing dates — use patent filing/priority dates for patents; clearly label paper years separately.
 5. **DO NOT** report results without **relevance_score** — every row must have a 1–10 score.
+6. **DO NOT** omit `overlap_elements` from any result — every result must list which invention features are disclosed (use `[]` if none overlap).
+7. **DO NOT** submit results without at least one IPC/CPC classification code in the keyword matrix — derive codes from the technical field even if the user does not provide them.
+8. **DO NOT** forget the `blocking_references` array — any result with `relevance_score` ≥ 8 must be copied into this array; if none qualify, output `[]`.
 
 ## Worked Example (Test Invention Context)
 
@@ -181,7 +186,9 @@ Use this density of specificity — not generic “AI platform” terms alone.
 
 Before presenting results or writing final artifacts, self-verify:
 
-1. **Six sources** — Google Patents, USPTO PatentsView, KIPRIS, Espacenet, WIPO Patentscope, and Semantic Scholar were all searched (or any skip is explicitly documented with reason).
+1. **Six sources, 4+ covered** — Google Patents, USPTO PatentsView, KIPRIS, Espacenet, WIPO Patentscope, and Semantic Scholar were all searched. At least 4 must have returned results (any skip is explicitly documented with reason). Fewer than 4 = FAIL.
+4. **Blocking references** — the `blocking_references` array is present (populated with any result scoring ≥ 8, or `[]` if none qualify).
+5. **Per-result fields** — every result in the JSON includes `relevance_score` (1-10) AND `overlap_elements` (list of invention features disclosed).
 2. **Dual artifacts** — both `search-results.json` and `search-summary.md` paths are populated or explicitly waived by user.
 3. **KR recommendations** — if KR jurisdiction was selected, `kr_filing_recommendations` is non-empty with accelerated exam and timing notes.
 4. **Scores** — no result row has an empty or missing `relevance_score`.

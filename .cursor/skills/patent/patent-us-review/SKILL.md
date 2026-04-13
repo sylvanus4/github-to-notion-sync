@@ -84,6 +84,13 @@ Score each independent claim:
 |-------|-------------------|----------------------|-------------------|------------|
 | 1 | [Type or None] | [Yes/No + reason] | [Yes/No + reason] | Low/Medium/High |
 
+**Alice Completeness Gate (mandatory before proceeding to Step 3):**
+1. List ALL independent claim numbers parsed in Step 1.
+2. Verify each independent claim has a completed row in the table above with all four columns filled.
+3. If any independent claim is missing, add its analysis now — do NOT proceed with a gap.
+
+**Anti-Software-Bias Self-Check:** For every independent claim scored Medium or High risk, re-read Anti-Pattern #1 and confirm the risk rating is based on the full 2A/2B analysis, not on the mere fact that the claim involves software or an algorithm.
+
 ### Step 3: 35 USC 102 — Novelty
 
 For each independent claim, assess against known prior art:
@@ -119,9 +126,13 @@ For each independent claim:
 - Means-plus-function elements identified and properly supported?
 
 **112(f) Interpretation Check**:
-- Identify any claim limitations that invoke 112(f)
-- Verify corresponding structure in specification
-- Flag unintended 112(f) invocations
+- Scan ALL claims for the following trigger expressions that may invoke 112(f):
+  - "means for …", "step for …"
+  - "configured to …", "adapted to …", "operable to …"
+  - "module for …", "mechanism for …", "unit for …"
+  - Any nonce word + functional language pattern (e.g., "widget for processing")
+- For each detected trigger expression: determine if 112(f) is invoked, verify corresponding structure in specification, and flag unintended invocations
+- If NO trigger expressions are detected, explicitly state "No 112(f) trigger expressions found" — do not silently skip this section
 
 ### Step 6: Cross-Cutting Issues
 
@@ -143,6 +154,13 @@ Produce a severity-ranked issue list:
 | 3 | MEDIUM | 103 | 1 | [description] | [fix] |
 | 4 | LOW | 112(a) | 5 | [description] | [fix] |
 
+**CRITICAL Issue Completeness Rule:** Every row marked **CRITICAL** MUST contain all three of:
+1. **Statutory basis** — the specific statute subsection (e.g., "101 Step 2A Prong 2")
+2. **Concrete example** — why this claim would likely be rejected, citing specific claim language or missing disclosure
+3. **Actionable fix** — a specific revision (e.g., "add limitation X from spec ¶Y" or "recite the specific data transformation step"), never vague suggestions like "strengthen" or "clarify"
+
+If any CRITICAL row lacks one of these three, downgrade to HIGH or add the missing component before delivery.
+
 Severity levels:
 - **CRITICAL**: Near-certain rejection; must fix before filing
 - **HIGH**: Likely rejection; strongly recommend fixing
@@ -154,6 +172,8 @@ Severity levels:
 | Claim | 101 | 102 | 103 | 112(a) | 112(b) | Overall |
 |-------|-----|-----|-----|--------|--------|---------|
 | 1 | A/B/C/D/F | A/B/C/D/F | ... | ... | ... | [grade] |
+
+**Scorecard Completeness Gate:** The table MUST include one row for EVERY claim in the pending claim set (from Step 1). If the claim set has N claims, the scorecard must have exactly N rows — omission of any claim is a blocking defect. For 102/103 columns: if prior art was not provided, mark "N/A" rather than omitting the row.
 
 ### Step 9: Persist Output
 

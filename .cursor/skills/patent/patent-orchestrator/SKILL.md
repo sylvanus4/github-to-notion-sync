@@ -83,9 +83,16 @@ Analyze the user's request along two axes:
 | "office action", "rejection", "거절", "의견서" | oa-response |
 | "strategy", "portfolio", "전략", "분할", "계속출원" | strategy |
 
+**Classification Output Gate:** After completing Step 1 analysis, output the following two lines verbatim before proceeding:
+```
+JURISDICTION: [US|KR|BOTH|AMBIGUOUS]
+TASK_TYPE: [search|scan|chart|diagrams|drafting|review|ai-review|oa-response|strategy|AMBIGUOUS]
+```
+If either value is `AMBIGUOUS`, proceed to Step 2. If both are resolved, skip to Step 3. Omitting this block is a routing violation.
+
 ### Step 2: Clarification (if needed)
 
-If jurisdiction or task type is ambiguous, ask ONE focused question:
+If jurisdiction or task type is ambiguous, ask **exactly ONE** focused question. **Ambiguity Gate:** If jurisdiction is AMBIGUOUS but task type is resolved, ask only about jurisdiction. If task type is AMBIGUOUS but jurisdiction is resolved, ask only about task type. If both are AMBIGUOUS, present the combined menu below but count it as ONE question. Never ask two separate follow-up messages.
 
 ```
 특허 관련 도움을 드리겠습니다.
@@ -152,6 +159,8 @@ Write consolidated summary to `outputs/patent-orchestrator/{date}/routing-log.js
 4. **DO NOT** skip the **routing log** — every dispatch must be **recorded** in `outputs/patent-orchestrator/{date}/routing-log.json`.
 5. **DO NOT** classify **"review my patent"** as **drafting** — always distinguish **review** (existing document) from **creation** (new draft).
 
+**Delegation Enforcement Gate:** After Step 3 dispatch, verify that the actual action taken was a **skill invocation** (e.g., `Invoke patent-us-drafting`, `Read SKILL.md`, `Task tool`) — NOT inline generation of claims, prior art tables, or review checklists. If the agent produced patent content directly instead of delegating, flag `DELEGATION VIOLATION` in the routing log and re-route to the correct skill.
+
 ### Worked Example: Classification (Dual Jurisdiction + Drafting)
 
 **Input:** `이 LLM 오케스트레이션 플랫폼을 한국과 미국 양국에 특허 출원하고 싶습니다`
@@ -172,6 +181,8 @@ Before reporting the orchestration run complete:
 (a) **Routing log** is written to `outputs/patent-orchestrator/{date}/routing-log.json` with each skill invoked, inputs summary, and outcome status.
 (b) All dispatched skills **completed** or their **failures** are reported with next steps.
 (c) For **multi-jurisdiction** work, a **comparison summary** (US vs KR approach, timeline, cost) is produced when both tracks were requested.
+
+**Routing Log Completeness Gate:** Verify `routing-log.json` contains at least: `timestamp`, `user_request` (original text), `classified_jurisdiction`, `classified_task_type`, `dispatched_skill`, and `outcome` (success/failure + summary). If any field is missing, populate it before declaring orchestration complete.
 (d) The **user’s original intent** (task type + jurisdiction + constraints) is **fully addressed** or explicitly listed as blocked/pending.
 
 ## Constraints

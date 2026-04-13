@@ -1,6 +1,13 @@
+---
+description: "Always route Notion, Slack, and GitHub tool calls through ATG when available for caching, deduplication, and compression"
+alwaysApply: true
+---
+
 # ATG Tool Routing
 
 Route Notion, Slack, and GitHub tool calls through the Agent Tool Gateway (ATG) when available. All other tools use their MCP servers directly.
+
+**This rule is always active.** Before any `notion_*`, `slack_*`, or `github_*` tool call, check ATG health and route through the gateway if available. ATG is an accelerator with automatic MCP fallback — zero risk of pipeline failure.
 
 ## Routing Rules
 

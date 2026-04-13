@@ -3,16 +3,18 @@ name: code-review-all
 description: >-
   Run a full-project adversarial code review with 3 parallel agents:
   7-item crash/bug checklist, 30 abnormal behavior scenarios, and
-  hacker-perspective security review. Stack-aware conditional checks
-  (Rust/Tauri/Node/Frontend/Python/Go) with quantitative 10-point scoring.
-  All output in Korean. Use when the user asks for "code review all",
-  "전체 코드 리뷰", "code-review-all", "전체 리뷰 해줘", "심층 리뷰",
-  "코드 다 봐줘", or "adversarial review".
-  Do NOT use for domain-specific review (use deep-review), code quality
-  metrics only (use simplify), or compliance-focused security (use security-expert).
+  hacker-perspective security review. Uses code-review-graph MCP for
+  architecture-aware risk hotspot detection and attack surface analysis.
+  Stack-aware conditional checks (Rust/Tauri/Node/Frontend/Python/Go)
+  with quantitative 10-point scoring. All output in Korean. Use when
+  the user asks for "code review all", "전체 코드 리뷰",
+  "code-review-all", "전체 리뷰 해줘", "심층 리뷰", "코드 다 봐줘",
+  or "adversarial review". Do NOT use for domain-specific review (use
+  deep-review), code quality metrics only (use simplify), or
+  compliance-focused security (use security-expert).
 metadata:
   author: thaki
-  version: 1.0.0
+  version: 2.0.0
   category: review
 ---
 
@@ -97,6 +99,20 @@ Prioritization order when batching:
 5. Utility and helper modules
 
 Skip generated files, vendored dependencies, test fixtures, and build artifacts.
+
+### Step 0.5: Graph-Aware Context (when code-review-graph MCP is available)
+
+Before launching review agents, enrich context using the code-review-graph MCP server. If the server is unavailable, skip this step entirely.
+
+1. **Architecture overview**: Call `get_architecture_overview_tool` to get high-level module boundaries, dependency layers, and community clusters. Include this in each agent's prompt so reviewers understand the codebase structure.
+
+2. **Risk hotspots**: Call `detect_changes_tool` with recent changes. Prioritize high-risk files (high fan-in, cross-community edges) for adversarial scenarios in Agent 2.
+
+3. **Attack surface**: Call `get_impact_radius_tool` on security-sensitive entry points (API handlers, auth modules). Pass the expanded blast radius to Agent 3 (Hacker Review) so it focuses on reachable code paths.
+
+4. **Flow analysis**: Call `get_affected_flows_tool` on the collected code files. Include execution flows in Agent 1 (Crash/Bug) prompts for cross-cutting issue detection.
+
+Pass graph context to each agent in Step 1–3.
 
 ### Step 1–3: Launch 3 Parallel Review Agents
 

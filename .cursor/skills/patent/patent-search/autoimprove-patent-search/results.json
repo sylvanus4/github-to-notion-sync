@@ -1,0 +1,21 @@
+{
+  "skill": "patent-search",
+  "eval_criteria": [
+    {"id": "eval1", "name": "sources_4plus", "description": "6개 소스 중 4개 이상 커버했는가?"},
+    {"id": "eval2", "name": "score_overlap", "description": "결과마다 relevance_score(1-10)와 overlap_elements가 포함되었는가?"},
+    {"id": "eval3", "name": "bilingual_matrix", "description": "이중언어 키워드 매트릭스(EN+KO)가 생성되었는가?"},
+    {"id": "eval4", "name": "ipc_cpc", "description": "IPC/CPC 분류 코드가 1개 이상 제시되었는가?"},
+    {"id": "eval5", "name": "blocking_flag", "description": "blocking reference(score >= 8)가 별도 플래그되었는가?"}
+  ],
+  "test_inputs": [
+    "AI-based fraud detection system",
+    "drone delivery autonomous navigation KR+US",
+    "LLM prompt caching method",
+    "CRISPR gene editing for crop resistance",
+    "federated learning privacy-preserving"
+  ],
+  "runs_per_experiment": 5,
+  "variants": ["baseline", "v1-mutations"],
+  "baseline": {"pass_rate": 0.72, "total_passed": 18, "total_checks": 25},
+  "best": {"variant": "v1-mutations", "pass_rate": 0.96, "total_passed": 24, "total_checks": 25, "size_growth_pct": 11.5}
+}

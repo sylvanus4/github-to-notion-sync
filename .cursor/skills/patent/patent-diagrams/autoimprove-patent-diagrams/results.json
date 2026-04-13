@@ -1,0 +1,29 @@
+{
+  "skill": "patent-diagrams",
+  "baseline_size": 9163,
+  "final_size": 9807,
+  "size_growth_pct": 7.0,
+  "constraint_gate": "PASS",
+  "runs_per_variant": 5,
+  "evals_per_run": 4,
+  "variants": {
+    "baseline": {
+      "total_checks": 20,
+      "passed": 12,
+      "pass_rate": 0.60
+    },
+    "v1-mutations": {
+      "total_checks": 20,
+      "passed": 19,
+      "pass_rate": 0.95,
+      "mutations_applied": [
+        "Mutation 1: EVAL4 B/W - Prohibit all color styling (style, classDef, fill: directives)",
+        "Mutation 2: EVAL1 Mermaid-only - Explicitly prohibit PlantUML, ASCII art, Draw.io, SVG, TikZ, Graphviz",
+        "Mutation 3: EVAL2 Numeral table ordering - MANDATORY table before any mermaid block",
+        "Mutation 4: EVAL3 Cross-figure consistency - Scan ALL figures, each numeral maps to exactly ONE component"
+      ]
+    }
+  },
+  "best_variant": "v1-mutations",
+  "improvement": "+35pp (60% → 95%)"
+}

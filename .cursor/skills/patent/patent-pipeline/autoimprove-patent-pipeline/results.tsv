@@ -1,0 +1,3 @@
+version	eval1_gate1_score_check	eval2_gate2_critical_halt	eval3_intermediate_files	eval4_phase5_revision_cap	eval5_final_package_files	avg_score
+baseline	0.50	0.45	0.40	0.40	0.50	0.45
+v1-mutations	0.95	0.95	0.95	1.00	0.95	0.96

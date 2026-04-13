@@ -3,11 +3,13 @@ name: simplify
 description: >-
   Run parallel code review agents to analyze code for reuse opportunities, code
   quality, tech debt, and performance issues, then auto-fix findings by
-  priority. Supports 3 scoping modes: diff (changed files), today (daily work),
-  and full (entire project). Use when the user runs /simplify, asks to "simplify
-  code", "review and fix changes", "clean up my code", or "review today's work".
-  Do NOT use for single-domain review (use /refactor, /performance, etc.
-  individually), creating new features, or general Q&A. Korean triggers: "리뷰",
+  priority. Uses code-review-graph MCP blast radius to expand scope beyond
+  changed files and prioritize fixes by graph risk scores. Supports 3 scoping
+  modes: diff (changed files), today (daily work), and full (entire project).
+  Use when the user runs /simplify, asks to "simplify code", "review and fix
+  changes", "clean up my code", or "review today's work". Do NOT use for
+  single-domain review (use /refactor, /performance, etc. individually),
+  creating new features, or general Q&A. Korean triggers: "리뷰",
   "분석", "수정", "성능".
 metadata:
   author: "thaki"
@@ -63,6 +65,18 @@ Warn the user if over 100 files: "Full project scan covers N files. This may tak
 If a specific directory is provided (e.g., `/simplify src/api/`), scope to that directory regardless of mode.
 
 Read each target file to build the review context.
+
+### Step 1.5: Graph-Aware Context (when code-review-graph MCP is available)
+
+Before launching review agents, enrich the review context using the code-review-graph MCP server. If the server is unavailable, skip this step entirely and proceed with file-only context.
+
+1. **Blast radius expansion**: Call `get_impact_radius_tool` with the target files. Add impacted files (callers, dependents, test gaps) NOT already in scope. This ensures agents see files that WILL break, not just files that changed.
+
+2. **Structural context**: Call `get_review_context_tool` with the expanded file list. Include the token-optimized structural summaries (callers, callees, inheritance, test coverage) in each agent's prompt — this replaces full-file reads for context files.
+
+3. **Risk-scored prioritization**: Call `detect_changes_tool` to get risk scores. Use risk scores to prioritize which findings get attention first during Step 5 (Apply Fixes).
+
+Pass the expanded file list and structural context to each review agent in Step 2.
 
 ### Step 2: Launch 4 Parallel Review Agents
 

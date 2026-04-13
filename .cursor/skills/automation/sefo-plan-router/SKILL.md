@@ -35,8 +35,9 @@ Run the SEFO (Skill Evolution and Federated Orchestration) plan router to discov
 
 ## Prerequisites
 
-- Python 3.11+ with `rank_bm25` installed (`pip install rank-bm25`)
-- `skill_corpus.json` in `backend/app/sefo/benchmark/data/` (auto-built on first run with `--rebuild`)
+- Python 3.11+ with `PyYAML` installed (`pip install pyyaml`)
+- Optional: `rank_bm25` for optimized BM25 scoring (`pip install rank-bm25`); falls back to built-in TF-IDF if absent
+- Corpus cached at `scripts/data/skill_corpus.json` (auto-built on first run with `--rebuild`)
 
 ## Workflow
 

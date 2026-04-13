@@ -1,0 +1,11 @@
+run	test_input	version	EVAL1_3_indep_claims	EVAL2_spec_traceability	EVAL3_alice_check_md	EVAL4_abstract_150w	EVAL5_no_impl_terms	EVAL6_max_5_limits	pass_rate
+1	AI-powered code review system	baseline	1	0	0	1	1	1	0.67
+1	AI-powered code review system	v1-mutations	1	1	1	1	1	1	1.00
+2	Privacy-preserving federated learning	baseline	1	0	0	0	1	0	0.33
+2	Privacy-preserving federated learning	v1-mutations	1	1	1	1	1	1	1.00
+3	Real-time IoT anomaly detection	baseline	0	0	0	1	0	1	0.33
+3	Real-time IoT anomaly detection	v1-mutations	1	1	1	1	1	1	1.00
+4	Multi-modal LLM inference optimization	baseline	1	0	0	1	1	0	0.50
+4	Multi-modal LLM inference optimization	v1-mutations	1	1	1	1	1	1	1.00
+5	Autonomous drone collision avoidance	baseline	1	0	0	1	1	1	0.67
+5	Autonomous drone collision avoidance	v1-mutations	1	1	1	1	1	1	1.00

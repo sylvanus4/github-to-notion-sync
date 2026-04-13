@@ -1,0 +1,29 @@
+{
+  "skill": "patent-us-drafting",
+  "baseline_size_bytes": 13095,
+  "mutated_size_bytes": 14952,
+  "growth_pct": 14.2,
+  "constraint_gate": "PASS (< 20%)",
+  "mutations_applied": 6,
+  "mutation_details": [
+    "Mutation 1 (EVAL 2): Added MANDATORY Claim-to-Specification Traceability Table in draft-specification.md appendix",
+    "Mutation 2 (EVAL 3): Mandated separate alice-check.md artifact persistence for Alice/Mayo analysis",
+    "Mutation 3 (EVAL 1): Strengthened MANDATORY minimum 3 independent claim categories with revision gate",
+    "Mutation 4 (EVAL 4): Added explicit word-count verification step for abstract (compress if >150 words)",
+    "Mutation 5 (EVAL 5): Added comprehensive implementation-term blocklist with final scan requirement",
+    "Mutation 6 (EVAL 6): Added per-claim limitation counting step with factoring instruction"
+  ],
+  "summary": {
+    "baseline_avg_pass_rate": 0.50,
+    "v1_mutations_avg_pass_rate": 1.00,
+    "improvement": "+50pp",
+    "verdict": "ACCEPT v1-mutations"
+  },
+  "runs": [
+    {"run": 1, "input": "AI-powered code review system", "baseline": 0.67, "v1": 1.00},
+    {"run": 2, "input": "Privacy-preserving federated learning", "baseline": 0.33, "v1": 1.00},
+    {"run": 3, "input": "Real-time IoT anomaly detection", "baseline": 0.33, "v1": 1.00},
+    {"run": 4, "input": "Multi-modal LLM inference optimization", "baseline": 0.50, "v1": 1.00},
+    {"run": 5, "input": "Autonomous drone collision avoidance", "baseline": 0.67, "v1": 1.00}
+  ]
+}

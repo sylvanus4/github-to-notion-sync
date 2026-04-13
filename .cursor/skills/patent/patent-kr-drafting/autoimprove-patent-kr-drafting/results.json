@@ -1,0 +1,20 @@
+{
+  "skill": "patent-kr-drafting",
+  "baseline_size_bytes": 12974,
+  "mutated_size_bytes": 14618,
+  "growth_pct": 12.7,
+  "constraint_gate": "PASS (≤20%)",
+  "mutations_applied": 6,
+  "mutations": [
+    "M1: MANDATORY file persistence for support-basis-matrix.md before claim drafting",
+    "M2: 3-Category Gate — stop if <3 independent claim types (방법/장치/기록매체)",
+    "M3: 1:1 Verification Pass — iterate claim elements against spec paragraphs + drawing refs",
+    "M4: 상기 Scan — linear scan per independent claim to flag dangling 상기 references",
+    "M5: AI/SW Enforcement Gate — verify 프로세서/메모리 in system claims + HW-SW cooperation",
+    "M6: Length Gate — count Korean chars in abstract and trim to ≤400 if exceeded"
+  ],
+  "experiment_runs": 5,
+  "baseline_avg_pass_rate": 0.634,
+  "v1_mutations_avg_pass_rate": 1.000,
+  "improvement": "+36.6pp"
+}

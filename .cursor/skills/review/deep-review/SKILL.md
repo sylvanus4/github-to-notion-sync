@@ -3,16 +3,18 @@ name: deep-review
 description: >-
   Run 4 parallel domain-expert agents (Frontend, Backend/DB, Security, Test
   Coverage) to review code from multiple engineering perspectives and auto-fix
-  findings. Supports diff/today/full scoping with Fix-First pattern,
-  adversarial tier scaling by diff size, and 8/10 confidence gate. Use when
-  the user runs /deep-review, asks for "full-stack review", "multi-domain
-  review", "review frontend and backend", or "comprehensive code review". Do
-  NOT use for single-domain review (use /refactor, /security, etc.), code
-  quality metrics only (use /simplify), or general Q&A. Korean triggers: "리뷰",
-  "테스트", "수정", "보안".
+  findings. Uses code-review-graph MCP blast radius to expand review scope
+  beyond git diff and prioritize high-risk files. Supports diff/today/full
+  scoping with Fix-First pattern, adversarial tier scaling by diff size and
+  graph risk scores, and 8/10 confidence gate. Use when the user runs
+  /deep-review, asks for "full-stack review", "multi-domain review", "review
+  frontend and backend", or "comprehensive code review". Do NOT use for
+  single-domain review (use /refactor, /security, etc.), code quality metrics
+  only (use /simplify), or general Q&A. Korean triggers: "리뷰", "테스트", "수정",
+  "보안".
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "2.0.0"
   category: "execution"
 ---
 # Deep Review — Multi-Domain Full-Stack Review
@@ -76,6 +78,26 @@ Classify each file by domain:
 - **DB**: `*.sql`, files in `migrations/`, `models/`, `schemas/`, `db/`
 - **Test**: `*.test.*`, `*.spec.*`, files in `tests/`, `__tests__/`
 - **Shared**: config files, utilities — sent to all agents
+
+### Step 1.5: Graph-Aware Context (when code-review-graph MCP is available)
+
+Before launching domain agents, enrich the review context using the code-review-graph MCP server. If the server is unavailable, skip this step entirely and proceed with file-only context.
+
+1. **Blast radius expansion**: Call `get_impact_radius_tool` with the list of changed files. Add any impacted files NOT already in the review scope (callers, dependents, tests with gaps). This ensures the domain agents see files that WILL break, not just files that DID change.
+
+2. **Structural context**: Call `get_review_context_tool` with the expanded file list. This returns token-optimized structural summaries (callers, callees, inheritance, test coverage) that replace full-file reads for context. Include this summary in each domain agent's prompt.
+
+3. **Risk-scored prioritization**: Call `detect_changes_tool` to get risk-scored change impact. Use risk scores to:
+   - Assign higher adversarial tier to high-risk files regardless of diff line count
+   - Prioritize Critical/High-risk files for agent attention
+
+4. **Flow impact**: Call `get_affected_flows_tool` with changed files. Include affected execution flows in the Backend/DB agent prompt for cross-cutting concern detection.
+
+Pass the following to each domain agent prompt:
+- The expanded file list (blast radius, not just git diff)
+- Structural context summary (callers, callees, test gaps per file)
+- Risk scores per file
+- Affected flows (Backend/DB agent only)
 
 ### Step 2: Launch 4 Parallel Review Agents
 

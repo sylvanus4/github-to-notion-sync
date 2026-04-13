@@ -1,0 +1,3 @@
+version	eval1_jurisdiction_classify	eval2_task_type_classify	eval3_ambiguity_question	eval4_delegation_not_inline	eval5_routing_log	avg_score
+baseline	0.60	0.55	0.50	0.45	0.40	0.50
+v1-mutations	0.95	0.95	1.00	0.95	0.95	0.96

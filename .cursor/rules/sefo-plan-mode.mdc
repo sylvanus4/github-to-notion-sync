@@ -1,8 +1,3 @@
----
-description: "SEFO skill routing + DAG composition for Plan Mode — auto-discovers relevant skills and generates execution phases before plan creation"
-alwaysApply: true
----
-
 # SEFO Plan Mode Routing
 
 > **Activation guard:** Apply this rule ONLY when Plan Mode is active (i.e., the system reminder "Plan mode is active" is present). On normal (Agent/Ask/Debug) interactions, ignore this rule entirely.

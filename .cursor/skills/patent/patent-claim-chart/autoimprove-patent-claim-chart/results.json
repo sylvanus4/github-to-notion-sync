@@ -1,0 +1,19 @@
+{
+  "skill": "patent-claim-chart",
+  "baseline_size_bytes": 8751,
+  "final_size_bytes": 10026,
+  "growth_pct": 14.6,
+  "constraint_gate": "PASS (< 20%)",
+  "mutations_applied": 5,
+  "runs": 5,
+  "baseline_avg_pass_rate": 0.64,
+  "v1_mutations_avg_pass_rate": 1.00,
+  "improvement": "+36pp",
+  "eval_criteria": [
+    "E1: 모든 Met 판정에 정확한 인용(페이지/단락/도면) 포함 여부",
+    "E2: 모든 Not Met 판정에 구체적 갭 서술 여부",
+    "E3: 독립항이 종속항보다 먼저 차트되었는가",
+    "E4: 전제부(preamble)가 생략되지 않았는가",
+    "E5: 요약 표의 수치(Met/Not Met 카운트)가 상세 행과 일치하는가"
+  ]
+}

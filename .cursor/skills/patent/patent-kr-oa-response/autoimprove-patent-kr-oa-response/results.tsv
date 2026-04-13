@@ -1,0 +1,3 @@
+version	eval1_format	eval2_paragraph_ref	eval3_amendment_scope	eval4_deadline	eval5_korean_only	pass_rate	notes
+baseline	0.6	0.4	0.5	0.4	0.6	48%	형식·단락근거·범위·기한·언어 규칙 존재하나 검증 게이트 부재
+v1-mutations	1.0	1.0	1.0	1.0	1.0	100%	M1-M5 각 EVAL 전용 검증 게이트 삽입

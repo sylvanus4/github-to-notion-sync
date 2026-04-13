@@ -1,0 +1,11 @@
+variant	run	input	E1_alice_completeness	E2_critical_completeness	E3_scorecard_completeness	E4_112f_trigger_scan	E5_anti_software_bias	pass_rate
+baseline	1	AI code review system	1	0	1	0	1	60%
+baseline	2	blockchain identity	0	1	1	1	1	80%
+baseline	3	cloud orchestration	1	0	0	0	0	20%
+baseline	4	hardware-software hybrid	1	1	1	0	1	80%
+baseline	5	biotech ML	0	0	1	1	1	60%
+v1-mutations	1	AI code review system	1	1	1	1	1	100%
+v1-mutations	2	blockchain identity	1	1	1	1	1	100%
+v1-mutations	3	cloud orchestration	1	1	1	0	1	80%
+v1-mutations	4	hardware-software hybrid	1	1	1	1	1	100%
+v1-mutations	5	biotech ML	1	1	1	1	1	100%

@@ -3,15 +3,17 @@ name: ship
 description: >-
   End-to-end pre-merge pipeline that reviews code with 4 parallel agents,
   auto-fixes findings, verifies with linting, creates bisect-able domain-split
-  commits, and opens a PR. Enforces the Iron Law of Verification and Review
-  Readiness checks. Use when the user runs /ship, asks to "ship it", "prepare
-  for merge", "create a PR with review", or "commit and PR". Do NOT use for
-  review-only (use /simplify or /deep-review), manual commits (use
-  /domain-commit), or PR management (use /pr-create, /pr-review). Korean
-  triggers: "출시", "리뷰", "생성", "파이프라인".
+  commits, and opens a PR. Uses code-review-graph MCP blast radius to expand
+  review scope and prioritize fixes by graph risk scores. Enforces the Iron
+  Law of Verification and Review Readiness checks. Use when the user runs
+  /ship, asks to "ship it", "prepare for merge", "create a PR with review",
+  or "commit and PR". Do NOT use for review-only (use /simplify or
+  /deep-review), manual commits (use /domain-commit), or PR management
+  (use /pr-create, /pr-review). Korean triggers: "출시", "리뷰", "생성",
+  "파이프라인".
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "2.0.0"
   category: "execution"
 ---
 # Ship — Pre-Merge Pipeline
@@ -81,6 +83,18 @@ git diff HEAD --name-only
 
 If no changes, fall back to `git diff HEAD~1 HEAD --name-only`.
 If still empty, inform the user and stop.
+
+### Step 1.5: Graph-Aware Context (when code-review-graph MCP is available)
+
+Before launching review agents, enrich context using the code-review-graph MCP server. If the server is unavailable, skip this step entirely.
+
+1. **Blast radius expansion**: Call `get_impact_radius_tool` with the changed files. Add impacted files (callers, dependents, test gaps) NOT already in scope. This ensures reviewers catch files that WILL break from the changes being shipped.
+
+2. **Structural context**: Call `get_review_context_tool` with the expanded file list. Pass token-optimized structural summaries (callers, callees, inheritance, test coverage) to each review agent — replaces full-file reads for context.
+
+3. **Risk-scored prioritization**: Call `detect_changes_tool` to get risk scores. High-risk files (Critical/High) get higher adversarial scrutiny in Step 2 and are prioritized in Step 3 auto-fix.
+
+Pass the expanded file list, structural context, and risk scores to review agents in Step 2.
 
 ### Step 2: Parallel Review (4 Agents)
 

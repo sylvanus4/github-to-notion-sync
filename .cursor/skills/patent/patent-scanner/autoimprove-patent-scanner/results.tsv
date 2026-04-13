@@ -1,0 +1,11 @@
+run	variant	input	eval1_composite_threshold	eval2_4dim_scores	eval3_concrete_ref	eval4_dual_jurisdiction	eval5_standard_blocklist	total	pass_rate	timestamp
+1	baseline	Scan this codebase for patentable patterns in the ML pipeline	1	1	1	0	0	3	0.60	2026-04-13T11:00:00
+2	baseline	Analyze this spec: real-time video compression using neural codecs	1	1	0	1	1	4	0.80	2026-04-13T11:00:00
+3	baseline	Evaluate patentability of a blockchain-based supply chain system	1	0	1	1	0	3	0.60	2026-04-13T11:00:00
+4	baseline	Scan adaptive learning rate optimizer implementation	1	1	1	0	1	4	0.80	2026-04-13T11:00:00
+5	baseline	Review this API design for novel caching mechanisms	0	1	1	1	0	3	0.60	2026-04-13T11:00:00
+1	v1-mutations	Scan this codebase for patentable patterns in the ML pipeline	1	1	1	1	1	5	1.00	2026-04-13T11:15:00
+2	v1-mutations	Analyze this spec: real-time video compression using neural codecs	1	1	1	1	1	5	1.00	2026-04-13T11:15:00
+3	v1-mutations	Evaluate patentability of a blockchain-based supply chain system	1	1	1	1	1	5	1.00	2026-04-13T11:15:00
+4	v1-mutations	Scan adaptive learning rate optimizer implementation	1	1	1	1	1	5	1.00	2026-04-13T11:15:00
+5	v1-mutations	Review this API design for novel caching mechanisms	1	1	1	1	0	4	0.80	2026-04-13T11:15:00

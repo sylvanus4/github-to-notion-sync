@@ -3,7 +3,9 @@ name: refactor-simulator
 description: >-
   Before making any code change, simulate the blast radius by analyzing all
   call sites, import chains, type dependencies, and test coverage for the
-  affected area. Produces a "what-if" impact report with risk scores — without
+  affected area. Uses code-review-graph AST-based MCP tools when available for
+  precise structural analysis (100% recall), with rg pattern fallback.
+  Produces a "what-if" impact report with risk scores — without
   touching any code. Use when the user asks about "blast radius", "impact
   analysis", "refactor simulator", "what if I change", "what if I rename", "what
   if I move", "리팩토링 시뮬레이션", "영향 분석", "before refactoring", or wants to
@@ -12,12 +14,12 @@ description: >-
   existing code (use deep-review), or debugging (use diagnose).
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "execution"
 ---
 # Refactor Simulator — Pre-Change Blast Radius Analysis
 
-Predict the impact of a code change before you make it. Maps dependencies, counts call sites, checks test coverage, and produces a risk-scored impact report — all without modifying a single file.
+Predict the impact of a code change before you make it. Uses AST-based code-review-graph for precise structural analysis when available, with ripgrep fallback. Maps dependencies, counts call sites, checks test coverage, and produces a risk-scored impact report — all without modifying a single file.
 
 ## Usage
 
@@ -42,35 +44,56 @@ Extract from user input:
 
 If ambiguous, ask the user to clarify the exact change.
 
-### Step 2: Build Dependency Graph
+### Step 2: Build Dependency Graph (Graph-First, rg Fallback)
 
-For the target symbol, trace all connections:
+#### 2-PRIMARY: AST-Based Analysis via code-review-graph MCP
 
-#### 2a. Downstream Dependencies (what uses this?)
+When the `code-review-graph` MCP server is available, use these tools for precise structural analysis:
+
+1. **Query the target node**:
+   - `query_graph_tool` with `node_name: "{target}"`, `query_type: "callers"` → all direct callers
+   - `query_graph_tool` with `node_name: "{target}"`, `query_type: "callees"` → all callees (upstream deps)
+   - `query_graph_tool` with `node_name: "{target}"`, `query_type: "imports"` → import chain
+
+2. **Compute blast radius**:
+   - `get_impact_radius_tool` with `changed_files: ["{target_file}"]` → full transitive blast radius with test gap analysis
+
+3. **Check affected execution flows**:
+   - `get_affected_flows_tool` with `changed_files: ["{target_file}"]` → critical flows impacted
+
+4. **Preview rename (for rename actions)**:
+   - `refactor_tool` with `action: "rename"`, `target: "{symbol}"` → dry-run rename preview showing all locations that would change
+
+5. **Detect dead code (for delete actions)**:
+   - `refactor_tool` with `action: "dead_code"`, `target: "{symbol}"` → verify no live references remain
+
+6. **Get structural context**:
+   - `get_review_context_tool` with `changed_files: ["{target_file}"]` → token-optimized summary for report context
+
+**Advantages over rg**: AST-based analysis catches indirect callers through interfaces, type inheritance, and re-export chains without regex false positives. Reports 100% recall on structural dependencies.
+
+#### 2-FALLBACK: rg Pattern Analysis
+
+When the MCP server is unavailable, fall back to ripgrep-based analysis:
+
+**2a. Downstream Dependencies (what uses this?)**
 
 Use `rg -F` (fixed-string / literal) for the initial scan to avoid regex escaping issues, then refine with context:
 
 ```bash
-# Find all import statements referencing the target (literal match)
-rg -F "{target}" --type ts --type py -l
-
-# Find call sites (regex needed for parenthesis pattern)
-rg "{target}\s*\(" --type ts --type py -l
-
-# Find JSX usage (React components)
+rg -F "{target}" --type ts --type py --type go -l
+rg "{target}\s*\(" --type ts --type py --type go -l
 rg "<{target}[\s/>]" --glob "*.tsx" -l
-
-# Find re-exports
 rg -F "{target}" --glob "**/index.ts" --glob "**/index.tsx" -l
 ```
 
 Replace `{target}` with the actual symbol name. If the symbol contains regex special characters (e.g., `$`, `.`), always use `rg -F`.
 
-#### 2b. Upstream Dependencies (what does this use?)
+**2b. Upstream Dependencies (what does this use?)**
 
 Read the target file and extract all its imports, inherited types, and called functions.
 
-#### 2c. Re-export Chains
+**2c. Re-export Chains**
 
 Check if the symbol is re-exported through barrel files (`index.ts`, `__init__.py`):
 
@@ -81,7 +104,9 @@ rg "from.*{module}.*import.*{target}" --type py -l
 
 ### Step 3: Enumerate Call Sites
 
-For each file that references the target, collect:
+**Graph mode**: The `query_graph_tool` callers result already provides structured call-site data with file paths, node types, and relationship types. Classify each as production/test based on file path patterns.
+
+**Fallback mode**: For each file that references the target, collect:
 - File path and line numbers
 - Usage type: `import | call | type-reference | jsx | inheritance | re-export`
 - Whether the usage is in production code, test code, or configuration
@@ -99,8 +124,9 @@ Call Sites for getUserById:
 
 ### Step 4: Assess Test Coverage
 
-For the affected files, determine test coverage:
+**Graph mode**: `get_impact_radius_tool` already includes test gap analysis in its output. Extract `untested_paths` directly.
 
+**Fallback mode**:
 1. Find test files that import or test the target:
    ```bash
    rg -F "{target}" --glob "**/*test*" --glob "**/*spec*" --glob "**/__tests__/**" -l
@@ -108,19 +134,28 @@ For the affected files, determine test coverage:
 2. Check if affected call sites have corresponding tests
 3. Calculate coverage ratio: `tested_call_sites / total_call_sites`
 
-### Step 5: Calculate Risk Score
+### Step 5: Assess Flow Impact (Graph Mode Only)
+
+When graph is available, add flow-level analysis:
+- `get_affected_flows_tool` shows which high-criticality execution flows pass through the changed symbol
+- Flows with criticality > 0.7 increase risk score by 10 per flow
+- Report affected flows in the impact report under a dedicated section
+
+### Step 6: Calculate Risk Score
 
 ```
 risk_score = (call_site_count * call_site_weight)
            + (untested_sites * untested_weight)
            + (type_chain_depth * type_weight)
            + (re_export_count * re_export_weight)
+           + (critical_flows * flow_weight)        # graph mode only
 
 Where:
   call_site_weight  = 1.0
   untested_weight   = 3.0  (untested sites are 3x riskier)
   type_weight       = 2.0  (type changes cascade)
   re_export_weight  = 2.0  (re-exports multiply blast radius)
+  flow_weight       = 10.0 (each critical flow affected)
 ```
 
 Risk levels:
@@ -129,7 +164,7 @@ Risk levels:
 - **HIGH** (score 30-60): Many call sites or significant untested code
 - **CRITICAL** (score > 60): Widespread impact with poor test coverage
 
-### Step 6: Generate Impact Report
+### Step 7: Generate Impact Report
 
 ```
 Refactor Simulation Report
@@ -137,12 +172,14 @@ Refactor Simulation Report
 Proposed Change: [description]
 Target: [symbol] in [file]
 Action: [rename|move|delete|extract|split|modify-signature]
+Analysis Method: [AST graph (code-review-graph) | rg pattern fallback]
 
 Blast Radius:
   Files affected:     [N] production + [N] test
   Call sites:         [N] total ([N] tested, [N] untested)
   Type references:    [N]
   Re-export chains:   [N]
+  Execution flows:    [N] affected ([N] critical)     # graph mode
 
 Risk Score: [score] ([LOW|MEDIUM|HIGH|CRITICAL])
 
@@ -150,6 +187,13 @@ Files That Would Change:
   1. [file] — [reason: update import path / rename reference / remove usage]
   2. [file] — [reason]
   ...
+
+Affected Flows (graph mode):                           # graph mode
+  1. [flow_name] (criticality: 0.9) — [description]
+  2. [flow_name] (criticality: 0.7) — [description]
+
+Rename Preview (graph mode, rename action):            # graph mode
+  [refactor_tool dry-run output]
 
 Tests That May Break:
   1. [test file] — [which test and why]
@@ -170,7 +214,7 @@ Recommendations:
   3. [coordinate with team — bus factor 1 on this module]
 ```
 
-### Step 7: Simulation Variants
+### Step 8: Simulation Variants
 
 If the user asks "what if" follow-ups, re-run the analysis with modified parameters:
 - "What if I move it instead of renaming?" → re-run with `action: move`
@@ -201,15 +245,19 @@ Output: 23 files import from the old path, 5 barrel re-exports. Risk score 52 (H
 
 | Scenario | Action |
 |----------|--------|
+| MCP server unavailable | Fall back to rg-based analysis; note in report |
+| Symbol not found in graph | Try `semantic_search_nodes_tool`, then fall back to rg |
 | Symbol not found in codebase | Report with suggestions for similar names |
 | Ambiguous symbol (multiple definitions) | List all definitions, ask user to choose |
 | Dynamic imports or string references | Flag as "potentially affected, verify manually" |
 | Circular dependencies detected | Report the cycle and warn about cascade risk |
-| Very large blast radius (100+ files) | Summarize by directory; offer detailed drill-down |
+| Very large blast radius (100+ files) | Use `list_communities_tool` to group by community |
 
 ## Troubleshooting
 
+- **MCP server not responding**: Run `code-review-graph status` to check. Rebuild with `code-review-graph build` if needed. Analysis will use rg fallback automatically.
+- **Stale graph results**: Run `code-review-graph update` to sync the graph with recent file changes.
 - **Symbol not found**: Ensure the exact casing matches. Try `rg -Fi "{target}"` for case-insensitive search.
-- **False positives in search**: `rg -F` matches substrings. For `get`, it matches `getUser`, `forget`. Use `rg -Fw "{target}"` for whole-word matching.
+- **False positives in rg search**: `rg -F` matches substrings. For `get`, it matches `getUser`, `forget`. Use `rg -Fw "{target}"` for whole-word matching.
 - **Dynamic imports missed**: `import()` expressions and `require()` calls won't match standard import patterns. Check for `rg "require.*{target}"` separately.
 - **Monorepo scope**: If the project spans multiple packages, scope the search with `--glob "packages/my-app/**"` to avoid cross-package noise.

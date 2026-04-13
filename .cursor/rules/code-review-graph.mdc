@@ -1,0 +1,40 @@
+# Code Review Graph Integration
+
+When the `code-review-graph` MCP server is available, review and analysis skills SHOULD use its tools for precise, token-efficient context selection instead of brute-force file reading.
+
+## Graph-Aware File Selection
+
+Before reading changed files for review, call these MCP tools in order:
+
+1. **`get_impact_radius_tool`** with the list of changed files → returns the blast-radius file set (all files affected by the change)
+2. **`get_review_context_tool`** with the blast-radius files → returns token-optimized structural summaries (callers, callees, test gaps)
+3. **`detect_changes_tool`** → returns risk-scored change impact for prioritization
+
+Use the blast-radius file set instead of raw `git diff --name-only` for review scope. Include structural context in subagent prompts alongside (or instead of) full file contents.
+
+## Fallback
+
+If the MCP server is unavailable (connection refused, tool call fails), fall back to the existing `git diff`-based file selection. Never block a review because the graph is down.
+
+## When to Use Which Tool
+
+| Need | Tool |
+|------|------|
+| Which files are affected by my change? | `get_impact_radius_tool` |
+| Compact structural context for review | `get_review_context_tool` |
+| Risk-scored impact for prioritization | `detect_changes_tool` |
+| Who calls this function? | `query_graph_tool` (query_type: callers) |
+| What does this function call? | `query_graph_tool` (query_type: callees) |
+| Which execution flows are affected? | `get_affected_flows_tool` |
+| How to batch files for parallel review? | `list_communities_tool` |
+| Architecture overview for context | `get_architecture_overview_tool` |
+| Rename impact preview | `refactor_tool` |
+
+## Skills That Use the Graph
+
+- `deep-review`: Step 0.5 graph-aware context before domain classification
+- `simplify`: Graph-aware context + community-based batching
+- `code-review-all`: Structural context instead of full file embedding
+- `ship`: Graph context + flow impact for PR descriptions
+- `refactor-simulator`: AST-based blast radius instead of rg patterns
+- `codemap-updater`: Architecture, communities, and flows from graph

@@ -73,6 +73,8 @@ Before drafting claims, build a support-basis matrix:
 This matrix is the PRIMARY deliverable — claims and specification are built
 FROM this matrix, not the other way around.
 
+**MANDATORY**: Write the completed matrix to `outputs/patent-kr/{date}/support-basis-matrix.md` **before** proceeding to Step 3 (claim drafting). Do NOT draft any claim until the matrix file exists on disk. If the file cannot be persisted, STOP and report the error.
+
 ### Step 3: Draft Claims (청구항)
 
 **Korean claim structure**:
@@ -92,10 +94,13 @@ FROM this matrix, not the other way around.
 - "특징으로 하는" (characterized by) 으로 독립항 마무리
 - 종속항은 "제N항에 있어서" 로 시작
 - 각 구성요소는 명세서의 구체적 단락과 1:1 대응 필수
+- **1:1 Verification Pass**: After specification drafting, iterate every claim element and confirm it maps to (a) a specific specification paragraph number and (b) a drawing reference numeral. Record unmapped elements and resolve them before finalizing.
 
 **Claim categories**:
 - 독립항 (Independent): 방법 발명, 장치 발명, 컴퓨터 판독 가능 기록매체
 - 종속항 (Dependent): "제N항에 있어서, ... 것을 특징으로 하는 [명칭]"
+
+**3-Category Gate**: After completing claim drafting, count independent claim categories. If fewer than 3 categories (방법, 장치, 기록매체/프로그램) exist, STOP and draft the missing category before proceeding to the specification.
 
 **AI/SW invention claims** (KIPO guidelines):
 - Hardware-software cooperation must be explicitly stated
@@ -103,11 +108,13 @@ FROM this matrix, not the other way around.
 - Method claims tied to specific hardware operation
 - Avoid purely abstract data manipulation
 
+**AI/SW Enforcement Gate**: When the invention involves AI, ML, or software, verify the following before finalizing claims: (1) at least one system/apparatus claim contains "프로세서" AND "메모리", (2) method claims reference hardware execution context, (3) specification describes HW-SW cooperation. If any check fails, add the missing elements before proceeding.
+
 ### Anti-Patterns (청구항·명세서)
 
 1. 청구항에 **구현 특정 용어**("파이썬", "리눅스", "AWS" 등) 사용 금지 — **기술 중립적** 표현 사용 ("프로세서", "저장 장치", "클라우드 컴퓨팅 환경" 등).
 2. **하나의 독립항**에 **구성요소를 5개 이상** 나열·한정하는 과도한 나열 금지 — 거절·명확성 리스크 증가; 종속항으로 분할한다.
-3. **"상기"**를 **선행 기재 없이** 사용 금지 — 반드시 이전에 해당 구성요소가 언급된 뒤에만 사용한다.
+3. **"상기"**를 **선행 기재 없이** 사용 금지 — 반드시 이전에 해당 구성요소가 언급된 뒤에만 사용한다. **"상기" Scan**: After completing each independent claim, run a linear scan of the claim text — for every occurrence of "상기 X", verify that "X" appears verbatim earlier in the same claim. Flag and rewrite any dangling "상기" before finalizing.
 4. 명세서에서 **청구항 문구를 그대로 복붙**하는 단락 금지 — **구체적 실시예**, 수치·동작·대안 실시형태를 덧붙인다.
 5. **뒷받침 매트릭스**(Step 2) 완성 전에 청구항 최종 확정 금지.
 6. **AI/SW 발명**에서 **프로세서/메모리 없는** 순수 방법 청구항만으로 끝내는 서술 금지 — 필요 시 장치·기록매체 독립항과 HW 연계를 병기한다.
@@ -160,6 +167,7 @@ reproduce it. Check against the support-basis matrix from Step 2.
 - 400자 이내 (approximately 200 words)
 - 대표도면 지정 (e.g., "대표도: 도 1")
 - 기술적 과제, 해결수단, 효과를 간결히 기술
+- **Length Gate**: After drafting the abstract, count Korean characters (excluding spaces and punctuation). If count exceeds 400, trim to ≤400 by removing secondary effects or implementation details. Report the final character count in the output.
 
 ### Step 6: English Reference Translation
 

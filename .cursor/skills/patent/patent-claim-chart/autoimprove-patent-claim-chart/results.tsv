@@ -1,0 +1,11 @@
+run	input	version	E1_citation	E2_gap	E3_indep_first	E4_preamble	E5_summary_count	pass_rate
+R1	Map Claim 1 of US patent X against Product Y	baseline	PASS	PASS	PASS	FAIL	FAIL	0.60
+R1	Map Claim 1 of US patent X against Product Y	v1-mutations	PASS	PASS	PASS	PASS	PASS	1.00
+R2	KR support-basis chart for claims 1-5 against specification	baseline	FAIL	PASS	PASS	PASS	FAIL	0.60
+R2	KR support-basis chart for claims 1-5 against specification	v1-mutations	PASS	PASS	PASS	PASS	PASS	1.00
+R3	Element-by-element invalidity chart against prior art reference	baseline	PASS	FAIL	PASS	FAIL	PASS	0.60
+R3	Element-by-element invalidity chart against prior art reference	v1-mutations	PASS	PASS	PASS	PASS	PASS	1.00
+R4	Compare independent claims across US and KR filings	baseline	FAIL	PASS	PASS	PASS	PASS	0.80
+R4	Compare independent claims across US and KR filings	v1-mutations	PASS	PASS	PASS	PASS	PASS	1.00
+R5	Map dependent claims 2-10 to product documentation	baseline	PASS	PASS	FAIL	PASS	FAIL	0.60
+R5	Map dependent claims 2-10 to product documentation	v1-mutations	PASS	PASS	PASS	PASS	PASS	1.00

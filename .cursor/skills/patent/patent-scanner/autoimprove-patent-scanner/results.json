@@ -1,0 +1,21 @@
+{
+  "skill": "patent-scanner",
+  "eval_criteria": [
+    {"id": "eval1", "name": "composite_threshold", "description": "composite score >= 5.0인 패턴만 보고서에 포함되었는가?"},
+    {"id": "eval2", "name": "4dim_scores", "description": "각 패턴에 novelty/non-obviousness/utility/commercial_value 4차원 점수가 모두 있는가?"},
+    {"id": "eval3", "name": "concrete_ref", "description": "concrete_reference(파일/함수/라인 또는 스펙 섹션)가 모든 패턴에 포함되었는가?"},
+    {"id": "eval4", "name": "dual_jurisdiction", "description": "US jurisdiction_notes(Alice/101)와 KR jurisdiction_notes(KIPO AI/SW)가 쌍으로 있는가?"},
+    {"id": "eval5", "name": "standard_blocklist", "description": "표준 패턴(MVC, REST 등)이 novelty > 5로 오분류되지 않았는가?"}
+  ],
+  "test_inputs": [
+    "Scan this codebase for patentable patterns in the ML pipeline",
+    "Analyze this spec: real-time video compression using neural codecs",
+    "Evaluate patentability of a blockchain-based supply chain system",
+    "Scan adaptive learning rate optimizer implementation",
+    "Review this API design for novel caching mechanisms"
+  ],
+  "runs_per_experiment": 5,
+  "variants": ["baseline", "v1-mutations"],
+  "baseline": {"pass_rate": 0.68, "total_passed": 17, "total_checks": 25},
+  "best": {"variant": "v1-mutations", "pass_rate": 0.96, "total_passed": 24, "total_checks": 25, "size_growth_pct": 19.2}
+}

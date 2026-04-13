@@ -1,0 +1,3 @@
+version	eval1_markup_consistency	eval2_spec_citation	eval3_differentiated_args	eval4_103_motivation	eval5_clean_claims_match	avg_pass_rate
+baseline	40%	40%	60%	60%	60%	52%
+v1-mutations	100%	100%	100%	100%	100%	100%

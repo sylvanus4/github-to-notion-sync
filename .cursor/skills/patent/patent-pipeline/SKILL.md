@@ -114,6 +114,8 @@ Invoke `patent-scanner` with the invention and search results.
 - Provide specific reasons and suggest pivots
 - Ask user whether to proceed anyway
 
+**Gate 1 Enforcement:** Before proceeding to Phase 2, output the following structured block verbatim: `GATE 1 — Score: [X]/10 — Verdict: [PASS|FAIL]`. If FAIL, do **not** proceed unless the user explicitly writes approval to continue. Omitting this block or proceeding without it is a pipeline violation.
+
 ### Phase 2: Preparation
 
 **Step 2.1: Technical Drawings**
@@ -164,6 +166,8 @@ If AI/SW invention, also invoke `patent-kr-ai-invention`:
 - List all critical issues
 - Do NOT proceed to packaging until resolved
 
+**Gate 2 Enforcement:** Output the following structured block: `GATE 2 — CRITICAL issues: [count] — [PASS: proceed to Phase 5|HALT: packaging blocked]`. If count > 0, enumerate each CRITICAL issue with its ID and affected claim/section. Do **not** skip this block or proceed to Phase 6 while any CRITICAL issue is unresolved (or not explicitly accepted by the user).
+
 ### Phase 5: Revision (Evaluator-Optimizer Loop)
 
 For each CRITICAL/HIGH issue from review:
@@ -173,6 +177,8 @@ For each CRITICAL/HIGH issue from review:
 4. Max 2 iterations per issue — escalate unresolved items
 
 Persist revision log to `_workspace/patent-pipeline/{date}/phase5-revisions.md`
+
+**Revision Cap Enforcement:** Maintain an explicit counter `revision_iteration` starting at 0. Increment after each fix→re-review cycle. When `revision_iteration >= 2`, STOP further revision and output: `PHASE 5 CAP REACHED — 2/2 iterations used. Remaining issues escalated to human review.` List any unresolved issues below this line. Do **not** silently perform a third iteration.
 
 ### Phase 6: Packaging
 
@@ -232,6 +238,10 @@ Before declaring the pipeline complete:
 
 (c) **Final package** under `outputs/patent-pipeline/{date}/` includes **every** document listed in the Phase 6 tables for each active jurisdiction.
 
+**Mandatory File Checklist Gate:** For each active jurisdiction, verify these files exist:
+- `title.md`, `abstract.md`, `claims.md`, `specification.md`, `drawings/` (≥1 file), `review-summary.md`, `prior-art-report.md`, `filing-checklist.md`
+If any file is missing, output `PACKAGE INCOMPLETE — Missing: [list]` and generate the missing files before declaring Phase 6 complete.
+
 (d) **No unresolved CRITICAL** review issues remain — or user has explicitly accepted residual risk in writing.
 
 (e) **`_workspace/`** and **`outputs/`** files are **both** present where expected and **consistent** (titles, claim counts, jurisdiction flags match summary).
@@ -246,6 +256,8 @@ Before declaring the pipeline complete:
 | 4 | `_workspace/patent-pipeline/{date}/phase4-*-review/` | Reviews |
 | 5 | `_workspace/patent-pipeline/{date}/phase5-revisions.md` | Revision log |
 | 6 | `outputs/patent-pipeline/{date}/` | Final package |
+
+**Persistence Checkpoint Gate:** After each phase (1–5), verify that the expected file(s) listed in the row above **exist on disk** (ls or stat). If any expected output is missing — e.g., `phase1-scan.json` was not written — do **not** proceed to the next phase; write the missing file first.
 
 ## Constraints
 

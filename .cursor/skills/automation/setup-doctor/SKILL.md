@@ -13,7 +13,7 @@ description: >-
   setup guides (use gws-workspace, paperclip-setup, etc. directly).
 metadata:
   author: "thaki"
-  version: "3.0.0"
+  version: "3.1.0"
   category: "infrastructure"
 ---
 
@@ -69,6 +69,7 @@ The user provides:
 | sleek-mobile | SLEEK_API_KEY | sleek-design-mobile-apps |
 | data-designer | `nemo-curator` Python pkg, NVIDIA_API_KEY (opt) | data-designer |
 | lat-md | `lat` CLI (npm), LAT_LLM_KEY (opt) | lat-md |
+| code-review-graph | `code-review-graph` CLI (pip), Python 3.9+ | code-review-graph, deep-review, simplify, code-review-all, ship, refactor-simulator, codemap-updater, ci-quality-gate, domain-commit |
 | rhwp-documents | `rhwp` CLI (cargo), `cargo`, `@rhwp/core` (npm opt) | rhwp-viewer, rhwp-converter, rhwp-debug, rhwp-pipeline, rhwp-setup, rhwp-web-editor |
 | carbonyl-browser | `carbonyl` CLI | carbonyl-browser |
 | obsidian-vault | `obsidian` CLI, Obsidian.app | obsidian-files, obsidian-search, obsidian-notes, obsidian-daily, obsidian-admin, obsidian-dev, obsidian-kb-bridge, brain-full-crew |
@@ -90,7 +91,7 @@ For the complete env var registry, see [references/env-var-registry.md](referenc
 Check each tool via `command -v`:
 
 ```bash
-for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp agent-reach rdt mcporter rhwp cargo carbonyl obsidian alpha dot lat paperclip runpodctl java; do
+for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp agent-reach rdt mcporter rhwp cargo carbonyl obsidian alpha dot lat paperclip runpodctl java code-review-graph; do
   command -v "$tool" >/dev/null 2>&1 && echo "PASS $tool" || echo "FAIL $tool"
 done
 ```
@@ -102,7 +103,7 @@ Record results in a table: `Tool | Status | Required By | Install Command`.
 **Python packages** — check critical packages via `pip show`:
 
 ```bash
-for pkg in fastapi uvicorn sqlalchemy asyncpg alembic pandas numpy yfinance pykrx openai anthropic playwright feedparser huggingface-hub pdfplumber defusedxml lxml python-docx pypdf pillow opendataloader-pdf scrapling cognee beautifulsoup4 pyyaml imageio requests fal-client nemo-curator fastembed data-designer gTTS moviepy tradingview-mcp-server; do
+for pkg in fastapi uvicorn sqlalchemy asyncpg alembic pandas numpy yfinance pykrx openai anthropic playwright feedparser huggingface-hub pdfplumber defusedxml lxml python-docx pypdf pillow opendataloader-pdf scrapling cognee beautifulsoup4 pyyaml imageio requests fal-client nemo-curator fastembed data-designer gTTS moviepy tradingview-mcp-server code-review-graph; do
   pip show "$pkg" >/dev/null 2>&1 && echo "PASS $pkg" || echo "FAIL $pkg"
 done
 ```
@@ -182,7 +183,7 @@ Check MCP servers defined in `.cursor/mcp.json` (project-local servers distinct 
 ```bash
 PROJECT_MCP="$(git rev-parse --show-toplevel)/.cursor/mcp.json"
 if [ -f "$PROJECT_MCP" ]; then
-  for server in huggingface kis-backtest tradingview-ta tradingview-screener kb-brain; do
+  for server in huggingface kis-backtest tradingview-ta tradingview-screener kb-brain code-review-graph; do
     jq -e ".mcpServers[\"$server\"]" "$PROJECT_MCP" >/dev/null 2>&1 \
       && echo "PASS project-mcp:$server" || echo "WARN project-mcp:$server not configured"
   done

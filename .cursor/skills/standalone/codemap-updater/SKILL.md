@@ -1,7 +1,7 @@
 ---
 name: codemap-updater
-version: 1.0.0
-description: "Generate and maintain a structured codebase map (CODEMAP.md) that gives agents quick navigation context — directory tree, entry points, architecture layers, module dependencies, and hot-file index."
+version: 2.0.0
+description: "Generate and maintain a structured codebase map (CODEMAP.md) that gives agents quick navigation context — directory tree, entry points, architecture layers, module dependencies, community clusters, and hot-file index. Leverages code-review-graph MCP for AST-verified module boundaries, community detection, and execution flow mapping when available."
 ---
 
 # Codemap Updater
@@ -66,10 +66,23 @@ Use these tools in parallel:
 - `Shell` to run `git log --format='' --name-only --since='3 months ago' | sort | uniq -c | sort -rn | head -20` for hot files
 - `SemanticSearch` or `Grep` to identify entry points and key exports
 
-### Step 2: Analyze Architecture
+### Step 1.5: Graph-Enriched Architecture (when code-review-graph MCP is available)
+
+If the code-review-graph MCP server is running, use it to replace or augment the manual analysis in Step 2. If the server is unavailable, skip this step and proceed with manual analysis.
+
+1. **Architecture overview**: Call `get_architecture_overview_tool` to get module boundaries, dependency layers, and community clusters. This replaces manual directory classification with AST-verified module relationships.
+
+2. **Community detection**: Call `detect_communities_tool` to identify logical module groupings (Leiden algorithm). Use communities as the primary grouping in the Module Index (Section 4) instead of directory-based grouping.
+
+3. **Execution flows**: Call `get_affected_flows_tool` on entry point files to map key execution paths. Include the top 5 most critical flows as a new "Key Flows" subsection.
+
+4. **Cross-module dependencies**: Call `query_graph_tool` with queries like "what modules depend on [module]" for each top-level module. Use this for the Dependency Overview (Section 6) instead of manual import scanning.
+
+### Step 2: Analyze Architecture (fallback or enrichment)
 - Classify directories into layers (backend, frontend, scripts, config, docs, tests, outputs)
 - Identify primary entry points per layer
 - Map internal import relationships between top-level modules
+- If Step 1.5 ran, merge graph data with directory-scan results — graph data takes precedence for accuracy
 
 ### Step 3: Generate CODEMAP.md
 - Write the structured document following the sections above

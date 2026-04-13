@@ -1,0 +1,11 @@
+run	input	version	E1_matrix_first	E2_3_indep_claims	E3_1to1_map	E4_sanggi	E5_ai_hw	E6_abstract_400	pass_rate
+1	AI 신용평가	baseline	0	1	1	1	1	1	0.833
+1	AI 신용평가	v1-mutations	1	1	1	1	1	1	1.000
+2	연합학습 프라이버시	baseline	1	0	1	0	1	1	0.667
+2	연합학습 프라이버시	v1-mutations	1	1	1	1	1	1	1.000
+3	IoT 이상탐지	baseline	0	1	0	1	0	1	0.500
+3	IoT 이상탐지	v1-mutations	1	1	1	1	1	1	1.000
+4	멀티모달 LLM	baseline	1	1	1	0	1	0	0.667
+4	멀티모달 LLM	v1-mutations	1	1	1	1	1	1	1.000
+5	드론 충돌 회피	baseline	0	0	1	1	0	1	0.500
+5	드론 충돌 회피	v1-mutations	1	1	1	1	1	1	1.000

@@ -9,7 +9,7 @@ description: >-
   management. Korean triggers: "커밋", "생성", "수정".
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "1.2.0"
   category: "execution"
 ---
 # Domain-Split Commit
@@ -74,6 +74,14 @@ EOF
    - Re-stage and commit again (new commit, never amend failed commits)
 
 4. **If pre-commit modifies files** (black/ruff auto-fix): add modified files and create a new commit
+
+### Step 3.5: Incremental Graph Update (when code-review-graph MCP is available)
+
+After all domain commits succeed, update the code knowledge graph so downstream review skills see current data. If the MCP server is unavailable, skip this step.
+
+1. Call `update_graph_tool` — this runs an incremental update (< 2 seconds for typical commits).
+2. On success, log: "Code graph updated (N files re-indexed)."
+3. On failure, log a warning and continue — graph staleness is non-blocking.
 
 ### Step 4: Verify
 

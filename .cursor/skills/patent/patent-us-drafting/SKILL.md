@@ -62,13 +62,15 @@ From the input, extract:
 
 Design the claim tree:
 
-**Independent Claims** (at least 3 categories):
+**Independent Claims** (MANDATORY minimum 3 categories — drafts missing any of these three MUST be revised before delivery):
 - Claim 1: **Method** claim — "A method comprising..."
 - Claim N: **System** claim — "A system comprising: a processor; a memory
   storing instructions that, when executed by the processor, cause the
   processor to..."
-- Claim M: **Computer-readable medium** claim — "A non-transitory
+- Claim M: **Non-transitory computer-readable medium (CRM)** claim — "A non-transitory
   computer-readable medium storing instructions..."
+
+If the invention is purely hardware with no software component, replace CRM with an **apparatus** claim and document the substitution rationale.
 
 **Broadest claim first**: Start with the minimum elements needed to distinguish
 over the prior art. Each word constrains scope — remove anything not essential.
@@ -113,8 +115,8 @@ For each independent claim, follow this structure:
 
 ### Anti-Patterns (Independent Claims & Specification)
 
-1. **DO NOT** draft claims using implementation-specific language (e.g., "Python", "PostgreSQL", "Docker") — use technology-neutral terms (e.g., "a processor", "a data store", "a containerized execution environment").
-2. **DO NOT** write more than **five** substantive limitations/steps in a single independent claim — overly complex independent claims invite **35 USC 112** clarity/enablement rejections; split into dependents instead.
+1. **DO NOT** draft claims using implementation-specific language — use technology-neutral terms. **Blocklist** (non-exhaustive): Python, Java, JavaScript, TypeScript, Go, Rust, C++, PostgreSQL, MySQL, MongoDB, Redis, Docker, Kubernetes, AWS, Azure, GCP, React, TensorFlow, PyTorch, Linux, Windows, macOS, REST, GraphQL, gRPC. Replace with functional equivalents (e.g., "a processor", "a data store", "a containerized execution environment", "a cloud computing platform"). Run a final text scan of all claims against this blocklist before delivery.
+2. **DO NOT** write more than **five** substantive limitations/steps in a single independent claim — overly complex independent claims invite **35 USC 112** clarity/enablement rejections; split into dependents instead. After drafting each independent claim, count the substantive steps/elements; if > 5, factor the excess into dependent claims.
 3. **DO NOT** use "means for …" language unless **112(f)** interpretation is intentional and tied to corresponding structure in the specification.
 4. **DO NOT** draft **CRM** (computer-readable medium) claims without the **"non-transitory"** qualifier.
 5. **DO NOT** write specification paragraphs that **merely repeat** claim language — each claim element needs **concrete implementation detail**, examples, and alternatives in the detailed description.
@@ -176,11 +178,20 @@ Structure the specification:
    - Use "In some embodiments..." and "In another embodiment..." phrasing
    - Describe any algorithm or process with sufficient detail for a PHOSITA
      to reproduce
-8. **Abstract**: ≤ 150 words summarizing the technical disclosure
+8. **Abstract**: ≤ 150 words summarizing the technical disclosure. Count the words in the abstract before finalizing `draft-abstract.md`; if over 150, compress by removing dependent-claim-level detail
 
 **Critical**: The specification MUST support every claim limitation. For each
 claim element, verify at least one paragraph in the detailed description
 explains it with concrete specificity.
+
+**MANDATORY — Claim-to-Specification Traceability Table**: After completing the detailed description, produce a table mapping every claim limitation to its supporting specification paragraph. This table must be included in `draft-specification.md` as an appendix:
+
+| Claim # | Limitation | Spec ¶ # | Summary of Support |
+|---------|-----------|---------|-------------------|
+| 1 | step A: receiving a task description | ¶ 0032 | Describes task input parsing |
+| 1 | step B: performing semantic search | ¶ 0035-0037 | Embedding similarity algorithm |
+
+If any limitation lacks a specification paragraph, STOP and add the missing description before finalizing.
 
 ### Step 6: Alice/Mayo Self-Check
 
@@ -195,6 +206,8 @@ framework:
 | Step 2B | Does it recite significantly more? | Should be YES (safety net) |
 
 If any claim fails, restructure to emphasize the technical improvement.
+
+**MANDATORY — Persist as `alice-check.md`**: The Alice/Mayo analysis MUST be written to `outputs/patent-us/{date}/alice-check.md` as a separate artifact. Do NOT embed it only in `draft-specification.md`. The file must contain the full table above completed for every independent claim, with a PASS/FAIL verdict and remediation notes for any failures.
 
 ### Step 7: Persist Output
 

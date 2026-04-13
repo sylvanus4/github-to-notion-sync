@@ -59,7 +59,7 @@ Before Step 1, lock inputs:
 
 Parse each independent claim into discrete elements:
 
-1. **Preamble**: The introductory clause establishing the context
+1. **Preamble**: The introductory clause establishing the context — **ALWAYS chart as row P**. Even when the preamble is non-limiting (US) or has minimal scope, it MUST appear as the first row in the chart. Omitting the preamble row is a **hard error**.
 2. **Transitional phrase**: "comprising" (open) / "consisting of" (closed) /
    "consisting essentially of" (semi-closed)
 3. **Body elements**: Each distinct limitation, numbered sequentially
@@ -82,9 +82,9 @@ For each claim element, analyze the reference/product:
 | 2 | [Element 2] | [Exact quote or description] | Met / Not Met / Partially Met |
 
 Assessment values:
-- **Met**: Element clearly disclosed/present with citation
-- **Not Met**: Element absent — state what is missing
-- **Partially Met**: Element partially disclosed — identify the gap
+- **Met**: Element clearly disclosed/present with citation — **MUST** include at least one of: page number, paragraph number (e.g., para. [0042]), figure reference (e.g., FIG. 3), or spec ¶ number. A bare "Met" without a specific locator is **invalid**.
+- **Not Met**: Element absent — **MUST** state specifically what is missing in the reference/product (e.g., "Reference discloses X but lacks Y feature"). A bare "Not Met" or "absent" without a concrete gap description is **invalid**.
+- **Partially Met**: Element partially disclosed — identify the gap with citation to what IS present and description of what is MISSING
 
 **KR-Style Chart (support basis)**:
 
@@ -122,7 +122,7 @@ Write to `outputs/patent-claim-chart/{date}/`:
 
 1. **DO NOT** mark **Met** without an **exact citation** (page, paragraph, figure number, or claim/spec paragraph for patent refs).
 2. **DO NOT** skip **preamble analysis** — in KR practice preambles can be limiting; chart preamble row explicitly.
-3. **DO NOT** chart **dependent** claims before **all independent** claims in the same family are complete for the chosen reference set.
+3. **DO NOT** chart **dependent** claims before **all independent** claims in the same family are complete for the chosen reference set. **Independent-First Gate:** Before starting ANY dependent claim chart, verify all independent claims are fully charted with all rows (P + body elements) populated. If any independent claim chart is incomplete, STOP and complete it first.
 4. **DO NOT** mix **US-style** and **KR-style** chart formats in a single table — use one format per artifact section (separate sections if both are needed).
 
 ## Worked Example (Test Invention Context)
@@ -144,7 +144,8 @@ Before delivering charts or files:
 1. **Met citations** — every **Met** row has page/paragraph/figure (or spec ¶) citation, not a vague section name alone.
 2. **Not Met** — every **Not Met** has a **specific gap** (what is missing in the reference/product).
 3. **Independents** — chart covers **all independent** claims requested; dependents follow after independents per anti-pattern #3.
-4. **Summary totals** — summary table Met/Not Met/Partial counts **match** the detailed chart rows.
+4. **Summary totals** — summary table Met/Not Met/Partial counts **match** the detailed chart rows. **Arithmetic Verification Procedure:** Count every row in the detailed chart by assessment value (Met / Not Met / Partially Met). Compare each count against the summary table. If ANY count differs, fix the summary table before delivery. This is a blocking check — do NOT deliver if counts mismatch.
+5. **Preamble row** — every claim chart starts with row "P" for the preamble. If missing, add it.
 
 If any check fails, correct before handoff.
 

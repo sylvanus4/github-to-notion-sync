@@ -8,7 +8,7 @@ description: >-
   audits (use dependency-auditor) or test strategy design (use qa-test-expert).
   Korean triggers: "감사", "테스트", "빌드", "설계".
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
   author: "thaki"
 ---
@@ -107,9 +107,22 @@ After fixes, re-run the affected gates and update the report.
 - Collect all failures to present a complete picture
 - Suggest `make setup` if multiple tools are missing
 
+### Step 8.5: Graph Staleness Check (when code-review-graph MCP is available)
+
+If the code-review-graph MCP server is running, add a graph health gate after aggregating results:
+
+1. Call `get_graph_status_tool` to check if the graph exists and its last-build timestamp.
+2. If the graph is **stale** (last built before the most recent commit), call `update_graph_tool` to refresh incrementally.
+3. Call `detect_changes_tool` with the changed files to get risk scores. Include a "Graph Risk Summary" section in the report showing:
+   - Number of files with Critical/High/Medium/Low risk
+   - Top 3 highest-risk files with their blast radius size
+
+Mark this gate as SKIPPED if the MCP server is unavailable. This gate is informational (WARN, not FAIL).
+
 ## Integration with Other Skills
 
 - **mission-control**: Invokes this skill as part of quality audit workflows
 - **domain-commit**: Run this skill before committing to ensure clean state
 - **pr-review-captain**: Reference this report in PR descriptions
 - **dependency-auditor**: pip-audit / npm audit results feed into dependency analysis
+- **code-review-graph**: Provides AST-based risk scoring for the graph staleness gate

@@ -113,9 +113,13 @@ Notation:
 - `[[--deleted text--]]` = deleted text (strikethrough equivalent)
 - Underline new matter, strikethrough removed matter
 
+<!-- M1: 보정 마크업 일관성 게이트 -->
+**Markup Consistency Gate:** All claims in the response package MUST use the **identical** markup convention above. Before proceeding to Step 4, scan every amended claim and confirm: (a) additions use `[[...--]]` only, (b) deletions use `[[--...--]]` only, (c) no mixed or ad-hoc markup styles appear. If inconsistency is found, fix before continuing.
+
 Rules:
 - Every amendment must find support in the original specification
-- Cite the specification paragraph supporting each added limitation
+<!-- M2: 명세 단락 인용 완전성 게이트 -->
+- Cite the specification paragraph supporting each added limitation — **every** `[[...--]]` addition MUST be immediately followed by a parenthetical spec citation `(Support: ¶[xxxx])`. An amendment line lacking a spec citation is incomplete and must not be included in the final package.
 - Minimize scope reduction — add only what is necessary to overcome
 - Preserve independent claim breadth; narrow via dependent claims first
 
@@ -140,6 +144,12 @@ For each rejection ground:
   secondary considerations
 - For 101: emphasize technical improvement, cite favorable decisions
 - For 112: point to specification support or amend for clarity
+
+<!-- M3: 거절별 차별화된 논증 필수 게이트 -->
+**Differentiation Gate:** Each rejection ground (101, 102, 103, 112) MUST receive a **unique primary argument** tailored to that specific ground. Cross-check before finalizing: if two rejections share the same core argument verbatim, rewrite one with a distinct traversal angle. Copy-pasting the same argument across different rejections is prohibited.
+
+<!-- M4: 103 결합 동기 논증 필수 게이트 -->
+**103 Motivation-to-Combine Gate:** For **every** 103 rejection, the Remarks section MUST include a dedicated subsection titled "No Motivation to Combine" that: (a) identifies the specific teaching the Examiner relies on for combination, (b) argues why a PHOSITA would NOT have combined the references (e.g., teaching away, different problem solved, incompatible architectures), and (c) cites at least one supporting case (e.g., KSR, Kahn, Cheese v. Molinaro). Omitting this subsection for any 103 rejection is a blocking deficiency.
 
 **C. Conclusion**
 - Respectfully request withdrawal of the rejection
@@ -216,6 +226,9 @@ Before delivering the response package, confirm **all** of the following:
 1. **Per-rejection strategy:** Every rejection in the OA has a **named response strategy** (amend + argue, argue only, interview first, etc.) in `oa-analysis.md` or the summary.
 2. **Spec support for amendments:** Every amended limitation cites **at least one specification paragraph** (or states clearly if support is being added via declaration with basis in spec).
 3. **Clean claim consistency:** `clean-claims.md` matches the **final** amended claim text and is **internally consistent** (dependencies, antecedent basis, numbering).
+
+<!-- M5: clean-claims.md 일치 검증 게이트 -->
+   **Clean-Claims Verification Gate:** After generating `clean-claims.md`, perform a **line-by-line comparison** against `amended-claims.md` (with all markup stripped). Every claim in `clean-claims.md` must exactly reproduce the final intended claim language — no markup residue (`[[`, `--]]`), no stale pre-amendment text, and no missing claims. If any discrepancy is found, regenerate `clean-claims.md` before delivering the package.
 4. **Deadline:** Response **deadline** is **prominently noted** in the transmittal/summary (and **URGENCY** if the deadline is less than one month away).
 5. **Case law:** Cited cases are **correctly named**, **on point** for the statute argued, and not overstated beyond their holdings.
 
