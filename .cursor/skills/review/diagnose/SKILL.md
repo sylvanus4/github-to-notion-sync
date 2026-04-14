@@ -74,9 +74,24 @@ Do NOT attempt a 4th fix. Present findings and ask for human guidance.
 /diagnose "TypeError in auth module"   # diagnose specific error message
 /diagnose src/api/auth.ts              # diagnose specific file
 /diagnose --no-fix                     # analysis only, no auto-fix
+/diagnose --hypothesis-mode            # use hypothesis-investigation loop instead of parallel agents
 ```
 
+### Hypothesis Mode (`--hypothesis-mode`)
+
+When `--hypothesis-mode` is specified, skip the 3-parallel-agent workflow and instead delegate to `hypothesis-investigation`. This mode is preferred when:
+
+- The bug is intermittent or non-deterministic (e.g., race conditions, timing issues)
+- Previous parallel-agent diagnosis failed to find the root cause
+- The 3-Strike Escalation has been triggered and a structured re-investigation is needed
+
+In hypothesis mode, `diagnose` creates the investigation artifact directory at `outputs/investigation/{date}/` and hands control to `hypothesis-investigation` with all gathered error context as the initial observation set.
+
 ## Workflow
+
+### Step 0: Mode Check
+
+If `--hypothesis-mode` is active, gather error context (Step 1) then delegate to `hypothesis-investigation` with the evidence as initial observations. Skip Steps 2-5 entirely.
 
 ### Step 1: Gather Error Context
 

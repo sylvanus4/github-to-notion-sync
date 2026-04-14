@@ -44,6 +44,7 @@ composes:
   - kwp-product-management-stakeholder-comms
   - kwp-product-management-user-research-synthesis
   - prd-lifecycle-orchestrator
+  - hypothesis-pm
 ---
 
 # PM Harness Orchestrator
@@ -144,6 +145,19 @@ User personas, market segmentation, competitive analysis, and market sizing.
 **Output**: `outputs/pm-harness/{date}/phase2-market-research.md`
 
 Sub-skills: personas, segmentation, customer journey, TAM/SAM/SOM, competitive analysis, sentiment analysis.
+
+### Phase 2.5: Assumption Validation (Optional)
+
+When Phase 1 or 2 reveals risky assumptions (unvalidated market size, untested user behaviors, pricing hypotheses), invoke `hypothesis-pm` for structured Observe → Hypothesize → Experiment → Conclude validation before committing to strategy. Triggered automatically when:
+
+- Phase 1 discovery surfaces 3+ high-risk assumptions without validation evidence
+- Phase 2 market research contains conflicting data points
+- User explicitly requests assumption testing
+
+**Skill**: `hypothesis-pm`
+**Input**: Phase 1-2 outputs + identified assumptions
+**Output**: `outputs/pm-harness/{date}/phase2.5-assumption-validation.md`
+**Skip Flag**: `skip-hypothesis`
 
 ### Phase 3: Strategy (Sequential after fan-in)
 

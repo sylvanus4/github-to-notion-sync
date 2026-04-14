@@ -91,7 +91,7 @@ Return to step 1 with the next cycle number.
 |-----------|--------|
 | **Goal Met** | `[ULTRAQA COMPLETE] Goal met after {n} cycles` |
 | **Cycle 5 Reached** | `[ULTRAQA STOPPED] Max cycles reached. Remaining issues: {diagnosis}` |
-| **Same Failure 3x** | `[ULTRAQA STOPPED] Same failure detected 3 times. Root cause: {analysis}` |
+| **Same Failure 3x** | `[ULTRAQA STOPPED] Same failure detected 3 times. Root cause: {analysis}`. Consider invoking `hypothesis-qa` for structured hypothesis-driven triage. |
 | **Environment Error** | `[ULTRAQA ERROR] {dependency/port/config issue}` |
 
 ### Observability
@@ -126,7 +126,7 @@ Track each failure to detect patterns:
 ## Error Handling
 
 - **Cannot determine the test/build/lint command**: Ask the user for the correct command before starting cycles.
-- **Same failure 3 times**: Early exit with root cause analysis — do not keep trying the same approach.
+- **Same failure 3 times**: Early exit with root cause analysis — do not keep trying the same approach. If the failure is non-deterministic or root cause remains unclear, delegate to `hypothesis-qa` for structured Observe → Hypothesize → Experiment → Conclude triage.
 - **Environment issue (missing DB, port conflict)**: Exit immediately with `[ULTRAQA ERROR]` and the required setup action.
 - **Architect diagnosis subagent fails**: Attempt a direct diagnosis from the error output; if insufficient, ask the user for guidance.
 - **Fix introduces new failures**: Revert the fix, re-diagnose with both the original and new failures as context.

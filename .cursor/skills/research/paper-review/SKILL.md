@@ -347,23 +347,68 @@ Save to: `outputs/presentations/{paper-id}-presentation-{DATE}.pptx`
 
 ---
 
-## Phase 6: NotebookLM Slide Generation
+## Phase 6: Dual-Audience NotebookLM Slide Generation
 
 Skip this phase if `--skip-nlm` is set.
 
-Read `references/nlm-slack-integration.md` for detailed instructions.
+Follows the **nlm-dual-slides** pattern. Input: Korean review markdown ONLY.
 
-1. **Create notebook**: `notebook_create(title="Paper Review: {Paper Title}")`
-2. **Add DOCX as source** (if `--with-docx` was set and DOCX exists): `notebook_add_text(notebook_id, title="Paper Analysis Report", file_path="<ABSOLUTE_PATH>/outputs/papers/{paper-id}-analysis-{DATE}.docx")`
-3. **Add review as text source**: `notebook_add_text(notebook_id, title="Korean Review", file_path="<ABSOLUTE_PATH>/outputs/papers/{paper-id}-review-{DATE}.md")`
-   — If DOCX was not generated, also add each perspective markdown as a separate source.
-4. **Generate slides**: `slide_deck_create(notebook_id, format="detailed_deck", confirm=true)`
-5. **Poll status**: `studio_status(notebook_id)` every 30s until complete (5-8 min typical)
-6. **Download PDF**: `download_artifact(notebook_id, artifact_type="slide_deck", output_path="<ABSOLUTE_PATH>/outputs/presentations/{paper-id}-nlm-slides-{DATE}.pdf")`
+### Step 6.1: Dual Content Rewrite
 
-Use **absolute paths** for all MCP file operations — the MCP server resolves from its own cwd.
+Read `elementary-prompt.md` and `expert-prompt.md` from
+`.cursor/skills/nlm/nlm-dual-slides/references/`.
 
-Skills used: **notebooklm**, **notebooklm-studio**
+Using the Korean review markdown as input, generate 4 rewritten documents:
+
+1. **Elementary EN** — Apply elementary-prompt.md system prompt, output English
+2. **Elementary KO** — Apply elementary-prompt.md system prompt, output Korean
+3. **Expert EN** — Apply expert-prompt.md system prompt, output English
+4. **Expert KO** — Apply expert-prompt.md system prompt, output Korean
+
+Save to: `outputs/papers/{paper-id}-elementary-en.md`, `-elementary-ko.md`,
+`-expert-en.md`, `-expert-ko.md`
+
+### Step 6.2: Create Two NotebookLM Notebooks
+
+1. `notebook_create(title="[Elementary] {Paper Title}")` → capture `elem_notebook_id`
+2. `notebook_create(title="[Expert] {Paper Title}")` → capture `expert_notebook_id`
+
+### Step 6.3: Upload Rewritten Sources
+
+- Elementary notebook: `notebook_add_text(elem_notebook_id, ...)` for both
+  elementary-en.md and elementary-ko.md
+- Expert notebook: `notebook_add_text(expert_notebook_id, ...)` for both
+  expert-en.md and expert-ko.md
+
+Use **absolute paths** for all file operations.
+
+### Step 6.4: Generate Slide Decks
+
+1. `slide_deck_create(elem_notebook_id, format="detailed_deck", confirm=true)`
+2. `slide_deck_create(expert_notebook_id, format="detailed_deck", confirm=true)`
+3. Poll both with `studio_status()` every 30s until complete (5-8 min each)
+
+### Step 6.5: Download PDFs
+
+1. `download_artifact(elem_notebook_id, artifact_type="slide_deck",
+   output_path="<ABS>/outputs/presentations/{paper-id}-nlm-elementary-{DATE}.pdf")`
+2. `download_artifact(expert_notebook_id, artifact_type="slide_deck",
+   output_path="<ABS>/outputs/presentations/{paper-id}-nlm-expert-{DATE}.pdf")`
+
+If `download_artifact` fails, log warning and provide manual download URL from
+`studio_status` response.
+
+### Step 6.6: Upload to Google Drive (best-effort)
+
+```bash
+gws drive +upload "{paper-id}-nlm-elementary-{DATE}.pdf" --folder "Paper Reviews"
+gws drive +upload "{paper-id}-nlm-expert-{DATE}.pdf" --folder "Paper Reviews"
+```
+
+Capture Drive URLs for Slack distribution (Phase 8).
+
+Skills used: **notebooklm**, **notebooklm-studio**, **nlm-dual-slides** (pattern),
+**gws-drive** (upload)
 
 ---
 
@@ -436,7 +481,8 @@ If the channel name is provided, use `slack_search_channels` MCP tool to resolve
 
 ### Distribution Steps
 
-1. **Main message** — Upload NLM slides PDF via 3-step Slack API (`getUploadURLExternal` → upload → `completeUploadExternal`) with paper title + Korean summary as `initial_comment`; capture `ts` from response. If NLM slides PDF is unavailable (Phase 6 skipped), fall back to `slack_send_message` text-only post.
+1. **Main message** — Upload Expert NLM slides PDF via 3-step Slack API (`getUploadURLExternal` → upload → `completeUploadExternal`) with paper title + Korean summary as `initial_comment`; capture `ts` from response. If NLM slides PDFs are unavailable (Phase 6 skipped), fall back to `slack_send_message` text-only post.
+1a. **Thread: Elementary Slides** — Upload Elementary NLM slides PDF via 3-step Slack upload with `thread_ts` from step 1. Include Google Drive links if available from Step 6.6.
 2. **Thread: Paper Summary** — `slack_send_message` MCP tool with detailed Korean summary (500-1000 chars)
 3. **Thread: Notion Link** — `slack_send_message` MCP tool with the Notion main page URL from Phase 7 (skip if `--skip-notion`)
 4. **Thread: Upload DOCX** — 3-step Slack upload with `thread_ts` from step 1 (only if `--with-docx` was set)
@@ -456,8 +502,9 @@ do NOT block the pipeline.
 Register the reviewed paper in the paper-archive index at
 `outputs/papers/index.json`. Collects all metadata from Phase 1,
 `title_ko` and `one_line_summary` from Phase 2, all artifact paths from
-Phases 2-8, `notion_page_id` from Phase 7, and `nlm_notebook_id` from
-Phase 6. Sets status to `reviewed`.
+Phases 2-8, `notion_page_id` from Phase 7, and both `nlm_elementary_notebook_id`
+and `nlm_expert_notebook_id` from Phase 6 (replaces the single
+`nlm_notebook_id` field). Sets status to `reviewed`.
 
 For the full field mapping and implementation steps, see
 [paper-archive integration hooks](../paper-archive/references/integration-hooks.md).

@@ -38,6 +38,7 @@ composes:
   - kwp-finance-audit-support
   - financial-report-analyzer
   - saas-metrics-narrator
+  - hypothesis-finance
 ---
 
 # Finance Harness Orchestrator
@@ -138,6 +139,20 @@ Track close calendar, manage task sequencing and dependencies, update status.
 **Output**: `outputs/finance-harness/{date}/phase3-close-status.md`
 
 Covers: close calendar management, progress tracking, blocker identification, activity sequencing by day.
+
+### Phase 3.5: Variance Investigation (Optional)
+
+When reconciliation reveals unexplained variances, close management identifies anomalies, or financial data shows unexpected deviations, invoke `hypothesis-finance` for structured hypothesis-driven variance investigation before generating financial statements. Triggered automatically when:
+
+- Reconciliation items exceed materiality threshold without clear classification
+- Month-over-month variances exceed 10% without documented drivers
+- Intercompany reconciliation discrepancies persist after standard resolution
+- User requests variance investigation or asks "why doesn't this balance"
+
+**Skill**: `hypothesis-finance`
+**Input**: Phase 2-3 outputs + variance details
+**Output**: `outputs/finance-harness/{date}/phase3.5-variance-investigation.md`
+**Skip Flag**: `skip-hypothesis`
 
 ### Phase 4: Financial Statements
 

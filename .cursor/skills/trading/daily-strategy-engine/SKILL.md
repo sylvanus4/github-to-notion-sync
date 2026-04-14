@@ -32,28 +32,12 @@ triggers:
 tags: [trading, backtest, strategy, signals, pipeline, daily, overnight]
 metadata:
   author: "thaki"
-  version: "1.1.0"
   category: "trading"
 ---
 
 # daily-strategy-engine
 
 Generate 10 backtested daily strategy cards ranked by risk-adjusted return, with precise entry/stop/target prices and commission-aware P&L. Includes the OvernightDipBuy strategy for short-term dip-buying with emotion-free paired limit orders.
-
-## When to Use
-
-- Daily pipeline Phase 5b — automatic execution after screening and analysis
-- User wants backtested, commission-aware trading recommendations
-- Preparing trade candidates for toss-signal-bridge order previews
-- Generating strategy cards for DOCX/Slack daily reports
-
-## When NOT to Use
-
-- Daily stock signal check without backtesting → use `daily-stock-check`
-- Single-strategy manual backtesting → use `trading-backtest-expert`
-- KIS strategy design → use `kis-strategy-builder`
-- Toss order execution → use `tossinvest-trading`
-- Weekly price data sync → use `weekly-stock-update`
 
 ## Stock Universe (16 tickers)
 
@@ -132,7 +116,19 @@ Output includes `sell_limit_price` so the Toss bridge can immediately place a pa
       "total_return": 0.124,
       "max_drawdown": -0.082,
       "score": 7.85,
-      "tv_consensus": "agree"
+      "tv_consensus": "agree",
+      "risk_assessment": {
+        "var_1d_95": -0.023,
+        "stress_scenario": "If sector drops 5%: estimated loss -3.8%",
+        "correlation_with_portfolio": 0.72,
+        "concentration_warning": false
+      },
+      "execution_guidance": {
+        "optimal_window": "09:00-09:30 KST",
+        "avoid_period": "14:50-15:30 (closing auction)",
+        "min_volume_threshold": 50000,
+        "expected_slippage_bps": 3
+      }
     },
     {
       "symbol": "000660",
@@ -154,12 +150,24 @@ Output includes `sell_limit_price` so the Toss bridge can immediately place a pa
       "bank_interest_daily": 0.000096,
       "min_profitable_return": 0.0038,
       "timing": {
-        "buy_window": "14:30-15:30 KST",
-        "sell_window": "09:00-10:00 KST+1",
-        "hold_hours": 18
+          "buy_window": "14:30-15:30 KST",
+          "sell_window": "09:00-10:00 KST+1",
+          "hold_hours": 18
+        },
+        "risk_assessment": {
+          "var_1d_95": -0.018,
+          "stress_scenario": "If overnight gap-down 3%: estimated loss -2.1%",
+          "correlation_with_portfolio": 0.55,
+          "concentration_warning": false
+        },
+        "execution_guidance": {
+          "optimal_window": "14:30-15:20 KST",
+          "avoid_period": "15:20-15:30 (closing auction)",
+          "min_volume_threshold": 100000,
+          "expected_slippage_bps": 5
+        }
       }
-    }
-  ],
+    ],
   "meta": {
     "date": "2026-04-05",
     "total_evaluated": 112,
@@ -176,6 +184,28 @@ Output includes `sell_limit_price` so the Toss bridge can immediately place a pa
 }
 ```
 
+## Risk Assessment Fields (AutoHedge P4)
+
+Each strategy card includes a `risk_assessment` object with forward-looking risk metrics:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `var_1d_95` | float | 1-day Value-at-Risk at 95% confidence (negative = loss) |
+| `stress_scenario` | string | Worst-case narrative for a sector-level shock |
+| `correlation_with_portfolio` | float | Correlation with current portfolio holdings (0–1) |
+| `concentration_warning` | bool | True if adding this position would exceed 20% sector concentration |
+
+## Execution Guidance Fields (AutoHedge P5)
+
+Each strategy card includes an `execution_guidance` object with timing and liquidity parameters:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `optimal_window` | string | Best execution window based on historical volume profile |
+| `avoid_period` | string | Time periods with elevated slippage or volatility risk |
+| `min_volume_threshold` | int | Minimum daily volume required for clean execution |
+| `expected_slippage_bps` | int | Expected slippage in basis points based on historical fills |
+
 ## TradingView Cross-Validation
 
 When TradingView backtest data is available (produced by default during the `today` pipeline; skip with `--skip-tradingview`), each strategy card is enriched with a `tv_consensus` field:
@@ -188,14 +218,26 @@ Cards are re-ranked after applying the consensus bonus. The `tv_consensus` field
 
 ## Scoring Formula
 
-Composite score (0–10 scale):
+Composite score (0–10 scale) blending backtested performance with forward-looking risk:
+
+### Backtested Metrics (60% weight)
 
 - **Sharpe Ratio** — higher is better
 - **Win Rate** — higher is better
 - **Total Return** — net of commissions
-- **Risk-Reward Ratio** — (target − entry) / (entry − stop)
+- **Risk-Reward Ratio** — (target - entry) / (entry - stop)
 - **Drawdown Penalty** — reduces score for deep drawdowns
+
+### Forward-Looking Risk Adjustment (30% weight)
+
+- **VaR Penalty** — deduct points when `var_1d_95` exceeds -3% (higher loss = larger penalty)
+- **Correlation Discount** — deduct points when `correlation_with_portfolio` > 0.7 (reduces diversification benefit)
+- **Concentration Gate** — hard cap: if `concentration_warning` is true, maximum score capped at 5.0 regardless of other metrics
+
+### Consensus & Execution (10% weight)
+
 - **TV Consensus Bonus** — +0.5 when TradingView backtest agrees (applied post-scoring)
+- **Execution Feasibility** — deduct points if `min_volume_threshold` is not met by the stock's average daily volume
 
 ## Pipeline Integration
 

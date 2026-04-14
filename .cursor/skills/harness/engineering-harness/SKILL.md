@@ -44,6 +44,7 @@ composes:
   - frontend-expert
   - backend-expert
   - db-expert
+  - hypothesis-qa
 ---
 
 # Engineering Harness Orchestrator
@@ -175,12 +176,25 @@ Merge all four review outputs, deduplicate overlapping findings, and produce a u
 
 **Output**: `outputs/engineering-harness/{date}/fan-in-consolidated.md`
 
+### Phase 1e: Test Failure Triage (Optional)
+
+When Phase 1d detects persistent or intermittent test failures that resist straightforward fixes, invoke `hypothesis-qa` for structured hypothesis-driven triage before proceeding to auto-fix. This phase is triggered automatically when:
+
+- The same test failure persists across 2+ fix attempts in the Evaluator-Optimizer loop
+- Test failures are intermittent or non-deterministic (race conditions, flaky tests)
+- Root cause is unclear from test output alone
+
+**Skill**: `hypothesis-qa`
+**Input**: Phase 1d test failure details + relevant source code
+**Output**: `outputs/engineering-harness/{date}/phase1e-test-triage.md`
+**Skip Flag**: `skip-hypothesis-triage`
+
 ### Phase 2: Auto-Fix (Generator)
 
 Apply fixes for consolidated findings in priority order: Critical → High → Medium.
 
 **Skill**: `simplify` (fix mode)
-**Input**: Consolidated findings from Fan-in
+**Input**: Consolidated findings from Fan-in (+ Phase 1e triage results if available)
 **Output**: `outputs/engineering-harness/{date}/phase2-fixes.md`
 **Constraint**: 8/10 confidence gate — only apply fixes the agent is confident about.
 

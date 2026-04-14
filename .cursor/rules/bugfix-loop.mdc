@@ -22,6 +22,7 @@ If no meaningful progress after 30 minutes of iteration, STOP. The current appro
 1. Re-classify the failure (Type 1/2/3 per `critical-thinking.mdc`)
 2. Try a fundamentally different approach — not a variation of the same one
 3. Consider whether the task needs further decomposition
+4. **Switch to hypothesis-investigation** — invoke the `hypothesis-investigation` skill to restart with a structured Observe → Hypothesize → Experiment → Conclude loop. This forces explicit assumption listing, evidence persistence in `INVESTIGATION.md`, and mandatory hypothesis rotation after 2 same-direction failures. Particularly effective for intermittent bugs, race conditions, and issues where brute-force iteration has failed.
 
 ## Isolation-First Strategy
 

@@ -53,6 +53,7 @@ composes:
   - hook-generator
   - video-script-generator
   - content-auto-gate
+  - hypothesis-marketing
 ---
 
 # Marketing Harness Orchestrator
@@ -150,6 +151,20 @@ Establish brand voice enforcement rules for all downstream content.
 **Skills**: `kwp-brand-voice-brand-voice-enforcement`, `kwp-marketing-brand-voice`
 **Input**: Phase 2 guidelines
 **Output**: `outputs/marketing-harness/{date}/phase3-voice-enforcement.md`
+
+### Phase 3.5: Performance Diagnosis (Optional)
+
+When campaign metrics underperform, A/B tests yield ambiguous results, or channel performance degrades unexpectedly, invoke `hypothesis-marketing` for structured experiment design and performance diagnosis before doubling down or pivoting. Triggered automatically when:
+
+- Campaign conversion rates drop >20% from baseline without obvious cause
+- A/B test results are statistically insignificant after sufficient sample size
+- Multiple channels underperform simultaneously, suggesting a systemic issue
+- User requests marketing diagnosis or asks "why isn't this campaign working"
+
+**Skill**: `hypothesis-marketing`
+**Input**: Phase 1-3 outputs + campaign performance data
+**Output**: `outputs/marketing-harness/{date}/phase3.5-performance-diagnosis.md`
+**Skip Flag**: `skip-hypothesis`
 
 ### Phase 4: Content Creation (Fan-out Branch A)
 

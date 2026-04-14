@@ -48,6 +48,7 @@ composes:
   - lead-research-agent
   - lead-lifecycle-manager
   - sales-meeting-pipeline
+  - hypothesis-sales
 ---
 
 # Sales Harness Orchestrator
@@ -187,6 +188,19 @@ Generate tailored sales assets from deal context.
 **Output**: `outputs/sales-harness/{date}/phase7-sales-assets/`
 
 Covers: landing pages, pitch decks, one-pagers, workflow demos.
+
+### Phase 7.5: Deal Diagnosis (Optional)
+
+When deals stall, objections persist, or conversion rates drop unexpectedly, invoke `hypothesis-sales` for structured deal diagnosis before escalation. Triggered automatically when:
+
+- A deal has been stuck in the same stage for 2+ weeks
+- Outreach response rates fall below historical baseline
+- User requests deal diagnosis or asks "why is this deal stuck"
+
+**Skill**: `hypothesis-sales`
+**Input**: Phase 3-7 outputs + deal/pipeline context
+**Output**: `outputs/sales-harness/{date}/phase7.5-deal-diagnosis.md`
+**Skip Flag**: `skip-hypothesis`
 
 ### Phase 8: Deal Tracking
 
