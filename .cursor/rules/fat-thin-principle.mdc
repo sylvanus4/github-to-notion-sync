@@ -1,0 +1,54 @@
+---
+description: "Fat Skills / Fat Code / Thin Harness — agentic engineering principles enforced during skill and harness creation, review, and evolution"
+globs: ["**/*.md", "**/SKILL.md"]
+alwaysApply: true
+---
+
+# Fat Skills / Fat Code / Thin Harness
+
+Core agentic engineering principles. Every skill and harness must comply.
+
+## Principles
+
+### 1. Fat Skills — Smart, fuzzy operations belong in SKILL.md
+
+Push decision-making heuristics, judgment calls, prompt engineering, domain reasoning,
+trigger quality, boundary definitions, and gotcha catalogs into SKILL.md files.
+
+- Allowed to be long (up to 15,000 chars per `skill-autoimprove` gate) when content is prompt/reasoning
+- RED FLAG: Skill contains >20 lines of executable code (Python/JS/Shell/Go) inline → extract to `scripts/`
+
+### 2. Fat Code — Deterministic, must-be-perfect operations belong in code
+
+Push data parsing, API calls, calculations, file I/O, schema validation, and
+any logic requiring exact correctness into executable files.
+
+- Code lives in `scripts/`, `backend/`, `src/`, or skill-local `scripts/` subdirectories
+- RED FLAG: SKILL.md contains inline JSON schemas >50 lines, SQL queries, or HTTP request construction → extract to code files
+
+### 3. Thin Harness — Orchestration layer stays minimal
+
+Harnesses define execution order, parallelism pattern, error routing, and input/output contracts.
+Harnesses delegate all domain logic, analysis, generation, and validation to constituent skills.
+
+- Body (excluding YAML frontmatter and references) should be <250 lines
+- RED FLAG: Harness contains domain-specific business logic, prompt templates for analysis, or inline scoring rubrics → extract to a dedicated skill
+- Must follow Pattern 4 (Coordinator Synthesis) from `skill-prompt-patterns.mdc`: no lazy delegation
+
+## Checklist (verify on every skill/harness create or modify)
+
+| # | Check | Applies to | Threshold |
+|---|-------|-----------|-----------|
+| 1 | Inline executable code lines | Skills | ≤ 20 lines |
+| 2 | Inline data structures (JSON/YAML/SQL) | Skills | ≤ 50 lines |
+| 3 | Body line count | Harnesses | < 250 lines |
+| 4 | Domain analysis prompts or scoring rubrics | Harnesses | 0 (extract to skill) |
+| 5 | Lazy delegation ("based on your findings, implement") | Harnesses | 0 (synthesize before dispatch) |
+| 6 | Deterministic logic in markdown | All | 0 (move to code files) |
+
+## Integration with Existing Validation Skills
+
+- **`skill-optimizer` audit**: Evaluate "Fat/Thin Compliance" as a scoring dimension — flag skills with high inline-code density and harnesses exceeding the line threshold
+- **`skill-upgrade-validator`**: Check Pattern 4 (Coordinator Synthesis) adherence; treat inline-code and data-block density as a validation dimension
+- **`skill-autoimprove` constraint gates**: For harness files, apply a "max orchestration lines" gate (250 lines); reject mutations that push inline code above 20 lines in skills
+- **`hermes-skill-evolver`**: Include Fat/Thin boundary preservation as a constraint alongside trigger/boundary preservation

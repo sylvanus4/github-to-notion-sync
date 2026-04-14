@@ -17,6 +17,7 @@ Before declaring any non-trivial task complete, verify ALL of the following:
 - [ ] Sync long-term memory: run `python scripts/memory/extract-sessions.py --incremental` and `python scripts/memory/build-index.py --skip-embeddings`
 - [ ] If MEMORY.md pointers exceed 50: run `python scripts/memory/attention_decay.py --apply`
 - [ ] If user corrected you: update `tasks/lessons.md` with pattern + prevention rule
+- [ ] If skill/harness created or modified: verify Fat/Thin compliance (ref: `fat-thin-principle.mdc`)
 - [ ] Provide: short summary + files changed + commands run + results
 
 ## Definition of Done (DoD) Template

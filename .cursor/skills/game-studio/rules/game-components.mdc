@@ -1,0 +1,86 @@
+# Game Component Rules
+
+> Path scope: `src/components/**`, `src/game/store/**`
+
+## Component Architecture
+
+- Each component gets its own file — no multi-component files.
+- Components are **functional** with hooks — no class components.
+- Props must have a dedicated `type` or `interface` (e.g., `SuspectCardProps`).
+- Default exports are forbidden — use named exports only.
+
+## State Management (Zustand)
+
+```typescript
+// Single game store — do NOT create multiple stores.
+// All game state lives in useGameStore.
+const useGameStore = create<GameState>()((set, get) => ({
+  // state + actions co-located
+}));
+```
+
+- Components read state via selectors: `const clues = useGameStore(s => s.revealedClues)`.
+- **Never** spread the entire store: `const store = useGameStore()` is forbidden.
+- Actions live inside the store, not in components.
+- Derived state uses selectors or `useMemo`, never stored separately.
+
+## Component Responsibilities
+
+| Component | Owns | Does NOT own |
+|-----------|------|-------------|
+| `SuspectGrid` | Rendering 3×3 grid, tap handlers, guilty/innocent visual state | Puzzle logic, clue text |
+| `CluePanel` | Clue display, reveal animation, clue counter | Which clues to show (store decides) |
+| `DeductionBoard` | Player mark tracking UI, submission button | Validation logic (store decides) |
+| `ShareCard` | Emoji grid generation, clipboard copy | Stats persistence |
+| `StatsModal` | Stats display, distribution chart | Stats computation (hook/store) |
+| `GameHeader` | Title, timer, menu | Game state |
+
+## Styling
+
+- Use **Tailwind CSS** exclusively — no inline `style` objects, no CSS modules, no styled-components.
+- Dark noir theme palette (defined in `tailwind.config.ts`):
+  - Background: slate-900, slate-800
+  - Accent: amber-400, amber-500
+  - Text: slate-100, slate-300
+  - Danger: red-500
+  - Success: emerald-500
+- Animations use Tailwind's `transition-*` and `animate-*` utilities.
+- For complex animations (card flip, confetti), use CSS `@keyframes` in `index.css`.
+
+## Accessibility
+
+- All interactive elements must be focusable (`tabIndex`, semantic elements).
+- Suspect cards: `role="button"`, `aria-label` with suspect name and status.
+- Clue panel: `aria-live="polite"` for new clue announcements.
+- Color is never the sole indicator — always pair with icons or text labels.
+- Keyboard navigation: arrow keys for grid, Enter/Space for selection.
+
+## Responsive Design
+
+- Mobile-first: base styles target 320px+ screens.
+- Breakpoints: `sm` (640px), `md` (768px), `lg` (1024px).
+- The 3×3 grid must remain square and centered on all viewports.
+- Touch targets: minimum 44×44px on mobile.
+
+## Event Handling
+
+- Click/tap handlers must be debounced if they trigger state transitions.
+- No direct DOM manipulation — all UI changes flow through React state.
+- Event handlers are defined as stable references (`useCallback`) when passed as props.
+
+## File Naming
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Component | PascalCase | `SuspectGrid.tsx` |
+| Hook | camelCase with `use` prefix | `useDaily.ts` |
+| Store | camelCase | `gameStore.ts` |
+| Utility | camelCase | `shareText.ts` |
+| Test | `*.test.tsx` / `*.test.ts` | `SuspectGrid.test.tsx` |
+
+## Testing
+
+- Every component must have at least one render test.
+- Test user interactions (click suspect, reveal clue, submit guess) — not implementation details.
+- Use `@testing-library/react` — no Enzyme, no shallow rendering.
+- Mock the Zustand store for isolated component tests.

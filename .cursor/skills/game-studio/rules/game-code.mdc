@@ -1,0 +1,70 @@
+# Game Engine Code Rules
+
+> Path scope: `src/game/**`
+
+## Pure Logic — No Side Effects
+
+- Game engine files (`engine/`, `data/`) must be **pure functions** with zero DOM, React, or browser API dependencies.
+- Every public function must accept explicit inputs and return explicit outputs — no globals, no singletons.
+- `puzzleEngine.ts`, `clueGenerator.ts`, `seedRandom.ts` must be testable in Node.js without any polyfills.
+
+## Deterministic Puzzle Generation
+
+- The PRNG (`seedRandom.ts`) must use the **mulberry32** algorithm seeded from a date string.
+- Given the same seed, the output sequence must be identical across all environments (browser, Node, CI).
+- **Never** use `Math.random()` in puzzle generation — always use the seeded PRNG.
+
+## Type Contracts
+
+```typescript
+// These interfaces are the single source of truth.
+// Do NOT duplicate or redefine them — import from types.ts.
+interface Puzzle { id, suspects, innocentIndex, clues, minCluesNeeded }
+interface Suspect { name, role, trait, gridPosition }
+interface Clue { text, type, eliminates }
+```
+
+- All puzzle data must conform to these interfaces with no `any` types.
+- `innocentIndex` must be in range `[0, suspects.length - 1]`.
+- `clue.eliminates` must reference valid suspect indices.
+
+## Puzzle Validation Invariants
+
+Every puzzle in `puzzleBank.ts` must satisfy:
+
+1. Exactly 9 suspects.
+2. Exactly 1 innocent (all others are guilty).
+3. Clues, when applied sequentially, must converge to a **unique** solution.
+4. `minCluesNeeded` must equal the minimum number of clues required to identify the innocent.
+5. No clue may eliminate the innocent suspect.
+
+## State Machine
+
+Game state transitions follow a strict FSM:
+
+```
+idle → playing → (guessing → result) | (out_of_clues → result) → complete
+```
+
+- No backward transitions (e.g., `complete` → `playing` is forbidden).
+- State transitions must go through the Zustand store — never mutate state directly.
+
+## Naming Conventions
+
+| Concept | Convention | Example |
+|---------|-----------|---------|
+| Engine functions | `verbNoun` | `generatePuzzle`, `revealClue` |
+| Type interfaces | PascalCase | `Puzzle`, `GameState` |
+| Constants | UPPER_SNAKE | `MAX_CLUES`, `GRID_SIZE` |
+| Store hooks | `use` prefix | `useGameStore` |
+| Data files | camelCase | `puzzleBank.ts` |
+
+## Error Handling
+
+- Engine functions must throw typed errors (`PuzzleValidationError`, `InvalidStateError`) — never return `null` for failures.
+- All thrown errors must include the puzzle ID and a descriptive message.
+
+## Performance
+
+- Puzzle validation runs at build time or startup — never during gameplay.
+- Clue text generation must be O(1) lookup, not O(n) computation.
