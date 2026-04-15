@@ -3,13 +3,15 @@ name: knowledge-daily-aggregator
 description: >-
   End-of-day pipeline that collects all daily outputs (email summaries, sprint
   digests, news analyses, meeting notes, code reviews, strategy briefings),
-  ingests them into the Cognee knowledge graph, extracts new entities and
-  relationships, and updates MEMORY.md. Use when the user asks to "aggregate
-  today's knowledge", "daily knowledge sync", "지식 그래프 갱신",
-  "일일 지식 종합", "knowledge-daily-aggregator", or wants to consolidate
-  the day's learning into persistent memory. Do NOT use for Cognee operations
-  directly (use cognee), context recall (use recall), or MEMORY.md manual
-  updates (update directly).
+  ingests them into the Cognee knowledge graph, routes personal outputs to
+  MemKraft and verified team/company outputs to LLM Wiki, extracts new entities
+  and relationships, updates MEMORY.md, and runs the Dream Cycle for memory
+  maintenance. Use when the user asks to "aggregate today's knowledge",
+  "daily knowledge sync", "지식 그래프 갱신", "일일 지식 종합",
+  "knowledge-daily-aggregator", or wants to consolidate the day's learning
+  into persistent memory. Do NOT use for Cognee operations directly (use
+  cognee), context recall (use recall), or MEMORY.md manual updates (update
+  directly).
 metadata:
   version: "1.1.0"
   category: "execution"
@@ -27,7 +29,7 @@ This skill is fully implemented as a Python script:
 python scripts/knowledge_daily_aggregator.py --date YYYY-MM-DD
 ```
 
-The script handles all 7 phases (collect → extract → cognee ingest → entity resolution → MEMORY.md update → KB wiki routing → report) and produces structured JSON output in `outputs/knowledge-daily-aggregator/{date}/`.
+The script handles all 9 phases (collect → extract → cognee ingest → entity resolution → MEMORY.md update → MemKraft routing → KB wiki routing → report → Dream Cycle) and produces structured JSON output in `outputs/knowledge-daily-aggregator/{date}/`.
 
 **Prerequisites**: `pip install cognee fastembed`, `.env` with `ANTHROPIC_API_KEY`, Cognee configured for Claude API (`LLM_PROVIDER=anthropic`, `LLM_MODEL=claude-sonnet-4-6`) + FastEmbed embeddings (see `.env.example`).
 
@@ -81,9 +83,11 @@ outputs/knowledge-daily-aggregator/{date}/phase-{N}-{label}.json
 | Ingest into Cognee | 3 | `cognee` | `phase-3-cognee.json` |
 | Entity resolution | 4 | `entity-resolution` | `phase-4-entity-resolution.json` |
 | Update MEMORY.md | 5 | `memory` | `phase-5-memory.json` |
+| MemKraft routing | 5.3 | `memkraft-route` | `phase-5.3-memkraft-route.json` |
 | KB Router | 5.5 | `kb-router` | `phase-5.5-kb-router.json` |
 | gbrain entity ingest | 5.7 | `gbrain` | `phase-5.7-gbrain.json` |
 | Knowledge report | 6 | `report` | `phase-6-report.json` |
+| Dream Cycle | 7 | `dream-cycle` | `phase-7-dream-cycle.json` |
 
 ### Manifest
 
@@ -108,7 +112,7 @@ The orchestrator merges subagent work into the phase JSON file using the Write t
 Phases that produce the **daily knowledge report** (Step 6) MUST load inputs **exclusively** from:
 
 - `manifest.json`
-- `phase-1-collect.json` through `phase-5-memory.json` (and any prior phase files referenced in the manifest)
+- `phase-1-collect.json` through `phase-5.3-memkraft-route.json` (and any prior phase files referenced in the manifest)
 
 Do **not** reconstruct the report from uncached chat history or unstored model output.
 
@@ -129,7 +133,7 @@ Each element of `phases`:
 
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
-| `phase` | number | yes | Phase number (1–6). |
+| `phase` | number | yes | Phase number (1–7). |
 | `label` | string | yes | Short slug matching the filename segment (e.g. `collect`). |
 | `file` | string | yes | Relative path from repo root: `outputs/knowledge-daily-aggregator/{date}/phase-{N}-{label}.json`. |
 | `status` | string | yes | One of: `pending`, `running`, `completed`, `failed`, `skipped`. |
@@ -167,9 +171,11 @@ Example:
 | 3 | Cognee | `outputs/knowledge-daily-aggregator/{date}/phase-3-cognee.json` | Ingest job ids, dataset name, errors |
 | 4 | Entity resolution | `outputs/knowledge-daily-aggregator/{date}/phase-4-entity-resolution.json` | Merge map, dedupe stats |
 | 5 | MEMORY.md | `outputs/knowledge-daily-aggregator/{date}/phase-5-memory.json` | Paths/lines appended or diff summary |
+| 5.3 | MemKraft routing | `outputs/knowledge-daily-aggregator/{date}/phase-5.3-memkraft-route.json` | Personal outputs routed to MemKraft with provenance tags |
 | 5.5 | KB Router | `outputs/knowledge-daily-aggregator/{date}/phase-5.5-kb-router.json` | topics_routed map, artifacts_classified, duplicates skipped |
 | 5.7 | gbrain | `outputs/knowledge-daily-aggregator/{date}/phase-5.7-gbrain.json` | Entity staging + import results (non-blocking) |
 | 6 | Report | `outputs/knowledge-daily-aggregator/{date}/phase-6-report.json` | Structured report + optional plain text path |
+| 7 | Dream Cycle | `outputs/knowledge-daily-aggregator/{date}/phase-7-dream-cycle.json` | Tier transitions, preference promotions, orphan resolutions |
 
 Index file: `outputs/knowledge-daily-aggregator/{date}/manifest.json`.
 

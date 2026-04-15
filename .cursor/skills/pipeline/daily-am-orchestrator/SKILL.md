@@ -16,7 +16,7 @@ metadata:
 ---
 # Daily AM Orchestrator — Morning Pipeline (7:00 AM)
 
-Orchestrate 8 phases of morning automation across 15+ skills with parallel execution where possible, consolidated Slack briefing, and robust error handling.
+Orchestrate 9 phases of morning automation across 15+ skills with parallel execution where possible, consolidated Slack briefing, and robust error handling. Includes a personal AI briefing (Phase 0.2) via MemKraft + LLM Wiki.
 
 ## Configuration
 
@@ -68,6 +68,7 @@ On completion, set `completed_at`, `overall_status`, and append the Phase 8 entr
 | Phase | Label | Output file |
 | --- | --- | --- |
 | 0 | preflight | `phase-0-preflight.json` |
+| 0.2 | ai-brief | `phase-0.2-ai-brief.json` |
 | 1 | git-sync | `phase-1-git-sync.json` |
 | 2 | google-workspace | `phase-2-google-workspace.json` |
 | 3 | email-intelligence | `phase-3-email-intelligence.json` |
@@ -138,6 +139,29 @@ results["phases"]["phase0"] = {"status": "pass|fail", "checks": {...}, "duration
 1. Write full phase payload to `outputs/daily-am/{date}/phase-0-preflight.json` (include `results["phases"]["phase0"]` and any check details).
 2. Update `manifest.json`: append phase entry `id: phase-0`, `label: preflight`, `status` mapped to `completed|failed`, `output_file: phase-0-preflight.json`, `started_at`, `elapsed_ms`, `summary` (one line).
 3. Subagent/orchestrator return to parent: `{ "status", "file": ".../phase-0-preflight.json", "summary" }` only.
+
+---
+
+### Phase 0.2: Personal AI Briefing (ai-brief)
+
+**Duration**: ~30s | **Dependencies**: Phase 0 | **Critical**: NO
+
+Invoke the `ai-brief` skill (`.cursor/skills/standalone/ai-brief/SKILL.md`) to generate a personal morning briefing from MemKraft + LLM Wiki context.
+
+**Steps**:
+
+1. **MemKraft hot-tier scan**: Load HOT entries from `memory/` — recent context, unresolved issues, active preferences
+2. **LLM Wiki scan**: Query `_wiki-registry.json` for any recently-updated company/team articles relevant to today's schedule
+3. **Assemble briefing** via `ai-context-router`:
+   - Unresolved items from yesterday (`[UNRESOLVED]` provenance)
+   - Active preferences affecting today's work (`[PREFERENCE]`)
+   - Recent context carry-forward (`[RECENT]`)
+   - Any overnight wiki updates (`[COMPANY]` / `[TEAM]`)
+4. **Output**: Structured markdown with provenance tags, included in Phase 8 Slack briefing
+
+**Graceful degradation**: If MemKraft files are missing or empty, skip personal sections and produce a minimal briefing with wiki-only context.
+
+**Persist & manifest**: Write `outputs/daily-am/{date}/phase-0.2-ai-brief.json`. Update `manifest.json`.
 
 ---
 

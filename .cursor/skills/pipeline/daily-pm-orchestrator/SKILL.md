@@ -1,9 +1,9 @@
 ---
 name: daily-pm-orchestrator
 description: >-
-  Evening Pipeline orchestrator: 5 phases covering knowledge consolidation,
-  strategic analysis, code shipping, skill evolution, and weekly reports (Friday
-  only) — with a consolidated EOD Slack briefing. Runs at 4:30 PM daily. Use
+  Evening Pipeline orchestrator: 6 phases covering knowledge consolidation,
+  strategic analysis, code shipping, skill evolution, weekly reports (Friday
+  only), and MemKraft Dream Cycle — with a consolidated EOD Slack briefing. Runs at 4:30 PM daily. Use
   when the user runs /daily-pm, asks to "run evening pipeline", "evening
   automation", "오후 파이프라인", "이브닝 오케스트레이터", "daily-pm", "daily evening",
   or wants to run the full evening automation. Do NOT use for partial evening
@@ -16,7 +16,7 @@ metadata:
 ---
 # Daily PM Orchestrator — Evening Pipeline (4:30 PM)
 
-Orchestrate 5 phases of evening automation across 8+ skills with parallel execution, Friday-conditional weekly reports, consolidated Slack briefing, and robust error handling.
+Orchestrate 6 phases of evening automation across 8+ skills with parallel execution, Friday-conditional weekly reports, MemKraft Dream Cycle, consolidated Slack briefing, and robust error handling.
 
 ## Configuration
 
@@ -74,6 +74,7 @@ While the run is in progress, `overall_status` may be `"running"` until Phase 6 
 | 3 | Code shipping | `outputs/daily-pm/{date}/phase-3-code-shipping.json` | `--skip-phase 3` |
 | 4 | Skill evolution | `outputs/daily-pm/{date}/phase-4-skill-evolution.json` | `--skip-skills`, `--skip-phase 4` |
 | 5 | Weekly reports | `outputs/daily-pm/{date}/phase-5-weekly-reports.json` | Friday / `--friday`, `--skip-phase 5` |
+| 5.5 | Dream Cycle | `outputs/daily-pm/{date}/phase-5.5-dream-cycle.json` | `--skip-dream-cycle`, `--skip-phase 5.5` |
 | 6 | EOD briefing | `outputs/daily-pm/{date}/phase-6-eod-briefing.json` | `--no-slack` (still persist summary payload) |
 
 ## Usage
@@ -476,6 +477,29 @@ results["phases"]["phase5"] = {
 ```
 
 3. **Persist & manifest**: Write the full Phase 5 result to `outputs/daily-pm/{date}/phase-5-weekly-reports.json` (include `status: "skipped"` and reason when not Friday / skipped). Update `manifest.json` for `phase-5`.
+
+---
+
+### Phase 5.5: MemKraft Dream Cycle
+
+**Duration**: ~30-60s | **Dependencies**: Phase 1 (knowledge consolidation) | **Critical**: NO
+
+Run the MemKraft Dream Cycle via `memkraft-dream-cycle` skill (`.cursor/skills/standalone/memkraft-dream-cycle/SKILL.md`) to perform nightly memory maintenance.
+
+**Steps**:
+
+1. **Session extraction**: Run `scripts/memory/extract-sessions.py --incremental` to ingest today's agent transcripts into MemKraft
+2. **Topic consolidation**: Run `scripts/memory/build-index.py --skip-embeddings` to merge new entries into topic files
+3. **Attention decay**: Run `scripts/memory/attention_decay.py --apply` to transition entries between HOT/WARM/COLD tiers based on access frequency and recency
+4. **Orphan resolution**: Identify entries referencing deleted or moved files and either re-link or archive them
+5. **Preference promotion**: Detect repeated patterns (3+ occurrences) and promote them from RECENT to PREFERENCE tier
+6. **Archive sweep**: Move COLD entries with zero access in 30+ days to `memory/dream-cycle/archive/`
+
+**Output**: Structured JSON with tier transition counts, promoted preferences, resolved orphans, and archived entries.
+
+**Graceful degradation**: If `memkraft.json` is missing or MemKraft is not configured, skip the entire phase and log `status: "skipped"` with reason.
+
+**Persist & manifest**: Write `outputs/daily-pm/{date}/phase-5.5-dream-cycle.json`. Update `manifest.json`.
 
 ---
 
