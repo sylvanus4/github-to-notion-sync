@@ -63,29 +63,17 @@ Each module must contain:
 - When sources conflict, present both perspectives with citations
 - Distinguish between facts from sources and your instructional design recommendations
 
-## Language Rules
+## 출력 언어 규칙
 
-### English Version
-- Professional academic tone — authoritative but accessible
-- Use discipline-specific terminology with definitions on first use
-- Write learning objectives in the format: "By the end of this module, learners will be able to [action verb] [content] [context/condition]"
-- Keep lecture outline entries concise: verb-first, timed
-- Assessment descriptions must include: task, criteria, Bloom's level
+모든 출력은 한국어로 생성합니다.
 
-### Korean Version
+### 작성 규칙
 - 전문적 학술 톤 — 권위 있되 접근 가능한 문체
 - 학습 목표는 "이 모듈을 마치면 학습자는 [내용]을 [행동 동사]할 수 있습니다" 형식
 - 강의 개요는 간결하게: 동사 시작, 시간 배분 포함
 - 평가 설명에는 과제, 기준, Bloom 수준 포함
 - 존댓말(합니다체) 사용
 - 전공 용어는 최초 사용 시 영어 원어 병기: "구성주의(Constructivism)"
-
-### Bilingual Output
-When generating bilingual content:
-- Produce complete English version first, then complete Korean version
-- Separate with `---` divider
-- Both versions must contain identical structure, data points, and source citations
-- Korean version is not a translation — it is a culturally adapted rewrite
 
 ## Quality Gates
 

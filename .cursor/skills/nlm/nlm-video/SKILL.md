@@ -2,7 +2,7 @@
 name: nlm-video
 description: >-
   End-to-end pipeline that transforms a local markdown document into professional
-  NotebookLM video explainers. Splits sections, rewrites into expert-level EN + KO
+  NotebookLM video explainers. Splits sections, rewrites into expert-level Korean
   narration, uploads to NotebookLM, generates videos, and downloads MP4 files.
   Use when the user asks to "create NLM video", "NLM 비디오", "비디오 만들어",
   "generate video from doc", "convert document to video", or convert a local
@@ -19,7 +19,7 @@ metadata:
 
 # NLM Video: Local Document to Expert Video Pipeline
 
-End-to-end pipeline that transforms a local markdown document into professional NotebookLM video explainers in both English and Korean, written in domain-expert narrative tone with white background styling.
+End-to-end pipeline that transforms a local markdown document into professional NotebookLM video explainers in Korean, written in domain-expert narrative tone with white background styling.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ End-to-end pipeline that transforms a local markdown document into professional 
 
 The expert rewrite system prompt is stored at `references/system-prompt.md` (relative to this skill). Read it before starting the pipeline. It defines:
 
-- Expert narrative tone optimized for spoken delivery
+- Expert narrative tone optimized for Korean spoken delivery
 - Transition cues and flow structure
 - White background tone directive
 - Content density and pacing requirements
@@ -46,23 +46,16 @@ Read the user-specified markdown file. Identify the document title (from `#` hea
 
 Split the markdown content at `##` heading boundaries. Each section becomes an independent unit for rewriting. Preserve the heading text as the section title.
 
-### Step 3: Expert Rewrite (EN + KO)
+### Step 3: Expert Rewrite (한국어)
 
-Using the system prompt from `references/system-prompt.md`, rewrite each section into **two versions**:
+Using the system prompt from `references/system-prompt.md`, rewrite each section into **한국어 전문가 내레이션 버전**:
 
-**English version:**
-- Professional, authoritative domain-expert narrative tone
-- Content structured for **spoken delivery** -- natural sentence flow
-- Transition phrases between sections ("Now let's examine...", "Building on this...")
-- Key data points woven into narrative rather than isolated bullets
-
-**Korean version:**
 - 전문가의 내레이션 톤 (formal narrative voice)
-- Same structure and data points as the English version
-- Natural Korean spoken phrasing with smooth transitions
-- 핵심 지표를 자연스러운 문맥 안에서 전달
+- **구어 전달**에 맞춘 문장 흐름과 자연스러운 전환 표현
+- 섹션 간 전환 구문 ("이제 살보면...", "이를 바탕으로...")
+- 핵심 지표를 불릿 나열이 아닌 내러티브 안에 녹여 전달
 
-Combine all English sections into one document. Combine all Korean sections into one document.
+모든 섹션을 하나의 한국어 문서로 통합합니다.
 
 ### Step 4: Create NotebookLM Notebook
 
@@ -72,17 +65,16 @@ notebook_create(title="<Document Title> - Video")
 
 ### Step 5: Upload Sources
 
-Upload both rewritten documents as text sources:
+Upload the rewritten Korean document as a text source:
 
 ```
-source_add(notebook_id, source_type="text", title="<Title> (EN)", text=<english_doc>, wait=True)
 source_add(notebook_id, source_type="text", title="<Title> (KO)", text=<korean_doc>, wait=True)
 ```
 
 ### Step 6: Generate Video
 
 ```
-studio_create(notebook_id, artifact_type="video", video_format="explainer", confirm=True)
+studio_create(notebook_id, artifact_type="video", video_format="explainer", confirm=True, language="ko")
 ```
 
 Available `video_format` options:
@@ -119,8 +111,7 @@ download_artifact(
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--lang en` | Generate English version only | Both EN + KO |
-| `--lang ko` | Generate Korean version only | Both EN + KO |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--format brief` | Brief format instead of full explainer | `explainer` |
 | `--format explainer` | Full explainer format | `explainer` |
 | `--format cinematic` | Experimental cinematic style | `explainer` |
@@ -158,14 +149,6 @@ outputs/presentations/
   fed-rate-analysis-video-2026-03-08.mp4
 ```
 
-When generating single-language versions:
-
-```
-outputs/presentations/
-  gpu-cloud-strategy-video-en-2026-03-08.mp4
-  gpu-cloud-strategy-video-ko-2026-03-08.mp4
-```
-
 ## Example
 
 ```
@@ -175,9 +158,9 @@ outputs/presentations/
 This will:
 1. Read `docs/proposals/gpu-cloud-strategy.md`
 2. Split into sections by `##` headings
-3. Rewrite each section in expert narrative EN and KO
+3. Rewrite each section in expert narrative Korean
 4. Create notebook "GPU Cloud Strategy - Video"
-5. Upload EN and KO documents as sources
+5. Upload Korean document as source
 6. Generate video explainer
 7. Download to `outputs/presentations/gpu-cloud-strategy-video-2026-03-08.mp4`
 
@@ -187,7 +170,7 @@ This will:
 |---------|-----|
 | Video generation slow | Normal -- videos take 5-10 minutes; keep polling |
 | Content too superficial | Check that the rewrite step produced narrative depth, not just bullets |
-| Wrong language | Use `--lang en` or `--lang ko` to generate single-language versions |
+| 언어 문제 | 시스템 프롬프트의 한국어 규칙을 확인하세요 |
 | Download fails | Ensure generation completed via `studio_status` first |
 | File not found after download | Use absolute path in `output_path`; MCP server resolves from its own cwd |
 | `format` parameter ignored | Use `video_format` (not `format`) in `studio_create` |

@@ -136,6 +136,7 @@ git status --short
 2. If dirty, execute release-ship pipeline (domain-commit → push → **issue** → PR → merge)
 3. Issue creation is MANDATORY for shipped commits — do not skip Step 4 of release-ship
 4. Capture result: `{commits: [...], issues: [...], pr_url: "...", merged: bool}`
+5. **Post-execution issue verification**: If commits were shipped (commits list non-empty) but issues list is empty, this is a FAILURE. Re-run release-ship Step 4 (issue creation) immediately. Log `{issue_verification: "re-run"}`. If re-run also produces no issues, log `{issue_verification: "FAILED"}` and include in the Slack warning.
 
 ### Phase 3: Release Ship (Managed Projects)
 
@@ -157,8 +158,9 @@ git status --short
    - Follow all release-ship rules (ai-platform-webui uses tmp-only mode)
    - Domain-split commits → push → **issue** → PR → merge
    - Issue creation is MANDATORY — auto-confirm the issue plan (pipeline mode)
-3. Capture result per project
-4. `cd` back to original directory before processing next project
+3. Capture result per project: `{project: ALIAS, commits: [...], issues: [...], pr_url: "...", merged: bool}`
+4. **Post-execution issue verification per project**: If commits were shipped but issues list is empty, re-run release-ship Step 4 for that project. Log `{project: ALIAS, issue_verification: "re-run|FAILED"}`.
+5. `cd` back to original directory before processing next project
 
 **Execution order** (from [references/project-registry.md](references/project-registry.md)):
 
@@ -178,6 +180,7 @@ Before posting to Slack, verify shipping integrity:
 - [ ] **All repos clean** — Every shipped project should have a clean `git status` after release-ship (no leftover unstaged changes including untracked files)
 - [ ] **No orphaned untracked content** — Verify no `.md`, `.ts`, `.go`, `.py`, `.yaml`, `.json`, `.sql` files remain untracked in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/`, or any content directory. If any exist, run one more `git add` + commit round to catch them.
 - [ ] **Branch consistency** — Current project pushed to correct remote branch (ai-platform-webui uses `tmp`, others use standard)
+- [ ] **Zero-issue guard** — Count total commits shipped across all projects vs total issues created. If `total_commits > 0` and `total_issues == 0`, this is a CRITICAL failure. Re-invoke release-ship Step 4 for each project that shipped commits but has zero issues. This gate prevents silent issue creation skips.
 - [ ] **Issue field completeness** — Every issue created in Phase 2/3 MUST have ALL 5 project fields set (Status, Priority, Size, Sprint, Estimate). If any issue is missing fields, run the `set_all_fields()` script from [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md) to fix it before posting to Slack.
 - [ ] **GitHub Project #5 등록 검증** — Phase 2/3에서 생성된 모든 이슈와 PR이 GitHub Project #5에 정상 등록되었는지 확인. `gh project item-list 5 --owner ThakiCloud --format json --limit 100` 으로 조회하여 (1) 이슈/PR이 프로젝트 아이템 목록에 존재하는지 (2) 5개 필드(Status, Priority, Size, Sprint, Estimate)가 모두 non-null인지 검증. 누락된 항목은 `gh project item-add` + `set_all_fields()` 로 재시도 1회. 결과를 `{project5_check: {issues: {verified: N, total: M}, prs: {verified: N, total: M}, missing: [...], fields_incomplete: [...]}}` 형태로 기록.
 - [ ] **lat.md drift check** — For repos with a `lat.md/` directory, run `lat check` and warn if broken links or drift are detected. Non-blocking: log warnings but do not halt shipping.

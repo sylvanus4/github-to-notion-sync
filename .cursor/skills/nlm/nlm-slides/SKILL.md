@@ -2,7 +2,7 @@
 name: nlm-slides
 description: >-
   End-to-end pipeline that transforms a local markdown document into professional
-  NotebookLM slide decks. Splits sections, rewrites each into expert-level EN + KO,
+  NotebookLM slide decks. Splits sections, rewrites each into expert-level Korean,
   uploads to NotebookLM, generates slide decks, and downloads PDFs.
   Use when the user asks to "create NLM slides", "NLM 슬라이드", "슬라이드 만들어",
   "generate slides from doc", "convert document to slides", or convert a local
@@ -19,7 +19,7 @@ metadata:
 
 # NLM Slides: Local Document to Expert Slide Deck Pipeline
 
-End-to-end pipeline that transforms a local markdown document into professional NotebookLM slide decks in both English and Korean, written in domain-expert tone with white background styling.
+End-to-end pipeline that transforms a local markdown document into professional NotebookLM slide decks in Korean, written in domain-expert tone with white background styling.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ End-to-end pipeline that transforms a local markdown document into professional 
 
 The expert rewrite system prompt is stored at `references/system-prompt.md` (relative to this skill). Read it before starting the pipeline. It defines:
 
-- Expert tone and domain authority for each language
+- Expert tone and domain authority for Korean
 - Presentation-friendly formatting rules
 - White background tone directive
 - Content density requirements
@@ -46,27 +46,19 @@ Read the user-specified markdown file. Identify the document title (from `#` hea
 
 Split the markdown content at `##` heading boundaries. Each section becomes an independent unit for rewriting. Preserve the heading text as the section title.
 
-### Step 3: Expert Rewrite (EN + KO)
+### Step 3: Expert Rewrite (한국어)
 
-Using the system prompt from `references/system-prompt.md`, rewrite each section into **two versions**:
+Using the system prompt from `references/system-prompt.md`, rewrite each section into **한국어 전문가 버전**:
 
-**English version:**
-- Professional, authoritative domain-expert tone
-- Short bullet points with key metrics highlighted (≤6 words per bullet — Winston rule)
-- Clear headers matching the original section structure
-- Presentation-ready: no paragraphs, only scannable points
-- ≤40 words of visible text per slide section (Winston: slides support the speaker, they don't replace the speaker)
-- Image/diagram cues in brackets where a visual would strengthen the point
-
-**Korean version:**
 - 전문가 톤 (formal expert voice)
-- Same structure and data points as the English version
-- Natural Korean business/technical phrasing
-- 핵심 지표와 데이터 강조
-- Same Winston density rules: ≤40 words per slide section, ≤6 words per bullet
-- Speaker narration belongs in presenter notes, not on the slide face
+- 핵심 지표와 데이터를 강조하는 짧은 불릿 포인트 (≤6 단어 — Winston 규칙)
+- 원본 섹션 구조에 맞는 명확한 헤더
+- 프레젠테이션 최적화: 문단 없이 스캔 가능한 포인트만
+- 슬라이드 섹션당 ≤40 단어 (Winston: 슬라이드는 발표자를 보조하지 대체하지 않음)
+- 시각 자료가 도움이 될 곳에 `[시각: ...]` 힌트 삽입
+- 발표자 내레이션은 발표자 노트에 배치
 
-Combine all English sections into one document. Combine all Korean sections into one document.
+모든 섹션을 하나의 한국어 문서로 통합합니다.
 
 ### Step 4: Create NotebookLM Notebook
 
@@ -76,17 +68,16 @@ notebook_create(title="<Document Title> - Slides")
 
 ### Step 5: Upload Sources
 
-Upload both rewritten documents as text sources:
+Upload the rewritten Korean document as a text source:
 
 ```
-source_add(notebook_id, source_type="text", title="<Title> (EN)", text=<english_doc>, wait=True)
 source_add(notebook_id, source_type="text", title="<Title> (KO)", text=<korean_doc>, wait=True)
 ```
 
 ### Step 6: Generate Slide Deck
 
 ```
-studio_create(notebook_id, artifact_type="slide_deck", slide_format="detailed_deck", confirm=True)
+studio_create(notebook_id, artifact_type="slide_deck", slide_format="detailed_deck", confirm=True, language="ko")
 ```
 
 Available `slide_format` options:
@@ -134,8 +125,7 @@ download_artifact(
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--lang en` | Generate English version only | Both EN + KO |
-| `--lang ko` | Generate Korean version only | Both EN + KO |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--format detailed_deck` | Comprehensive slides | `detailed_deck` |
 | `--format presenter_slides` | Speaker-note style slides | `detailed_deck` |
 | `--length short` | Condensed slide count | `default` |
@@ -160,14 +150,6 @@ outputs/presentations/
   fed-rate-analysis-slides-2026-03-08.pdf
 ```
 
-When generating single-language versions:
-
-```
-outputs/presentations/
-  gpu-cloud-strategy-slides-en-2026-03-08.pdf
-  gpu-cloud-strategy-slides-ko-2026-03-08.pdf
-```
-
 ## Example
 
 ```
@@ -177,9 +159,9 @@ outputs/presentations/
 This will:
 1. Read `docs/proposals/gpu-cloud-strategy.md`
 2. Split into sections by `##` headings
-3. Rewrite each section in expert EN and KO
+3. Rewrite each section in expert Korean
 4. Create notebook "GPU Cloud Strategy - Slides"
-5. Upload EN and KO documents as sources
+5. Upload Korean document as source
 6. Generate slide deck
 7. Download to `outputs/presentations/gpu-cloud-strategy-slides-2026-03-08.pdf`
 
@@ -190,7 +172,7 @@ This will:
 | Authentication expired | Run `nlm login` in terminal, then call `refresh_auth` MCP tool |
 | Slides lack depth | Check that the rewrite step produced substantive content, not summaries |
 | Too much text on slides | Apply Winston density rules: ≤40 words visible per slide, ≤6 words per bullet; move narration to speaker notes |
-| Wrong language mix | Use `--lang en` or `--lang ko` to generate single-language versions |
+| 언어 문제 | 시스템 프롬프트의 한국어 규칙을 확인하세요 |
 | Generation timeout | Poll `studio_status` every 30-60s; slides take **5-8 minutes** typically |
 | File not found after download | Use **absolute path** in `output_path`; MCP server resolves from its own cwd |
 | Revise not working | Ensure `confirm=True` is passed to `studio_revise` |
@@ -211,7 +193,7 @@ Content rewriting in Step 3 enforces these Winston "How to Speak" principles:
 |-----------|-------------|
 | **≤40 words per slide** | Rewrite step caps visible text per section |
 | **≤6 words per bullet** | Keywords and metrics only — no sentences |
-| **Image cues** | Rewrite inserts `[visual: ...]` placeholders for diagrams/charts |
+| **Image cues** | Rewrite inserts `[시각: ...]` placeholders for diagrams/charts |
 | **Presenter Mode** | `presenter_slides` format keeps narration in notes, not on slide face |
 | **Speaker ≠ Slide** | Content the presenter will say goes in speaker notes |
 

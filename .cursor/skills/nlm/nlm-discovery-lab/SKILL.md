@@ -4,7 +4,7 @@ description: >-
   End-to-end pipeline: run PM product discovery frameworks (OST, assumptions,
   interview scripts, experiments), user research (personas, journey maps,
   segmentation), and data frameworks (metrics, cohort, A/B test), compile into
-  expert-level EN + KO discovery documents, upload to NotebookLM with competitive
+  expert-level Korean discovery documents, upload to NotebookLM with competitive
   research, and generate 5 learning assets (quiz, debate podcast, slides, study
   guide, data table).
   Use when the user asks to "run discovery lab", "product discovery notebook",
@@ -33,7 +33,7 @@ End-to-end pipeline that runs a complete product discovery cycle — from opport
 
 The discovery document rewrite system prompt is stored at `references/system-prompt.md` (relative to this skill). Read it before the Compile phase. It defines:
 
-- Hypothesis-driven, exploratory tone for each language
+- Hypothesis-driven, exploratory tone in Korean
 - Section structure rules for discovery documents
 - White background visual directive
 - Quality gates for discovery rigor
@@ -74,19 +74,12 @@ Design the measurement framework for discovery experiments:
 2. **Cohort Analysis Template** (`cohort-analysis`): Retention and feature adoption cohort framework for the opportunity area
 3. **A/B Test Framework** (`ab-test-analysis`): Sample size, duration, and success criteria for top 2-3 experiments from Phase 2
 
-### Phase 5: Compile Discovery Document (EN + KO)
+### Phase 5: Compile Discovery Document (한국어)
 
-Using the system prompt from `references/system-prompt.md`, compile all artifacts from Phases 2-4 into **two discovery documents**:
+Using the system prompt from `references/system-prompt.md`, compile all artifacts from Phases 2-4 into **한국어 전문가 디스커버리 문서**:
 
-**English version:**
-- Hypothesis-driven, evidence-aware discovery narrative
-- Each framework result framed as "What we believe" -> "What we need to learn" -> "How we'll test it"
-- Assumptions explicitly labeled with confidence levels and risk categories
-- Cross-references between personas and journey stages
-
-**Korean version:**
 - 가설 중심의 탐색적 발견 서술
-- 각 프레임워크 결과를 "우리가 믿는 것" -> "검증이 필요한 것" -> "테스트 방법" 프레임으로 구성
+- 각 프레임워크 결과를 "우리가 믿는 것" → "검증이 필요한 것" → "테스트 방법" 프레임으로 구성
 - 가정에 신뢰도 수준과 리스크 범주 명시
 - 페르소나와 여정 단계 간 교차 참조
 
@@ -113,7 +106,6 @@ notebook_create(title="<Opportunity> - Discovery Lab")
 
 2. Upload compiled documents:
 ```
-source_add(notebook_id, source_type="text", title="Discovery Lab (EN)", text=<english_doc>, wait=True)
 source_add(notebook_id, source_type="text", title="디스커버리 랩 (KO)", text=<korean_doc>, wait=True)
 ```
 
@@ -145,27 +137,27 @@ Generate 5 artifact types designed for team alignment and learning:
 
 1. **Team Alignment Quiz** — "Do we agree on the problem?":
 ```
-studio_create(notebook_id, artifact_type="quiz", question_count=15, difficulty="medium", confirm=True)
+studio_create(notebook_id, artifact_type="quiz", question_count=15, difficulty="medium", confirm=True, language="ko")
 ```
 
 2. **Assumption Debate Podcast** — Two-sided debate on key assumptions:
 ```
-studio_create(notebook_id, artifact_type="audio", audio_format="debate", confirm=True)
+studio_create(notebook_id, artifact_type="audio", audio_format="debate", confirm=True, language="ko")
 ```
 
 3. **Discovery Review Slides** — Stakeholder presentation of findings:
 ```
-studio_create(notebook_id, artifact_type="slide_deck", confirm=True)
+studio_create(notebook_id, artifact_type="slide_deck", confirm=True, language="ko")
 ```
 
 4. **Study Guide** — Deep-dive reference for the product trio:
 ```
-studio_create(notebook_id, artifact_type="report", report_format="Study Guide", confirm=True)
+studio_create(notebook_id, artifact_type="report", report_format="Study Guide", confirm=True, language="ko")
 ```
 
 5. **Assumption Tracking Table** — Structured data table for ongoing tracking:
 ```
-studio_create(notebook_id, artifact_type="data_table", description="Assumption tracking matrix: assumption, risk type (Value/Usability/Viability/Feasibility), confidence level, experiment, status, evidence, next action", confirm=True)
+studio_create(notebook_id, artifact_type="data_table", description="Assumption tracking matrix: assumption, risk type (Value/Usability/Viability/Feasibility), confidence level, experiment, status, evidence, next action", confirm=True, language="ko")
 ```
 
 Poll `studio_status(notebook_id)` every 30 seconds between each generation. Download all artifacts:
@@ -182,8 +174,7 @@ download_artifact(notebook_id, artifact_type="data_table", output_path="outputs/
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--lang en` | Generate English version only | Both EN + KO |
-| `--lang ko` | Generate Korean version only | Both EN + KO |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--skip-research` | Skip web research enrichment | Research enabled |
 | `--artifacts "quiz,slides"` | Generate only specified artifact types | All 5 artifacts |
 | `--context "new"` | Product context: `existing` or `new` product | `existing` |
@@ -218,7 +209,7 @@ This will:
 5. Design 3 experiments (e.g., guided setup wizard, value-moment shortcut, progressive disclosure)
 6. Create 3 personas (power user, evaluator, reluctant adopter), journey map, segmentation
 7. Design metrics dashboard, cohort analysis for trial-to-paid by signup week, A/B test specs
-8. Compile into expert EN + KO discovery documents
+8. Compile into expert Korean discovery document
 9. Create NotebookLM notebook, upload documents, run web research
 10. Generate quiz, debate podcast, slides, study guide, assumption tracker
 11. Download all artifacts to `outputs/discovery-labs/trial-conversion-discovery-2026-03-08/`

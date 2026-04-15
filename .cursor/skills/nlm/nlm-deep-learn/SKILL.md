@@ -33,7 +33,7 @@ The intellectual landscape document rewrite system prompt is stored at `referenc
 
 - Socratic, depth-first tone for each language
 - Structure: Mental Models -> Debates -> Consensus -> Open Questions -> Study Path
-- EN + KO bilingual rules
+- 한국어 출력 규칙
 - Quality gates for depth vs. surface-level summarization
 
 ## Question Rules
@@ -198,27 +198,27 @@ Generate 5 study artifacts from the loaded notebook. Skip if `--skip-artifacts` 
 
 1. **Expert Debate Podcast** — two-sided debate on key disagreements:
 ```
-studio_create(notebook_id, artifact_type="audio", audio_format="debate", confirm=True)
+studio_create(notebook_id, artifact_type="audio", audio_format="debate", confirm=True, language="ko")
 ```
 
 2. **Mental Model Flashcards** — core concepts distilled:
 ```
-studio_create(notebook_id, artifact_type="flashcards", difficulty="hard", confirm=True)
+studio_create(notebook_id, artifact_type="flashcards", difficulty="hard", confirm=True, language="ko")
 ```
 
 3. **Deep Understanding Quiz** — exportable quiz for later review:
 ```
-studio_create(notebook_id, artifact_type="quiz", question_count=15, confirm=True)
+studio_create(notebook_id, artifact_type="quiz", question_count=15, confirm=True, language="ko")
 ```
 
 4. **Intellectual Landscape Mind Map** — visual overview of the field:
 ```
-studio_create(notebook_id, artifact_type="mind_map", confirm=True)
+studio_create(notebook_id, artifact_type="mind_map", confirm=True, language="ko")
 ```
 
 5. **Comprehensive Study Guide** — reference document:
 ```
-studio_create(notebook_id, artifact_type="report", report_format="Study Guide", confirm=True)
+studio_create(notebook_id, artifact_type="report", report_format="Study Guide", confirm=True, language="ko")
 ```
 
 Poll `studio_status(notebook_id)` every 30 seconds between each generation. Download all artifacts:
@@ -235,8 +235,7 @@ download_artifact(notebook_id, artifact_type="report", output_path="<absolute_pa
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--lang en` | Generate English content only | Both EN + KO |
-| `--lang ko` | Generate Korean content only | Both EN + KO |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--rounds N` | Number of quiz rounds | 3 |
 | `--questions N` | Questions per quiz round | 5 |
 | `--skip-artifacts` | Skip studio artifact generation | Artifacts enabled |

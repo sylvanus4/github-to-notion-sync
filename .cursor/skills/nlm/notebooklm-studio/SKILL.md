@@ -71,14 +71,14 @@ Generate rich content from Google NotebookLM notebooks -- podcasts, videos, repo
 ### Generate study materials
 
 ```
-studio_create(notebook_id, artifact_type="quiz", question_count=10, confirm=True)
-studio_create(notebook_id, artifact_type="flashcards", difficulty="hard", confirm=True)
-studio_create(notebook_id, artifact_type="report", report_format="Study Guide", confirm=True)
+studio_create(notebook_id, artifact_type="quiz", question_count=10, language="ko", confirm=True)
+studio_create(notebook_id, artifact_type="flashcards", difficulty="hard", language="ko", confirm=True)
+studio_create(notebook_id, artifact_type="report", report_format="Study Guide", language="ko", confirm=True)
 ```
 
 ### Create a presentation
 
-1. `studio_create(notebook_id, artifact_type="slide_deck", confirm=True)`
+1. `studio_create(notebook_id, artifact_type="slide_deck", language="ko", confirm=True)`
 2. `studio_status(notebook_id)` -- poll until complete
 3. `studio_revise(notebook_id, artifact_id, instructions="Add more data charts", confirm=True)`
 4. `download_artifact(notebook_id, artifact_type="slide_deck", output_path="deck.pptx")`
@@ -86,7 +86,7 @@ studio_create(notebook_id, artifact_type="report", report_format="Study Guide", 
 ### Generate an infographic
 
 ```
-studio_create(notebook_id, artifact_type="infographic", orientation="landscape", style="professional", confirm=True)
+studio_create(notebook_id, artifact_type="infographic", orientation="landscape", style="professional", language="ko", confirm=True)
 ```
 
 ### Export to Google Docs
@@ -120,17 +120,17 @@ Do not poll more frequently than every 15 seconds to avoid rate limits.
 ### Financial analysis study materials
 
 1. Create a notebook from multiple analysis reports
-2. Generate flashcards: `studio_create(notebook_id, artifact_type="flashcards", difficulty="medium", confirm=True)`
-3. Generate quiz: `studio_create(notebook_id, artifact_type="quiz", question_count=15, confirm=True)`
+2. Generate flashcards: `studio_create(notebook_id, artifact_type="flashcards", difficulty="medium", language="ko", confirm=True)`
+3. Generate quiz: `studio_create(notebook_id, artifact_type="quiz", question_count=15, language="ko", confirm=True)`
 
 ### Accelerated learning study materials
 
 1. Create a notebook loaded with textbooks and papers (see `notebooklm` skill)
 2. Generate debate podcast on expert disagreements: `studio_create(notebook_id, artifact_type="audio", audio_format="debate", confirm=True)`
-3. Generate flashcards on mental models: `studio_create(notebook_id, artifact_type="flashcards", difficulty="hard", confirm=True)`
-4. Generate deep-understanding quiz: `studio_create(notebook_id, artifact_type="quiz", question_count=15, confirm=True)`
-5. Generate intellectual landscape mind map: `studio_create(notebook_id, artifact_type="mind_map", confirm=True)`
-6. Generate study guide: `studio_create(notebook_id, artifact_type="report", report_format="Study Guide", confirm=True)`
+3. Generate flashcards on mental models: `studio_create(notebook_id, artifact_type="flashcards", difficulty="hard", language="ko", confirm=True)`
+4. Generate deep-understanding quiz: `studio_create(notebook_id, artifact_type="quiz", question_count=15, language="ko", confirm=True)`
+5. Generate intellectual landscape mind map: `studio_create(notebook_id, artifact_type="mind_map", language="ko", confirm=True)`
+6. Generate study guide: `studio_create(notebook_id, artifact_type="report", report_format="Study Guide", language="ko", confirm=True)`
 
 ## Troubleshooting
 

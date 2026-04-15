@@ -41,7 +41,7 @@ The curriculum-designer persona is stored at `references/system-prompt.md` (rela
 - Backward Design (Understanding by Design) methodology
 - Constructive Alignment between objectives, activities, and assessments
 - Source grounding and citation rules
-- EN + KO bilingual output rules
+- 한국어 출력 규칙
 - Quality gates for measurability and assessment coverage
 
 ## Templates
@@ -68,7 +68,7 @@ Collect from the user:
   - YouTube videos (transcript auto-extracted)
   - Google Docs / Slides
 - **Output preferences** — which artifact types to generate per module (default: slides + quiz + flashcards + study guide)
-- **Language** — EN, KO, or bilingual (default: bilingual)
+- **Language** — 한국어 (기본값)
 
 Use `AskQuestion` tool for structured collection when details are missing. Persist gathered input:
 
@@ -178,7 +178,7 @@ For each module, generate the user-selected artifacts via `studio_create`. Defau
 
 For each artifact:
 ```
-studio_create(notebook_id, artifact_type="<type>", confirm=True, focus_prompt="...", language="en")
+studio_create(notebook_id, artifact_type="<type>", confirm=True, focus_prompt="...", language="ko")
 ```
 
 Type-specific options: `slide_format` (detailed_deck|presenter_slides), `question_count` (int), `difficulty` (easy|medium|hard), `report_format` (Briefing Doc|Study Guide), `custom_prompt` (for reports).
@@ -242,8 +242,7 @@ outputs/curriculum/{course-slug}/
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--lang en` | Generate English content only | Bilingual (EN + KO) |
-| `--lang ko` | Generate Korean content only | Bilingual (EN + KO) |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--weeks N` | Number of course weeks/modules | 12 |
 | `--artifacts "slides,quiz,flashcards,report"` | Select artifact types per module | slides + quiz + flashcards + report |
 | `--all-artifacts` | Generate all 7 artifact types per module | Default set only |
@@ -257,11 +256,11 @@ outputs/curriculum/{course-slug}/
 ## Examples
 
 ```
-/nlm-curriculum-builder "Introduction to Machine Learning" --sources ~/textbooks/ml-intro.pdf ~/papers/gradient-descent.pdf --urls "https://cs229.stanford.edu/" "https://www.youtube.com/watch?v=..." --weeks 14 --lang en --artifacts "slides,quiz,flashcards,report" --drive
+/nlm-curriculum-builder "Introduction to Machine Learning" --sources ~/textbooks/ml-intro.pdf ~/papers/gradient-descent.pdf --urls "https://cs229.stanford.edu/" "https://www.youtube.com/watch?v=..." --weeks 14 --lang ko --artifacts "slides,quiz,flashcards,report" --drive
 ```
 
 This will:
-1. Collect course info (ML intro, 14 weeks, English, 4 artifact types)
+1. Collect course info (ML intro, 14 weeks, Korean, 4 artifact types)
 2. Generate topical authority map with 14 modules
 3. Create NLM notebook, upload 2 PDFs + 2 URLs, optionally run web research
 4. Generate master syllabus with Bloom's-aligned outcomes
@@ -305,7 +304,7 @@ For advanced scenarios, delegate to `nlm-curriculum-harness` (the multi-agent me
 - **notebooklm-research** — web/Drive research and source import
 - **notebooklm-studio** — ad-hoc studio content generation and download
 - **nlm-deep-learn** — personal accelerated learning (learner-focused, not curriculum)
-- **nlm-slides** — expert-level bilingual slide generation
+- **nlm-slides** — expert-level Korean slide generation
 - **nlm-dual-slides** — dual-audience (elementary + expert) slide decks
 - **anthropic-docx** — Word document generation
 - **gws-drive** — Google Drive upload

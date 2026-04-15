@@ -2,7 +2,7 @@
 name: nlm-arxiv-slides
 description: >-
   End-to-end pipeline that takes an arXiv paper URL, downloads the PDF,
-  extracts and rewrites content into expert-level English and Korean,
+  extracts and rewrites content into expert-level Korean,
   uploads to NotebookLM with optional web research enrichment, queries
   for key analysis, generates slide deck PDFs, and downloads them.
   Orchestrates 6 skills: defuddle, anthropic-pdf, nlm-slides, notebooklm,
@@ -25,7 +25,7 @@ metadata:
 
 # NLM arXiv Slides: arXiv Paper to Expert Slide Deck Pipeline
 
-End-to-end pipeline that transforms an arXiv paper into professional NotebookLM slide decks in both English and Korean, combining PDF analysis, expert rewriting, web research enrichment, and automated slide generation.
+End-to-end pipeline that transforms an arXiv paper into professional NotebookLM slide decks in Korean, combining PDF analysis, expert rewriting, web research enrichment, and automated slide generation.
 
 ## Prerequisites
 
@@ -132,39 +132,33 @@ Combine all available sources into a structured document:
 
 Skills used: **anthropic-pdf** (patterns, conditional)
 
-### Phase 4: Expert Rewrite (EN + KO)
+### Phase 4: Expert Rewrite (한국어)
 
 Read the system prompt from `references/system-prompt.md`.
 
 Split the extracted text into logical sections (look for headings like Introduction, Related Work, Methods/Methodology, Experiments/Results, Discussion, Conclusion).
 
-Rewrite each section into two versions following the system prompt:
+Rewrite each section into **한국어 전문가 버전** following the system prompt:
 
-**English version:**
-- Authoritative domain-expert tone
-- Key contributions and findings in bold
-- `[Visual: ...]` hints for diagrams, equations, result tables
-- 3-6 bullet points per section
-
-**Korean version:**
 - 전문가 톤 (formal expert voice)
-- Same structure and data points
-- Natural Korean academic/technical phrasing
+- 핵심 기여와 발견을 **굵게** 강조
+- `[시각: ...]` 힌트로 다이어그램, 수식, 결과 표 위치 표시
+- 섹션당 3-6개 불릿 포인트
+- 자연스러운 한국어 학술/기술 표현
 
-Combine into: EN document + KO document (separated by `---`).
+하나의 한국어 문서로 통합합니다.
 
 Skills used: **nlm-slides** (rewrite patterns)
 
 ### Phase 4.5: Content Quality Gate
 
 Before creating the NotebookLM notebook, verify the expert rewrite output:
-- [ ] EN document exists and word count >= 300
-- [ ] KO document exists and word count >= 300
-- [ ] Both documents have section headings (at least 3 `##` sections)
-- [ ] `[Visual: ...]` description hints present where figures/charts/equations exist in the original
-- [ ] No raw LaTeX or broken formatting remains (e.g., unescaped `$`, `\begin{}` outside code blocks)
+- [ ] 한국어 문서가 존재하고 단어 수 >= 300
+- [ ] 섹션 헤딩이 최소 3개 (`##` 섹션)
+- [ ] 원본에 그림/차트/수식이 있는 곳에 `[시각: ...]` 힌트 존재
+- [ ] 원시 LaTeX나 깨진 포맷이 없음 (예: 코드 블록 밖의 `$`, `\begin{}`)
 
-If either document is below quality bar (< 300 words or < 3 sections), re-run the expert rewrite for the deficient sections using the `references/system-prompt.md` prompt.
+한국어 문서가 품질 기준 미달(< 300 단어 또는 < 3 섹션)이면 `references/system-prompt.md` 프롬프트를 사용하여 부족한 섹션을 다시 작성합니다.
 
 ### Phase 5: Create NotebookLM Notebook
 
@@ -178,21 +172,16 @@ Skills used: **notebooklm**
 
 ### Phase 6: Add Sources
 
-Upload three sources sequentially with `wait=True`:
+Upload two sources sequentially with `wait=True`:
 
 1. **Original PDF** (preserves figures, tables, equations):
 ```
 source_add(notebook_id, source_type="file", file_path="/tmp/arxiv-{ID}.pdf", wait=True, wait_timeout=300)
 ```
 
-2. **Expert Analysis (EN)**:
+2. **전문가 분석 (KO)**:
 ```
-source_add(notebook_id, source_type="text", title="Expert Analysis (EN)", text=<english_doc>, wait=True)
-```
-
-3. **Expert Analysis (KO)**:
-```
-source_add(notebook_id, source_type="text", title="Expert Analysis (KO)", text=<korean_doc>, wait=True)
+source_add(notebook_id, source_type="text", title="전문가 분석 (KO)", text=<korean_doc>, wait=True)
 ```
 
 Use `wait_timeout=300` for the PDF source — academic papers with many figures can take longer to process.
@@ -246,7 +235,7 @@ Skills used: **notebooklm**
 ### Phase 9: Generate Slide Deck
 
 ```
-studio_create(notebook_id, artifact_type="slide_deck", slide_format="detailed_deck", confirm=True)
+studio_create(notebook_id, artifact_type="slide_deck", slide_format="detailed_deck", confirm=True, language="ko")
 ```
 
 ### Phase 10: Poll Status
@@ -276,8 +265,7 @@ Skills used: **notebooklm-studio**
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--lang en` | Generate English version only | Both EN + KO |
-| `--lang ko` | Generate Korean version only | Both EN + KO |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--skip-research` | Skip web research enrichment (Phase 7) | Research enabled |
 | `--skip-analysis` | Skip notebook query analysis (Phase 8) | Analysis enabled |
 | `--format detailed_deck` | Comprehensive slides | `detailed_deck` |
@@ -340,9 +328,9 @@ This will:
 1. Parse ID `2509.04664` from the URL
 2. Download PDF and extract abstract via Defuddle
 3. Extract full text using OpenDataLoader (fallback: pdfplumber)
-4. Rewrite into expert EN + KO documents with visual hints
+4. Rewrite into expert Korean document with visual hints
 5. Create notebook "arXiv: Why Language Models Hallucinate - Analysis"
-6. Upload PDF + EN + KO as sources
+6. Upload PDF + Korean document as sources
 7. Run web research for related context
 8. Query for contributions, innovations, and limitations
 9. Save analysis to `outputs/papers/arxiv-2509.04664-analysis-2026-03-08.md`

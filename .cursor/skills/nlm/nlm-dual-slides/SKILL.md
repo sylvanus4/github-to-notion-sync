@@ -63,20 +63,16 @@ Split content at `##` heading boundaries. Each section becomes an independent re
 
 ### Phase 2 — Dual Audience Rewrite
 
-Read both system prompts from `references/`. For each section of the source content, produce **four** rewritten documents:
+Read both system prompts from `references/`. For each section of the source content, produce **two** rewritten documents (한국어 전용):
 
 **Using `references/expert-prompt.md`:**
-1. Expert English version — authoritative, data-dense, with `[Visual: ...]` annotations for architecture diagrams, benchmark tables, equation blocks, ablation matrices
-2. Expert Korean version — same structure, natural Korean technical prose
+1. Expert Korean version — authoritative, data-dense, natural Korean technical prose, with `[Visual: ...]` annotations for architecture diagrams, benchmark tables, equation blocks, ablation matrices
 
 **Using `references/elementary-prompt.md`:**
-3. Elementary English version — fun analogies, simple language, one concept per section, colorful visual suggestions
-4. Elementary Korean version — 쉬운 존댓말, kid-friendly Korean examples
+2. Elementary Korean version — 쉬운 존댓말, kid-friendly Korean examples, fun analogies, one concept per section, colorful visual suggestions
 
-Combine sections into four complete documents:
-- `expert_en` — all expert English sections
+Combine sections into two complete documents:
 - `expert_ko` — all expert Korean sections
-- `elementary_en` — all elementary English sections
 - `elementary_ko` — all elementary Korean sections
 
 ### Phase 3 — Create NotebookLM Notebooks
@@ -92,12 +88,10 @@ Upload corresponding source documents as text sources:
 
 ```
 # Elementary notebook
-source_add(notebook_id=ELEM_NB_ID, source_type="text", title="{Title} Elementary (EN)", text=elementary_en, wait=True)
-source_add(notebook_id=ELEM_NB_ID, source_type="text", title="{Title} Elementary (KO)", text=elementary_ko, wait=True)
+source_add(notebook_id=ELEM_NB_ID, source_type="text", title="{Title} 초등학생용", text=elementary_ko, wait=True)
 
 # Expert notebook
-source_add(notebook_id=EXPERT_NB_ID, source_type="text", title="{Title} Expert (EN)", text=expert_en, wait=True)
-source_add(notebook_id=EXPERT_NB_ID, source_type="text", title="{Title} Expert (KO)", text=expert_ko, wait=True)
+source_add(notebook_id=EXPERT_NB_ID, source_type="text", title="{Title} 전문가용", text=expert_ko, wait=True)
 ```
 
 ### Phase 4 — Generate + Download Slides
@@ -204,8 +198,7 @@ Call `slack_send_message` with `thread_ts` from Message 1.
 
 | Option | Description | Default |
 |---|---|---|
-| `--lang en` | Generate English version only | Both EN + KO |
-| `--lang ko` | Generate Korean version only | Both EN + KO |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--skip-elementary` | Skip elementary slides | Both audiences |
 | `--skip-expert` | Skip expert slides | Both audiences |
 | `--skip-drive` | Skip Google Drive upload | Drive enabled |
@@ -236,9 +229,9 @@ Where `{id}` is a slug derived from the document title (e.g., `sefo-v3`, `gpu-cl
 This will:
 1. Read `outputs/papers/sefo-v3/SEFO-v3-EN.md`
 2. Split into sections by `##` headings
-3. Rewrite each section into 4 variants (expert EN/KO + elementary EN/KO)
+3. Rewrite each section into 2 variants (expert KO + elementary KO)
 4. Create two NotebookLM notebooks ("SEFO v3 - Elementary Slides", "SEFO v3 - Expert Slides")
-5. Upload EN + KO sources to each notebook
+5. Upload KO sources to each notebook
 6. Generate slide decks for both notebooks (parallel)
 7. Download PDFs to `outputs/presentations/sefo-v3-Elementary-Slides-2026-03-22.pdf` and `sefo-v3-Expert-Slides-2026-03-22.pdf`
 8. Upload both PDFs to Google Drive
@@ -252,7 +245,7 @@ This will:
 
 This will:
 1. Extract paper ID `2403.12345`, fetch structured overview via `alphaxiv-paper-lookup`
-2. Skip elementary rewrite — produce only expert EN/KO documents
+2. Skip elementary rewrite — produce only expert KO document
 3. Create one NotebookLM notebook ("Paper Title - Expert Slides")
 4. Generate expert slide deck, download PDF
 5. Upload to the specified Google Drive folder

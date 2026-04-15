@@ -53,9 +53,9 @@ For each module, determine artifact types based on Bloom's level:
 For each module:
 1. Configure NLM chat for the module notebook with subject-expert system prompt
 2. Create artifacts sequentially per module (NLM limitation):
-   - `nlm studio_create --type slides` with audience instructions
+   - `nlm studio_create --type slides --lang ko` with audience instructions
    - `nlm studio_create --type audio` with podcast-style prompt
-   - `nlm studio_create --type quiz` with Bloom's-aligned questions
+   - `nlm studio_create --type quiz --lang ko` with Bloom's-aligned questions
    - etc.
 3. If `dual_audience = true`, create a second slide deck with elementary instructions
 

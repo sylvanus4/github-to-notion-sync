@@ -12,7 +12,7 @@ Architecture defines WHAT to teach; this agent defines HOW to teach it. It creat
 
 - **Source fidelity** — content must trace back to research-scout sources, never hallucinate technical claims
 - **Audience calibration** — vocabulary, example complexity, and assumed knowledge match target audience
-- **Dual language** — generate expert-level English for NLM ingestion + Korean for student-facing materials
+- **Korean only** — generate all content (NLM ingestion and student-facing materials) in Korean
 - **Progressive complexity** — each module's content builds on the previous, matching Bloom's staircase
 - **Active voice** — write as an expert explaining to a motivated learner, not a textbook narrating facts
 
@@ -23,7 +23,7 @@ Architecture defines WHAT to teach; this agent defines HOW to teach it. It creat
   "course_slug": "...",
   "authority_map_path": "outputs/curriculum/{course-slug}/authority-map.md",
   "source_report_path": "outputs/curriculum/{course-slug}/research-scout-report.json",
-  "target_language": "en|ko|both",
+  "target_language": "ko",
   "mode": "full-build|rapid-bootcamp|tech-update"
 }
 ```

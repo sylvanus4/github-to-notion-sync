@@ -4,7 +4,7 @@ description: >-
   End-to-end pipeline: run PM go-to-market frameworks (GTM strategy, ICP,
   battlecards, beachhead), execution docs (PRD, release notes, stakeholder map),
   and marketing assets (positioning, value props, naming), compile into expert-level
-  EN + KO launch documents, upload to NotebookLM with competitive research, and
+  Korean launch documents, upload to NotebookLM with competitive research, and
   generate 5 artifact types (slides, video, infographic, flashcards, quiz).
   Use when the user asks to "create launch kit", "build launch package",
   "GTM launch materials", "런치 키트 생성", "출시 자료", "NLM 런치킷",
@@ -34,7 +34,7 @@ End-to-end pipeline that generates a complete product launch package — GTM str
 
 The launch document rewrite system prompt is stored at `references/system-prompt.md` (relative to this skill). Read it before the Compile phase. It defines:
 
-- Persuasive, action-oriented launch tone for each language
+- Persuasive, action-oriented launch tone in Korean
 - Section structure rules for launch kit documents
 - White background visual directive
 - Quality gates for launch readiness content
@@ -73,17 +73,10 @@ Run these sub-skills with the product brief and GTM context:
 2. **Positioning** (`positioning-ideas`): Differentiation and positioning strategy
 3. **Product Name Candidates** (`product-name`): 5 name candidates with rationale (if new product/feature)
 
-### Phase 5: Compile Launch Kit Document (EN + KO)
+### Phase 5: Compile Launch Kit Document (한국어)
 
-Using the system prompt from `references/system-prompt.md`, compile all artifacts from Phases 2-4 into **two launch-ready documents**:
+Using the system prompt from `references/system-prompt.md`, compile all artifacts from Phases 2-4 into **한국어 전문가 런치 문서**:
 
-**English version:**
-- Persuasive, action-oriented launch narrative
-- Each section structured for its target audience (sales, marketing, leadership, customers)
-- Clear calls-to-action and next steps in each section
-- Competitive positioning woven throughout
-
-**Korean version:**
 - 설득력 있는 런치 문서 톤
 - 대상 독자별 맞춤 구조 (영업, 마케팅, 경영진, 고객)
 - 각 섹션에 명확한 액션 아이템 포함
@@ -111,7 +104,6 @@ notebook_create(title="<Product> - Launch Kit")
 
 2. Upload compiled documents:
 ```
-source_add(notebook_id, source_type="text", title="Launch Kit (EN)", text=<english_doc>, wait=True)
 source_add(notebook_id, source_type="text", title="런치 키트 (KO)", text=<korean_doc>, wait=True)
 ```
 
@@ -132,27 +124,27 @@ Generate 5 artifact types from the enriched notebook:
 
 1. **Slide Deck** — Launch presentation for all-hands / leadership:
 ```
-studio_create(notebook_id, artifact_type="slide_deck", confirm=True)
+studio_create(notebook_id, artifact_type="slide_deck", confirm=True, language="ko")
 ```
 
 2. **Video Explainer** — Customer-facing product explainer:
 ```
-studio_create(notebook_id, artifact_type="video", video_format="explainer", confirm=True)
+studio_create(notebook_id, artifact_type="video", video_format="explainer", confirm=True, language="ko")
 ```
 
 3. **Infographic** — One-pager for sales team / social media:
 ```
-studio_create(notebook_id, artifact_type="infographic", confirm=True)
+studio_create(notebook_id, artifact_type="infographic", confirm=True, language="ko")
 ```
 
 4. **Flashcards** — Sales enablement training cards:
 ```
-studio_create(notebook_id, artifact_type="flashcards", confirm=True)
+studio_create(notebook_id, artifact_type="flashcards", confirm=True, language="ko")
 ```
 
 5. **Quiz** — Team readiness check before launch:
 ```
-studio_create(notebook_id, artifact_type="quiz", question_count=10, confirm=True)
+studio_create(notebook_id, artifact_type="quiz", question_count=10, confirm=True, language="ko")
 ```
 
 Poll `studio_status(notebook_id)` every 30 seconds between each generation. Download all artifacts:
@@ -169,8 +161,7 @@ download_artifact(notebook_id, artifact_type="quiz", output_path="outputs/launch
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--lang en` | Generate English version only | Both EN + KO |
-| `--lang ko` | Generate Korean version only | Both EN + KO |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--skip-research` | Skip competitive web research (Phase 6 research step) | Research enabled |
 | `--artifacts "slides,video"` | Generate only specified artifact types | All 5 artifacts |
 | `--scope "feature"` | Launch scope: `product`, `feature`, or `update` | `product` |
@@ -201,7 +192,7 @@ This will:
 2. Run GTM strategy, ICP, competitive battlecard vs Linear/Shortcut/Height, beachhead segment
 3. Generate PRD summary, release notes, stakeholder map
 4. Create value propositions, positioning, feature name candidates
-5. Compile into expert EN + KO launch kit documents
+5. Compile into expert Korean launch kit document
 6. Create NotebookLM notebook, upload documents, run competitive research
 7. Generate launch deck, explainer video, one-pager infographic, sales flashcards, readiness quiz
 8. Download all artifacts to `outputs/launch-kits/acme-tasks-launch-2026-03-08/`

@@ -129,7 +129,7 @@ Launch 3 independent subagents via the Task tool simultaneously. Each receives t
 ### Agent A: Slide Generation (nlm-dual-slides pattern)
 
 1. Split analysis by `##` section headings
-2. Rewrite each section into Expert (EN+KO) and Elementary (EN+KO) versions
+2. Rewrite each section into Expert (KO) and Elementary (KO) versions
 3. Create 2 NotebookLM notebooks, upload source sections, generate slide decks
 4. Download PDFs to `outputs/presentations/{slug}-Expert-{date}.pdf` and `outputs/presentations/{slug}-Elementary-{date}.pdf`
 5. Upload both to Google Drive via `gws drive +upload`

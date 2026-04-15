@@ -398,32 +398,59 @@ ai-platform-webui                PARTIAL   12 files committed, push OK, pull con
 
 ### Phase 4½: GitHub Project #5 Verification
 
-After sync verification, check that any recently created issues and PRs (within the last 24 hours) across the 5 managed repos are properly registered on GitHub Project #5 with complete fields.
+After sync verification, check that any recently created issues and PRs (within the last 24 hours) across **all 5 managed repos** are properly registered on GitHub Project #5 with complete fields.
+
+**Managed repos** (from `project-registry.md`):
+
+| Repo |
+|------|
+| `thakicloud/github-to-notion-sync` |
+| `thakicloud/ai-template` |
+| `thakicloud/ai-model-event-stock-analytics` |
+| `thakicloud/research` |
+| `thakicloud/ai-platform-webui` |
 
 ```bash
-# 1. List recent issues/PRs for the main repo
-gh issue list --repo ThakiCloud/ai-model-event-stock-analytics --state all --json number,url,createdAt --limit 20
-gh pr list --repo ThakiCloud/ai-model-event-stock-analytics --state all --json number,url,createdAt --limit 10
+# 1. Iterate through ALL managed repos and list recent issues/PRs
+REPOS=(
+  "thakicloud/github-to-notion-sync"
+  "thakicloud/ai-template"
+  "thakicloud/ai-model-event-stock-analytics"
+  "thakicloud/research"
+  "thakicloud/ai-platform-webui"
+)
 
-# 2. Filter to items created in the last 24 hours
+for REPO in "${REPOS[@]}"; do
+  echo "--- Checking $REPO ---"
+  gh issue list --repo "$REPO" --state all --json number,url,createdAt --limit 20
+  gh pr list --repo "$REPO" --state all --json number,url,createdAt --limit 10
+done
+
+# 2. Filter to items created in the last 24 hours (across all repos)
 
 # 3. Check Project #5 registration
-gh project item-list 5 --owner ThakiCloud --format json --limit 100
+gh project item-list 5 --owner ThakiCloud --format json --limit 200
 ```
 
-For each recent issue/PR:
+For each recent issue/PR (from any of the 5 repos):
 1. Verify it appears in the Project #5 item list
 2. Verify all 5 fields (Status, Priority, Size, Sprint, Estimate) have non-null values
 
 If any item is missing from Project #5, add it with `gh project item-add 5 --owner ThakiCloud --url $ITEM_URL` and run `set_all_fields()` from [commit-to-issue/references/project-config.md](../../review/commit-to-issue/references/project-config.md). Retry once if the first attempt fails.
 
-Record verification result:
+Record verification result (per repo):
 
 ```json
 {
   "project5_check": {
-    "issues": { "verified": N, "total": M, "missing": [] },
-    "prs": { "verified": N, "total": M, "missing": [] },
+    "per_repo": {
+      "thakicloud/github-to-notion-sync": { "issues": 0, "prs": 0, "missing": [] },
+      "thakicloud/ai-template": { "issues": 0, "prs": 0, "missing": [] },
+      "thakicloud/ai-model-event-stock-analytics": { "issues": 2, "prs": 1, "missing": [] },
+      "thakicloud/research": { "issues": 0, "prs": 0, "missing": [] },
+      "thakicloud/ai-platform-webui": { "issues": 1, "prs": 0, "missing": [] }
+    },
+    "total": { "verified": N, "total": M, "missing": [] },
     "fields_incomplete": []
   }
 }

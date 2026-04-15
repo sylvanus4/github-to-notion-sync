@@ -1397,6 +1397,45 @@ Cause: PostgreSQL not running or `DATABASE_URL` misconfigured.
 
 Solution: Check `docker compose up -d db` or verify `DATABASE_URL` in `.env`.
 
+## Gotchas
+
+### Phase Guard Protocol
+
+Each phase MUST read the manifest before executing and skip if a prerequisite phase has `status: "failed"`. A failed Phase 2 (stock sync) means Phases 3-5 operate on stale data — this is worse than no report because it produces confident analysis on wrong numbers.
+
+Enforcement pattern:
+1. Before each phase: read `manifest.json`, check prerequisite phase statuses
+2. If any prerequisite is `"failed"`: set current phase to `"skipped"` with `skip_reason: "prerequisite failed: phase-N"` and continue to the next phase
+3. If prerequisite is `"skipped"` (non-critical): proceed with a warning in the phase summary
+4. Never silently proceed past a failed data collection phase — report generation without fresh data is a P0 error
+
+### Context Window Exhaustion
+
+The `today` pipeline spans 20+ phases. Running all phases in the main conversation context will exhaust the context window before report generation. Mitigation:
+- Every phase that performs heavy analysis MUST run as a Task subagent with the Subagent Return Contract (return only `{ status, file_path, one_line_summary }`)
+- Never inline phase outputs into the main context — read from `outputs/today/{date}/` files instead
+- If context pressure is detected mid-pipeline, compact by summarizing completed phases and dropping their detailed outputs from context
+
+### Weekend/Holiday Awareness
+
+Markets are closed on weekends and US holidays. Running the pipeline on non-trading days will:
+- Return stale data from the last trading day (not an error, but confusing)
+- Generate "no change" analysis that looks like a system failure
+
+Before Phase 1, check `datetime.today().weekday()` — if Saturday (5) or Sunday (6), warn the user and ask whether to proceed with last-trading-day data or skip.
+
+### Manifest File Corruption
+
+If the manifest file is malformed JSON (e.g., from a crash mid-write), the pipeline cannot resume. Always write manifests atomically: write to `manifest.json.tmp`, then rename to `manifest.json`.
+
+### TradingView MCP Availability
+
+TradingView stages (`phase-tv-*`) depend on external MCP servers that may not be configured. The pipeline MUST NOT fail if TradingView MCP is unavailable — set those phases to `"skipped"` with `skip_reason: "TradingView MCP not available"` and proceed. The `--skip-tradingview` flag makes this explicit.
+
+### Toss Integration Graceful Degradation
+
+Phase 1.5 (Toss snapshot) and Phase 5.5 (Toss signal bridge) depend on `tossctl` CLI being installed and authenticated. If `tossctl` is not available, skip these phases silently — they are enhancement phases, not pipeline-critical phases. Never block report generation because broker integration is unavailable.
+
 ## Tab Automation Pipeline (API-Driven)
 
 The `today` skill also drives a fully automated pipeline via the `PipelineOrchestrator` backend service. Each stage maps to one of the 12 tab automation skills. The orchestrator handles dependency ordering, retries, and parallel execution.

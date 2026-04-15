@@ -3,7 +3,7 @@ name: nlm-strategy-hub
 description: >-
   End-to-end pipeline: run PM strategy frameworks (Lean Canvas, SWOT, Porter's
   Five Forces, market sizing, competitor analysis, personas), compile results
-  into expert-level EN + KO documents, upload to NotebookLM with web research
+  into expert-level Korean documents, upload to NotebookLM with web research
   enrichment, and generate multi-format strategy outputs (slide deck, audio
   podcast, mind map, executive report).
   Use when the user asks to "create strategy hub", "build strategy notebook",
@@ -34,7 +34,7 @@ End-to-end pipeline that transforms a product/company description into a compreh
 
 The strategy document rewrite system prompt is stored at `references/system-prompt.md` (relative to this skill). Read it before the Compile phase. It defines:
 
-- Authoritative, data-backed strategy tone for each language
+- Authoritative, data-backed strategy tone in Korean
 - Section structure rules for strategy documents
 - White background visual directive
 - Quality gates for strategic content
@@ -71,21 +71,15 @@ Run these sub-skills using the product context and competitive information:
 1. **North Star Metric** (`north-star-metric`): Business game classification, NSM definition, input metrics
 2. **Positioning** (`positioning-ideas`): Differentiation statement and positioning strategy
 
-### Phase 5: Compile Strategy Document (EN + KO)
+### Phase 5: Compile Strategy Document (한국어)
 
-Using the system prompt from `references/system-prompt.md`, compile all artifacts from Phases 2-4 into **two expert-level documents**:
+Using the system prompt from `references/system-prompt.md`, compile all artifacts from Phases 2-4 into **한국어 전문가 전략 문서**:
 
-**English version:**
-- Authoritative, data-backed strategy narrative
-- Each framework result becomes a structured section with key takeaways
-- Metrics and market data highlighted in bold
-- Cross-references between frameworks (e.g., SWOT threats linked to Porter's forces)
-
-**Korean version:**
 - 전문가의 전략 분석 톤
-- 동일한 프레임워크 결과를 한국어 비즈니스 표현으로 자연스럽게 전달
-- 핵심 데이터와 지표 강조
-- 프레임워크 간 연결 인사이트 포함
+- 각 프레임워크 결과를 핵심 시사점과 함께 구조화된 섹션으로 구성
+- 핵심 데이터와 지표를 **굵게** 강조
+- 프레임워크 간 연결 인사이트 포함 (예: SWOT 위협 → Porter's Five Forces 연계)
+- 자연스러운 한국어 비즈니스 표현으로 전달
 
 **Document structure:**
 1. Executive Summary
@@ -109,7 +103,6 @@ notebook_create(title="<Product> - Strategy Hub")
 
 2. Upload compiled documents:
 ```
-source_add(notebook_id, source_type="text", title="Strategy Analysis (EN)", text=<english_doc>, wait=True)
 source_add(notebook_id, source_type="text", title="전략 분석 (KO)", text=<korean_doc>, wait=True)
 ```
 
@@ -130,22 +123,22 @@ Generate 4 artifact types from the enriched notebook:
 
 1. **Slide Deck** — Board/investor presentation:
 ```
-studio_create(notebook_id, artifact_type="slide_deck", confirm=True)
+studio_create(notebook_id, artifact_type="slide_deck", confirm=True, language="ko")
 ```
 
 2. **Audio Podcast** — Stakeholder strategy briefing:
 ```
-studio_create(notebook_id, artifact_type="audio", audio_format="deep_dive", confirm=True)
+studio_create(notebook_id, artifact_type="audio", audio_format="deep_dive", confirm=True, language="ko")
 ```
 
 3. **Mind Map** — Strategy overview visualization:
 ```
-studio_create(notebook_id, artifact_type="mind_map", confirm=True)
+studio_create(notebook_id, artifact_type="mind_map", confirm=True, language="ko")
 ```
 
 4. **Executive Report** — Briefing document:
 ```
-studio_create(notebook_id, artifact_type="report", report_format="Briefing Doc", confirm=True)
+studio_create(notebook_id, artifact_type="report", report_format="Briefing Doc", confirm=True, language="ko")
 ```
 
 Poll `studio_status(notebook_id)` every 30 seconds between each generation. Download all artifacts:
@@ -161,8 +154,7 @@ download_artifact(notebook_id, artifact_type="report", output_path="outputs/stra
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--lang en` | Generate English version only | Both EN + KO |
-| `--lang ko` | Generate Korean version only | Both EN + KO |
+| `--lang ko` | 한국어 출력 (기본값) | 한국어 |
 | `--skip-research` | Skip web research enrichment (Phase 6 research step) | Research enabled |
 | `--artifacts "slides,audio"` | Generate only specified artifact types | All 4 artifacts |
 | `--focus "pricing"` | Emphasize a specific strategic dimension | Balanced analysis |
@@ -191,7 +183,7 @@ This will:
 2. Run Lean Canvas, SWOT, Porter's Five Forces, Value Proposition
 3. Run TAM/SAM/SOM, competitor analysis (Asana, Monday.com, ClickUp), 3 user personas
 4. Define North Star metric and positioning
-5. Compile into expert EN + KO strategy documents
+5. Compile into expert Korean strategy document
 6. Create NotebookLM notebook, upload documents, run web research
 7. Generate slide deck, audio podcast, mind map, executive report
 8. Download all artifacts to `outputs/strategy-hubs/acme-saas-strategy-2026-03-08/`

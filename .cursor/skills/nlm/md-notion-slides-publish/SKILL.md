@@ -96,18 +96,16 @@ Transform the original markdown into two audience-tailored documents for Noteboo
 **Expert version (Steve Jobs white-background style):**
 - Read [references/expert-prompt.md](references/expert-prompt.md) FIRST — it defines the full rewrite rules
 - For EACH `## ` section in the original markdown:
-  1. Write an English version: authoritative, data-driven, one core insight per section
-  2. Write a Korean version: same content, natural Korean business tone
-  3. Add `[Visual: ...]` annotations describing the ideal diagram, chart, or table
+  1. Write a Korean version: authoritative, data-driven, natural Korean business tone, one core insight per section
+  2. Add `[Visual: ...]` annotations describing the ideal diagram, chart, or table
 - Style constraints: white background mandatory, no decorative elements, bold metrics, active voice
 - Steve Jobs principles: one idea per slide, dramatic reveals, concrete metaphors
 
 **Elementary version:**
 - Read [references/elementary-prompt.md](references/elementary-prompt.md) FIRST — it defines the full rewrite rules
 - For EACH `## ` section in the original markdown:
-  1. Write an English version: kid-friendly, analogies to school/games/cooking
-  2. Write a Korean version: same content, playful tone with 존댓말
-  3. Add `[Visual: ...]` annotations with colorful icons and character suggestions
+  1. Write a Korean version: playful tone with 존댓말, analogies to school/games/cooking
+  2. Add `[Visual: ...]` annotations with colorful icons and character suggestions
 - Style constraints: max 15 words per sentence, 2-3 bullets per section, NO equations, NO jargon, NO acronyms
 
 **Save both rewrites as temporary files in the same directory as the source file:**
@@ -153,13 +151,13 @@ Generate slide decks from both notebooks and download them. Run both generations
 1. **Expert slides — create:**
    ```
    CallMcpTool(server="user-notebooklm-mcp", toolName="studio_create",
-     arguments={"notebook_id": "$EXPERT_NOTEBOOK_ID", "artifact_type": "slides"})
+     arguments={"notebook_id": "$EXPERT_NOTEBOOK_ID", "artifact_type": "slides", "language": "ko"})
    ```
 
 2. **Elementary slides — create:**
    ```
    CallMcpTool(server="user-notebooklm-mcp", toolName="studio_create",
-     arguments={"notebook_id": "$ELEMENTARY_NOTEBOOK_ID", "artifact_type": "slides"})
+     arguments={"notebook_id": "$ELEMENTARY_NOTEBOOK_ID", "artifact_type": "slides", "language": "ko"})
    ```
 
 3. **Poll both for completion.** Check `studio_status` every 15 seconds, max 20 attempts (5 minutes). If not complete after 5 minutes, report timeout with notebook IDs.

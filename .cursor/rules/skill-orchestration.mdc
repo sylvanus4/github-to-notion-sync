@@ -18,7 +18,7 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - One task per subagent for focused execution
 - Max 4 concurrent subagents
 
-## Skill Registry (108 project skills + 11 marketing skills + 8 harness orchestrators + 9 domain harnesses + 68 agency agents)
+## Skill Registry (118 project skills + 11 marketing skills + 8 harness orchestrators + 9 domain harnesses + 10 role-replacement harnesses + 68 agency agents)
 
 **Git & shipping** (commit, push, PR, release):
 - `domain-commit` — Domain-split git commits
@@ -201,6 +201,24 @@ When both apply, Superpowers process skills run first, then delegate domain work
 - `agency-roster` — Manage and orchestrate 68 agency agents across 9 divisions (engineering, design, marketing, product, PM, testing, support, spatial-computing, specialized)
 - See `agency-commands.mdc` for `/agency-roster`, `/agency-team`, `/agency-activate`, `/agency-review` commands
 - All agency skills use `agency-` prefix in `.cursor/skills/agency-*/SKILL.md` (on-demand only)
+
+**Role-Replacement Harnesses** (10 thin orchestrators replacing human roles with AI pipelines):
+
+| Skill | Replaces | Core Composed Skills | Schedule |
+|-------|----------|---------------------|----------|
+| `rr-executive-assistant` | Executive Assistant | google-daily, calendar-daily-briefing, gmail-daily-triage, gws-email-reply | 7AM daily |
+| `rr-inbox-zero-curator` | Inbox/News Curator | bespin-news-digest, gmail-daily-triage, x-to-slack, unified-intel-intake | 7AM daily |
+| `rr-market-research-analyst` | Market Research Analyst | today, daily-strategy-engine, alphaear-orchestrator, trading-agent-desk | 7AM daily |
+| `rr-pm-scrum-master` | PM / Scrum Master | sprint-retro-to-issues, meeting-digest, github-sprint-digest, sprint-orchestrator | On-demand |
+| `rr-cs-support` | CS Support Agent | customer-support-harness, customer-feedback-processor, kb-query | On-demand |
+| `rr-content-curator` | Content Curator | twitter-timeline-to-slack, x-to-slack, unified-intel-intake, content-repurposing-engine | 7AM daily |
+| `rr-devops-release-engineer` | DevOps/Release Engineer | sod-ship, eod-ship, cursor-sync, release-ops-orchestrator | SOD/EOD |
+| `rr-knowledge-strategist` | Knowledge Strategist | kb-daily-build-orchestrator, kb-cross-topic-synthesizer, autoskill-evolve | 5PM daily |
+| `rr-investment-trader` | Investment Trader | today, toss-ops-orchestrator, trading-agent-desk, daily-strategy-engine | 7AM daily |
+| `rr-personal-coo` | Personal COO | axis-dispatcher, axis-investment, axis-learning, axis-life, axis-sidepm, axis-gm | 7AM/5PM |
+
+- All role-replacement skills at `.cursor/skills/role-replacement/rr-*/SKILL.md`
+- Reference: `case-study-index.md` (architecture overview), `memory-config-template.md` (MemKraft pattern)
 
 ## Workflow Commands
 
