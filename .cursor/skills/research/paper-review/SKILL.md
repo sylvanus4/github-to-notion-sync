@@ -353,20 +353,17 @@ Skip this phase if `--skip-nlm` is set.
 
 Follows the **nlm-dual-slides** pattern. Input: Korean review markdown ONLY.
 
-### Step 6.1: Dual Content Rewrite
+### Step 6.1: Korean Content Rewrite
 
 Read `elementary-prompt.md` and `expert-prompt.md` from
 `.cursor/skills/nlm/nlm-dual-slides/references/`.
 
-Using the Korean review markdown as input, generate 4 rewritten documents:
+Using the Korean review markdown as input, generate 2 rewritten documents:
 
-1. **Elementary EN** — Apply elementary-prompt.md system prompt, output English
-2. **Elementary KO** — Apply elementary-prompt.md system prompt, output Korean
-3. **Expert EN** — Apply expert-prompt.md system prompt, output English
-4. **Expert KO** — Apply expert-prompt.md system prompt, output Korean
+1. **Elementary KO** — Apply elementary-prompt.md system prompt, output Korean
+2. **Expert KO** — Apply expert-prompt.md system prompt, output Korean
 
-Save to: `outputs/papers/{paper-id}-elementary-en.md`, `-elementary-ko.md`,
-`-expert-en.md`, `-expert-ko.md`
+Save to: `outputs/papers/{paper-id}-elementary-ko.md`, `-expert-ko.md`
 
 ### Step 6.2: Create Two NotebookLM Notebooks
 
@@ -375,17 +372,17 @@ Save to: `outputs/papers/{paper-id}-elementary-en.md`, `-elementary-ko.md`,
 
 ### Step 6.3: Upload Rewritten Sources
 
-- Elementary notebook: `notebook_add_text(elem_notebook_id, ...)` for both
-  elementary-en.md and elementary-ko.md
-- Expert notebook: `notebook_add_text(expert_notebook_id, ...)` for both
-  expert-en.md and expert-ko.md
+- Elementary notebook: `notebook_add_text(elem_notebook_id, ...)` for
+  elementary-ko.md
+- Expert notebook: `notebook_add_text(expert_notebook_id, ...)` for
+  expert-ko.md
 
 Use **absolute paths** for all file operations.
 
 ### Step 6.4: Generate Slide Decks
 
-1. `slide_deck_create(elem_notebook_id, format="detailed_deck", confirm=true)`
-2. `slide_deck_create(expert_notebook_id, format="detailed_deck", confirm=true)`
+1. `slide_deck_create(elem_notebook_id, format="detailed_deck", language="ko", confirm=true)`
+2. `slide_deck_create(expert_notebook_id, format="detailed_deck", language="ko", confirm=true)`
 3. Poll both with `studio_status()` every 30s until complete (5-8 min each)
 
 ### Step 6.5: Download PDFs
@@ -551,7 +548,6 @@ If the research repo is not found, log a warning and skip (graceful degradation)
 | `--channel <name>` | Slack channel name for Phase 8 | Required if Slack enabled |
 | `--perspectives "..."` | Comma-separated list of perspectives to run | All 6 |
 | `--lang ko` | Review in Korean only (default) | Korean |
-| `--lang both` | Review in both Korean and English | Korean |
 
 ## Output Convention
 

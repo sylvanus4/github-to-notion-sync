@@ -1,0 +1,83 @@
+---
+description: "Post-task reflection protocol — structured introspection after non-trivial tasks"
+alwaysApply: true
+---
+
+# Post-Task Reflection Protocol
+
+After completing any task involving **8+ tool calls** OR **error recovery**,
+run this 5-step reflection before the final completion report in `done-checklist.mdc`.
+
+Skip for trivial single-file edits, pure information retrieval, or tasks the user
+explicitly marked as "quick fix."
+
+## Protocol
+
+### 1. Outcome Assessment
+
+Did the task succeed as intended? Were there unexpected challenges?
+
+- Compare the original request against the delivered result
+- Note any scope changes, deferred items, or partial completions
+- Flag if the approach changed mid-task (pivot signal)
+
+### 2. Pattern Detection
+
+Is this workflow reusable? Does it match an existing skill?
+
+- If the workflow involved 3+ coordinated steps: candidate for skill extraction
+- Check `skill-guide` or grep existing skill descriptions before claiming novelty
+- If it matches an existing skill: note whether that skill needs a patch (→ `hermes-inline-learning.mdc` Patch-on-Use)
+
+### 3. Memory Update
+
+Were new environment facts, conventions, or user preferences discovered?
+
+- Facts about the workspace → `AGENTS.md` Learned Workspace Facts
+- User preferences → `AGENTS.md` Learned User Preferences
+- Decisions with rationale → `tasks/lessons.md`
+- Separation principle: facts → memory, procedures → skills (never mix)
+
+### 4. Skill Candidate
+
+Should this be extracted as a reusable skill?
+
+Apply the 3-gate filter from `hermes-inline-learning.mdc`:
+
+1. **Non-Googleable**: required project-specific knowledge
+2. **Codebase-specific**: tied to this project's conventions
+3. **Hard-won**: required real debugging effort or multi-step reasoning
+
+- All 3 gates pass → invoke `autoskill-extractor` with session context
+- Gates 1-2 pass, gate 3 fails → capture as a memory entry instead
+- Gate 1 fails → skip extraction entirely
+
+### 5. Lesson Capture
+
+If the user corrected the approach or the agent hit a dead end:
+
+- Log the mistake pattern and prevention rule to `tasks/lessons.md`
+- If the same pattern appears 3+ times in lessons: promote to a `.cursor/rules/` rule
+
+## Output
+
+Append a **one-line reflection summary** to the task completion report:
+
+```
+**Reflection**: <outcome verdict> | <pattern: new/existing/none> | <memory: updated/skipped> | <skill: extracted/candidate/skipped> | <lesson: captured/none>
+```
+
+Example:
+```
+**Reflection**: succeeded with pivot | new 4-step pattern detected | memory: updated (workspace fact) | skill: candidate (passes 3-gate) | lesson: none
+```
+
+## Integration
+
+| Existing Rule/Skill | Relationship |
+|---|---|
+| `done-checklist.mdc` | Reflection runs AFTER standard checks, BEFORE completion report |
+| `hermes-inline-learning.mdc` | Shares the 3-gate filter; reflection adds outcome + pattern assessment |
+| `autoskill-extractor` | Invoked when Step 4 passes all 3 gates |
+| `tasks/lessons.md` | Destination for Step 5 lesson capture |
+| `self-improvement.mdc` | Reflection feeds the memory architecture via Step 3 |

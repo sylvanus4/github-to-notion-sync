@@ -277,6 +277,43 @@ Actions:
 - **Overlap with /simplify**: `/simplify` checks code craftsmanship; `/deep-review` checks domain correctness. Run both for comprehensive coverage.
 - **Large projects**: Files are batched at 50+ files per agent round
 
+## Gotchas
+
+### CRG MCP Availability
+
+Step 1.5 (Graph-Aware Context) is a powerful enhancement but MUST NOT be a hard dependency. If `code-review-graph` MCP server is not running or the graph database doesn't exist:
+- Skip Step 1.5 entirely — fall back to file-only context from git diff
+- Do NOT report this as a failure; log it as an informational note: "CRG graph unavailable — proceeding with file-only context"
+- The review quality degrades gracefully: blast radius expansion is lost, but domain-agent reviews still produce value
+
+### Blast Radius Inflation
+
+`get_impact_radius_tool` can return a large number of transitive dependents. If the expanded file list exceeds 100 files:
+- Prioritize files with risk score >= Medium from `detect_changes_tool`
+- Cap the expanded list at 80 files (original diff files + highest-risk impacted files)
+- Note truncation in the review report: "Blast radius capped at 80 files (N total impacted)"
+
+### False Positive Noise at Scale
+
+With 4 parallel agents and adversarial framing, large diffs (100+ lines) can produce 30+ findings. Most are Low severity noise that obscures Critical issues. Mitigation:
+- The confidence gate (< 8 discarded) is the primary filter — never lower it
+- For diffs > 200 lines, increase the confidence gate to 9 for Low-severity findings
+- Present Critical/High findings first, separated by a clear visual break from Medium/Low
+
+### Subagent Context Limitations
+
+Each domain agent runs as a `fast` model subagent with limited context. For files > 500 lines:
+- Provide the CRG structural summary (`get_review_context_tool`) instead of full file content
+- If CRG is unavailable, include only the changed hunks (±20 lines context) rather than full files
+- Never send full file content of files > 1000 lines to a fast-model subagent
+
+### Auto-Fix Side Effects
+
+The Fix-First Pattern can introduce new issues when auto-fixing. After all auto-fixes in Step 4:
+- Run `ReadLints` on every auto-fixed file
+- If a fix introduces a new lint error, revert that specific fix and report it as "requires-judgment"
+- Never chain auto-fixes: fix A → introduces issue B → auto-fix B. This creates unpredictable cascades.
+
 ## Coordinator Synthesis
 
 When delegating to subagents:

@@ -122,8 +122,8 @@ Upload sources and generate study artifacts.
 2. Create a new notebook titled: `[AutoResearch] <paper-title>`
 3. Upload `paper_final.md` as text source
 4. Read the `notebooklm-studio` skill
-5. Generate study artifacts:
-   - Slide deck (for quick review)
+5. Generate study artifacts (all non-audio artifacts in Korean):
+   - Slide deck (for quick review, `language="ko"`)
    - Audio podcast (for commute review)
 
 **Skip with**: `--skip-nlm`

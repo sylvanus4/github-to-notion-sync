@@ -13,8 +13,10 @@ Do NOT use for PR-level review with blast-radius (use crg-review-pr). Do NOT use
 ### Step 1: Ensure Graph Is Current
 
 ```bash
-code-review-graph build --diff HEAD
+code-review-graph update
 ```
+
+This incrementally updates the graph for files changed since the last commit (default: HEAD~1).
 
 ### Step 2: Get Structural Context for Changed Files
 

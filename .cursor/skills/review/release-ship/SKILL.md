@@ -10,12 +10,14 @@ description: >-
   push/PR (use domain-commit), or single-file trivial commits.
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "execution"
 ---
 # Release Ship — Commit, Push, Issue, PR, and Merge Pipeline
 
 Lightweight pipeline to go from uncommitted changes to a merged PR. Chains domain-split commits, push, issue creation with project linking, PR creation, and auto-merge without code review overhead.
+
+> **Pipeline Mode Notice**: When invoked by `eod-ship`, `sod-ship`, `morning-ship`, or any batch pipeline, issue creation (Step 4) is **MANDATORY** and auto-confirmed. Do NOT prompt the user. Do NOT skip Step 4.
 
 ## Repository-Specific Behavior
 
@@ -43,6 +45,21 @@ Full pipeline applies: `commit → push → issue → PR → merge`.
 /release-ship --base dev         # specify PR base branch (default: auto-detect)
 /release-ship --update           # force-update existing PR body
 ```
+
+## Execution Flow Matrix
+
+Which steps execute in each scenario:
+
+| Scenario | Step 1 | Step 2 | Step 2.5 | Step 3 | Step 3.5 | Step 4 (Issue) | Step 5 (PR) | Step 6 (Merge) | Step 7 |
+|----------|--------|--------|----------|--------|----------|----------------|-------------|----------------|--------|
+| **webui** (default) | ✅ | ✅ | ✅ | ✅ push | ✅ detect | **✅ MANDATORY** | ❌ skip | ❌ skip | ✅ |
+| **webui** `--no-issue` | ✅ | ✅ | ✅ | ✅ push | ✅ detect | ❌ skip | ❌ skip | ❌ skip | ✅ |
+| **other repo** (default) | ✅ | ✅ | ✅ | ✅ push | ✅ detect | **✅ MANDATORY** | ✅ | ✅ | ✅ |
+| **other repo** `--no-pr` | ✅ | ✅ | ✅ | ✅ push | ✅ detect | **✅ MANDATORY** | ❌ skip | ❌ skip | ✅ |
+| **other repo** `--no-issue` | ✅ | ✅ | ✅ | ✅ push | ✅ detect | ❌ skip | ✅ | ✅ | ✅ |
+| **other repo** `--no-merge` | ✅ | ✅ | ✅ | ✅ push | ✅ detect | **✅ MANDATORY** | ✅ | ❌ skip | ✅ |
+
+**Key rule**: Step 4 (Issue Creation) is ALWAYS executed unless `--no-issue` is explicitly set. `IS_WEBUI` only affects Steps 5 and 6.
 
 ## Workflow
 
@@ -91,7 +108,9 @@ git push origin HEAD:tmp
 
 If push fails (e.g., rejected), inform the user with remediation steps (`git pull origin tmp`).
 
-**Repo detection** (used in Steps 5 and 6):
+### Step 3.5: Determine Execution Path
+
+Detect the repository and set execution flags. This step decides which subsequent steps to execute.
 
 ```bash
 REPO_URL=$(git remote get-url origin)
@@ -99,13 +118,25 @@ IS_WEBUI=false
 echo "$REPO_URL" | grep -q 'ai-platform-webui' && IS_WEBUI=true
 ```
 
-If `IS_WEBUI` is true, skip Steps 5 and 6 entirely (proceed to Step 4, then Step 7).
+**Decision logic** (apply in order):
 
-If both `--no-pr` and `--no-issue` flags are set, skip to Step 7 (Report).
+1. **Step 4 (Issue Creation)**: Execute UNLESS `--no-issue` is explicitly set. `IS_WEBUI` does NOT affect Step 4.
+2. **Step 5 (PR Creation)**: Execute UNLESS `IS_WEBUI` is true OR `--no-pr` is set.
+3. **Step 6 (Merge)**: Execute UNLESS `IS_WEBUI` is true OR `--no-pr` is set OR `--no-merge` is set.
+4. **Step 7 (Report)**: ALWAYS execute.
 
-### Step 4: Create Issues and Link to Project
+**Resulting execution paths:**
 
-If `--no-issue` flag is set, skip to Step 5 (PR).
+- `IS_WEBUI=true`: Step 4 → Step 7 (Steps 5 and 6 skipped)
+- `IS_WEBUI=false` (default): Step 4 → Step 5 → Step 6 → Step 7
+- `--no-issue`: Skip Step 4, continue with Steps 5/6/7 based on other flags
+- `--no-pr`: Skip Steps 5 and 6, continue with Step 7
+
+### Step 4: Create Issues and Link to Project (MANDATORY)
+
+> **⚠️ CRITICAL**: This step ALWAYS executes unless `--no-issue` is explicitly set. The `IS_WEBUI` flag does NOT skip this step — it only skips Steps 5 and 6 (PR and Merge). In pipeline mode (invoked by eod-ship, sod-ship, etc.), issue creation is auto-confirmed without user prompts.
+
+If `--no-issue` flag is set, skip to Step 5 (or Step 7 if `IS_WEBUI`).
 
 This step converts the domain-split commits from Step 2 into tracked GitHub issues on ThakiCloud Project #5. It follows patterns from the [commit-to-issue](../commit-to-issue/SKILL.md) skill. For project field IDs, option IDs, and GraphQL queries, see [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md).
 

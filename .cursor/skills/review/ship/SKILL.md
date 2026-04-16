@@ -249,6 +249,46 @@ Actions:
 - **"PR already exists"**: The skill detects existing PRs and reports their URL
 - **Unwanted fixes**: Use `--no-fix` to skip auto-fix, or `--dry-run` to preview first
 
+## Gotchas
+
+### CRG-Enhanced Review Readiness
+
+When CRG graph is available, add these items to the Review Readiness Dashboard:
+
+```
+[✓] Blast radius reviewed (N impacted files beyond direct changes)
+[✓] No high-risk files skipped (all Critical/High risk files from detect_changes reviewed)
+[✓] Test gap coverage (CRG-detected untested callers addressed)
+```
+
+If CRG is unavailable, these items show as `[—] N/A (CRG graph not available)` — never block shipping because CRG is missing.
+
+### Commit Ordering with Migrations
+
+Database migrations MUST be committed before application code that depends on them. The domain-split algorithm in Step 6 must detect `migrations/` or `*.sql` files and ensure they are in an earlier commit than the code that references new tables/columns. Violating this breaks `git bisect` — the migration commit works alone, but the code commit before migration fails.
+
+### Push to tmp Branch
+
+This project uses `git push origin HEAD:tmp` (not direct branch push). The ship skill MUST follow this convention. Common failure: `git push -u origin HEAD` will be rejected. If push fails with "rejected", check whether `tmp` branch has diverged and suggest `git pull origin tmp` first.
+
+### Pre-commit Hook Timeouts
+
+The project's pre-commit hooks can take >4 minutes when E2E tests are included. If the commit step hangs:
+- Wait up to 5 minutes before considering it stuck
+- If stuck, suggest `git push --no-verify` as a documented workaround (per learned workspace facts)
+- Report the timeout in the shipping summary so the user is aware
+
+### Evaluator-Optimizer Scope Creep
+
+Step 4.5 (Quick Re-Evaluation) is intentionally limited to 1 iteration. Do NOT expand this into a full evaluator-optimizer loop — ship must stay fast. If Critical findings remain after 1 retry:
+- Report them clearly with file paths and line numbers
+- Pause for user decision: "1 Critical finding unresolved after auto-fix. Proceed to commit or fix manually?"
+- Never silently ship with unresolved Critical findings
+
+### Dry-Run Output Fidelity
+
+When running with `--dry-run`, the findings report must be identical in format and content to what would be produced in a real run — including CRG blast radius data, risk scores, and domain-agent findings. The only difference is that Steps 5-7 (commit, push, PR) are skipped. Never reduce review depth in dry-run mode.
+
 ## Coordinator Synthesis
 
 When delegating to subagents:

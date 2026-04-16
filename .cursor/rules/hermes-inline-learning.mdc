@@ -11,11 +11,37 @@ The key insight: agents that autonomously create, store, and improve skills
 during task execution achieve lower-variance outcomes than those starting fresh
 each session.
 
-## Skills Guidance (Post-Task Nudge)
+## Auto-Trigger Conditions
 
-After completing a complex task (5+ tool calls), fixing a tricky error, or
-discovering a non-trivial workflow, evaluate whether the approach should be
-saved as a reusable skill:
+Skill extraction evaluation is **mandatory** when ANY of these conditions are met:
+
+| Condition | Threshold | Rationale |
+|---|---|---|
+| Tool call volume | 8+ tool calls in a single task | Complexity signal — multi-step workflows are prime skill candidates |
+| Error recovery | Agent hit errors and found a working path | Hard-won knowledge is the highest-value skill material |
+| User correction | User corrected the agent's approach | Revealed a gap in existing skills or rules |
+| Multi-step workflow | 3+ coordinated steps that would be hard to reconstruct | Procedural knowledge worth externalizing |
+
+When a condition is met, the agent MUST run the mandatory self-check block below
+before marking the task as "done" via `done-checklist.mdc`.
+
+## Mandatory Self-Check Block
+
+```
+BEFORE marking any task as "done" (in done-checklist.mdc), evaluate:
+1. Was this task non-trivial (8+ tool calls, error recovery, or user correction)?
+2. Did I discover a reusable pattern not already captured by an existing skill?
+   → Check skill-guide or Grep skill descriptions before claiming novelty.
+3. Does it pass the 3-gate filter?
+   a. Non-Googleable: The solution required project-specific knowledge
+   b. Codebase-specific: The pattern is tied to this project's conventions
+   c. Hard-won: Required real debugging effort or multi-step reasoning
+If YES to all 3: invoke autoskill-extractor inline with the current session context.
+If YES to 1-2 but NO to 3: capture as a memory entry instead (see Memory Guidance).
+If NO to 1: skip — trivial tasks do not warrant extraction overhead.
+```
+
+## Skills Guidance (Post-Task Nudge)
 
 **Save as a skill when:**
 - The workflow involved 3+ coordinated steps that would be hard to reconstruct
@@ -69,6 +95,11 @@ At session boundaries (EOD, context compaction, task completion), consider:
 
 These checks align with the existing `autoskill-evolve` pipeline but happen
 inline rather than waiting for batch processing.
+
+**Skip conditions**: The auto-trigger and self-check block may be skipped for:
+- Trivial single-file edits (typo fix, one-line change)
+- Tasks explicitly marked as "quick fix" by the user
+- Pure information retrieval tasks (search, recall, query) with no implementation
 
 ## Low-Variance Execution Principles
 

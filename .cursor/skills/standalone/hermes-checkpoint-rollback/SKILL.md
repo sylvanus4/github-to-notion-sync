@@ -1,5 +1,3 @@
-# hermes-checkpoint-rollback
-
 ---
 name: hermes-checkpoint-rollback
 version: 1.0.0
@@ -30,6 +28,8 @@ do_not_use_for:
   - Database backups (use db-expert)
   - Infrastructure state drift (use infra-drift-detector)
 ---
+
+# Hermes Checkpoint & Rollback
 
 ## Purpose
 

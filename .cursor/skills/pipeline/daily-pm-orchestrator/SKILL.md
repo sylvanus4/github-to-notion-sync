@@ -115,6 +115,39 @@ While the run is in progress, `overall_status` may be `"running"` until Phase 6 
 
 ---
 
+### Phase 0: Daily Reflection (Optional)
+
+**Duration**: ~60s | **Dependencies**: None | **Critical**: NO
+
+Run the domain-agnostic `reflection-loop` skill to review today's completed work, detect reusable patterns, generate lessons, and route actionable items before knowledge consolidation begins. Skips if fewer than 3 tasks were completed today.
+
+**Step 0a — Invoke reflection-loop:**
+
+```
+Subagent: generalPurpose (model: fast)
+Prompt: "Run the reflection-loop skill in automated mode for today ({date}).
+  Scope: full day's work.
+  Output: outputs/daily-pm/{date}/phase-0-reflection.json
+  Return: { status, file, summary }"
+```
+
+**Step 0b — Record phase result:**
+
+Append phase result to `manifest.json` → `phases[]`:
+```json
+{
+  "phase": "0-reflection",
+  "status": "completed|skipped",
+  "duration_ms": N,
+  "output_file": "outputs/daily-pm/{date}/phase-0-reflection.json",
+  "summary": "..."
+}
+```
+
+If the reflection produced skill candidates or lessons, include them in the Phase 6 briefing.
+
+---
+
 ### Phase 0.5: Paperclip Evening Check (Optional)
 
 **Duration**: ~30s | **Dependencies**: None | **Critical**: NO

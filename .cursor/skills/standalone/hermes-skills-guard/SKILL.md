@@ -1,5 +1,3 @@
-# hermes-skills-guard
-
 ---
 name: hermes-skills-guard
 version: 1.0.0
@@ -33,6 +31,8 @@ do_not_use_for:
   - Infrastructure security (use sre-devops-expert)
   - Application-level threat modeling (use security-expert STRIDE)
 ---
+
+# Hermes Skills Guard
 
 ## Purpose
 

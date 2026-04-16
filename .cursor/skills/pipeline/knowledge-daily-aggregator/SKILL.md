@@ -271,9 +271,9 @@ Route today's collected artifacts to the 9-topic LLM Knowledge Base for long-ter
 
 **Persist & manifest:** Write `phase-5.5-kb-router.json` with `topics_routed` (map of topic to count), `artifacts_classified`, `artifacts_skipped_duplicate`, and `errors`. Update `manifest.json` for phase 5.5.
 
-### Step 5.7: gbrain Entity Ingest (non-blocking)
+### Step 5.7: gbrain Entity Ingest & Knowledge Compounding (non-blocking, v0.10)
 
-After KB routing, push entity-relevant items to gbrain for entity-centric knowledge compounding. This phase is **non-blocking** — failures do not affect `overall_status`.
+After KB routing, push entity-relevant items to gbrain for entity-centric knowledge compounding. Enforces gbrain v0.10 conventions: brain-first lookup, subject-based filing, inline citations, back-linking, link/timeline extraction, and health monitoring. This phase is **non-blocking** — failures do not affect `overall_status`.
 
 **Prerequisites**: `gbrain` CLI at `~/.local/bin/gbrain`, PostgreSQL running.
 
@@ -282,57 +282,148 @@ After KB routing, push entity-relevant items to gbrain for entity-centric knowle
 - PostgreSQL unreachable (`gbrain doctor --json` fails)
 - Phase 2 extracted zero entities
 
-**Procedure:**
+#### 5.7.0 Pre-Flight: Health & Autopilot Check
 
-1. Read `phase-2-extract.json` for extracted entities (people, companies, technologies, products)
-2. Create staging directory: `STAGING=$(mktemp -d /tmp/gbrain-kda-XXXXXX)`
-3. For each entity, generate a markdown file with YAML frontmatter (tags):
+Before entity ingest, capture the current brain state for reporting and guard against unhealthy imports.
 
-   People → `$STAGING/people/{slug}.md`:
-   ```markdown
-   ---
-   tags: [daily-aggregate, {source-type}]
-   ---
-   # {Person Name}
+```bash
+HEALTH=$(~/.local/bin/gbrain health --json 2>/dev/null)
+FEATURES=$(~/.local/bin/gbrain features --json 2>/dev/null)
+AUTOPILOT=$(~/.local/bin/gbrain autopilot status --json 2>/dev/null)
+```
 
-   - **Source**: {artifact where mentioned}
-   - **Date**: {date}
-   - **Context**: {relationship or role info from extraction}
-   ```
+- Parse `HEALTH` for composite `score` (0-100). If score < 40, log warning but continue (non-blocking).
+- Parse `FEATURES` for enabled v0.10 capabilities.
+- Parse `AUTOPILOT` for `running` status. If autopilot is running, skip `--no-embed` flag (autopilot handles embeddings). If not running, use `--no-embed` and defer to `gbrain embed --stale` in the PM orchestrator.
 
-   Companies → `$STAGING/companies/{slug}.md`:
-   ```markdown
-   ---
-   tags: [daily-aggregate, {source-type}]
-   ---
-   # {Company Name}
+#### 5.7.1 Brain-First Lookup
 
-   Mentioned in {source artifact} on {date}.
+For each entity extracted in `phase-2-extract.json`, check the brain before creating new pages. Ref: `gbrain-conventions/brain-first.md`.
 
-   ## Context
-   - {relevant details from extraction}
-   ```
+```
+For each entity (people, companies, technologies, products, ideas):
+  1. gbrain search "{entity_name}" --limit 3 --json
+  2. If match found with similarity > 0.7:
+     → Mark as UPDATE (patch existing page with new context)
+  3. If no match:
+     → Apply Notability Gate (ref: gbrain-conventions/quality.md)
+     → If notable: mark as CREATE
+     → If not notable: mark as SKIP (log reason)
+```
 
-   Ideas/Decisions → `$STAGING/ideas/{slug}.md`:
-   ```markdown
-   ---
-   tags: [daily-aggregate, decision]
-   ---
-   # {Decision/Idea Title}
+**Notability Gate** (ref: `gbrain-conventions/quality.md`):
+- People: named individuals with role/affiliation context
+- Companies: mentioned with substantive context (not just passing reference)
+- Ideas/Decisions: actionable with rationale and stakeholders
+- Technologies: mentioned with adoption context or evaluation notes
 
-   {rationale and context from phase-2 extraction}
-   ```
+#### 5.7.2 Stage Entity Files
 
-4. Run batch import:
-   ```bash
-   ~/.local/bin/gbrain import "$STAGING" --no-embed --json
-   ```
-   Use `--no-embed` to avoid OpenAI API dependency during pipeline execution. Embeddings are generated in batch by `gbrain embed --stale` during the PM orchestrator's maintenance phase.
+Create staging directory: `STAGING=$(mktemp -d /tmp/gbrain-kda-XXXXXX)`
 
-5. Clean up staging directory after successful import.
+**Filing rules** (ref: `gbrain-conventions/filing-rules.md`): Primary subject determines directory, not source type.
 
-**Persist & manifest:** Write `phase-5.7-gbrain.json` with:
-- `entities_staged`: `{ people: N, companies: N, ideas: N }`
+For CREATE entities, generate markdown with YAML frontmatter, inline citations, and timeline entries:
+
+People → `$STAGING/people/{slug}.md`:
+```markdown
+---
+tags: [daily-aggregate, {source-type}]
+source: knowledge-daily-aggregator
+created: {date}
+---
+# {Person Name}
+
+{role_or_title} at {company_if_known}.
+
+## Timeline
+- **{date}**: Mentioned in {source_artifact}. {context}. [Source: {artifact_name}]
+
+## Links
+- [[{company_slug}]] — {relationship}
+```
+
+Companies → `$STAGING/companies/{slug}.md`:
+```markdown
+---
+tags: [daily-aggregate, {source-type}]
+source: knowledge-daily-aggregator
+created: {date}
+---
+# {Company Name}
+
+{one-line description from extraction context}.
+
+## Timeline
+- **{date}**: {event_or_mention_context}. [Source: {artifact_name}]
+
+## Key People
+- [[{person_slug}]] — {role}
+```
+
+Ideas/Decisions → `$STAGING/ideas/{slug}.md`:
+```markdown
+---
+tags: [daily-aggregate, decision]
+source: knowledge-daily-aggregator
+created: {date}
+---
+# {Decision/Idea Title}
+
+{rationale and context from phase-2 extraction}. [Source: {artifact_name}]
+
+## Stakeholders
+- [[{person_slug}]] — {role_in_decision}
+```
+
+For UPDATE entities, generate patch files:
+```markdown
+## Timeline
+- **{date}**: {new_context}. [Source: {artifact_name}]
+```
+Append to the existing page's Timeline section via `gbrain import` merge behavior.
+
+#### 5.7.3 Link & Timeline Extraction
+
+After staging, extract cross-entity links from all staged files:
+
+1. Parse all `[[wikilink]]` references in staged files
+2. For each linked target, verify it exists in brain (`gbrain search`)
+3. If target exists but lacks a back-link to the source entity, prepare a back-link patch
+4. Record link pairs for the Back-Link step
+
+#### 5.7.4 Import to gbrain
+
+```bash
+if [ "$AUTOPILOT_RUNNING" = "true" ]; then
+  ~/.local/bin/gbrain import "$STAGING" --json
+else
+  ~/.local/bin/gbrain import "$STAGING" --no-embed --json
+fi
+```
+
+#### 5.7.5 Back-Link Creation (Iron Law — MANDATORY)
+
+Ref: `gbrain-conventions/quality.md` — every `[[wikilink]]` must be bidirectional.
+
+For each link pair from Step 5.7.3:
+1. Read the target page
+2. If no back-link to the source entity exists, append one under the appropriate section
+3. Commit the back-link via `gbrain import` or direct file edit
+
+#### 5.7.6 Clean Up
+
+Remove staging directory after successful import.
+
+#### 5.7.7 Persist & Manifest
+
+Write `phase-5.7-gbrain.json` with:
+- `brain_health`: `{ score: N, features: [...], autopilot_running: bool }`
+- `brain_lookups`: `{ total: N, matched: N, created: N, updated: N, skipped: N }`
+- `entities_staged`: `{ people: N, companies: N, ideas: N, technologies: N }`
+- `links_extracted`: N
+- `backlinks_created`: N
+- `conventions_applied`: `["brain-first", "filing-rules", "quality", "iron-law-backlink"]`
 - `import_result`: parsed JSON from `gbrain import` output
 - `staging_dir`: path (cleaned up after import)
 - `status`: `"success"` | `"skipped"` | `"failed"`

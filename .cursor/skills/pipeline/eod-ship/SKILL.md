@@ -187,11 +187,39 @@ Before posting to Slack, verify shipping integrity:
 
 If any criterion fails, log the issue in the Slack message as a warning. Do NOT suppress the notification — post with warnings.
 
+### Phase 3¾: Daily Skill Digest
+
+**Skip if** `--no-slack` or `--dry-run` flag is set.
+
+Invoke the `daily-skill-digest` skill to generate today's coding pattern summary.
+
+1. Run the extractor script:
+
+```bash
+python scripts/daily_skill_digest.py --save --pretty
+```
+
+2. Read the JSON output and synthesize a Korean summary covering:
+   - Productivity snapshot (sessions, tool calls, commits)
+   - Top 5 skills used with invocation count
+   - Top 5 tool chains (recurring patterns)
+   - File activity by FSD layer / directory
+   - One-sentence Korean coding pattern observation
+
+3. Format as Slack mrkdwn using the template from `daily-skill-digest` SKILL.md
+
+4. Store the formatted mrkdwn string for Phase 4 thread reply
+
+Record result: `{daily_digest: "ok", sessions: N, tool_calls: N}`.
+
+On failure: Warn and continue — digest is optional; Slack posting proceeds without thread.
+
 ### Phase 4: Slack Notification
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.
 
 Post a consolidated summary to `#효정-할일` using the `slack_send_message` MCP tool.
+Capture the `thread_ts` from the response for thread replies.
 
 ```json
 {
@@ -199,6 +227,19 @@ Post a consolidated summary to `#효정-할일` using the `slack_send_message` M
   "message": "<Slack mrkdwn message>"
 }
 ```
+
+**Thread Reply — Daily Digest**: If Phase 3¾ produced a digest, post it as a thread
+reply using the `thread_ts` returned from the main message above:
+
+```json
+{
+  "channel_id": "C0AA8NT4T8T",
+  "thread_ts": "<thread_ts from main message>",
+  "message": "<daily digest mrkdwn from Phase 3¾>"
+}
+```
+
+If `thread_ts` is not available or the thread reply fails, log a warning and continue.
 
 **Message template** (Slack mrkdwn — use `*bold*`, `_italic_`, `<url|text>`):
 

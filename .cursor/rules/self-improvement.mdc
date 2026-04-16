@@ -9,7 +9,10 @@ alwaysApply: false
 
 Memory uses a bandwidth-aware 3-layer design:
 
-- **Layer 1 (Index)**: `MEMORY.md` — ~150-char pointer lines, always loaded (~3K tokens max)
+- **Layer 1 (Index)**: `MEMORY.md` — ~150-char pointer lines, always loaded (~3K tokens max). **Hard cap: 4,000 chars.**
+  - Header `<!-- CAPACITY: N/4000 chars | P% -->` tracks usage; update on every pointer add/remove
+  - Above 80% (3,200 chars): MUST consolidate (merge related pointers, remove stale) before adding new entries
+  - At 100% (4,000 chars): MUST run `python scripts/memory/attention_decay.py --apply` before adding
 - **Layer 2 (Topics)**: `memory/topics/*.md` — full detail, fetched on-demand by keyword match
 - **Layer 3 (Transcripts)**: `memory/sessions/*.md` — BM25/grep only, never loaded directly
 

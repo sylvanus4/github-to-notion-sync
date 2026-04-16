@@ -692,54 +692,125 @@ Result: Discovery-perspective analysis with Notion upload to custom parent
 
 ---
 
-## Phase 6: gbrain Entity Extraction (auto, non-blocking)
+## Phase 6: gbrain Entity Extraction & Knowledge Compounding (auto, non-blocking)
 
-After Phase 5 delivery, extract entities from the meeting and push them to gbrain for entity-centric knowledge compounding. This phase is **non-blocking** — failures do not affect the overall pipeline status.
+After Phase 5 delivery, extract entities from the meeting and push them to gbrain
+for entity-centric knowledge compounding. This phase is **non-blocking** — failures
+do not affect the overall pipeline status.
+
+Follows `gbrain v0.10` conventions — see `gbrain-conventions/` for full rules.
 
 **Prerequisites**: `gbrain` CLI available at `~/.local/bin/gbrain`, PostgreSQL running.
 
+### 6.0 Brain-First Lookup (MANDATORY before entity creation)
+
+Before creating ANY entity page, check the brain for existing pages using the
+5-step protocol from `gbrain-conventions/brain-first.md`:
+
+For each extracted entity (person or company):
+
+1. `gbrain search "{name}"` — keyword search for existing pages
+2. `gbrain query "what do we know about {name}?"` — hybrid search for context
+3. `gbrain get <slug>` — if a slug was found, read the full page
+4. `gbrain get_backlinks <slug>` — check who already references this entity
+5. `gbrain get_timeline <slug>` — recent events involving this entity
+
+**Decision**: If an existing page is found → **UPDATE** (append timeline entry,
+merge new context). If no page exists → check the **Notability Gate** (see 6.2)
+before creating.
+
+Record lookup results for each entity in a `brain_lookup` map for use in
+subsequent steps.
+
 ### 6.1 Extract Entities from Phase 3 Output
 
-Read `phase-3-pm-analysis.json` and `phase-1-ingest.json`. Extract:
+Read `phase-3-pm-analysis.json`, `phase-1-ingest.json`, and `summary.md`. Extract:
 
-1. **People** — meeting participants (names, roles if available)
+1. **People** — meeting participants (names, roles, affiliations if available)
 2. **Companies** — organizations mentioned in the discussion
-3. **Ideas** — key concepts, product ideas, or strategic themes discussed
+3. **Ideas** — key concepts, product ideas, or strategic themes discussed (only
+   if they pass the Notability Gate: reusable mental model worth referencing again)
 
-### 6.2 Stage Entity Files
+### 6.2 Notability Gate
 
-Create a temporary staging directory and generate markdown files with YAML frontmatter:
+Before creating a new entity page, verify notability per `gbrain-conventions/quality.md`:
+
+- **People**: Will you interact with them again? Relevant to work/interests?
+- **Companies**: Relevant to work, investments, or interests?
+- **Concepts**: Reusable mental model? Worth referencing again?
+
+When in doubt, DON'T create. A missing page can be created later. A junk page
+wastes attention and degrades search quality.
+
+### 6.3 Attendee Enrichment
+
+For each person entity that has an **existing** brain page (found in Step 6.0):
+
+1. Read the existing page via `gbrain get <slug>`
+2. Extract: role, company, last interaction date, relationship context
+3. Merge enriched context into the staged entity file (Step 6.4) — add new
+   information from this meeting without overwriting existing facts
+4. Append a timeline entry to the existing page:
+   ```
+   - **{date}** | Attended [{meeting-title}](meetings/{date}-{slug}.md) — {role/context}
+   ```
+
+For people WITHOUT existing pages who pass the Notability Gate, create new
+pages with all available context from the meeting.
+
+### 6.4 Stage Entity Files
+
+Create a temporary staging directory:
 
 ```bash
 STAGING=$(mktemp -d /tmp/gbrain-meeting-XXXXXX)
 ```
 
-For each person:
+**Filing rule**: The PRIMARY SUBJECT determines the directory, per
+`gbrain-conventions/filing-rules.md`. People → `people/`, companies →
+`companies/`, meetings → `meetings/`, concepts → `concepts/`.
+
+**Citation rule**: Every fact MUST carry an inline `[Source: ...]` citation per
+`gbrain-conventions/quality.md`.
+
+For each **new** person (no existing page):
 ```markdown
 ---
 tags: [meeting-contact, {meeting-type}]
+source: meeting-digest
 ---
 # {Person Name}
 
-- **Role**: {role if known}
-- **Context**: Participated in [{meeting-title}] on {date}
+- **Role**: {role if known} [Source: Meeting "{meeting-title}", {date}]
+- **Company**: {company if known} [Source: Meeting "{meeting-title}", {date}]
+- **Context**: Participated in [{meeting-title}](meetings/{date}-{slug}.md) on {date}
+
+## Timeline
+- **{date}** | Attended [{meeting-title}](meetings/{date}-{slug}.md) — {context} [Source: Meeting "{meeting-title}", {date}]
 
 ## Meeting Notes
-- {relevant discussion points involving this person}
+- {relevant discussion points} [Source: Meeting "{meeting-title}", {date}]
 ```
 → Save as `$STAGING/people/{slugified-name}.md`
+
+For each **existing** person (found in 6.0), prepare a **patch** file with only
+the new timeline entry and any new facts to append.
 
 For each company:
 ```markdown
 ---
 tags: [company, {meeting-type}]
+source: meeting-digest
 ---
 # {Company Name}
 
-Mentioned in [{meeting-title}] on {date}.
+Mentioned in [{meeting-title}](meetings/{date}-{slug}.md) on {date}. [Source: Meeting "{meeting-title}", {date}]
+
+## Timeline
+- **{date}** | Discussed in [{meeting-title}](meetings/{date}-{slug}.md) — {context} [Source: Meeting "{meeting-title}", {date}]
 
 ## Context
-- {relevant discussion points about this company}
+- {relevant discussion points} [Source: Meeting "{meeting-title}", {date}]
 ```
 → Save as `$STAGING/companies/{slugified-name}.md`
 
@@ -747,39 +818,82 @@ For the meeting itself:
 ```markdown
 ---
 tags: [meeting, {meeting-type}]
+source: meeting-digest
 ---
 # {Meeting Title} ({date})
 
 ## Participants
-{list of attendees}
+{list of attendees with links to brain pages where they exist}
 
 ## Key Decisions
-{from Phase 3 analysis}
+{from Phase 3 analysis} [Source: Meeting "{meeting-title}", {date}]
 
 ## Action Items
-{from Phase 4 action-items.md}
+{from Phase 4 action-items.md} [Source: Meeting "{meeting-title}", {date}]
+
+## See Also
+{links to all entity pages created/updated in this phase}
 ```
 → Save as `$STAGING/meetings/{date}-{slugified-title}.md`
 
-### 6.3 Import to gbrain
+### 6.5 Company Timeline Merge
+
+For each company entity that has an **existing** brain page:
+
+1. Read the existing company page via `gbrain get <slug>`
+2. Append a new timeline entry:
+   ```
+   - **{date}** | Discussed in [{meeting-title}](meetings/{date}-{slug}.md) — {key points about this company from the meeting} [Source: Meeting "{meeting-title}", {date}]
+   ```
+3. If new facts about the company emerged (e.g., funding, product updates,
+   partnerships), merge them into the appropriate section with citations
+
+### 6.6 Import to gbrain
 
 ```bash
 ~/.local/bin/gbrain import "$STAGING" --no-embed --json
 ```
 
-Use `--no-embed` to avoid OpenAI API dependency during pipeline execution. Embeddings are generated in batch by `gbrain embed --stale` during the PM orchestrator's maintenance phase.
+Use `--no-embed` to avoid OpenAI API dependency during pipeline execution.
+Embeddings are generated in batch by `gbrain embed --stale` during the PM
+orchestrator's maintenance phase or by autopilot.
 
-### 6.4 Persist & manifest (Phase 6)
+### 6.7 Back-Link Creation (Iron Law — MANDATORY)
+
+After import, enforce the Iron Law of Back-Linking per `gbrain-conventions/quality.md`:
+
+Every entity page (person, company) mentioned in the meeting page MUST have a
+back-link FROM that entity's page TO the meeting page. And the meeting page MUST
+link TO each entity page.
+
+For each entity referenced in the meeting:
+
+1. Read the entity's brain page via `gbrain get <slug>`
+2. Verify a back-link to this meeting exists in the entity's Timeline or See Also
+3. If missing, append:
+   ```
+   - **{date}** | Referenced in [{meeting-title}](meetings/{date}-{slug}.md) — {brief context}
+   ```
+4. Write the updated page back via `gbrain import` or direct file update
+
+An unlinked mention is a broken brain. The graph is the intelligence.
+
+### 6.8 Persist & manifest (Phase 6)
 
 1. Write `outputs/meeting-digest/{date}/phase-6-gbrain.json` containing:
-   - `entities_extracted`: `{ people: N, companies: N, meetings: 1 }`
+   - `entities_extracted`: `{ people: N, companies: N, meetings: 1, concepts: N }`
+   - `brain_lookups`: `{ existing: N, new: N, skipped_notability: N }`
+   - `enrichment`: `{ attendees_enriched: N, companies_timeline_merged: N }`
+   - `backlinks_created`: N
    - `import_result`: parsed JSON from `gbrain import` output
    - `staging_dir`: path (cleaned up after import)
    - `status`: `"success"` | `"skipped"` (if gbrain unavailable) | `"failed"`
+   - `conventions_applied`: `["brain-first", "citations", "filing-rules", "backlinks"]`
 2. Update `manifest.json`: append phase `id: 6`, `label: "gbrain"`, timings, summary.
-3. Phase 6 failure sets its own status to `"failed"` but does NOT change `overall_status` from Phase 5's result.
+3. Phase 6 failure sets its own status to `"failed"` but does NOT change
+   `overall_status` from Phase 5's result.
 
-### 6.5 Skip Conditions
+### 6.9 Skip Conditions
 
 Skip Phase 6 entirely (status: `"skipped"`) when:
 - `gbrain` CLI is not found at `~/.local/bin/gbrain`

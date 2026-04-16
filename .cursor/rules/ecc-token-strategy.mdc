@@ -76,6 +76,32 @@ This applies to:
 - Subagent spawning (explore, review, fix subagents)
 - Skill execution in forked contexts
 
+### Frozen Snapshot Pattern
+
+Core context files (`MEMORY.md`, `AGENTS.md`, always-applied rules) are loaded
+once at session start and treated as **immutable for the session lifetime**.
+
+- Mid-session writes to `MEMORY.md` persist to disk but do NOT update the
+  in-context copy — the system prompt prefix stays identical across turns
+- This guarantees prompt cache hits on the static prefix (Layers 1-2 in the
+  Content Ordering above) for the entire session
+- Corollary: do not read `MEMORY.md` again mid-session expecting fresh content;
+  if you need the updated version, spawn a subagent (which starts a new context)
+
+**Files covered by the frozen-snapshot discipline:**
+
+| File | Loaded at | Mutability |
+|------|-----------|------------|
+| `AGENTS.md` | Session start | Frozen — edits take effect next session |
+| `MEMORY.md` | Session start | Frozen — writes persist to disk only |
+| Always-applied `.mdc` rules | Session start | Frozen |
+| MCP tool definitions | Session start | Frozen — never add/remove mid-session |
+
+**Why this matters:** A single character change in any frozen-snapshot file
+would invalidate the entire prompt cache prefix, forcing a full re-read of
+system prompt + tools + rules on the next turn. For long sessions this can
+waste thousands of cached tokens per turn.
+
 ## LLM API Calls in Pipeline Code
 
 When the project's Python scripts call LLM APIs (Claude, OpenAI, etc.):

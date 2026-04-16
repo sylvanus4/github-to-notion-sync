@@ -62,8 +62,10 @@ lat.md/
 ### Step 4: Initial Full Build
 
 ```bash
-code-review-graph build --full
+code-review-graph build
 ```
+
+This performs a full parse of all files in the repository (respecting `.code-review-graphignore`). The `build` command always does a complete rebuild.
 
 ### Step 5: Verify
 

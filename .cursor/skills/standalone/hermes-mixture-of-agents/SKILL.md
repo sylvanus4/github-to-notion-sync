@@ -1,5 +1,3 @@
-# hermes-mixture-of-agents
-
 ---
 name: hermes-mixture-of-agents
 version: 1.0.0
@@ -32,6 +30,8 @@ do_not_use_for:
   - Tasks requiring tool use (reference models lack tool access)
   - General parallel agent dispatch (use workflow-parallel)
 ---
+
+# Hermes Mixture-of-Agents
 
 ## Purpose
 

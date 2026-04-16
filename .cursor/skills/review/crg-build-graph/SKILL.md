@@ -12,30 +12,36 @@ Do NOT use for first-time installation (use crg-setup). Do NOT use for reviewing
 
 ### Full Build
 
-Rebuild the entire graph from scratch. Use after large refactors, branch switches, or when the graph seems stale.
-
-```bash
-code-review-graph build --full
-```
-
-### Incremental Update
-
-Update only files changed since the last build. Default mode for routine use.
+Rebuild the entire graph from scratch. Use after large refactors, branch switches, or when the graph seems stale. The `build` command always performs a complete rebuild.
 
 ```bash
 code-review-graph build
 ```
 
-### Git-Aware Update
+Optional flags: `--skip-flows` (skip flow/community detection), `--skip-postprocess` (raw parse only).
 
-Update based on uncommitted changes or a specific commit range.
+### Incremental Update
+
+Update only files changed since a git base ref. Use for routine updates after commits.
 
 ```bash
-# Uncommitted changes
-code-review-graph build --diff HEAD
+# Changes since last commit (default: HEAD~1)
+code-review-graph update
 
-# Specific commit range
-code-review-graph build --diff <base>..<head>
+# Changes since a specific base
+code-review-graph update --base main
+
+# Changes across a range
+code-review-graph update --base <base-ref>
+```
+
+### Change Detection
+
+Analyze impact of recent changes without modifying the graph.
+
+```bash
+code-review-graph detect-changes
+code-review-graph detect-changes --base main --brief
 ```
 
 ### Status Check

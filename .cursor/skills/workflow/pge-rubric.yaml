@@ -1,0 +1,48 @@
+# PGE Evaluation Rubric
+# Used by workflow-eval-opt as the scoring criteria for Planner-Generator-Evaluator loop.
+# Reference: pge-loop/SKILL.md Phase 3 (Evaluator)
+
+rubric:
+  dimensions:
+    - name: product_depth
+      weight: 3
+      description: "기능 범위의 야심찬 정도, 엣지 케이스 처리, 사용자 시나리오 완성도"
+      scoring_guide:
+        score_1: "핵심 기능 1개만 부분 구현, 엣지 케이스 전혀 미처리, happy path만 존재"
+        score_5: "주요 기능 구현 완료, 기본 엣지 케이스 처리(빈 상태, 로딩), 핵심 시나리오 커버"
+        score_10: "모든 기획 기능 + 확장 시나리오 구현, 엣지 케이스 철저 처리(에러, 빈 값, 경계값, 동시성), 사용자 여정 전체 완성"
+
+    - name: functionality
+      weight: 3
+      description: "핵심 기능 동작 여부, API 정합성, 상태 관리 정확성"
+      scoring_guide:
+        score_1: "주요 기능 미작동, API 호출 실패 또는 미연결, 상태 불일치"
+        score_5: "핵심 CRUD 동작, API 요청/응답 정상, 기본 상태 관리 작동"
+        score_10: "모든 기능 완벽 동작, API 에러 핸들링 완비, 낙관적 업데이트, 캐시 무효화 정확, 동시성 안전"
+
+    - name: visual_design
+      weight: 2
+      description: "TDS 토큰 준수, 레이아웃 일관성, 반응형, 빈 상태/로딩/에러 UI"
+      scoring_guide:
+        score_1: "하드코딩 색상/스타일, 레이아웃 깨짐, 빈 상태 미처리, Tailwind 기본 색상 사용"
+        score_5: "TDS 시맨틱 토큰 사용, Layout 컴포넌트 활용, EmptyUI/LoadingSpinner 적용, 기본 반응형"
+        score_10: "전체 TDS 토큰 + 컴포넌트 완벽 준수, 모든 상태(빈/로딩/에러/성공) UI 완비, 반응형 완벽, 마이크로 인터랙션, 접근성 충족"
+
+    - name: code_quality
+      weight: 2
+      description: "FSD 레이어 규칙, TypeScript 엄격성, 테스트 커버리지, 불필요 코드 없음"
+      scoring_guide:
+        score_1: "FSD 레이어 역전, any 타입 남발, 테스트 없음, 죽은 코드/중복 다수"
+        score_5: "FSD 의존성 규칙 준수, 타입 안전, 핵심 hooks에 단위 테스트 존재, export * 없음"
+        score_10: "FSD 레이어 완벽 준수 + 명시적 named export, strict TypeScript, 80%+ 커버리지, DRY 원칙 철저, 불필요 코드 제로"
+
+  pass_threshold: 7.5
+
+  hard_fail_conditions:
+    - "tsc 에러 존재"
+    - "주요 기능 미구현"
+    - "FSD 레이어 의존성 역전"
+
+  max_iterations: 2
+
+  scoring_formula: "weighted_average = sum(dimension_score * weight) / sum(weights)"

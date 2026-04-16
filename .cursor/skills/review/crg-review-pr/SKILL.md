@@ -13,8 +13,10 @@ Do NOT use for uncommitted change review (use crg-review-delta). Do NOT use for 
 ### Step 1: Update Graph to PR State
 
 ```bash
-code-review-graph build --diff <base-branch>..HEAD
+code-review-graph update --base <base-branch>
 ```
+
+This incrementally updates the graph for files changed between the base branch and HEAD.
 
 ### Step 2: Blast-Radius Analysis
 

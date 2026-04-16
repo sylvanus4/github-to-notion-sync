@@ -50,7 +50,7 @@ ai-brief
 
 ### Step 1: Context Assembly
 
-Invoke `ai-context-router` with query: "today's priorities, recent decisions, 
+Invoke `ai-context-router` with query: "today's priorities, recent decisions,
 pending items, and relevant policies" with `--recency-boost true`.
 
 ### Step 2: Calendar & Email

@@ -3,16 +3,18 @@ name: recall
 description: >-
   Restore cross-session context from the project's long-term memory store.
   Searches extracted session transcripts, decisions, patterns, and glossary
-  using BM25, semantic, or hybrid search. Use when the user says "recall", "what
-  did we work on", "load context about", "remember when we", "prime context",
-  "yesterday's session", "restore context", "이전 작업", "맥락 복원", "recall topic",
-  "recall yesterday", "what was the decision about", "이전에 뭐 했지", "컨텍스트 복원", "지난
-  세션", or needs to resume prior work. Do NOT use for general web search (use
+  using BM25, semantic, or hybrid search. Supports --summarize flag for
+  LLM-powered structured Korean summaries of search results via Haiku.
+  Use when the user says "recall", "what did we work on", "load context about",
+  "remember when we", "prime context", "yesterday's session", "restore context",
+  "이전 작업", "맥락 복원", "recall topic", "recall yesterday", "what was the decision
+  about", "이전에 뭐 했지", "컨텍스트 복원", "지난 세션", "recall summarize", "요약해서
+  recall", or needs to resume prior work. Do NOT use for general web search (use
   WebSearch), code search in the current codebase (use Grep/SemanticSearch), or
   creating new memory entries (update MEMORY.md directly).
 metadata:
   author: "thaki"
-  version: "1.0.1"
+  version: "1.1.0"
   category: "execution"
 ---
 # Recall: Long-Term Memory Search
@@ -73,6 +75,40 @@ python scripts/memory/search.py --mode bm25 "daily_stock_check" --top 10 --json
 ```
 
 Then cross-reference `files_touched` fields in the results.
+
+## LLM-Powered Summarization (`--summarize`)
+
+When the user requests a condensed, actionable summary instead of raw search results,
+append `--summarize` to any search command. This sends results to Claude Haiku for
+structured Korean summarization.
+
+```bash
+# Summarize BM25 results for a topic
+python scripts/memory/search.py --mode bm25 "trading agent pipeline" --top 10 --summarize
+
+# Summarize hybrid results
+python scripts/memory/search.py --mode hybrid "release workflow" --top 5 --summarize
+
+# Combine with temporal mode
+python scripts/memory/search.py --mode temporal --date "yesterday" --top 10 --summarize
+```
+
+**Requirements**: `ANTHROPIC_API_KEY` environment variable must be set. Install `anthropic` package (`pip install anthropic`).
+
+**Output format**: The LLM returns a structured Korean summary with:
+1. 핵심 요약 (Core Summary) — cross-session synthesis
+2. 세션별 주요 포인트 (Per-Session Key Points) — with session references
+3. One Thing — the single most actionable next step
+
+**When to use `--summarize`**:
+- Many results (5+) that need synthesis rather than individual reading
+- Context handoff between sessions where a quick overview is needed
+- When the user says "요약해서 recall", "recall summarize", or "간단히 정리해줘"
+
+**When NOT to use `--summarize`**:
+- When the user needs exact file paths or raw content from specific sessions
+- When debugging requires precise session timestamps
+- Use `--json` for machine-readable output instead
 
 ## Output Contract
 
