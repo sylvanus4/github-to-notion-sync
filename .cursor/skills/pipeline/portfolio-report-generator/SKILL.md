@@ -29,7 +29,7 @@ Cross-project executive portfolio report: aggregate status from all managed proj
 
 | Project | Repository | Type |
 |---------|-----------|------|
-| AI Platform WebUI | ThakiCloud/ai-platform-webui | Main platform |
+| AI Platform WebUI | ThakiCloud/ai-platform-strategy | Main platform |
 | TKAI Deploy | ThakiCloud/tkai-deploy | Deployment tooling |
 | TKAI Agents | ThakiCloud/tkai-agents | Agent framework |
 | Business Automation | ThakiCloud/thaki-business-automation | Business team tools |
@@ -121,7 +121,7 @@ Do **not** reconstruct prior phase results from conversation memory or unstored 
 For each managed project, gather weekly metrics:
 
 ```bash
-for repo in ai-platform-webui tkai-deploy tkai-agents thaki-business-automation research; do
+for repo in ai-platform-strategy tkai-deploy tkai-agents thaki-business-automation research; do
   gh issue list --repo ThakiCloud/$repo --state all --json number,state,labels,closedAt \
     --search "updated:>=$(date -v-7d +%Y-%m-%d)"
   gh pr list --repo ThakiCloud/$repo --state all --json number,state,mergedAt \

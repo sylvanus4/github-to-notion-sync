@@ -1,6 +1,6 @@
 ---
 description: TDS (@thakicloud/shared) 필수 규칙 — 금지 패턴, 필수 패턴, 컴포넌트 Quick Reference, 스타일링. 모든 프론트엔드 작업에 적용.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # TDS 필수 규칙

@@ -2,14 +2,15 @@
 name: sod-ship
 description: >-
   Start-of-day git sync pipeline: commit dirty working directories, push
-  unpushed commits, pull remote changes for all 5 managed projects, then
-  run cursor-sync to propagate .cursor/ assets across all repos. Use when
-  the user runs /sod-ship, asks to "sync all projects", "start of day sync",
-  "pull all repos", "컴퓨터 바꿔서 작업 시작", "아침 싱크", "프로젝트 동기화",
-  "sod-ship", or needs to ensure all repos are clean and up-to-date before
-  starting work. Do NOT use for end-of-day shipping (use eod-ship), morning
-  briefing with Google/stock pipelines (use morning-ship), or syncing
-  .cursor/ assets only (use cursor-sync).
+  unpushed commits, pull remote changes for all 5 managed projects, update
+  git submodules (ai-suite, thaki-ui), then run cursor-sync to propagate
+  .cursor/ assets across all repos. Use when the user runs /sod-ship, asks
+  to "sync all projects", "start of day sync", "pull all repos",
+  "컴퓨터 바꿔서 작업 시작", "아침 싱크", "프로젝트 동기화", "서브모듈 싱크",
+  "submodule sync", "sod-ship", or needs to ensure all repos are clean and
+  up-to-date before starting work. Do NOT use for end-of-day shipping (use
+  eod-ship), morning briefing with Google/stock pipelines (use morning-ship),
+  or syncing .cursor/ assets only (use cursor-sync).
 metadata:
   author: "thaki"
   version: "1.1.0"
@@ -17,7 +18,7 @@ metadata:
 ---
 # SOD Ship — Start-of-Day Git Sync Pipeline
 
-Bidirectional git sync for all managed projects: commit dirty repos, push unpushed commits, pull remote changes, and verify everything is in sync. Designed for starting work on a new day or switching to a different computer.
+Bidirectional git sync for all managed projects: commit dirty repos, push unpushed commits, pull remote changes, update git submodules (ai-suite, thaki-ui), and verify everything is in sync. Designed for starting work on a new day or switching to a different computer.
 
 ## Configuration
 
@@ -200,7 +201,7 @@ github-to-notion-sync            main      0      0         3       PULL NEEDED
 ai-template                      main      0      0         0       UP TO DATE
 ai-model-event-stock-analytics   dev       5      2         0       PUSH NEEDED
 research                         main      0      0         1       PULL NEEDED
-ai-platform-webui                issue/42  12     0         5       COMMIT+PULL
+ai-platform-strategy                issue/42  12     0         5       COMMIT+PULL
 ```
 
 If `--dry-run` flag is set, stop here after displaying the scan results.
@@ -232,10 +233,6 @@ If `dirty: true`:
 If `unpushed > 0` (including commits just created in Step 2a):
 
 ```bash
-# ai-platform-webui (tmp-only mode)
-git push origin HEAD:tmp
-
-# Other repos (full mode)
 git push origin HEAD
 ```
 
@@ -259,13 +256,37 @@ git fetch origin
 
 #### Step 3a: Pull
 
-```bash
-# ai-platform-webui (tmp-only mode)
-git pull origin tmp
+- **`ai-platform-strategy`**: If `git branch --show-current` is `dev`, run `git pull origin dev`. On any other branch (for example `issue/*`), run `git pull` so the configured upstream is respected.
+- **All other managed projects**: Run `git pull` (default remote + upstream tracking branch).
 
-# Other repos (full mode)
+**Default pull (most projects, or `ai-platform-strategy` on a non-`dev` branch):**
+
+```bash
 git pull
 ```
+
+**`ai-platform-strategy` on `dev` only:**
+
+```bash
+git pull origin dev
+```
+
+#### Step 3a½: Update Submodules (ai-platform-strategy only)
+
+After pulling `ai-platform-strategy`, update its two git submodules to track their remote HEAD:
+
+```bash
+cd AI_PLATFORM_STRATEGY_PATH
+git submodule update --init --remote
+```
+
+This fetches the latest commits from `ai-suite` (main) and `thaki-ui` (develop) remotes and advances the submodule pointers.
+
+- If submodule update succeeds and `git status` shows changed submodule pointers, record `{submodules_updated: true, changed: ["ai-suite", "thaki-ui"]}`.
+- If submodule pointers are already up-to-date, record `{submodules_updated: false}`.
+- If submodule update fails (network error, merge conflict inside submodule), warn and continue. Record `{submodules_updated: false, error: "..."}`. This is non-blocking.
+
+**Do NOT commit the pointer changes here.** The dirty submodule pointers will be picked up by eod-ship's commit phase later in the day, or by the next sod-ship Phase 1/2 commit cycle if the user runs sod-ship again.
 
 #### Step 3b: Conflict resolution
 
@@ -282,50 +303,17 @@ If merge conflict occurs:
    - Report conflicting files to user
    - Skip this project, continue with others
 
-#### Step 3c: Merge dev into tmp (ai-platform-webui only)
-
-After pulling from `tmp`, merge the latest `origin/dev` into the current branch to keep it up-to-date with the main development branch. This step only applies to `ai-platform-webui`.
-
-```bash
-cd AI_PLATFORM_WEBUI_PATH
-git fetch origin dev
-git merge origin/dev --no-edit
-```
-
-If merge conflict occurs:
-
-1. For simple conflicts: accept `origin/dev` version with `git checkout --theirs <file> && git add <file>`
-2. For modify/delete conflicts where `origin/dev` deleted files: `git rm <file>`
-3. For complex conflicts that cannot be auto-resolved: abort with `git merge --abort`, record `{dev_merge: "conflict", conflict_files: [...]}`, and report to user
-4. After resolving, commit with `git commit --no-verify -m "chore: merge origin/dev into tmp"`
-
-If merge succeeds (fast-forward or clean merge): record `{dev_merge: "ok", dev_commits_received: N}`.
-
-If `ai-platform-webui` was not processed (SKIPPED or `--targets` excluded it), skip this step.
-
-#### Step 3d: Retry deferred push
+#### Step 3c: Retry deferred push
 
 If `push_deferred: true` from Phase 2 and pull succeeded:
 
 ```bash
-# ai-platform-webui
-git push origin HEAD:tmp
-
-# Other repos
 git push origin HEAD
 ```
 
 If retry push still fails, record the error and continue.
 
-#### Step 3e: Push dev-merge result (ai-platform-webui only)
-
-If Step 3c produced new merge commits, push them to `tmp`:
-
-```bash
-git push origin HEAD:tmp
-```
-
-### Phase 3f: Intelligence KB Routing (Research Repo)
+### Phase 3d: Intelligence KB Routing (Research Repo)
 
 After pulling the research repo, route any new intelligence artifacts (received from other machines via git pull) to Karpathy KB topics. Skip if the research repo was not pulled or does not exist.
 
@@ -350,7 +338,7 @@ Record result: `{intel_routing: "ok", routed: N}` or `{intel_routing: "skipped"}
 
 On failure: Warn and continue. Does not block the SOD pipeline.
 
-### Phase 3g: lat.md Drift Check
+### Phase 3e: lat.md Drift Check
 
 For each project that has a `lat.md/` directory:
 
@@ -393,7 +381,7 @@ github-to-notion-sync            SYNCED    3 commits received
 ai-template                      SYNCED    already up to date
 ai-model-event-stock-analytics   SYNCED    2 commits pushed, 1 received
 research                         SYNCED    1 commit received
-ai-platform-webui                PARTIAL   12 files committed, push OK, pull conflict in 2 files
+ai-platform-strategy                PARTIAL   12 files committed, push OK, pull conflict in 2 files
 ```
 
 ### Phase 4½: GitHub Project #5 Verification
@@ -404,20 +392,20 @@ After sync verification, check that any recently created issues and PRs (within 
 
 | Repo |
 |------|
-| `thakicloud/github-to-notion-sync` |
+| `sylvanus4/github-to-notion-sync` |
 | `thakicloud/ai-template` |
 | `thakicloud/ai-model-event-stock-analytics` |
 | `thakicloud/research` |
-| `thakicloud/ai-platform-webui` |
+| `thakicloud/ai-platform-strategy` |
 
 ```bash
 # 1. Iterate through ALL managed repos and list recent issues/PRs
 REPOS=(
-  "thakicloud/github-to-notion-sync"
+  "sylvanus4/github-to-notion-sync"
   "thakicloud/ai-template"
   "thakicloud/ai-model-event-stock-analytics"
   "thakicloud/research"
-  "thakicloud/ai-platform-webui"
+  "thakicloud/ai-platform-strategy"
 )
 
 for REPO in "${REPOS[@]}"; do
@@ -444,11 +432,11 @@ Record verification result (per repo):
 {
   "project5_check": {
     "per_repo": {
-      "thakicloud/github-to-notion-sync": { "issues": 0, "prs": 0, "missing": [] },
+      "sylvanus4/github-to-notion-sync": { "issues": 0, "prs": 0, "missing": [] },
       "thakicloud/ai-template": { "issues": 0, "prs": 0, "missing": [] },
       "thakicloud/ai-model-event-stock-analytics": { "issues": 2, "prs": 1, "missing": [] },
       "thakicloud/research": { "issues": 0, "prs": 0, "missing": [] },
-      "thakicloud/ai-platform-webui": { "issues": 1, "prs": 0, "missing": [] }
+      "thakicloud/ai-platform-strategy": { "issues": 1, "prs": 0, "missing": [] }
     },
     "total": { "verified": N, "total": M, "missing": [] },
     "fields_incomplete": []
@@ -498,9 +486,6 @@ Call `CallMcpTool` with:
 **리모트 → 로컬 (Pull)**
 - project-a: N개 커밋 수신
 - project-b: 이미 최신
-
-**dev 브랜치 머지 (ai-platform-webui)**
-- origin/dev 머지: N개 커밋 반영 {완료|충돌|스킵}
 
 **인텔리전스 KB 라우팅**
 - research 레포: N개 아티팩트 라우팅 {완료|건너뜀}
@@ -622,17 +607,14 @@ SOD 동기화 리포트
   ai-template:                    2개 커밋 생성, 푸시 완료
   ai-model-event-stock-analytics: 3개 커밋 생성, 푸시 완료
   research:                       변경사항 없음
-  ai-platform-webui:              5개 커밋 생성, 푸시 완료 (tmp)
+  ai-platform-strategy:              5개 커밋 생성, 푸시 완료
 
 리모트 → 로컬:
   github-to-notion-sync:          3개 커밋 수신
   ai-template:                    이미 최신
   ai-model-event-stock-analytics: 1개 커밋 수신
   research:                       2개 커밋 수신
-  ai-platform-webui:              4개 커밋 수신
-
-dev 브랜치 머지 (ai-platform-webui):
-  origin/dev → tmp: N개 커밋 머지 완료
+  ai-platform-strategy:              4개 커밋 수신
 
 인텔리전스 KB 라우팅:
   research 레포: N개 아티팩트 라우팅, M개 스킵
@@ -745,10 +727,9 @@ under a new **커서 동기화** section:
 
 User runs `/sod-ship` on a new morning with changes in 2 projects.
 
-1. Pre-flight: scan reveals ai-model-event-stock-analytics has 5 dirty files, ai-platform-webui has 3 unpushed commits, 3 projects need pull
+1. Pre-flight: scan reveals ai-model-event-stock-analytics has 5 dirty files, ai-platform-strategy has 3 unpushed commits, 3 projects need pull
 2. Ship local: 2 domain-split commits in analytics project, push both projects
 3. Pull remote: 3 projects receive new commits, 2 already up to date
-3½. Dev merge: ai-platform-webui에 origin/dev 4개 커밋 머지 → tmp에 푸시
 4. Verify: 5/5 SYNCED
 5. Slack: main summary posted to #효정-할일, 2 threaded replies for projects with activity
 6. Chat report displayed
@@ -814,8 +795,6 @@ User runs `/sod-ship` and every project is already up to date.
 | No changes in any project | Report "all projects already in sync" |
 | Slack message fails | Report error; still display chat report (Phase 6) |
 | Slack thread_ts not returned | Post details as separate channel message instead of thread |
-| Dev merge conflict (ai-platform-webui) | Attempt auto-resolve (theirs for simple, rm for deleted); if unresolvable, abort merge and report conflict files; still push tmp changes from Phase 3a |
-| Dev branch not found | Skip dev merge step; continue with remaining phases |
 | Canvas update fails | Warn and continue; does not affect sync results |
 | skill-guide-generator not available | Skip Phase 7a; still attempt Phase 7b with git-only digest |
 | cursor-sync fails (Phase 8) | Warn and continue; git sync results are unaffected |
@@ -832,12 +811,12 @@ User runs `/sod-ship` and every project is already up to date.
 ## Safety Rules
 
 - **Never force push** (`--force`) to any branch in any project
-- **Never push directly** to `main` or `dev` in any project
+- **Never push directly** to `main` in any project without following that repo's release policy
 - **Never auto-resolve** merge conflicts that require manual intervention — abort and report
 - **Never delete** branches, tags, or reset history
 - **Never amend** failed commits; create new ones
 - **Never commit** `.env`, credentials, or secret files
 - **Never switch branches** automatically — work on the current branch only
-- **ai-platform-webui**: Always `git push origin HEAD:tmp`, always `git pull origin tmp`
+- **ai-platform-strategy** (full mode): Same git rules as other managed repos (`git push origin HEAD`, `git pull` or `git pull origin dev` when on `dev`)
 - **Always return** to original working directory after processing each project
 - **Always display** pre-flight scan before making any changes

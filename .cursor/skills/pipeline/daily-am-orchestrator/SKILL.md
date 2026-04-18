@@ -225,7 +225,7 @@ Read and follow the `sod-ship` skill (`.cursor/skills/pipeline/sod-ship/SKILL.md
 
 1. Commit dirty working directories across all 5 managed projects
 2. Push unpushed commits
-3. Pull remote changes (ai-platform-webui via `git pull origin tmp`)
+3. Pull remote changes (same rules as `sod-ship`; `ai-platform-strategy` on `dev` uses `git pull origin dev`)
 4. Update Slack Canvas with sync status
 
 ```python

@@ -53,31 +53,6 @@ Follow the `cursor-sync` skill (`.cursor/skills/automation/cursor-sync/SKILL.md`
 3. Execute sync
 4. Capture per-target summary: `{target: {new: N, updated: N}}`
 
-### Phase 1½: Dev Branch Merge (ai-platform-webui only)
-
-Before shipping, merge the latest `origin/dev` into the current `tmp` branch of `ai-platform-webui` to ensure the working branch is up-to-date with the main development branch.
-
-**Skip if** `--targets` is set and does not include `ai-platform-webui`, or if the `ai-platform-webui` directory does not exist.
-
-```bash
-cd AI_PLATFORM_WEBUI_PATH
-git fetch origin dev
-git merge origin/dev --no-edit
-```
-
-If merge conflict occurs:
-
-1. For simple conflicts: accept `origin/dev` version with `git checkout --theirs <file> && git add <file>`
-2. For modify/delete conflicts where `origin/dev` deleted files: `git rm <file>`
-3. For complex conflicts that cannot be auto-resolved: abort with `git merge --abort`, record `{dev_merge: "conflict", conflict_files: [...]}`, and report to user
-4. After resolving, commit with `git commit --no-verify -m "chore: merge origin/dev into tmp"`
-
-If merge succeeds (fast-forward or clean merge): record `{dev_merge: "ok", dev_commits_received: N}`.
-
-If no new commits from `origin/dev` (already up to date): record `{dev_merge: "up_to_date"}`.
-
-Return to original directory after this step.
-
 ### Phase 1¾: Session Memory Sync
 
 Synchronize agent session memory before shipping. Extracts today's session transcripts into structured markdown and rebuilds the search index. Skip with `--skip-memory`.
@@ -133,10 +108,11 @@ git status --short
 ```
 
 1. If clean, record `{project: "current", status: "clean"}` and skip to Phase 3
-2. If dirty, execute release-ship pipeline (domain-commit → push → **issue** → PR → merge)
-3. Issue creation is MANDATORY for shipped commits — do not skip Step 4 of release-ship
-4. Capture result: `{commits: [...], issues: [...], pr_url: "...", merged: bool}`
-5. **Post-execution issue verification**: If commits were shipped (commits list non-empty) but issues list is empty, this is a FAILURE. Re-run release-ship Step 4 (issue creation) immediately. Log `{issue_verification: "re-run"}`. If re-run also produces no issues, log `{issue_verification: "FAILED"}` and include in the Slack warning.
+2. **Submodule pointer inclusion**: When `git status` shows modified submodule paths (`ai-suite`, `thaki-ui`), these changes MUST be included in the commit. The `release-ship` domain-commit step already picks up all staged changes; ensure `git add ai-suite thaki-ui` is run if submodule pointers have changed. This captures the submodule pointer updates made by sod-ship's Step 3a½ or manual `git submodule update` runs.
+3. If dirty, execute release-ship pipeline (domain-commit → push → **issue** → PR → merge)
+4. Issue creation is MANDATORY for shipped commits — do not skip Step 4 of release-ship
+5. Capture result: `{commits: [...], issues: [...], pr_url: "...", merged: bool}`
+6. **Post-execution issue verification**: If commits were shipped (commits list non-empty) but issues list is empty, this is a FAILURE. Re-run release-ship Step 4 (issue creation) immediately. Log `{issue_verification: "re-run"}`. If re-run also produces no issues, log `{issue_verification: "FAILED"}` and include in the Slack warning.
 
 ### Phase 3: Release Ship (Managed Projects)
 
@@ -155,7 +131,7 @@ git status --short
 
 1. If clean, record `{project: ALIAS, status: "clean"}` and move to next
 2. If dirty, execute the release-ship pipeline **in pipeline mode**:
-   - Follow all release-ship rules (ai-platform-webui uses tmp-only mode)
+   - Follow all release-ship rules (same full pipeline for every managed repo, including `ai-platform-strategy`)
    - Domain-split commits → push → **issue** → PR → merge
    - Issue creation is MANDATORY — auto-confirm the issue plan (pipeline mode)
 3. Capture result per project: `{project: ALIAS, commits: [...], issues: [...], pr_url: "...", merged: bool}`
@@ -168,7 +144,7 @@ git status --short
 2. `ai-template` — full pipeline
 3. `ai-model-event-stock-analytics` — full pipeline
 4. `research` — full pipeline
-5. `ai-platform-webui` — tmp-only mode (commit → push → issue → report, no PR/merge)
+5. `ai-platform-strategy` — full pipeline (same as other managed repos)
 
 If a project directory does not exist, warn and skip it. Continue with remaining projects.
 
@@ -179,7 +155,7 @@ Before posting to Slack, verify shipping integrity:
 - [ ] **No unintended files staged** — Check that no `.env`, credentials, or large binary files were committed across any project
 - [ ] **All repos clean** — Every shipped project should have a clean `git status` after release-ship (no leftover unstaged changes including untracked files)
 - [ ] **No orphaned untracked content** — Verify no `.md`, `.ts`, `.go`, `.py`, `.yaml`, `.json`, `.sql` files remain untracked in `output/`, `docs/`, `ai-platform/`, `scripts/`, `tasks/`, or any content directory. If any exist, run one more `git add` + commit round to catch them.
-- [ ] **Branch consistency** — Current project pushed to correct remote branch (ai-platform-webui uses `tmp`, others use standard)
+- [ ] **Branch consistency** — Each project pushed to its configured remote tracking branch (typically `dev` or `main` per project-registry)
 - [ ] **Zero-issue guard** — Count total commits shipped across all projects vs total issues created. If `total_commits > 0` and `total_issues == 0`, this is a CRITICAL failure. Re-invoke release-ship Step 4 for each project that shipped commits but has zero issues. This gate prevents silent issue creation skips.
 - [ ] **Issue field completeness** — Every issue created in Phase 2/3 MUST have ALL 5 project fields set (Status, Priority, Size, Sprint, Estimate). If any issue is missing fields, run the `set_all_fields()` script from [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md) to fix it before posting to Slack.
 - [ ] **GitHub Project #5 등록 검증** — Phase 2/3에서 생성된 모든 이슈와 PR이 GitHub Project #5에 정상 등록되었는지 확인. `gh project item-list 5 --owner ThakiCloud --format json --limit 100` 으로 조회하여 (1) 이슈/PR이 프로젝트 아이템 목록에 존재하는지 (2) 5개 필드(Status, Priority, Size, Sprint, Estimate)가 모두 non-null인지 검증. 누락된 항목은 `gh project item-add` + `set_all_fields()` 로 재시도 1회. 결과를 `{project5_check: {issues: {verified: N, total: M}, prs: {verified: N, total: M}, missing: [...], fields_incomplete: [...]}}` 형태로 기록.
@@ -284,9 +260,6 @@ If `thread_ts` is not available or the thread reply fails, log a warning and con
 *커서 동기화*
 - N개 타겟 동기화 완료, M개 파일 신규/업데이트
 
-*dev 브랜치 머지 (ai-platform-webui)*
-- origin/dev 머지: N개 커밋 반영 {완료|이미 최신|충돌}
-
 *세션 메모리 동기화*
 - N개 트랜스크립트 추출, 인덱스 리빌드 {완료|건너뜀}
 
@@ -296,7 +269,7 @@ If `thread_ts` is not available or the thread reply fails, log a warning and con
 *프로젝트 배포*
 - project-a: N개 커밋, <PR_URL|PR #X> 머지 완료
 - project-b: 변경사항 없음
-- project-c: N개 커밋 (tmp 전용)
+- project-c: N개 커밋, <PR_URL|PR #X> 머지 완료
 
 *이슈 생성*
 - <ISSUE_URL|#N1>, <ISSUE_URL|#N2> → 프로젝트 #5
@@ -330,9 +303,6 @@ EOD 배포 리포트
   동기화 타겟: N/N
   파일: M개 신규, K개 업데이트
 
-dev 브랜치 머지 (ai-platform-webui):
-  origin/dev → tmp: N개 커밋 머지 완료
-
 세션 메모리 동기화:
   트랜스크립트 추출: N개, 인덱스 리빌드: 완료
 
@@ -344,7 +314,7 @@ dev 브랜치 머지 (ai-platform-webui):
   ai-template:                    변경사항 없음
   ai-model-event-stock-analytics: 2개 커밋, PR #8 머지 완료
   research:                       1개 커밋, PR #5 머지 완료
-  ai-platform-webui:              2개 커밋 (tmp 전용)
+  ai-platform-strategy:              2개 커밋, PR #7 머지 완료
 
 이슈: #101, #102, #103, #104 → 프로젝트 #5
 
@@ -365,15 +335,14 @@ GitHub Project #5 검증:
 User runs `/eod-ship` at end of day with changes across 3 projects.
 
 1. cursor-sync: 4 targets synced, 6 files updated
-1½. dev merge: ai-platform-webui에 origin/dev 5개 커밋 머지 완료
-1¾. memory sync: 3개 트랜스크립트 추출, 인덱스 리빌드 완료
-2. Current project (github-to-notion-sync): 2 domain-split commits, PR #15 merged
-3. ai-template: clean, skipped
-4. ai-model-event-stock-analytics: 3 commits, PR #22 merged
-5. research: 1 commit, PR #9 merged
-6. ai-platform-webui: 2 commits pushed to tmp
-7. Slack: summary posted to #효정-할일
-8. Report displayed in chat
+2. memory sync: 3개 트랜스크립트 추출, 인덱스 리빌드 완료
+3. Current project (github-to-notion-sync): 2 domain-split commits, PR #15 merged
+4. ai-template: clean, skipped
+5. ai-model-event-stock-analytics: 3 commits, PR #22 merged
+6. research: 1 commit, PR #9 merged
+7. ai-platform-strategy: 2 commits, PR #7 merged
+8. Slack: summary posted to #효정-할일
+9. Report displayed in chat
 
 ### Example 2: Ship without sync
 
@@ -414,9 +383,6 @@ User runs `/eod-ship --dry-run` to preview.
 | No changes in any project | Report "all projects clean" |
 | `gh` CLI not authenticated | Report error; suggest `gh auth login` |
 | Push rejected on a project | Report error with remediation; continue with others |
-| Dev merge conflict (ai-platform-webui) | Attempt auto-resolve (theirs for simple, rm for deleted); if unresolvable, abort merge and report conflict files; continue with shipping |
-| Dev branch not found | Skip dev merge step; continue with shipping |
-
 ## Automation Rules (Pipeline Mode)
 
 - **No confirmation prompts**: This is an automated pipeline. Do NOT ask the user to confirm issue creation, PR creation, or PR merging. Just execute.
@@ -430,7 +396,6 @@ User runs `/eod-ship --dry-run` to preview.
 - **Never push directly** to `main` or `dev` in any project
 - **Never amend** failed commits; create new ones
 - **Never commit** `.env`, credentials, or secret files
-- **ai-platform-webui**: Never create PRs or merge — tmp-only mode
 - **Always return** to original working directory after processing each project
 - **Always post** Slack message as the authenticated user, never impersonate
 

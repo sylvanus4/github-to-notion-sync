@@ -33,14 +33,25 @@ Variables can also live in a `.env` file.
 
 ## Auth Precedence
 
-| Priority | Source |
-|----------|--------|
-| 1 | Access token (`GOOGLE_WORKSPACE_CLI_TOKEN`) |
-| 2 | Credentials file (`GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`) |
-| 3 | Per-account encrypted credentials (`gws auth login`) |
-| 4 | Plaintext credentials (`~/.config/gws/credentials.json`) |
+| Priority | Source | Reliability |
+|----------|--------|-------------|
+| 1 | Access token (`GOOGLE_WORKSPACE_CLI_TOKEN`) | High (short-lived) |
+| 2 | Credentials file (`GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`) | High |
+| 3 | Plaintext credentials (`~/.config/gws/credentials.json`) | **Proven working — recommended** |
+| 4 | Per-account encrypted credentials (`gws auth login`) | Unreliable across machines |
 
 Account resolution: `--account` flag > env var > default in `accounts.json`.
+
+### Recommended: Plaintext OAuth2
+
+Priority 3 (plaintext credentials) is the most reliable for interactive development.
+Verify with `gws auth status` — look for `credential_storage: plaintext` and `token_valid: true`.
+
+### Known Issue: Encrypted Credentials
+
+Priority 4 (encrypted) can fail with `Failed to decrypt credentials` when switching
+machines, after OS updates, or when the keyring backend changes. If this occurs,
+run `gws auth logout` then `gws auth login` to re-authenticate with plaintext storage.
 
 ## Usage Patterns
 

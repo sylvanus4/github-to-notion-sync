@@ -19,13 +19,25 @@ Load plan, review critically, execute tasks in batches, report for review betwee
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
+## Flags
+
+| Flag | Effect |
+|------|--------|
+| `--skip-review` | Skip Step 1 critical review. Use when the plan was pre-approved by another skill (e.g., `omc-ralplan` consensus or `ralplan-execute-bridge`). |
+| `--auto-accept` | Execute all batches without pausing for "Ready for feedback" between them. Stops only on verification failure or errors. Implies continuous execution. |
+
+Both flags can be combined: `--skip-review --auto-accept` for fully autonomous execution of pre-approved plans.
+
+**Safety override**: regardless of flags, execution always stops on verification failures, missing dependencies, or destructive operations (`rm -rf`, `DROP`, `force-push`).
+
 ## The Process
 
 ### Step 1: Load and Review Plan
 1. Read plan file
-2. Review critically - identify any questions or concerns about the plan
-3. If concerns: Raise them with your human partner before starting
-4. If no concerns: Create TodoWrite and proceed
+2. **If `--skip-review`**: skip critical review, create TodoWrite, proceed directly to Step 2
+3. Review critically - identify any questions or concerns about the plan
+4. If concerns: Raise them with your human partner before starting
+5. If no concerns: Create TodoWrite and proceed
 
 ### Step 2: Execute Batch
 **Default: First 3 tasks**
@@ -40,10 +52,13 @@ For each task:
 When batch complete:
 - Show what was implemented
 - Show verification output
-- Say: "Ready for feedback."
+- **If `--auto-accept`**: proceed to next batch immediately (no pause)
+- **Otherwise**: Say "Ready for feedback." and wait
 
 ### Step 4: Continue
-Based on feedback:
+**If `--auto-accept`**: automatically proceed to next batch after Step 3.
+
+Otherwise, based on feedback:
 - Apply changes if needed
 - Execute next batch
 - Repeat until complete

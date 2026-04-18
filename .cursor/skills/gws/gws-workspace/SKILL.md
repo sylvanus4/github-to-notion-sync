@@ -31,18 +31,36 @@ Pre-built binaries also available on [GitHub Releases](https://github.com/google
 
 ## Authentication
 
-### Interactive (recommended)
+### Plaintext OAuth2 (proven working — recommended)
+
+The most reliable method. Stores credentials as plaintext JSON at `~/.config/gws/credentials.json`.
+This avoids the encrypted credential decryption failures that occur when switching machines or after OS updates.
 
 ```bash
 gws auth setup      # one-time: creates GCP project, enables APIs, logs in (requires gcloud)
 gws auth login      # subsequent logins with scope selection
 ```
 
+Verify authentication:
+
+```bash
+gws auth status     # confirm token_valid: true, credential_storage: plaintext
+```
+
+If `gws auth status` shows `credential_storage: plaintext` and `token_valid: true`, authentication is working correctly.
+
 For unverified apps (testing mode), select individual service scopes:
 
 ```bash
 gws auth login --scopes drive,gmail,calendar
 ```
+
+### Encrypted Credentials (may fail — see Troubleshooting)
+
+`gws auth login` may store credentials in encrypted form. This can fail with
+`Failed to decrypt credentials` when switching machines, after OS updates, or
+when the keyring backend changes. If encrypted credentials fail, fall back to
+the plaintext method above by running `gws auth logout` and re-authenticating.
 
 ### Multiple Accounts
 

@@ -11,7 +11,7 @@ alwaysApply: false
 
 - Enter Plan Mode (Shift+Tab) for ANY non-trivial task (3+ steps or architectural decisions)
 - If something goes sideways, STOP and re-plan immediately — don't keep pushing
-- Save plans to `.cursor/plans/` via "Save to workspace" for team record
+- Save plans to `docs/plans/` for team record
 - When Plan Mode is active, the interactive engineering review framework in `plan-mode-review.mdc` activates automatically (BIG CHANGE / SMALL CHANGE workflow)
 
 ## Socratic Interview (Pre-Implementation)

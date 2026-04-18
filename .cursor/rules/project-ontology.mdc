@@ -9,7 +9,7 @@ alwaysApply: true
 
 | Alias | Purpose | Tech Stack | Domain Skills |
 |-------|---------|------------|---------------|
-| `ai-platform-webui` | K8s-based AI/ML SaaS platform (GPU orchestration, inference, fine-tuning) | Go (Fiber), React 19, PostgreSQL, NATS, Keycloak, ArgoCD, Kueue | FSD architecture, TDS design system, frontend-expert, backend-expert, e2e-testing |
+| `ai-platform-strategy` | K8s-based AI/ML SaaS platform (GPU orchestration, inference, fine-tuning) | Go (Fiber), React 19, PostgreSQL, NATS, Keycloak, ArgoCD, Kueue | FSD architecture, TDS design system, frontend-expert, backend-expert, e2e-testing |
 | `ai-model-event-stock-analytics` | Stock analysis pipeline + trading automation + AI research hub | Python (FastAPI), PostgreSQL, Yahoo Finance, Slack, HF Hub, Toss Securities | today, daily-stock-check, trading-*, alphaear-*, mirofish, paper-review, 400+ skills |
 | `research` | Knowledge hub + cursor-sync merge center | Markdown, Python scripts | Canonical source for all shared .cursor/ assets |
 | `ai-template` | Template repo with complete shared asset set | N/A (template) | kwp-sync, i18n-sync, domain-specific rules (sales, marketing, PM) |
@@ -21,7 +21,7 @@ For paths and operational modes, see `project-registry.md` in eod-ship reference
 
 ### Technology Synergy (bidirectional)
 
-- `ai-platform-webui` <-> `ai-model-event-stock-analytics`: shared Python patterns, FastAPI conventions, PostgreSQL schemas, Cursor skill ecosystem; AI platform provides infra concepts (K8s, GPU scheduling) that inform stock pipeline architecture; stock pipeline provides data engineering patterns reusable in platform services
+- `ai-platform-strategy` <-> `ai-model-event-stock-analytics`: shared Python patterns, FastAPI conventions, PostgreSQL schemas, Cursor skill ecosystem; AI platform provides infra concepts (K8s, GPU scheduling) that inform stock pipeline architecture; stock pipeline provides data engineering patterns reusable in platform services
 - `ai-model-event-stock-analytics` <-> `ai-template`: stock analytics pioneered skill patterns (autoskill-evolve, skill-autoimprove, 400+ skills) that became templates; template repo distributes refined patterns back
 
 ### Knowledge Distribution (directed)
@@ -33,7 +33,7 @@ For paths and operational modes, see `project-registry.md` in eod-ship reference
 ### Content Flow (directed)
 
 - `ai-model-event-stock-analytics` -> `research`: daily analysis outputs, paper reviews, trading reports feed the research knowledge base
-- `ai-platform-webui` -> `research`: architecture decisions, multi-cluster designs, TDD docs contribute to research corpus
+- `ai-platform-strategy` -> `research`: architecture decisions, multi-cluster designs, TDD docs contribute to research corpus
 - `research` -> `ai-model-event-stock-analytics`: research findings (papers, trends, HF intelligence) inform trading strategies and pipeline improvements
 
 ### Operational Dependencies
@@ -49,7 +49,7 @@ For paths and operational modes, see `project-registry.md` in eod-ship reference
 - **Slack routing**: each project has designated channels; cross-project summaries go to `#효정-할일`
 - **Output files**: pipeline outputs go to `outputs/` directory within each project; `eod-ship` ensures these are committed and pushed
 - **cursor-sync scope**: ONLY `.cursor/commands/`, `.cursor/skills/`, `.cursor/rules/` are synced — project-specific code, configs, and data are NOT synced
-- **git-push-pull exception**: `ai-platform-webui` uses `tmp` branch for push/pull; all other repos use standard branch operations
+- **git-push-pull**: all repos use standard `dev` branch push/pull (the former `ai-platform-webui` tmp-branch exception was retired with migration to `ai-platform-strategy`)
 - **Pre-commit hooks**: each project may have different hooks; always run `make test-ci` or equivalent before pushing
 
 ## Knowledge Flow Map
@@ -58,13 +58,13 @@ When working in one project and needing knowledge from another, use these patter
 
 | You are in | You need | Look at | How |
 |-----------|----------|---------|-----|
-| `ai-platform-webui` | Trading data patterns | `ai-model-event-stock-analytics` | Check `backend/app/services/` for FastAPI patterns, `outputs/` for data formats |
-| `ai-platform-webui` | Skill creation patterns | `ai-model-event-stock-analytics` | Reference the 400+ skills ecosystem, autoskill-evolve pipeline |
-| `ai-model-event-stock-analytics` | K8s/GPU scheduling concepts | `ai-platform-webui` | Check `docs/multi-cluster-centralization/` for architecture patterns |
+| `ai-platform-strategy` | Trading data patterns | `ai-model-event-stock-analytics` | Check `backend/app/services/` for FastAPI patterns, `outputs/` for data formats |
+| `ai-platform-strategy` | Skill creation patterns | `ai-model-event-stock-analytics` | Reference the 400+ skills ecosystem, autoskill-evolve pipeline |
+| `ai-model-event-stock-analytics` | K8s/GPU scheduling concepts | `ai-platform-strategy` | Check `docs/multi-cluster-centralization/` for architecture patterns |
 | `ai-model-event-stock-analytics` | Notion publishing | `github-to-notion-sync` | Use md-to-notion skill or Notion MCP directly |
 | `ai-model-event-stock-analytics` | Template patterns | `ai-template` | KWP plugins, domain-specific rules (sales.mdc, marketing.mdc) |
 | `research` | Latest analysis data | `ai-model-event-stock-analytics` | Check `outputs/` directory for daily reports, analysis JSONs |
-| `research` | Platform architecture docs | `ai-platform-webui` | Check `docs/` directory for TDD, multi-cluster, and platform overview |
+| `research` | Platform architecture docs | `ai-platform-strategy` | Check `docs/` directory for TDD, multi-cluster, and platform overview |
 | Any project | Shared skill/rule | `research` | cursor-sync hub — if a skill exists in any repo, it exists in research |
 | Any project | Cross-project git ops | Use `eod-ship`/`sod-ship` | Syncs all 5 projects in one run |
 | Any project | Cross-project skill sync | Use `cursor-sync` | Propagates .cursor/ assets through research hub |

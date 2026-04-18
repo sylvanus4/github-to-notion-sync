@@ -4,6 +4,18 @@ description: Repository-wide Git conventions; follow CONTRIBUTING.md#git-rules f
 alwaysApply: true
 ---
 
+## Repository Structure
+
+This monorepo (`ai-platform-strategy`) contains the **backend** (Go, Python) and infrastructure code.
+The **frontend** lives in a separate repository: `ai-suite`.
+
+- **Backend** → `ai-platform-strategy` (this repo): Go API servers, Python scripts, Helm charts, DB migrations
+- **Frontend** → `ai-suite` (separate repo): React/Vite SPA, TDS components, i18n
+
+When making changes, be aware that backend API changes here may require corresponding frontend changes in `ai-suite`, and vice versa. Do NOT create frontend UI code in this repo or backend service code in `ai-suite`.
+
+## Git Conventions
+
 - The Git rules for this repository are defined in `CONTRIBUTING.md` under "[Git Rules](../../CONTRIBUTING.md#git-rules)" and act as the single source of truth. Branch naming, commit messages, and PR title/description must follow it.
 - Branch names: `main`, `dev`, `release-v{X.Y}`, `epic/{ISSUE}`, `issue/{ISSUE}[-{SUMMARY}]`.
 - Commit messages: `<TYPE>: <Summary>`, then a blank line, then bullet details (Conventional Commits enforced by pre-commit hook).

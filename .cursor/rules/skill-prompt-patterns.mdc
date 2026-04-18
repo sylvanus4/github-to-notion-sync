@@ -7,7 +7,7 @@ alwaysApply: false
 
 # Skill Prompt Engineering Patterns
 
-12 patterns for writing effective SKILL.md files. Patterns 1-10 are distilled from Claude Code's internal prompt architecture. Patterns 11-12 are derived from the Anthropic engineer guide to building Claude Skills (5-component structure, 5 failure modes, 5-step test protocol).
+16 patterns for writing effective SKILL.md files. Patterns 1-10 are distilled from Claude Code's internal prompt architecture. Patterns 11-12 are derived from the Anthropic engineer guide to building Claude Skills (5-component structure, 5 failure modes, 5-step test protocol). Pattern 13 covers 3-level progressive disclosure for token-efficient skill loading. Patterns 14-16 are tactical prompt patterns adapted for skill authoring from @thisguyknowsai's research.
 
 ## Pattern 1: Sectioned Prompt Structure
 
@@ -309,6 +309,144 @@ Skill information loads in three progressive levels. Each level adds detail only
 | Reading all `references/*.md` files "just in case" | Wastes 5,000–50,000 tokens on potentially irrelevant material | Read only the files the procedure calls for |
 | Skill body is a one-liner pointing to a script | No procedure at Level 1 to guide execution | Write the procedure in SKILL.md; reference the script at the appropriate step |
 
+## Pattern 14: Failure Injection (Negative Examples)
+
+Include a concrete negative example in skills that generate artifacts (code, documents, reports, plans). Negative examples steer LLM output away from generic, vague, or structurally flawed responses more effectively than positive-only instructions.
+
+### When to Use
+
+Add to any skill where the default LLM output tends toward:
+- Generic boilerplate that could apply to any project
+- Vague recommendations without specifics
+- Structurally correct but informationally hollow content
+
+### Implementation Pattern
+
+Add a `## Anti-Example` or `## Do NOT Produce` section in the SKILL.md body:
+
+```
+## Anti-Example — Do NOT produce output like this:
+
+> "The system should be scalable and maintainable. Consider using
+> best practices for error handling. The architecture should follow
+> modern patterns."
+
+This fails because: no specifics, no numbers, no file paths, no
+trade-offs. Every sentence could be copy-pasted into any project.
+```
+
+### Rules
+
+- Provide at least one realistic bad example per major output type the skill produces
+- Explain WHY the example is bad (symptom annotation) — this teaches the model the evaluation criteria
+- Place the anti-example BEFORE the output format section — the model processes it before generating
+- Anti-examples should be plausible (things the model would actually produce), not absurd strawmen
+
+### Anti-Patterns
+
+| Anti-Pattern | Fix |
+|--------------|-----|
+| Anti-example is obviously terrible (no model would produce it) | Use a subtly bad example — correct structure, wrong substance |
+| No explanation of why it's bad | Add symptom annotations: "This fails because..." |
+| Anti-example placed after the output section | Move before the output format — order matters for LLM attention |
+
+## Pattern 15: Confidence Gating
+
+For skills that produce factual claims, analysis, or recommendations, require every claim to carry a confidence qualifier. This prevents hallucination and forces the model to distinguish between what it knows and what it's guessing.
+
+### When to Use
+
+Required for:
+- Analysis and research skills (market analysis, paper review, competitive intel)
+- Advisory skills (trading signals, security recommendations, architecture decisions)
+- Reporting skills (status reports, quality assessments, diagnostics)
+
+Not needed for:
+- Pure code generation (tests/lint verify correctness)
+- Document formatting or conversion
+- Interactive tutoring or brainstorming
+
+### Implementation Pattern
+
+Add to the `## Output Format` or `## Constraints` section:
+
+```
+## Confidence Protocol
+
+Every factual claim must include a confidence qualifier:
+
+| Qualifier | Meaning | Source Required |
+|-----------|---------|---------------|
+| **HIGH** | Verified from primary source or computed from data | Cite the source |
+| **MEDIUM** | Inferred from multiple indirect signals | List the signals |
+| **LOW** | Plausible but unverified — based on pattern matching | Flag with ⚠️ |
+
+Claims below the configured threshold (default: MEDIUM) must be
+explicitly flagged: "⚠️ LOW CONFIDENCE: [claim]. Verify before acting."
+
+Never present LOW-confidence claims with the same assertiveness as
+HIGH-confidence claims. Hedging language is mandatory for LOW.
+```
+
+### Rules
+
+- Define the three tiers (HIGH / MEDIUM / LOW) with clear criteria in the skill
+- Set a minimum threshold appropriate to the domain (trading skills → HIGH only; brainstorming → all levels acceptable)
+- LOW-confidence claims must use hedging language ("likely", "possibly", "suggests") and carry a warning marker
+- Side-effect skills (trading, deployment, deletion) must reject LOW-confidence inputs entirely
+
+## Pattern 16: Specificity Enforcement
+
+For skills that produce analysis, recommendations, or evaluative content, enforce concrete language over vague qualifiers. Vague output is the #1 sign of hallucinated or superficial reasoning.
+
+### When to Use
+
+Add to any skill whose output includes:
+- Evaluative adjectives ("good", "fast", "scalable", "significant")
+- Recommendations without quantification
+- Comparisons without baselines
+
+### Implementation Pattern
+
+Add to the `## Constraints` section:
+
+```
+## Specificity Rule
+
+Every evaluative claim must pass the "so what?" test:
+
+VAGUE (rejected): "The API is fast."
+SPECIFIC (accepted): "The API responds in p50=12ms, p95=45ms on a 3-node cluster."
+
+VAGUE: "Performance improved significantly."
+SPECIFIC: "Latency dropped from 340ms to 45ms (87% reduction) after index addition."
+
+Replace these words on sight:
+- "significant" → with a number or comparison
+- "fast/slow" → with a measurement and baseline
+- "many/few" → with a count or range
+- "good/bad" → with criteria and a score
+- "easy/hard" → with steps/time required
+- "scalable" → with the load tested and the bottleneck
+```
+
+### Rules
+
+- Scan generated output for the banned vague words before delivery
+- If a specific number is unavailable, state the uncertainty explicitly: "No benchmark data available; estimating 2-5x based on [rationale]"
+- This pattern compounds with Pattern 15 (Confidence Gating): a LOW-confidence claim with vague language is doubly suspect and must be flagged prominently
+- Exception: brainstorming and ideation skills may use qualitative language during divergent phases, but must sharpen during convergent phases
+
+### Skill Type Defaults
+
+| Skill Domain | Specificity Level |
+|-------------|------------------|
+| Trading / Finance | Mandatory — every claim needs numbers |
+| Code Review / Audit | High — cite lines, files, metrics |
+| Market Research | High — cite sources, sizes, dates |
+| Architecture / Design | Medium — diagrams + trade-off quantification |
+| Brainstorming / Ideation | Low during diverge, High during converge |
+
 ## Conditional Activation Metadata
 
 SKILL.md YAML frontmatter supports optional conditional fields that control runtime visibility based on the current environment. Skills missing these fields are always visible (backward-compatible default).
@@ -351,12 +489,14 @@ metadata:
 
 | Skill Type | Required Patterns | Optional Patterns |
 |-----------|------------------|-------------------|
-| Document generation | 1, 2, 3, 5, 11 | 8, 9, 12 |
-| Pipeline orchestrator | 1, 4, 5, 11 | 6, 8, 9, 10, 12 |
-| Code review / audit | 1, 3, 5, 7, 11 | 6, 9, 12 |
-| Multi-agent orchestrator | 1, 4, 5, 6, 11 | 7, 9, 12 |
-| Subagent-heavy skill | 1, 6, 11 | 5, 9, 12 |
-| Knowledge-accumulating skill | 1, 8, 11 | 5, 9, 10, 12 |
-| Library/API reference skill | 1, 9, 10, 11 | 2, 3, 12 |
-| Infrastructure operations | 1, 3, 9, 11 | 5, 7, 12 |
-| Side-effect skills (deploy, trade, delete) | 1, 3, 11, 12 | 5, 7, 9 |
+| Document generation | 1, 2, 3, 5, 11, 14 | 8, 9, 12, 16 |
+| Pipeline orchestrator | 1, 4, 5, 11 | 6, 8, 9, 10, 12, 15 |
+| Code review / audit | 1, 3, 5, 7, 11 | 6, 9, 12, 14, 16 |
+| Multi-agent orchestrator | 1, 4, 5, 6, 11 | 7, 9, 12, 15 |
+| Subagent-heavy skill | 1, 6, 11 | 5, 9, 12, 14 |
+| Knowledge-accumulating skill | 1, 8, 11 | 5, 9, 10, 12, 15 |
+| Library/API reference skill | 1, 9, 10, 11 | 2, 3, 12, 16 |
+| Infrastructure operations | 1, 3, 9, 11 | 5, 7, 12, 15 |
+| Side-effect skills (deploy, trade, delete) | 1, 3, 11, 12, 15 | 5, 7, 9, 16 |
+| Analysis / research skills | 1, 3, 5, 11, 15, 16 | 8, 9, 12, 14 |
+| Advisory / recommendation skills | 1, 5, 11, 15, 16 | 7, 9, 12, 14 |

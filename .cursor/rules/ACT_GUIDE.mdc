@@ -1,5 +1,6 @@
 ---
-alwaysApply: true
+description: "Act를 사용한 GitHub Actions 로컬 테스트 가이드. 워크플로우 수정, CI 디버깅, Docker 기반 로컬 테스트 시 참조."
+alwaysApply: false
 ---
 
 # Act 로컬 테스트 가이드

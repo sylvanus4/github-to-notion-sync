@@ -47,7 +47,7 @@ Spawn a `Task` subagent (`subagent_type="generalPurpose"`) as the Planner role:
   - **Decision Drivers** (top 3): Key factors influencing the approach
   - **Viable Options** (≥2): Each with bounded pros/cons
   - If only one viable option remains, provide explicit invalidation rationale for alternatives
-- Write the plan to `outputs/plans/ralplan-{slug}.md`
+- Write the plan to `docs/plans/ralplan-{slug}.md`
 
 **Deliberate mode** (for high-risk work: auth/security, migrations, destructive changes, production incidents, compliance/PII, public API changes):
 - Add **pre-mortem**: 3 specific failure scenarios assuming the plan was executed exactly as written and failed
@@ -134,8 +134,9 @@ On Critic approval, the final plan must include:
 Present execution options:
 1. **Execute with parallel agents** (recommended for large scope)
 2. **Execute sequentially** (safer for complex dependencies)
-3. **Request changes** — return to interview
-4. **Reject** — discard and start fresh
+3. **Auto-Execute via Bridge** — delegate to `ralplan-execute-bridge` which transforms the plan into `sp-executing-plans` format and runs it with confidence-based flag selection (`--auto-accept` for unanimous, `--skip-review` for majority)
+4. **Request changes** — return to interview
+5. **Reject** — discard and start fresh
 
 ### Pre-Execution Gate
 
@@ -193,7 +194,7 @@ User: "Add user authentication to the app"
 [Architect re-reviews]
 [Critic: APPROVE — all criteria met]
 
-Final plan with ADR written to outputs/plans/ralplan-user-auth.md
+Final plan with ADR written to docs/plans/ralplan-user-auth.md
 </example>
 
 <example>

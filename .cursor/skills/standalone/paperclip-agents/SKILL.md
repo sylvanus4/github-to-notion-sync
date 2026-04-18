@@ -59,7 +59,7 @@ curl -sS -X POST "http://localhost:3100/api/companies/b573bdbe-785a-4f39-b1e9-f2
     "role": "engineer",
     "title": "Frontend Engineer",
     "adapterType": "cursor_local",
-    "adapterConfig": { "cwd": "/Users/hanhyojung/work/thakicloud/ai-platform-webui" },
+    "adapterConfig": { "cwd": "/Users/hanhyojung/work/thakicloud/ai-platform-strategy" },
     "runtimeConfig": { "heartbeat": { "enabled": true, "intervalSec": 300 } }
   }'
 ```

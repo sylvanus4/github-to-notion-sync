@@ -1,6 +1,6 @@
 ---
 description: FSD 아키텍처 구조, Export/Import 규칙, Query Key 중앙 관리. 프론트엔드 구조적 의사결정 시 참조.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # FSD Architecture & Module Rules

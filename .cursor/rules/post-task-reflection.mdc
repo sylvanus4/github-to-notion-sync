@@ -35,8 +35,9 @@ Were new environment facts, conventions, or user preferences discovered?
 
 - Facts about the workspace → `AGENTS.md` Learned Workspace Facts
 - User preferences → `AGENTS.md` Learned User Preferences
-- Decisions with rationale → `tasks/lessons.md`
+- Decisions with rationale → `docs/tasks/lessons.md`
 - Separation principle: facts → memory, procedures → skills (never mix)
+- **Yield refresh**: if the completed task involved `skill-autoimprove` or `autoskill-evolve`, run `python scripts/memory/yield_digest.py` and replace the `## Yield Metrics` table in `AGENTS.md` with the output
 
 ### 4. Skill Candidate
 

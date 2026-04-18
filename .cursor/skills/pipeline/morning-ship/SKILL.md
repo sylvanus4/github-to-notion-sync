@@ -1,8 +1,9 @@
 ---
 name: morning-ship
 description: >-
-  Start-of-day pipeline: git pull all 5 managed repos (ai-platform-webui via
-  tmp branch), run Google Workspace briefing (calendar + Gmail triage), run the
+  Start-of-day pipeline: git pull all 5 managed repos (same rules as sod-ship;
+  ai-platform-strategy uses full mode on `dev`), run Google Workspace briefing
+  (calendar + Gmail triage), run the
   daily stock analysis pipeline, and post a consolidated morning briefing to
   Slack. Use when the user runs /morning-ship, asks to "start my day", "morning
   ship", "아침 시작", "출근 파이프라인", "morning pull all", or "pull and brief". Do NOT
@@ -112,7 +113,7 @@ Arguments can be combined freely. Defaults: pull all, run Google daily, run stoc
 | `--skip-pull` | Pull runs | Skip Phase 1 (git sync) | Example 3; test input `/morning-ship --skip-pull` |
 | `--skip-google` | Google daily runs | Skip Phase 2 (calendar + Gmail) | Example 2; combine with `--skip-stock` per test input `/morning-ship --skip-google --skip-stock` |
 | `--skip-stock` | Stock pipeline runs | Skip Phase 3 (and stock thread in Phase 4) | Example 2; combine with `--skip-google` as above |
-| `--targets <list>` | All managed projects | Phase 1 pulls only comma-separated registry names (e.g. `ai-platform-webui,research`) | Example 4; test input `/morning-ship --targets ai-platform-webui,research` |
+| `--targets <list>` | All managed projects | Phase 1 pulls only comma-separated registry names (e.g. `ai-platform-strategy,research`) | Example 4; test input `/morning-ship --targets ai-platform-strategy,research` |
 | `--no-slack` | Slack posts | Skip Phase 4; still run Phase 5 chat report | Example 6 |
 | `--dry-run` | Live execution | No git pull, no Google, no stock, no Slack; preview-only Phase 1 introspection + Phase 5 preview | Example 5; test input `/morning-ship --dry-run` |
 
@@ -164,12 +165,10 @@ git fetch origin
 
 1. Check if directory exists. If not, warn and skip.
 2. Verify the working directory is clean (`git status --short`). If dirty, warn about uncommitted changes and skip pull for that project.
-3. Pull based on mode:
-
-| Mode | Pull Command | Notes |
-|------|-------------|-------|
-| `full` | `git pull` | Standard pull from default remote tracking branch |
-| `tmp-only` | `git pull origin tmp` | ai-platform-webui only; always pulls from remote `tmp` |
+3. Pull:
+   - **Default** (all projects except the case below): `git pull` (default remote + upstream tracking branch).
+   - **`ai-platform-strategy` on `dev`**: `git pull origin dev`.
+   - **`ai-platform-strategy` on any other branch** (for example `issue/*`): `git pull` (respect configured upstream).
 
 4. Capture per-project result: `{project, branch, status, commits_pulled, conflicts}`
 5. `cd` back to original directory before processing next project.
@@ -180,7 +179,7 @@ git fetch origin
 2. `ai-template` — `git pull`
 3. `ai-model-event-stock-analytics` — `git pull`
 4. `research` — `git pull`
-5. `ai-platform-webui` — `git pull origin tmp`
+5. `ai-platform-strategy` — `git pull origin dev` when on `dev`, otherwise `git pull`
 
 If a project directory does not exist, warn and skip it. Continue with remaining projects.
 
@@ -323,7 +322,7 @@ Post a thread reply with per-project pull results:
 {
   "channel_id": "C0AA8NT4T8T",
   "thread_ts": "MAIN_MESSAGE_TS",
-  "message": "*[Git 동기화 상세]*\n\n- github-to-notion-sync: N개 커밋 수신 (branch)\n- ai-template: 변경사항 없음\n- ai-model-event-stock-analytics: N개 커밋 수신\n- research: N개 커밋 수신\n- ai-platform-webui: N개 커밋 수신 (tmp)"
+  "message": "*[Git 동기화 상세]*\n\n- github-to-notion-sync: N개 커밋 수신 (branch)\n- ai-template: 변경사항 없음\n- ai-model-event-stock-analytics: N개 커밋 수신\n- research: N개 커밋 수신\n- ai-platform-strategy: N개 커밋 수신 (dev)"
 }
 ```
 
@@ -394,7 +393,7 @@ Git 동기화:
   ai-template:                    변경사항 없음
   ai-model-event-stock-analytics: 2개 커밋 수신 (dev)
   research:                       1개 커밋 수신 (main)
-  ai-platform-webui:              4개 커밋 수신 (tmp)
+  ai-platform-strategy:              4개 커밋 수신 (dev)
 
 오늘의 일정:
   09:00 팀 미팅 (MEDIUM)
@@ -428,7 +427,7 @@ Git 동기화:
 
 User runs `/morning-ship` at the start of the day (all phases, including optional quality gate and all Slack threads).
 
-1. **Phase 1 — Git sync:** 5/5 projects synced, 10 commits received total (registry order; `ai-platform-webui` via `tmp`).
+1. **Phase 1 — Git sync:** 5/5 projects synced, 10 commits received total (registry order; `ai-platform-strategy` on `dev` uses `git pull origin dev`).
 2. **Phase 2a — Calendar:** 3 meetings (2 HIGH), focus slots 10:00-11:00 and 15:00-18:00.
 3. **Phase 2b — Gmail:** 5 spam deleted, 12 notifications archived, 3 colleague emails, 2 reply needed.
 4. **Phase 3 — Stock (`today` with `--skip-slack`):** 15 tickers analyzed, AAPL buy signal, `.docx` report path captured.
@@ -460,9 +459,9 @@ User runs `/morning-ship --skip-pull` because repos were already synced.
 
 ### Example 4: Specific projects only
 
-User runs `/morning-ship --targets ai-platform-webui,research`.
+User runs `/morning-ship --targets ai-platform-strategy,research`.
 
-1. Git pull: only `ai-platform-webui` (tmp) and `research` pulled
+1. Git pull: only `ai-platform-strategy` and `research` pulled
 2. Calendar + Gmail: full triage
 3. Stock: full pipeline
 4. Slack + Report
@@ -511,7 +510,7 @@ If a phase fails mid-run, the last valid JSON under `outputs/morning-ship/{date}
 - **Never force pull** (`--force`) or hard reset (`--hard`) in any project
 - **Never switch branches** automatically — pull into the current branch only
 - **Never auto-resolve** merge conflicts — report and skip
-- **ai-platform-webui**: Always `git pull origin tmp`, never pull from other branches
+- **ai-platform-strategy** (full mode): Same pull rules as sod-ship (`git pull origin dev` on `dev`, otherwise `git pull`)
 - **Never delete** uncommitted changes — warn and skip pull for dirty repos
 - **Never send** emails automatically (Gmail triage generates drafts only)
 - **Never delete** calendar events

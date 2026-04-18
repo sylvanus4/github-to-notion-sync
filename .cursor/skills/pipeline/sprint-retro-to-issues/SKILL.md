@@ -357,7 +357,7 @@ If `--skip-critique` flag is set, pass Phase 3 items through unchanged.
    a. **Create the GitHub issue**:
       ```bash
       gh issue create \
-        --repo ThakiCloud/ai-platform-webui \
+        --repo ThakiCloud/ai-platform-strategy \
         --title "{item.title}" \
         --body "$(cat <<'EOF'
       {rendered issue body from template — all sections in Korean per github-issue-body-template.md}
@@ -375,7 +375,7 @@ If `--skip-critique` flag is set, pass Phase 3 items through unchanged.
       # Get project item ID
       ITEM_ID=$(gh project item-add 5 \
         --owner ThakiCloud \
-        --url "https://github.com/ThakiCloud/ai-platform-webui/issues/{N}" \
+        --url "https://github.com/ThakiCloud/ai-platform-strategy/issues/{N}" \
         --format json | jq -r '.id')
 
       # Set Status → Backlog
@@ -452,7 +452,7 @@ If `--skip-critique` flag is set, pass Phase 3 items through unchanged.
        {
          "action_id": "SRI-001",
          "issue_number": 123,
-         "issue_url": "https://github.com/ThakiCloud/ai-platform-webui/issues/123",
+         "issue_url": "https://github.com/ThakiCloud/ai-platform-strategy/issues/123",
          "project_item_id": "...",
          "fields_set": ["status", "priority", "size", "estimate", "sprint"]
        }

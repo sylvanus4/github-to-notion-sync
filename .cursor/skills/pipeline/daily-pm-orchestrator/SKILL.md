@@ -411,13 +411,12 @@ Read and follow the `eod-ship` skill (`.cursor/skills/pipeline/eod-ship/SKILL.md
 
 Full pipeline:
 1. **cursor-sync**: Sync `.cursor/` assets (commands, skills, rules) to all 5 repos
-2. **Dev branch merge** (ai-platform-webui): Pull dev branch, merge into tmp
-3. **release-ship** for current project:
+2. **release-ship** for current project:
    - Domain-split commits (domain-commit)
    - Git push
    - PR creation/update
-4. **release-ship** for each of 5 managed projects (sequentially)
-5. **Slack notification**: Consolidated shipping report
+3. **release-ship** for each of 5 managed projects (sequentially)
+4. **Slack notification**: Consolidated shipping report
 
 ```python
 results["phases"]["phase3"] = {

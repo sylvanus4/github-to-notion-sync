@@ -26,6 +26,7 @@ alwaysApply: true
 - Apply Karpathy Opposite Direction Test on all analyses, reviews, and validations
 - Markdown→Notion: follow md-to-notion SKILL.md with table conversion + validation steps
 - google-daily: preflight auth (Slack/Notion/gws) before downstream steps
+- After gws Drive uploads: include shareable Google file URLs (webViewLink or equivalent) in the reply, not upload-only confirmation
 - Presentations: practical demos over abstractions; Steve Jobs for keynotes; Korean speaker scripts
 - NLM slides: upload PDF directly; skip papers >9 months old
 - Notion API: no pipe tables; clean up ephemeral MCP/upload files after automation tasks
@@ -42,8 +43,8 @@ alwaysApply: true
 - Skills: 109+ in 23 subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/`; `.cursor/skills/persona/` — distillation meta-tools (nuwa, distill, self-distillation, etc.) plus founder/investor modes (buffett, munger, musk, naval, bezos, thiel, dalio, altman, zuckerberg); RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
 - Role-based RAG pack: `knowledge-bases/_role-registry.json`, `docs/role-based-wiki-strategy*.md`, `docs/role-wiki-quick-reference*.md` → memory/topics/workspace-facts.md
 - PDF: OpenDataLoader local extract for kb-ingest / paper-review / Cognee (skill `opendataloader`) → memory/topics/workspace-facts.md
-- GitHub: hyojunguy/ai-model-event-stock-analytics; project board #22; tmp branch = webui ONLY
-- gws CLI: `gws` not `gwcli`; gmail +triage --max N; strip keyring prefix → memory/topics/runbooks.md
+- GitHub: hyojunguy/ai-model-event-stock-analytics; project board #22; ai-platform-strategy uses standard dev-branch workflow (tmp-branch convention retired)
+- gws CLI: `gws` not `gwcli`; gmail +triage --max N; strip keyring prefix; OAuth2 via `~/.config/gws/credentials.json` plaintext preferred over encrypted keyring for multi-machine; verify with `gws auth status` (token_valid, credential_storage) → memory/topics/runbooks.md
 - 7-tier platform (Free→Enterprise); Thaki model names only; CPU-first Phase 0 path in financial models
 - AutoResearchClaw at ~/thaki/AutoResearchClaw/; MiroFish at ~/thaki/MiroFish/ (L5 escalation only)
 - ATG: optional accelerator at port 4000; direct MCP fallback when unavailable

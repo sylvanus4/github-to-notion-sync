@@ -48,7 +48,7 @@ Target repositories (default — update per project):
 
 ```yaml
 repositories:
-  - ThakiCloud/ai-platform-webui
+  - ThakiCloud/ai-platform-strategy
   - ThakiCloud/tkai-deploy
   - ThakiCloud/tkai-agents
   - ThakiCloud/research

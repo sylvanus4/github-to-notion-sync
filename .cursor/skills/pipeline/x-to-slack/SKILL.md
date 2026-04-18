@@ -98,7 +98,7 @@ If `slack_search_channels` returns no exact match, the channel may be private. U
 
 The response will contain `Channel: #channel-name (ID: C0XXXXXXXX)`. Extract the `channel_id` from this.
 
-If all steps fail to find a channel, ask the user to clarify.
+If the user did not specify a channel, or all lookup steps fail to find a channel, **default to `#press`** (`C0A7NCP33LG`). Do NOT ask the user to clarify — post to `#press` and note the fallback in the thread.
 
 ### Step 3.5: Pre-Post Quality Gate
 
@@ -359,7 +359,7 @@ Result: Thread with quote tweet context included
 ## Error Handling
 
 - **FxTwitter API failure**: Try Agent-Reach Twitter channel as fallback: `twitter read {tweet_id}` (requires TWITTER_COOKIE configured via agent-reach). If twitter-cli is also unavailable or fails, report error to user and do not post to Slack.
-- **Channel not found (public)**: Fall back to `slack_search_public_and_private` with `in:{channel_name}` and `channel_types: "private_channel"`. If still not found, ask user to provide correct channel name.
+- **Channel not found (public)**: Fall back to `slack_search_public_and_private` with `in:{channel_name}` and `channel_types: "private_channel"`. If still not found, default to `#press` (`C0A7NCP33LG`).
 - **Missing thread_ts**: If Message 1 response doesn't include `message_ts`, use `slack_read_channel` to find the most recent message just posted.
 - **Tweet has no text**: Still process if media or quote exists; note empty text in summary.
 

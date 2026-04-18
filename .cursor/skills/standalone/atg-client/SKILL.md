@@ -101,7 +101,7 @@ curl -X POST http://localhost:4000/api/v1/tools/batch \
     "calls": [
       {"tool": "notion_search", "connector": "notion", "arguments": {"query": "PRD"}},
       {"tool": "slack_list_channels", "connector": "slack", "arguments": {}},
-      {"tool": "github_list_issues", "connector": "github", "arguments": {"repo": "ThakiCloud/ai-platform-webui"}}
+      {"tool": "github_list_issues", "connector": "github", "arguments": {"repo": "ThakiCloud/ai-platform-strategy"}}
     ],
     "agent_id": "daily-am-orchestrator"
   }'

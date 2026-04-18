@@ -1,6 +1,6 @@
 ---
 description: 프론트엔드 핵심 패턴. Tab URL 동기화, 폼 검증(Zod+RHF), Drawer+Form 복합, Mutation/Toast 라이프사이클 패턴.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Form, Mutation & Lifecycle Patterns
