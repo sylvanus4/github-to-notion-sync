@@ -54,11 +54,11 @@ Skills are organized into subdirectories under `.cursor/skills/`. During push, o
 | Alias | Skill Groups |
 |-------|-------------|
 | `ai-model-event-stock-analytics` | `all` |
-| `ai-platform-webui` | `review`, `infra`, `frontend`, `workflow`, `ce`, `ecc`, `anthropic`, `standalone`, `addyosmani`, `omc`, `planning`, `notion`, `obs` |
+| `ai-platform-webui` | `all` |
 | `github-to-notion-sync` | `gws`, `nlm`, `pipeline`, `workflow`, `anthropic`, `standalone`, `addyosmani`, `omc`, `notion` |
 | `ai-template` | `workflow`, `anthropic`, `ce`, `ecc`, `standalone`, `addyosmani`, `omc` |
 
-### Available Skill Groups (33 total)
+### Available Skill Groups (43 total)
 
 | Group | Description | Skill Count |
 |-------|------------|-------------|
@@ -66,6 +66,7 @@ Skills are organized into subdirectories under `.cursor/skills/`. During push, o
 | `kwp` | Anthropic Knowledge Work Plugins | 95 |
 | `trading` | Stock analysis, Toss Securities, MiroFish, screener tabs | 87 |
 | `agency` | AI specialist agent personas | 69 |
+| `persona` | Persona distillation and role-play (Buffett, Jobs, etc.) | 51 |
 | `review` | Code review, testing, shipping, CI | 36 |
 | `planning` | PRD, spec, policy, planning docs | 36 |
 | `pipeline` | Daily orchestrators, morning/EOD, meeting, portfolio | 34 |
@@ -81,27 +82,36 @@ Skills are organized into subdirectories under `.cursor/skills/`. During push, o
 | `role` | Cross-role perspective analysis (CEO, CTO, PM, etc.) | 14 |
 | `nlm` | NotebookLM notebooks, slides, video, research | 14 |
 | `gws` | Google Workspace (Gmail, Calendar, Drive, Sheets) | 14 |
+| `game-studio` | Browser game development (agents, skills, pipeline) | 13 |
 | `knowledge-base` | Karpathy-style LLM Knowledge Base pipeline | 12 |
 | `marketing` | Marketing ops, content, SEO, growth | 11 |
+| `role-replacement` | Role replacement case studies (EA, COO, trader, etc.) | 10 |
 | `workflow` | Workflow patterns, orchestration, planning | 10 |
 | `ecc` | Everything Claude Code patterns | 10 |
 | `alphaear` | AlphaEar financial intelligence suite | 10 |
 | `pm` | PM skills (phuryn-based) | 9 |
 | `obsidian` | Obsidian vault management via CLI | 9 |
 | `kb-collectors` | Role-based KB daily collectors | 9 |
+| `diagrams` | Mermaid/PlantUML diagram generation (class, flow, etc.) | 8 |
+| `harness` | Domain harness orchestrators (engineering, sales, etc.) | 8 |
 | `release` | Weekly release ops (collect, QA, deploy) | 7 |
 | `pika` | AI video generation (Pika, Muapi) | 7 |
 | `notion` | Notion publishing, sync, templates | 7 |
+| `monetizable` | Monetizable skill packages (onboarding, proposals, etc.) | 7 |
+| `vibe-trading` | Vibe-Trading MCP integration (backtest, swarm, quant) | 7 |
 | `axis` | 6-Axis Personal Assistant system | 7 |
 | `ops` | Batch processing, evaluation, inbox patterns | 6 |
+| `content` | Content Skill Graph (setup, produce, voice, audit) | 5 |
 | `omc` | Oh-My-ClaudeCode skills | 5 |
+| `data-designer` | Data modeling and schema design | 1 |
+| `integration-test-migration` | Go backend integration test migration | 1 |
 
 > **Note**: `.claude/skills/` is also synced as a separate category (always full sync, no per-target group filtering).
 
 ### Rationale for Per-Repo Selection
 
 - **ai-model-event-stock-analytics**: Main project — needs every group
-- **ai-platform-webui**: K8s platform — needs review (code quality), infra (Helm/K8s), frontend (React/FSD), workflow (orchestration), ce/ecc (agent patterns), anthropic (doc generation), standalone (utilities)
+- **ai-platform-webui**: Main development workspace with 970+ skills — needs every group (same as ai-model-event-stock-analytics)
 - **github-to-notion-sync**: Notion automation — needs gws (Google Workspace), nlm (NotebookLM), pipeline (orchestration), workflow (patterns), anthropic (doc generation), standalone (utilities)
 - **ai-template**: Template repo — needs only generic, project-agnostic groups: workflow, anthropic, ce, ecc, standalone
 

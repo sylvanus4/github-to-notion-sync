@@ -61,8 +61,58 @@
           "from": "REQ-001",
           "to": "US-001",
           "relation": "derives-from"
+            }
+          ]
+        },
+        "ai-model-event-stock-analytics": {
+          "description": "Stock analytics pipeline — file-based PRDs in docs/ and specs/, no Notion PRD integration",
+          "change_detection": "method-c-git-diff",
+          "nodes": [
+            {
+              "id": "FR-1",
+              "type": "requirement",
+              "title": "일일 주식 데이터 동기화",
+              "source_file": "docs/specs/daily-stock-sync.md"
+            },
+            {
+              "id": "FR-2",
+              "type": "requirement",
+              "title": "멀티팩터 종목 스크리닝",
+              "source_file": "docs/specs/stock-screening.md"
+            },
+            {
+              "id": "FR-3",
+              "type": "requirement",
+              "title": "기술적 분석 (Turtle/Bollinger/Oscillator)",
+              "source_file": "docs/specs/technical-analysis.md"
+            },
+            {
+              "id": "FR-4",
+              "type": "requirement",
+              "title": "일일 한국어 리포트 생성",
+              "source_file": "docs/specs/daily-report.md"
+            },
+            {
+              "id": "FR-5",
+              "type": "requirement",
+              "title": "Slack 배포 및 알림",
+              "source_file": "docs/specs/slack-distribution.md"
+            },
+            {
+              "id": "POL-1",
+              "type": "policy",
+              "title": "KIS 거래 안전 규칙",
+              "source_file": ".cursor/rules/kis-safety.mdc"
+            }
+          ],
+          "edges": [
+            { "from": "FR-1", "to": "FR-2", "relation": "derives-from", "note": "동기화된 데이터가 스크리닝 입력" },
+            { "from": "FR-2", "to": "FR-3", "relation": "derives-from", "note": "스크리닝 통과 종목에 TA 적용" },
+            { "from": "FR-3", "to": "FR-4", "relation": "derives-from", "note": "TA 결과가 리포트에 포함" },
+            { "from": "FR-4", "to": "FR-5", "relation": "implements", "note": "리포트를 Slack으로 배포" },
+            { "from": "POL-1", "to": "FR-1", "relation": "constrains", "note": "KIS 안전 규칙이 데이터 소스 제한" },
+            { "from": "POL-1", "to": "FR-5", "relation": "constrains", "note": "주문 실행 전 확인 의무" }
+          ]
         }
-      ]
+      }
     }
-  }
-}

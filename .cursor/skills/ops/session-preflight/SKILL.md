@@ -62,7 +62,9 @@ Report: present / missing / expired (if checkable).
 | Scan history | Last scan date per portal | > 7 days for daily portals |
 | Batch state | `batch/batch-state.tsv` running items | Running > 30 min (likely stale) |
 | Report index | `data/ops/report-index.jsonl` size | > 5000 entries (prune needed) |
-| gbrain | `gbrain doctor --json` stale embeddings count | > 50 stale embeddings |
+| gbrain health | `gbrain health --json` composite score | Score < 50 (RED) |
+| gbrain stale | `gbrain search "compiled-truth" --limit 50 --json` | Any compiled truth older than its sources |
+| gbrain embeddings | `gbrain doctor --json` stale embeddings count | > 50 stale embeddings |
 
 ### 4. Pending Items
 
@@ -81,7 +83,10 @@ Quick connectivity check (non-blocking, skip on timeout):
 | Slack | Verify `SLACK_BOT_TOKEN` format |
 | Notion | Check MCP server availability |
 | GitHub | `gh auth status` |
-| gbrain | `~/.local/bin/gbrain doctor --json` (check page count, stale embeddings) |
+| gbrain doctor | `~/.local/bin/gbrain doctor --json` (connectivity, schema, page count, stale embeddings) |
+| gbrain health | `~/.local/bin/gbrain health --json` (composite 0-100 across freshness, links, embeddings, citations, filing, compiled truths) |
+| gbrain features | `~/.local/bin/gbrain features --json` (v0.10 capability status: signal_detection, brain_first_lookup, citation_enforcement, filing_protocol, autopilot, webhook_transforms, cron_scheduler, acl) |
+| gbrain autopilot | `~/.local/bin/gbrain autopilot status --json` (daemon running, last_sync, last_extract, last_embed) |
 
 ## Execution Flow
 
@@ -109,6 +114,7 @@ Execute checks in categories 1-5. Each check returns:
 | Data Freshness | PASS | All data < 3 days old |
 | Pending Items | WARN | 5 inbox items, 2 todo items |
 | Services | PASS | Slack, Notion, GitHub OK |
+| gbrain | PASS | Health 85/100, Autopilot running, 0 stale truths |
 
 ## Action Items
 1. [WARN] Set SLACK_USER_TOKEN for orphan cleanup
@@ -124,6 +130,9 @@ Based on findings, suggest the most productive first action:
 - If data stale: "Run `weekly-stock-update` first"
 - If inbox full: "Process inbox before adding more items"
 - If batch errors: "Retry failed batch items"
+- If gbrain health < 50: "Run `gbrain-maintain` to fix brain health"
+- If gbrain autopilot down: "Restart autopilot with `gbrain autopilot start`"
+- If stale compiled truths: "Run `gbrain compile` on stale topics"
 - If all clear: "Ready for daily pipeline"
 
 ## Output
@@ -140,7 +149,7 @@ Based on findings, suggest the most productive first action:
 - **setup-doctor**: Delegates to setup-doctor for deep environment issues
 - **pipeline-inbox**: Checks inbox queue depth
 - **batch-agent-runner**: Checks for stale running items
-- **gbrain**: Checks entity page count and stale embedding ratio
+- **gbrain**: Full v0.10 diagnostic (doctor + health score + features + autopilot + stale compiled truths)
 
 ## Constraints
 

@@ -18,6 +18,7 @@ metadata:
 | Swagger URL                   | 선택     | 없으면 프로젝트 내 swagger.json 자동 탐색      |
 | Figma URL                     | 선택     | 없으면 기존 유사 화면 패턴으로 대체            |
 | 기획서 경로                   | 선택     | 없으면 자동 생성                               |
+| `--with-pge`                  | 선택     | PGE 루브릭 평가 활성화 (CP2.5)                 |
 
 ## Request Classification (최우선)
 
@@ -138,6 +139,8 @@ Phase 7:   TypeScript 검증
 Phase 7.5: Spec Sync (코드 ↔ 기획서 동기화)
 ━━━ CHECKPOINT 2: Design Review ━━━
 Fix Loop:  Critical 자동 수정 → 재검증 → Spec Sync (최대 3회)
+━━━ CHECKPOINT 2.5: PGE Evaluation (Optional, --with-pge) ━━━
+PGE Loop:  workflow-eval-opt + pge-rubric.yaml 4차원 채점 (최대 2회)
 ```
 
 ### Phase Summary
@@ -159,6 +162,7 @@ Phase별 Fallback 전략과 실패 복구: [error-recovery](references/error-rec
 - **CP 0.5** (Discovery): API/화면/참조 패턴 확인 → 사용자 승인 (Degraded 항목 보고)
 - **CP 1** (Plan): TDS 매핑 + 유사 컴포넌트 + Entity 미리보기 + 생성 파일 목록 → 승인
 - **CP 2** (Design Review): `design-review` 스킬 → Critical 자동 수정 ([Fix Loop](references/fix-loop.md))
+- **CP 2.5** (PGE Evaluation, Optional): `--with-pge` 플래그 시, `workflow-eval-opt` + `pge-rubric.yaml` 기반 4차원 루브릭 채점 → 미달 시 Phase 5 복귀 (최대 2회)
 
 상세: [Phase 0 Resume](references/phase-resume.md) | [Phase 0.2 Input Intake](references/input-intake.md) | [Phase 0.5 Auto-Discovery](references/auto-discovery.md) | [Entity Scaffold](references/entity-scaffold-from-swagger.md) | [Phase 5 Code Generation](references/code-generation.md) | [Error Recovery](references/error-recovery.md)
 

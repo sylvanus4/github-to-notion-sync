@@ -71,7 +71,9 @@ git branch --show-current
 git log --oneline -5
 ```
 
-1. If working directory is clean, stop and inform the user.
+1. If working directory is clean:
+   - **Standalone mode**: Stop and inform the user.
+   - **Pipeline mode** (invoked by `eod-ship`, `sod-ship`, `morning-ship`): Do NOT stop. Set `STEP2_SKIPPED=true`, skip Steps 2–3 (no new commits to create or push), and proceed directly to Step 4 for orphan detection.
 2. Extract the current branch name.
 3. Extract issue number from branch: `issue/{NUMBER}-*` or `epic/{NUMBER}`.
 4. Check for existing PRs: `gh pr list --head tmp --json number,url --jq '.[0]'`.
@@ -139,6 +141,30 @@ echo "$REPO_URL" | grep -q 'ai-platform-webui' && IS_WEBUI=true
 If `--no-issue` flag is set, skip to Step 5 (or Step 7 if `IS_WEBUI`).
 
 This step converts the domain-split commits from Step 2 into tracked GitHub issues on ThakiCloud Project #5. It follows patterns from the [commit-to-issue](../commit-to-issue/SKILL.md) skill. For project field IDs, option IDs, and GraphQL queries, see [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md).
+
+#### 4-fallback: Orphan Detection (Pipeline Mode)
+
+> **Pipeline mode only**: If Step 2 produced zero commits (`STEP2_SKIPPED=true` because the working tree was clean), Step 4 MUST still run orphan detection instead of exiting.
+
+When `STEP2_SKIPPED=true`:
+
+1. Check for unpushed commits:
+
+```bash
+git log origin/tmp..HEAD --oneline
+```
+
+2. Check for commits in the last 24 hours without `#NNNN` references:
+
+```bash
+git log --oneline --since="24 hours ago" HEAD | grep -v '#[0-9]'
+```
+
+3. Filter out merge commits and commits already linked to an existing issue.
+4. For any orphan commits found, proceed to 4b to create issues.
+5. If zero orphan commits found, log `{orphan_fallback: "clean", orphan_count: 0}` and skip to Step 5 (or Step 7 if `IS_WEBUI`).
+
+**Do NOT skip Step 4 just because Step 2 was a no-op.**
 
 #### 4a. Analyze commits from Step 2
 

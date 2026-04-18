@@ -93,6 +93,22 @@ Validation rules:
 - New entries always start at HOT tier with attention_score 1.0
 - `related_topics` auto-populated by keyword matching against existing topics
 
+### Step 3.5: Security Scan
+
+Before writing to any memory layer, scan the entry for security threats:
+
+```bash
+python scripts/memory/security_scan.py "entry content" --strict
+```
+
+| Result | Action |
+|--------|--------|
+| CLEAN | Proceed to Route |
+| HIGH (unicode, exfil) | Log warning, review context, proceed if benign |
+| CRITICAL (injection, secret) | **BLOCK write**. Strip or redact the offending content before retry |
+
+This step prevents prompt injection payloads, leaked credentials, invisible Unicode steganography, and exfiltration URLs from being persisted into long-term memory.
+
 ### Step 4: Route
 
 Write to the classified destination:

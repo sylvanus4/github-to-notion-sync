@@ -82,6 +82,12 @@ When PRD/spec documents live as local `.md` files (not Notion), detect changes v
 
 This method is essential for repos like `ai-model-event-stock-analytics` where specs are `.md` files versioned in git rather than Notion pages.
 
+**FR-N ID mapping for Method C**: When parsing local `.md` files, map `## FR-N` (e.g., `## FR-1`, `## FR-2.1`) headings to `requirement` node type with ID prefix `FR-`. Mapping rules:
+- `## FR-N` or `## FR-N.M` → node type `requirement`, ID = heading text (e.g., `FR-1`, `FR-2.1`)
+- `## 기능-N` → alias for `FR-N`, same mapping
+- Nested sub-headings under `FR-N` (e.g., `### FR-1-US-1`) → `user-story` node derived-from the parent `FR-N`
+- If the file uses `## REQ-N` format instead, map to `requirement` with `REQ-` prefix as already defined in `node-types.md`
+
 **Method D — Manual Diff Input**:
 User provides before/after content directly.
 

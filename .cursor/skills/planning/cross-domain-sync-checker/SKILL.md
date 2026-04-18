@@ -72,6 +72,18 @@ When the project does not use Figma (no `--design` provided and no Figma MCP con
 - Note in the report header: "디자인 도구(Figma) 미사용 프로젝트 — 디자인 축 제외됨."
 - Focus on **PRD ↔ code**, **PRD ↔ policy**, and **code ↔ policy** axes instead.
 
+### Single-product simplified workflow
+
+When the project is a single-product repository with file-based PRDs (`.md` specs in `docs/` or `specs/`) and no Notion/Figma integration:
+
+1. **Skip SSoT mapping table** — treat each local `.md` spec file as the single source of truth for its domain.
+2. **Reduce scan axes** to 3: PRD ↔ code, PRD ↔ policy, code ↔ policy.
+3. **Use `git diff` for change detection** instead of Notion timestamp comparison.
+4. **Simplify gap table** to a flat list: `| Spec file | Code path | Status | Gap description |`.
+5. **Skip cross-team Slack notifications** — output the sync report as a local `.md` file only.
+6. Auto-detect this mode when: no `--notion` flag, no `--design` flag, and `docs/**/*.md` or `specs/**/*.md` files exist in the repo.
+7. Note in report header: "단일 제품 파일 기반 PRD 모드 — Notion/Figma 축 제외됨."
+
 ## Mode selection
 
 | Mode | When to use |

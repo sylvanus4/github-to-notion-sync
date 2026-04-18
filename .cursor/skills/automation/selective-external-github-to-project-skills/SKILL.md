@@ -1,14 +1,17 @@
 ---
 name: selective-external-github-to-project-skills
 description: >-
-  Evaluate external GitHub repositories for skills, patterns, or agent
-  frameworks and selectively adopt only high-value items into the local skill
-  ecosystem. Scores each candidate on value, overlap, maintenance cost, and
-  trigger collision risk before creating or updating SKILL.md files. Use when
-  the user asks to "evaluate this repo for skills", "selective adopt", "좋은
-  것만 반영", "외부 깃헙 스킬 선별", "cherry-pick skills from repo",
+  Discover and selectively adopt skills from multiple sources: GitHub
+  repositories, skills.sh directory, and well-known skill endpoints. Evaluates
+  candidates on value, overlap, maintenance cost, and trigger collision risk
+  before creating or updating SKILL.md files. Supports unified search across
+  all sources in one command. Use when the user asks to "evaluate this repo for
+  skills", "selective adopt", "search skills.sh", "discover skills", "find
+  skills for X", "unified skill search", "well-known skills", "좋은 것만 반영",
+  "외부 깃헙 스킬 선별", "cherry-pick skills from repo",
   "selective-external-github-to-project-skills", "외부 레포 분석 후 선별
-  반영", or shares an external GitHub URL with intent to adopt patterns
+  반영", "스킬 검색", "스킬 허브 검색", or shares an external GitHub URL,
+  skills.sh query, or well-known endpoint URL with intent to adopt patterns
   selectively. Do NOT use for wholesale repo-to-skill conversion without
   selection (use skill-seekers). Do NOT use for syncing Anthropic KWP upstream
   (use kwp-sync). Do NOT use for .cursor/ asset sync across own repos (use
@@ -16,13 +19,15 @@ description: >-
   external source (use create-skill).
 metadata:
   author: "autoskill-evolve"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "automation"
 tags:
   - skills
   - governance
   - import
   - github
+  - discovery
+  - skills-hub
 composes:
   - skill-optimizer
   - skill-upgrade-validator
@@ -31,22 +36,53 @@ composes:
 
 # Selective External GitHub to Project Skills
 
-Assess external repositories (skills, agent platforms, tooling) for patterns worth adopting into `.cursor/skills/`, and merge only justified pieces after scoring and de-duplication.
+Discover and selectively adopt skills from multiple sources into `.cursor/skills/`. Supports three discovery channels: GitHub repos, skills.sh directory, and well-known skill endpoints. Merge only justified pieces after scoring and de-duplication.
 
 ## Input
 
-The user provides:
+The user provides one of:
 1. **GitHub URL** or repo identifier to evaluate
-2. **Intent** (optional) — "adopt all good patterns", "check if X is useful", specific area of interest
-3. **Scope** (optional) — skills only, rules only, both, or specific subdirectories
+2. **skills.sh search query** — a keyword or phrase to search the skills.sh directory (e.g., "search skills.sh for code review", "skills.sh: deployment")
+3. **Well-known endpoint URL** — a base URL to probe for `/.well-known/skills/index.json` (e.g., "check skills at https://example.com")
+4. **Unified search query** — a keyword to search across ALL sources simultaneously (e.g., "find skills for testing", "unified search: observability")
+
+Plus optional:
+- **Intent** — "adopt all good patterns", "check if X is useful", specific area of interest
+- **Scope** — skills only, rules only, both, or specific subdirectories
 
 ## Workflow
 
-### Step 1: Upstream Survey
+### Step 1: Source Discovery
 
+Route based on input type:
+
+#### 1A: GitHub Repository (default)
 1. Clone or fetch the repo (read-only)
 2. Summarize: purpose, license, scope, maintenance status, last commit date
 3. Inventory artifacts: SKILL.md files, rules, commands, scripts, docs
+
+#### 1B: skills.sh Directory Search
+1. Query `https://skills.sh/api/search?q={query}` via WebFetch
+2. If the API is unavailable, fall back to `WebSearch("site:skills.sh {query}")`
+3. Parse results: extract skill name, description, source URL, author, install count
+4. For each promising result, fetch the full skill definition from the listed source URL
+5. Proceed to Step 2 with fetched skill definitions as artifacts
+
+#### 1C: Well-Known Endpoint Discovery
+1. Probe `{base_url}/.well-known/skills/index.json` via WebFetch
+2. If the index exists, parse it: extract skill entries with name, description, version, download URL
+3. For each entry, fetch the full SKILL.md content from the download URL
+4. If `/.well-known/skills/index.json` returns 404, report "No skill index found at this endpoint" and stop
+5. Proceed to Step 2 with fetched skill definitions as artifacts
+
+#### 1D: Unified Search (all sources)
+1. Run Steps 1A, 1B, and 1C in parallel:
+   - 1A: `gh search repos "{query}" --limit 10` for GitHub repos containing SKILL.md files
+   - 1B: skills.sh API search as described above
+   - 1C: Probe a configurable list of well-known endpoints (default: empty; user can pass `--endpoints url1,url2`)
+2. Deduplicate results by skill name across all sources
+3. Merge into a unified candidate list with source attribution (GitHub / skills.sh / well-known)
+4. Proceed to Step 2 with the merged list
 
 ### Step 2: Map to Local Needs
 
@@ -107,6 +143,9 @@ Run `skill-optimizer` audit on all touched skills to verify quality standards.
 | License incompatible | Flag and skip affected artifacts |
 | Trigger collision detected | Present conflict and ask user to resolve |
 | Quality score below threshold | Skip with explanation, offer manual override |
+| skills.sh API unreachable | Fall back to `WebSearch("site:skills.sh {query}")` |
+| Well-known endpoint 404 | Report "No skill index found", suggest GitHub or skills.sh search |
+| Unified search partial failure | Continue with sources that responded, note which failed |
 
 ## Examples
 
@@ -133,3 +172,40 @@ Actions:
 4. Merge approved patterns into existing skill
 
 Result: 2 patterns merged into skill-upgrade-validator, quality verified
+
+### Example 3: skills.sh directory search
+
+User says: "skills.sh에서 code review 관련 스킬 찾아봐"
+
+Actions:
+1. Query `https://skills.sh/api/search?q=code+review` via WebFetch
+2. Parse 6 results, fetch full definitions for top 4
+3. Score against existing deep-review, simplify, code-review-all
+4. 1 fills a gap (PR size analysis), 3 overlap
+5. Present ranked table, adopt 1 after approval
+
+Result: 1 new skill adopted from skills.sh, 3 skipped as redundant
+
+### Example 4: Well-known endpoint discovery
+
+User says: "check skills at https://acme-corp.dev"
+
+Actions:
+1. Probe `https://acme-corp.dev/.well-known/skills/index.json`
+2. Index returns 8 skills, fetch full SKILL.md for each
+3. Score: 2 relevant, 6 out of scope
+4. Present candidates, adopt 1 after approval
+
+Result: 1 skill adopted from well-known endpoint
+
+### Example 5: Unified search
+
+User says: "find skills for observability"
+
+Actions:
+1. Parallel search: GitHub repos (3 results), skills.sh (5 results), no well-known endpoints configured
+2. Deduplicate: 2 appear in both GitHub and skills.sh
+3. Score 6 unique candidates against existing monitoring-specialist, sre-devops-expert
+4. 2 fill gaps, present ranked table
+
+Result: 2 skills adopted from unified search (1 GitHub, 1 skills.sh)

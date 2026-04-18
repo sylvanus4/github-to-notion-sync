@@ -10,17 +10,18 @@ description: >-
   (use today). Do NOT use for general web search (use parallel-web-search).
   Do NOT use for Cognee knowledge graph queries (use cognee).
 metadata:
-  version: "1.0.0"
+  version: "2.0.0"
   category: "pipeline"
   author: "thaki"
   composable_with:
     - daily-am-orchestrator
     - unified-knowledge-search
     - gbrain-bridge
+    - gbrain-maintain
 ---
-# gbrain Briefing — Entity-Aware Morning Intelligence
+# gbrain Briefing — Entity-Aware Morning Intelligence (v0.10)
 
-Generate a structured entity briefing from gbrain's people, companies, deals, and meetings data. Designed to run as Phase 8.5 of `daily-am-orchestrator`.
+Generate a structured entity briefing from gbrain's people, companies, deals, and meetings data. Includes brain health score (0-100), feature availability, autopilot daemon status, and stale compiled truth detection. Designed to run as Phase 8.5 of `daily-am-orchestrator`.
 
 ## Prerequisites
 
@@ -37,13 +38,49 @@ Set status to `"skipped"` and exit gracefully when:
 
 ## Procedure
 
-### Step 1: Health Check
+### Step 1: Health Check & Brain Status
+
+Run the full v0.10 diagnostic suite. All three commands are independent; run in parallel when possible.
+
+#### 1a. Doctor (connectivity + schema)
 
 ```bash
 ~/.local/bin/gbrain doctor --json
 ```
 
 Parse output to confirm connectivity and page count. If `pages < 5`, skip with reason.
+
+#### 1b. Health Score (composite 0-100)
+
+```bash
+~/.local/bin/gbrain health --json
+```
+
+Captures the composite brain health score across dimensions: freshness, link density, embedding coverage, compiled truth ratio, citation density, and filing compliance. Store the `score` and per-dimension breakdown for the briefing.
+
+#### 1c. Features Check
+
+```bash
+~/.local/bin/gbrain features --json
+```
+
+Returns enabled/disabled status for each v0.10 capability (e.g. `signal_detection`, `brain_first_lookup`, `citation_enforcement`, `filing_protocol`, `autopilot`, `webhook_transforms`, `cron_scheduler`, `acl`). Store the full feature map.
+
+#### 1d. Autopilot Status
+
+```bash
+~/.local/bin/gbrain autopilot status --json
+```
+
+Check if the persistent autopilot daemon is running. Capture `running` (bool), `pid`, `last_sync`, `last_extract`, `last_embed`, and `uptime`. If the command fails or returns `running: false`, flag as `autopilot_down` for the briefing alert section.
+
+#### 1e. Stale Compiled Truths
+
+```bash
+~/.local/bin/gbrain search "compiled-truth" --limit 50 --json
+```
+
+For each compiled truth page, compare the `updated_at` timestamp against the `updated_at` of its source pages (linked via backlinks). A compiled truth is **stale** if any source page was updated after the compiled truth's last update. Collect stale items for the briefing alert.
 
 ### Step 2: Gather Entity Intelligence
 
@@ -110,6 +147,35 @@ Compile the gathered data into a structured Korean briefing:
 ### 주요 아이디어/의사결정
 - {idea/decision title} — {summary}
 
+### 🧠 Brain Health
+- **종합 점수**: {score}/100 {🟢 ≥80 | 🟡 50-79 | 🔴 <50}
+- 신선도: {freshness}/100 | 링크 밀도: {link_density}/100
+- 임베딩 커버리지: {embedding_coverage}/100 | 인용 밀도: {citation_density}/100
+- 컴파일 진실 비율: {compiled_truth_ratio}/100 | 파일링 준수: {filing_compliance}/100
+
+### ⚙️ Features (v0.10)
+| 기능 | 상태 |
+|------|------|
+| signal_detection | ✅/❌ |
+| brain_first_lookup | ✅/❌ |
+| citation_enforcement | ✅/❌ |
+| filing_protocol | ✅/❌ |
+| autopilot | ✅/❌ |
+| webhook_transforms | ✅/❌ |
+| cron_scheduler | ✅/❌ |
+| acl | ✅/❌ |
+
+### 🤖 Autopilot
+- 상태: {🟢 Running | 🔴 Stopped}
+- 마지막 동기화: {last_sync} | 마지막 추출: {last_extract} | 마지막 임베딩: {last_embed}
+- 가동 시간: {uptime}
+
+### ⚠️ Alerts
+- 오래된 컴파일 진실: {N}건 (소스 갱신 후 미반영)
+  - {stale_truth_1}: 소스 {source_page} ({source_updated}) > 컴파일 ({compiled_updated})
+- Autopilot 다운: {yes/no}
+- 비활성 기능: {disabled_features list}
+
 ### 통계
 - 총 엔티티: {N}페이지
 - 최근 7일 업데이트: {N}건
@@ -141,6 +207,22 @@ Write output to `outputs/daily-am/{date}/phase-8.5-gbrain-briefing.json`:
     "meetings_found": N,
     "ideas_found": N,
     "stale_embeddings": N
+  },
+  "brain_health": {
+    "composite_score": 85,
+    "freshness": 90,
+    "link_density": 80,
+    "embedding_coverage": 95,
+    "citation_density": 70,
+    "compiled_truth_ratio": 85,
+    "filing_compliance": 88
+  },
+  "features": {"signal_detection": true, "brain_first_lookup": true, "...": "..."},
+  "autopilot": {"running": true, "uptime": "3d 12h", "last_sync": "...", "last_extract": "...", "last_embed": "..."},
+  "alerts": {
+    "stale_compiled_truths": 2,
+    "autopilot_down": false,
+    "disabled_features": []
   },
   "briefing_markdown": "...",
   "slack_posted": true,

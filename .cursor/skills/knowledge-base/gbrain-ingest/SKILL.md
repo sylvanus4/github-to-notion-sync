@@ -1,15 +1,39 @@
+---
+name: gbrain-ingest
+version: 2.0.0
+description: >-
+  Wrapper around gbrain's ingest capabilities adapted to the project's
+  file-first pipeline conventions. Accepts pipeline output files (`outputs/`
+  manifests), extracts entity-relevant content, and routes it to gbrain via
+  MCP tools. Supports `--ambient` mode for lightweight signal detection.
+  Enforces gbrain v0.10 conventions: brain-first lookup, Iron Law of
+  Back-Linking, inline citations, and subject-based filing.
+trigger: >-
+  Use when the user asks to "ingest to gbrain", "push pipeline output to
+  gbrain", "gbrain ingest", "route output to gbrain", "entity ingest",
+  "gbrain에 인제스트", "파이프라인 출력 gbrain", "gbrain-ingest", "signal
+  detect", "ambient capture", "시그널 감지", or when invoked by
+  `knowledge-daily-aggregator` (Phase 5.7) or `meeting-digest` post-hook.
+do_not_use: >-
+  Do NOT use for KB topic ingestion (use kb-ingest). Do NOT use for
+  bidirectional KB-gbrain sync (use gbrain-bridge). Do NOT use for federated
+  search (use unified-knowledge-search). Do NOT use for raw gbrain MCP
+  operations without pipeline context (use gbrain MCP tools directly). Do NOT
+  use for comprehensive brain health checks (use gbrain-maintain).
+composable_with:
+  - knowledge-daily-aggregator
+  - meeting-digest
+  - gbrain-briefing
+  - gbrain-maintain
+  - ai-context-router
+tags: [gbrain, ingest, pipeline, entity, signal-detection]
+---
+
 # gbrain-ingest
 
-Wrapper around gbrain's ingest capabilities adapted to the project's file-first pipeline conventions. Accepts pipeline output files (`outputs/` manifests), extracts entity-relevant content, and routes it to gbrain via MCP tools. Follows the `outputs/{pipeline}/{date}/manifest.json` pattern.
+Wrapper around gbrain's ingest capabilities adapted to the project's file-first pipeline conventions. Accepts pipeline output files (`outputs/` manifests), extracts entity-relevant content, and routes it to gbrain via MCP tools. Follows the `outputs/{pipeline}/{date}/manifest.json` pattern. Supports `--ambient` mode for lightweight signal detection on any conversation context.
 
-## Triggers
-
-Use when the user asks to "ingest to gbrain", "push pipeline output to gbrain", "gbrain ingest", "route output to gbrain", "entity ingest", "gbrain에 인제스트", "파이프라인 출력 gbrain", "gbrain-ingest", or when invoked by `knowledge-daily-aggregator` (Phase 5.7) or `meeting-digest` post-hook.
-
-Do NOT use for KB topic ingestion (use kb-ingest).
-Do NOT use for bidirectional KB-gbrain sync (use gbrain-bridge).
-Do NOT use for federated search (use unified-knowledge-search).
-Do NOT use for raw gbrain MCP operations without pipeline context (use gbrain MCP tools directly).
+Enforces the gbrain v0.10 conventions: brain-first lookup before external APIs, Iron Law of Back-Linking on every `put_page`, inline `[Source: ...]` citations, and subject-based filing (see `gbrain-conventions/` reference files).
 
 ## Input Sources
 
@@ -23,7 +47,42 @@ Do NOT use for raw gbrain MCP operations without pipeline context (use gbrain MC
 | Bespin news | `outputs/bespin-news/{date}/` | Companies mentioned in news articles |
 | Manual | User-provided text or file | Any entity type |
 
-## Workflow
+## Modes
+
+### Pipeline Mode (default)
+
+Reads `outputs/{pipeline}/{date}/manifest.json`, extracts entities, and routes them to gbrain with full enrichment. Used by `knowledge-daily-aggregator` and `meeting-digest`.
+
+### Ambient / Signal-Detector Mode (`--ambient`)
+
+Lightweight mode inspired by gbrain v0.10's `signal-detector` skill. Runs as a low-cost subagent during any conversation to capture:
+- **Original ideas**: novel thoughts worth preserving → `ideas/{slug}`
+- **Entity mentions**: people, companies, projects referenced in passing → `people/` or `companies/` (only if notable — see Signal Strength Filter)
+- **Decisions**: choices with rationale → timeline entry on relevant page
+
+Ambient mode skips the full pipeline workflow. Instead:
+1. Scan conversation context for signals
+2. Brain-first lookup each candidate (Step 0 below)
+3. If new and notable → `put_page` with `[Source: conversation, {date}]`
+4. If exists → `add_timeline_entry` only if the new signal adds information
+
+## Workflow (Pipeline Mode)
+
+### Step 0: Brain-First Lookup (MANDATORY)
+
+Before ANY external API call or entity creation, check if the brain already knows about this entity. This is the full 5-step brain-first protocol from `gbrain-conventions/brain-first.md`:
+
+1. **`gbrain search "{entity name}"`** — keyword search for existing pages
+2. **`gbrain query "natural question about {entity name}"`** — hybrid search for related context
+3. **`gbrain get <slug>`** — if a page exists, read the full page (especially its Compiled Truth section)
+4. **`gbrain get_backlinks <slug>`** — check who references this entity for relationship context
+5. **`gbrain get_timeline <slug>`** — check recent events involving this entity
+
+After lookup, apply these rules:
+- **Merge, don't overwrite**: New evidence APPENDS to the Evidence Trail; Compiled Truth only updates if new facts contradict or extend existing truth
+- **Skip if stale-identical**: If the new information adds nothing to what the brain already has, skip the write
+
+This step prevents duplicate pages and ensures the brain compounds knowledge rather than scattering it.
 
 ### Step 1: Source Detection
 
@@ -53,20 +112,36 @@ Extract entities from the source using content-appropriate patterns:
 - Stock ticker → company entity enrichment
 - Only create company pages for stocks with BUY/STRONG_BUY signals (skip routine data)
 
-### Step 3: Deduplication Check
+### Step 3: Filing Decision (gbrain v0.10 repo-architecture)
+
+Determine the correct directory path by primary subject. Follow `gbrain-conventions/filing-rules.md`:
+
+| Primary subject | Directory | Example slug |
+|---|---|---|
+| A person | `people/` | `people/jane-doe` |
+| A company or org | `companies/` | `companies/acme-corp` |
+| An idea or concept | `ideas/` | `ideas/edge-compute-strategy` |
+| A project | `projects/` | `projects/platform-v2` |
+| A deal or opportunity | `deals/` | `deals/acme-enterprise-2026` |
+| A meeting or event | `meetings/` | `meetings/2026-04-10-design-review` |
+| A topic or domain | `topics/` | `topics/kubernetes-scheduling` |
+
+If the content spans multiple subjects, file under the PRIMARY subject and add back-links from secondary subjects.
+
+### Step 4: Deduplication Check
 
 For each extracted entity:
 1. Call `resolve_slugs` with entity name variations
 2. If slug resolves → existing page, use `add_timeline_entry`
 3. If no match → call `put_page` to create new entity page
 
-### Step 4: Entity Page Creation/Update
+### Step 5: Entity Page Creation/Update
 
-**New entity**: Call `put_page` with:
+**New entity**: Call `put_page` with inline citation:
 ```json
 {
   "slug": "people/jane-doe",
-  "content": "# Jane Doe\n\n## Compiled Truth\nSoftware Engineer at Acme Corp.\n\n## Evidence Trail\n- [2026-04-10] First seen in meeting digest: Design Review",
+  "content": "# Jane Doe\n\n## Compiled Truth\nSoftware Engineer at Acme Corp. [Source: meeting-digest, 2026-04-10]\n\n## Evidence Trail\n- [2026-04-10] First seen in meeting digest: Design Review [Source: meeting-digest, 2026-04-10]",
   "frontmatter": {
     "type": "person",
     "source_pipeline": "meeting-digest",
@@ -79,20 +154,42 @@ For each extracted entity:
 ```json
 {
   "slug": "people/jane-doe",
-  "entry": "[2026-04-10] Mentioned in design review meeting. Discussed API migration timeline.",
+  "entry": "[2026-04-10] Mentioned in design review meeting. Discussed API migration timeline. [Source: meeting-digest, 2026-04-10]",
   "source": "meeting-digest"
 }
 ```
 
-### Step 5: Relationship Linking
+### Step 6: Back-Linking (Iron Law)
+
+**Every `put_page` call MUST create at least one back-link.** This is the Iron Law of Back-Linking from gbrain v0.10:
 
 After entity creation/update:
 - `add_link` person → company (employment/affiliation)
 - `add_link` person → meeting (attendance)
 - `add_link` company → deal (if deal context exists)
+- `add_link` meeting → attendee pages (reverse links)
 - `add_tag` with source pipeline name (e.g., `pipeline:meeting-digest`)
 
-### Step 6: Output Manifest
+If no natural link target exists, link to the source pipeline's daily output page (e.g., `meetings/2026-04-10-standup`).
+
+### Step 7: Citation Enforcement
+
+Every Compiled Truth statement and Evidence Trail entry MUST include a `[Source: ...]` citation. Format: `[Source: {pipeline-name}, {date}]` or `[Source: {url}]`.
+
+Before finalizing the batch, scan all generated content for citation compliance. If any statement lacks a source tag, add it from the pipeline metadata.
+
+### Step 8: Post-Import Extraction
+
+After all entity pages are created/updated, run link and timeline extraction to update the brain's graph:
+
+```bash
+gbrain extract links --dir ~/brain    # refreshes cross-page link graph
+gbrain extract timeline --dir ~/brain  # rebuilds timeline indices
+```
+
+These commands are idempotent and fast — safe to run on every ingest cycle.
+
+### Step 9: Output Manifest
 
 Write results to `outputs/gbrain-ingest/{date}/`:
 ```json
@@ -104,7 +201,11 @@ Write results to `outputs/gbrain-ingest/{date}/`:
   "entities_updated": 5,
   "timeline_entries_added": 8,
   "links_created": 4,
+  "back_links_created": 6,
   "tags_applied": 8,
+  "citations_enforced": 11,
+  "extract_links_run": true,
+  "extract_timeline_run": true,
   "errors": [],
   "skipped": ["John Smith (already up-to-date)"],
   "duration_ms": 2340
@@ -143,10 +244,20 @@ Not every mention warrants a gbrain entity. Apply these thresholds:
 
 ## Checklist
 
-- [ ] Identify input source and path
-- [ ] Extract entities with signal strength filtering
-- [ ] Deduplicate against existing gbrain pages
-- [ ] Create/update entity pages with timeline entries
-- [ ] Establish relationship links between entities
-- [ ] Write output manifest to `outputs/gbrain-ingest/{date}/`
-- [ ] Report summary with create/update/skip counts
+- [ ] Step 0: Brain-first lookup for every entity candidate
+- [ ] Step 1: Identify input source and path
+- [ ] Step 2: Extract entities with signal strength filtering
+- [ ] Step 3: Determine correct filing directory per entity
+- [ ] Step 4: Deduplicate against existing gbrain pages
+- [ ] Step 5: Create/update entity pages with timeline entries
+- [ ] Step 6: Enforce Iron Law — every `put_page` has ≥1 back-link
+- [ ] Step 7: Verify every statement has a `[Source: ...]` citation
+- [ ] Step 8: Run `gbrain extract links` and `gbrain extract timeline`
+- [ ] Step 9: Write output manifest to `outputs/gbrain-ingest/{date}/`
+- [ ] Report summary with create/update/skip/citation counts
+
+## References
+
+- `gbrain-conventions/brain-first.md` — 5-step brain-first lookup protocol
+- `gbrain-conventions/quality.md` — citation, back-link, and compiled truth standards
+- `gbrain-conventions/filing-rules.md` — subject-based directory filing decision tree

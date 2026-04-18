@@ -1,15 +1,18 @@
 ---
 name: autoskill-merger
 description: >-
-  스킬 후보를 기존 스킬에 semantic union으로 병합. 제약, 트리거, 태그를 의미
-  기반으로 통합하고 패치 버전을 범프. autoskill-judge의 merge 결정을 실행.
+  스킬 후보를 기존 스킬에 semantic union 또는 token-efficient patch로 병합.
+  제약, 트리거, 태그를 의미 기반으로 통합하고 패치 버전을 범프. autoskill-judge의
+  merge 결정을 실행. Patch 모드는 단순 추가(트리거, 제약, 태그)에 old_string/new_string
+  최소 편집을 적용하여 토큰 사용량을 절감.
   Use when autoskill-judge returns a merge decision, "스킬 병합", "autoskill
   merge", "merge skill candidate", "기존 스킬에 새 제약 추가", "스킬 업데이트
-  병합". Do NOT use for creating new skills (use create-skill), skill quality
-  auditing (use skill-optimizer), or manual skill editing (edit directly).
+  병합", "patch merge", "패치 병합". Do NOT use for creating new skills (use
+  create-skill), skill quality auditing (use skill-optimizer), or manual skill
+  editing (edit directly).
 metadata:
   author: thaki
-  version: "1.0.1"
+  version: "1.1.0"
   category: self-improvement
 ---
 
@@ -32,7 +35,23 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 
 Parse target SKILL.md into frontmatter + body.
 
-### Step 2: Apply merge principles
+### Step 2: Select merge mode
+
+Evaluate the candidate and choose the appropriate merge strategy:
+
+| Criteria | Mode | When to use |
+|----------|------|-------------|
+| Appending triggers, constraints, tags, or examples only | `patch` | Candidate adds to existing sections without structural changes |
+| Extending or restructuring workflow, adding new sections | `full` | Candidate modifies skill logic, resolves conflicts, or broadens scope |
+| Contradictions or scope changes detected | `full` | Conflict resolution requires semantic judgment |
+
+**Default**: `patch` — use `full` only when patch cannot express the change.
+
+### Step 3: Apply merge (mode-dependent)
+
+#### 3a: Full mode — semantic union
+
+Apply these merge principles:
 
 - **Shared intent**: Preserve core capability identity
 - **Diff-aware**: Take only unique, non-conflicting constraints from the candidate
@@ -40,7 +59,7 @@ Parse target SKILL.md into frontmatter + body.
 - **Recency guard**: On conflict, prefer the candidate’s recent intent
 - **Anti-duplication**: No duplicate section headers, bullets, or blocks
 
-### Step 3: Field-level merge rules
+Field-level merge rules:
 
 | Field | Strategy |
 |-------|----------|
@@ -50,6 +69,23 @@ Parse target SKILL.md into frontmatter + body.
 | `triggers` | Union, dedupe, cap at 8 |
 | `tags` | Union, dedupe, cap at 8 |
 | `examples` | Append new examples, max 5 total additions |
+
+#### 3b: Patch mode — minimal StrReplace edits
+
+Apply the candidate's additions as targeted `StrReplace` operations:
+
+1. **Identify insertion points**: Find the exact section header or list boundary where new content belongs
+2. **Construct minimal edits**: Each edit uses `old_string` (existing anchor text) and `new_string` (anchor + appended content)
+3. **Scope limit**: Max 3 StrReplace operations per patch merge; if more are needed, escalate to full mode
+4. **No structural changes**: Patch mode must NOT reorder sections, rename headers, or modify existing content — append only
+
+Patch mode examples:
+
+- **Add trigger**: Extend the last trigger in the description with the new trigger appended
+- **Add constraint bullet**: Append after the last bullet in the Constraints section
+- **Add tag**: Extend the tags array in frontmatter
+
+**Escalation rule**: If patch mode would require modifying existing text (not just appending), switch to full mode automatically.
 
 ### Step 4: Version bump
 
@@ -91,10 +127,12 @@ Record pass/fail in the merge report JSON under `policy_verification`.
   "target_skill": "skill-name",
   "previous_version": "1.0.5",
   "new_version": "1.0.6",
+  "merge_mode": "patch",
   "changes": {
     "triggers_added": ["new trigger"],
     "constraints_added": ["new constraint"],
-    "conflicts_flagged": []
+    "conflicts_flagged": [],
+    "strreplace_ops": 2
   },
   "source_candidate": "candidate-name",
   "merge_date": "2026-03-24",

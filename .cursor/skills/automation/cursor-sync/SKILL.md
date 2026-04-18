@@ -305,21 +305,11 @@ for g in gws nlm pipeline workflow anthropic standalone; do
   rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/$g/ $BASE/github-to-notion-sync/.cursor/skills/$g/
 done
 
-# Target 2: ai-platform-webui (groups: review, infra, frontend, workflow, ce, ecc, anthropic, standalone)
+# Target 2: ai-platform-webui (groups: all)
 rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/ai-platform-webui/.cursor/commands/
 rsync -ac $EXCLUDES $RESEARCH/.cursor/rules/    $BASE/ai-platform-webui/.cursor/rules/
 rsync -ac $EXCLUDES $RESEARCH/.claude/skills/   $BASE/ai-platform-webui/.claude/skills/
-rsync -ac $EXCLUDES --exclude='*/' $RESEARCH/.cursor/skills/ $BASE/ai-platform-webui/.cursor/skills/
-# Shared companion dirs (no SKILL.md = not a skill group)
-for d in $RESEARCH/.cursor/skills/*/; do
-  dir=$(basename "$d")
-  case "$dir" in node_modules|__pycache__) continue ;; esac
-  [ -z "$(find "$d" -name SKILL.md -print -quit 2>/dev/null)" ] && rsync -ac $EXCLUDES "$d" "$BASE/ai-platform-webui/.cursor/skills/$dir/"
-done
-for g in review infra frontend workflow ce ecc anthropic standalone; do
-  mkdir -p $BASE/ai-platform-webui/.cursor/skills/$g/
-  rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/$g/ $BASE/ai-platform-webui/.cursor/skills/$g/
-done
+rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/   $BASE/ai-platform-webui/.cursor/skills/
 
 # Target 3: ai-model-event-stock-analytics (groups: all)
 rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/ai-model-event-stock-analytics/.cursor/commands/
@@ -371,14 +361,14 @@ Pull Phase:
 
 Push Phase:
   github-to-notion-sync:          OK (groups: gws, nlm, pipeline, workflow, anthropic, standalone)
-  ai-platform-webui:              OK (groups: review, infra, frontend, workflow, ce, ecc, anthropic, standalone)
+  ai-platform-webui:              OK (groups: all)
   ai-model-event-stock-analytics: OK (groups: all)
   ai-template:                    OK (groups: workflow, anthropic, ce, ecc, standalone)
 
 Verification:
   research:                       commands: 461 | skills: 584 | rules: 51
   ai-model-event-stock-analytics: commands: 461 | skills: 584 | rules: 51  (all groups)
-  ai-platform-webui:              commands: 461 | skills: ~160 | rules: 51  (8 groups)
+  ai-platform-webui:              commands: 461 | skills: 584 | rules: 51  (all groups)
   github-to-notion-sync:          commands: 461 | skills: ~120 | rules: 51  (6 groups)
   ai-template:                    commands: 461 | skills: ~82  | rules: 51  (5 groups)
 

@@ -4,7 +4,7 @@
 
 | Node Type | ID Prefix | Description | Typical Content |
 |-----------|-----------|-------------|-----------------|
-| requirement | REQ- | 비즈니스/기능 요구사항 | 목적, 범위, 제약조건 |
+| requirement | REQ- / FR- | 비즈니스/기능 요구사항 | 목적, 범위, 제약조건 |
 | user-story | US- | 유저 스토리 | As a [user], I want [goal], so that [benefit] |
 | acceptance-criteria | AC- | 수용 기준 | Given-When-Then 또는 체크리스트 |
 | ui-spec | UI- | UI/UX 스펙 | 화면 구성, 인터랙션 정의, 상태별 UI |
@@ -49,6 +49,15 @@ flowchart TD
 - 하류 노드가 상류 노드의 정합성을 검증함
 - 상류 변경 시 하류의 검증 시나리오 재검토
 - 예: UI 스펙 → QA 시나리오 (스펙 변경 시 테스트 케이스 수정)
+
+## ID Prefix Aliases
+
+| Canonical Prefix | Alias | Notes |
+|-----------------|-------|-------|
+| REQ- | FR- | `FR-N` (Feature Requirement) is widely used in Korean PRDs. Treat `FR-1` identically to `REQ-1` for dependency resolution. |
+| REQ- | 기능- | Korean alias. `## 기능-1` maps to `requirement` node type with ID `FR-1`. |
+
+When parsing local `.md` files, heading patterns `## FR-N`, `## FR-N.M`, and `## 기능-N` all resolve to `requirement` node type. Nested sub-headings (e.g., `### FR-1-US-1`) resolve to `user-story` with a `derives-from` edge to the parent `FR-N` node.
 
 ## Impact Propagation Rules
 

@@ -17,7 +17,11 @@ Use when the user asks to "meta-harness optimize", "outer-loop optimize skill", 
 ## Prerequisites
 
 - Target skill must have a measurable evaluation function (binary or numeric scoring)
-- Python 3.11+ with `scripts/meta_harness_trace.py` available
+- Python 3.11+ with the following modules available:
+  - `scripts/meta_harness_trace.py` — TraceArchive, EvalSplitter, Pareto frontier, ATIF bridge
+  - `scripts/meta_harness_ablation.py` — AblationRunner for `ablate` mode (3-path feedback comparison)
+  - `scripts/meta_harness_eval_discipline.py` — EvalDiscipline for `--search-split` contamination checks and overfitting detection
+  - `scripts/autoagent/` — harbor_adapter, atif_logger, failure_analyzer, experiment_ledger, harness_template
 - Sufficient disk space for trace archive (`_workspace/meta-harness/`)
 
 ## Modes
@@ -125,10 +129,24 @@ _workspace/meta-harness/{run-id}/
 ├── pareto/
 │   ├── frontier.json          # current Pareto-dominant set
 │   └── frontier-history.jsonl # frontier evolution per iteration
-├── ablation/                  # only in ablate mode
-│   ├── full-traces.json
-│   ├── scores-summary.json
-│   └── scores-only.json
+├── ablation/                  # only in ablate mode (via AblationRunner)
+│   ├── full_traces/           # path archive for full-trace strategy
+│   │   ├── manifest.json
+│   │   ├── candidates/
+│   │   └── path-result.json
+│   ├── scores_summary/        # path archive for scores+summary strategy
+│   │   ├── manifest.json
+│   │   ├── candidates/
+│   │   └── path-result.json
+│   ├── scores_only/           # path archive for scores-only strategy
+│   │   ├── manifest.json
+│   │   ├── candidates/
+│   │   └── path-result.json
+│   ├── ablation-report.md     # Table 3-style comparative report
+│   └── ablation-data.json     # machine-readable ablation results
+├── eval-discipline/           # only when --search-split is used (via EvalDiscipline)
+│   ├── eval-discipline-report.md
+│   └── eval-discipline-data.json
 └── report.md                  # final summary with tables and chart data
 ```
 

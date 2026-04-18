@@ -187,6 +187,41 @@ Before posting to Slack, verify shipping integrity:
 
 If any criterion fails, log the issue in the Slack message as a warning. Do NOT suppress the notification — post with warnings.
 
+### Phase 3½b: Orphan Commit Sweep
+
+After the zero-issue guard, sweep for commits on HEAD from the last 24 hours that lack issue references. This catches commits made earlier in the day (via cursor-sync, manual commits, other skills) that were already pushed before `/eod-ship` ran.
+
+1. Collect all commits on HEAD from the last 24 hours:
+
+```bash
+git log --oneline --since="24 hours ago" HEAD
+```
+
+2. Filter OUT:
+   - Commits whose message contains `#NNNN` (already linked to an issue)
+   - Merge commits (`Merge remote-tracking`, `merge origin/`)
+   - Commits that match an existing open/closed issue title (`gh issue list --search`)
+
+3. Group remaining orphan commits by type prefix (`feat`/`fix`/`docs`/`chore`/`refactor`):
+   - `feat` commits → one issue per logical feature
+   - `chore`: cursor-sync, memory updates → consolidate into one chore issue
+   - `docs` commits → consolidate into one docs issue
+   - `fix`/`refactor` → one issue each (they represent meaningful work)
+
+4. For each group, create a GitHub issue using `commit-to-issue` patterns:
+
+```bash
+gh issue create --title "<TYPE>: <group summary>" \
+    --body "<commit list with SHAs>" --assignee sylvanus4
+gh project item-add 5 --owner ThakiCloud --url $ISSUE_URL
+```
+
+Then run `set_all_fields()` from [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md) with auto-sizing based on total file count across grouped commits.
+
+5. Report count: `"Orphan sweep: created N issues for M commits"`
+
+If zero orphan commits are found, log `{orphan_sweep: "clean", orphan_count: 0}` and proceed.
+
 ### Phase 3¾: Daily Skill Digest
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.

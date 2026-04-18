@@ -75,6 +75,12 @@ Put the **feature scope** in the `## 기능: [기능명]` line above the matrix 
 
 This prevents the matrix from appearing more authoritative than the source spec warrants. When the PRD is thin (< 500 words or < 3 features), proactively warn that most states will be inferred and ask if the user wants to proceed or provide more context first.
 
+**기능 범위 기본값 (Functional Scope Defaults):** When invoked by an automated pipeline (e.g., `fe-pipeline`, `prd-auto-generator`) without an explicit `--features` parameter:
+1. Scan the input PRD/spec for section headings matching `## FR-`, `## 기능`, `## Feature`, or numbered feature lists.
+2. If ≥ 1 feature is detected, generate a matrix per detected feature.
+3. If 0 features are detected, treat the entire document as a single feature named after the document title.
+4. Log the auto-detected scope: "자동 감지된 기능 범위: [feature list]. `--features` 파라미터로 범위를 직접 지정할 수 있습니다."
+
 State families to consider:
 - **UI**: initial, loading, success, failure, empty, disabled
 - **Data**: none, partial, full, error, cached

@@ -2,10 +2,11 @@
 name: ai-context-router
 description: >-
   Central context dispatcher for ai-* personal assistant skills. Queries MemKraft
-  (personal memory) first, then LLM Wiki (company/team knowledge), optionally deep
-  backends (gbrain, Cognee), and merges all results with provenance tags using
+  (personal memory) first, promotes gbrain to Layer 0 for entity-specific queries
+  via 5-step brain-first protocol, then LLM Wiki (company/team knowledge), optionally
+  Cognee for graph queries, and merges all results with provenance tags using
   Reciprocal Rank Fusion (RRF). Extends unified-knowledge-search with personal-first
-  retrieval and provenance separation.
+  retrieval, brain-first entity lookup, and provenance separation.
 triggers:
   - ai-context-router
   - context routing
@@ -34,6 +35,7 @@ official knowledge from personal memory.
 
 This skill extends the `unified-knowledge-search` RRF pattern with:
 - **Personal-first retrieval**: MemKraft is always queried first and weighted higher
+- **Brain-first entity lookup**: gbrain is promoted to Layer 0 for entity-specific queries via the 5-step mandatory protocol (search → check freshness → read page → compile if stale → cite)
 - **Provenance tagging**: every result carries its source tier tag
 - **Tiered fallback**: graceful degradation when backends are unavailable
 
@@ -41,6 +43,14 @@ This skill extends the `unified-knowledge-search` RRF pattern with:
 
 ```
 Query (from ai-* skill)
+  │
+  ├─→ Layer 0: Brain-First Gate (entity queries only)
+  │     └─ 5-step mandatory protocol:
+  │         1. gbrain search (hybrid: vector + keyword)
+  │         2. Freshness check (< 7 days = fresh)
+  │         3. Read matching brain page
+  │         4. Compile if stale (trigger recompilation)
+  │         5. Cite with [Source: brain/<path>] tag
   │
   ├─→ Layer 1: MemKraft (personal memory)
   │     ├─ memory/topics/      (HOT/WARM/COLD topic files)
@@ -52,8 +62,7 @@ Query (from ai-* skill)
   │     ├─ Company Wiki topics (high trust)
   │     └─ Team Wiki topics    (domain-scoped)
   │
-  ├─→ Layer 3: Deep Backends (optional, entity-rich queries)
-  │     ├─ gbrain (Postgres + pgvector)
+  ├─→ Layer 3: Deep Backends (optional, relationship queries)
   │     └─ Cognee (graph + vector)
   │
   ▼
@@ -67,15 +76,17 @@ Provenance-tagged context package
 
 | Layer | Backend | RRF Weight | Provenance Tags | When Queried |
 |-------|---------|-----------|-----------------|--------------|
+| 0 | gbrain (brain-first) | 1.6× | `[BRAIN]` | Entity-specific queries (auto-detected) |
 | 1 | MemKraft topics | 1.5× | `[PERSONAL]` | Always |
 | 1 | MemKraft preferences | 1.5× | `[PREFERENCE]` | Always |
 | 1 | MemKraft unresolved | 1.3× | `[UNRESOLVED]` | Always |
 | 1 | MemKraft sessions (recall) | 1.2× | `[RECENT]` | Always |
 | 2 | Company Wiki (kb-search) | 1.0× | `[COMPANY]` | Always |
 | 2 | Team Wiki (kb-search --role) | 1.0× | `[TEAM:<domain>]` | Always |
-| 3 | gbrain | 0.8× | `[ENTITY]` | On `--deep` flag or entity-rich query |
 | 3 | Cognee | 0.8× | `[GRAPH]` | On `--deep` flag or relationship query |
 
+gbrain Layer 0 activates automatically when the query classifier detects entity-specific
+intent (people, companies, deals, projects). Non-entity queries skip Layer 0.
 MemKraft results receive a 1.2×–1.5× RRF weight multiplier to ensure personal
 context surfaces above official knowledge for personal assistant use cases.
 
@@ -88,7 +99,20 @@ Classify the incoming query to determine which layers to activate:
 - **Personal query** (e.g., "what did I decide about X"): MemKraft only, skip Wiki
 - **Factual query** (e.g., "what is our deployment policy"): Wiki primary, MemKraft for context
 - **Hybrid query** (e.g., "how should I handle X given our policy"): All layers
-- **Entity query** (e.g., "what do we know about Company Y"): All layers + deep backends
+- **Entity query** (e.g., "what do we know about Company Y"): Brain-first (Layer 0) + all layers
+
+### Step 1b: Brain-First Gate (Layer 0, entity queries only)
+
+When query classification detects entity-specific intent (people, companies, deals, projects),
+execute the 5-step mandatory brain-first protocol before any other layer:
+
+1. `gbrain search "<entity>" --hybrid --limit 10` (vector + keyword)
+2. Freshness check: if `updated_at < 7 days ago` → fresh; otherwise → stale
+3. Read matching brain page content
+4. If stale → trigger `gbrain compile --entity "<entity>"` for recompilation
+5. Tag results with `[BRAIN]` provenance and cite as `[Source: brain/<path>]`
+
+Non-entity queries skip this step entirely.
 
 ### Step 2: MemKraft Query (Layer 1)
 
@@ -110,11 +134,12 @@ Query official knowledge using `kb-search`:
 
 ### Step 4: Deep Backend Query (Layer 3, optional)
 
-When `--deep` flag is set or query classification indicates entity/relationship needs:
+When `--deep` flag is set or query classification indicates relationship/graph needs:
 
-1. Query gbrain via `hybrid_search` MCP tool
-2. Query Cognee via `cognee search` CLI
-3. Tag with `[ENTITY]` or `[GRAPH]`
+1. Query Cognee via `cognee search` CLI
+2. Tag with `[GRAPH]`
+
+Note: gbrain entity queries are handled at Layer 0 (Step 1b) and are NOT part of this step.
 
 ### Step 5: RRF Merge with Provenance
 
@@ -151,7 +176,8 @@ Assemble the final context package in the standard `ai-*` response format:
 ## Sources
 - MemKraft: N results (M from HOT tier)
 - Wiki: N results (company: X, team: Y)
-- Deep: N results (gbrain: X, Cognee: Y) [if queried]
+- Brain: N results [entity queries only, Layer 0]
+- Deep: N results (Cognee) [if queried]
 ```
 
 ## Parameters
@@ -159,7 +185,7 @@ Assemble the final context package in the standard `ai-*` response format:
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `query` | (required) | Natural language query |
-| `--deep` | false | Include Layer 3 backends (gbrain, Cognee) |
+| `--deep` | false | Include Layer 3 backend (Cognee graph queries) |
 | `--personal-only` | false | Skip Wiki, MemKraft results only |
 | `--wiki-only` | false | Skip MemKraft, Wiki results only |
 | `--role <domain>` | auto | Scope team wiki to a specific domain |
@@ -189,7 +215,7 @@ Assemble the final context package in the standard `ai-*` response format:
 - [ ] Classify query type (personal / factual / hybrid / entity)
 - [ ] Query MemKraft (topics, preferences, unresolved, sessions)
 - [ ] Query Wiki (company tier, team tier with domain scoping)
-- [ ] Optionally query deep backends (gbrain, Cognee)
+- [ ] Optionally query deep backend (Cognee) — gbrain entity queries handled at Layer 0
 - [ ] Apply weighted RRF merge with provenance preservation
 - [ ] Deduplicate and rank results
 - [ ] Assemble provenance-tagged context package

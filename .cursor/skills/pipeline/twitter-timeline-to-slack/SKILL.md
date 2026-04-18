@@ -127,15 +127,15 @@ degradation. Process each tweet yourself, sequentially, in the main context.
 
 #### BATCH LIMIT
 
-Process a maximum of **5 tweets per invocation**. This prevents context window
+Process a maximum of **3 tweets per invocation**. This prevents context window
 exhaustion which causes quality degradation in later tweets.
 
-- If more than 5 unposted tweets exist, process the 5 newest first
-- After completing 5 tweets, report: "5/N tweets processed. Re-invoke
+- If more than 3 unposted tweets exist, process the 3 newest first
+- After completing 3 tweets, report: "3/N tweets processed. Re-invoke
   `/twitter-timeline-to-slack` to continue with the next batch."
-- Always pass `--limit 5` to `run_pipeline.js` unless the user explicitly
+- Always pass `--limit 3` to `run_pipeline.js` unless the user explicitly
   requests more via `--limit N`
-- The user can override with `--limit N` but quality may degrade beyond 7
+- The user can override with `--limit N` but quality may degrade beyond 5
 
 The manifest from Phase 2 provides pre-computed fields for each tweet:
 - `has_media` / `media_type` / `media_url` — pre-extracted best media URL from tweets.json

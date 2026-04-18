@@ -81,20 +81,22 @@ making recommendations more precise for project-specific tasks.
 
 2. **Inventory skills** — List directories under `.cursor/skills/`. For each `SKILL.md`, read YAML `name`, `description` (first ~400 chars), and `metadata.category` if present. Build a table: `skill-name` | one-line capability | category.
 
-3. **Match** — Score candidates against intent using: trigger phrases in `description`, explicit “Use when” / “Korean triggers”, and negation clauses (“Do NOT use for …”). Prefer **one primary** skill; list **2 alternates** with one-line rationale. **Filter out Tier D** skills unless the user explicitly needs them (see `skill-assessment-matrix.md`). **Boost** financial / trading / data-pipeline skills when intent involves stocks, signals, backtests, or `outputs/` reports.
+3. **Conditional filter** — For each candidate from Step 2, check `metadata.requires_mcp`, `metadata.fallback_for_mcp`, and `metadata.platforms` fields (see `skill-prompt-patterns.mdc` Conditional Activation Metadata). Remove skills whose conditions are not met by the current session (e.g., missing MCP server, wrong OS). Skills without these fields pass unconditionally.
 
-4. **Recommend usage** — For the primary skill, output:
+4. **Match** — Score candidates against intent using: trigger phrases in `description`, explicit “Use when” / “Korean triggers”, and negation clauses (“Do NOT use for …”). Prefer **one primary** skill; list **2 alternates** with one-line rationale. **Filter out Tier D** skills unless the user explicitly needs them (see `skill-assessment-matrix.md`). **Boost** financial / trading / data-pipeline skills when intent involves stocks, signals, backtests, or `outputs/` reports.
+
+5. **Recommend usage** — For the primary skill, output:
    - **Invocation hint**: natural-language prompt the user can paste (Korean).
    - **Inputs to prepare**: URLs, file paths, DB names, channels.
    - **Chain recipe** (optional): ordered list of skills + handoff artifact between steps.
 
-5. **Integrations** — If the task needs publishing: mention **Notion MCP** (pages/DB), **Slack MCP** (channel/thread), or **Google Workspace CLI** (`gws`) only when the recommended skill’s workflow expects them; do not assume credentials are configured.
+6. **Integrations** — If the task needs publishing: mention **Notion MCP** (pages/DB), **Slack MCP** (channel/thread), or **Google Workspace CLI** (`gws`) only when the recommended skill’s workflow expects them; do not assume credentials are configured.
 
-6. **Gap handling** — If no skill fits, say so clearly and suggest the closest 2 skills plus what human work remains.
+7. **Gap handling** — If no skill fits, say so clearly and suggest the closest 2 skills plus what human work remains.
 
-7. **Registry cross-check (optional)** — If the repository maintains a skill registry under `.cursor/rules/`, mention only **in-repo** references when the user asks for slash-commands or orchestration maps. Never invent commands that are not documented locally.
+8. **Registry cross-check (optional)** — If the repository maintains a skill registry under `.cursor/rules/`, mention only **in-repo** references when the user asks for slash-commands or orchestration maps. Never invent commands that are not documented locally.
 
-8. **Safety** — Do not expose secrets, tokens, or private URLs from skill files. Redact if encountered.
+9. **Safety** — Do not expose secrets, tokens, or private URLs from skill files. Redact if encountered.
 
 ## Tooling
 

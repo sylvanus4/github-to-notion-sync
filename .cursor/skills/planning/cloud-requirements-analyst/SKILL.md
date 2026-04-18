@@ -108,6 +108,7 @@ Identify gaps between requirements and technical reality.
 | **Cost** | Estimated cost vs budget |
 | **Time** | Complexity vs schedule |
 | **Regulation** | Data handling and retention rules |
+| **External data ToS** | Third-party data source terms of service, availability SLAs, and licensing constraints (e.g., Yahoo Finance redistribution limits, academic dataset access restrictions, exchange data vendor fees) |
 
 ### Phase 3: Proposal evaluation report
 

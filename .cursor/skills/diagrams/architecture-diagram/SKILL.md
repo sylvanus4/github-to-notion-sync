@@ -1,213 +1,196 @@
 ---
 name: architecture-diagram
-description: Create layered architecture diagrams using HTML/CSS templates with color-coded layers and grid layouts. Supports 12 visual styles and 12 layout patterns including three-column, pipeline, dashboard, and nested containers. Best for visualizing system layers (User/Application/Data/Infrastructure), microservices architecture, and enterprise application design. Use when the user asks to "create architecture diagram", "draw system architecture", "visualize layers", "architecture overview", "system design diagram", "layered diagram", "microservice architecture", "아키텍처 다이어그램", "시스템 아키텍처", "레이어 다이어그램", or needs a visual representation of system components organized by architectural layers. Do NOT use for simple flowcharts (use flowchart skill). Do NOT use for data visualization charts (use infographic skill). Do NOT use for cloud provider deployment topology with service icons (use deployment-diagram skill). Do NOT use for UML class or sequence diagrams (use class-diagram or the appropriate UML skill). Do NOT use for Python diagrams-as-code PNG/SVG image generation (use diagrams-generator skill).
+description: >-
+  Create professional dark-themed architecture diagrams as standalone HTML files
+  with inline SVG (Cocoon-AI-style self-contained HTML + semantic palette, merged
+  with this repo's 12 layouts and Thaki stack context). Supports z-order arrow
+  masking, 12 visual styles, and 12 layout patterns. ALWAYS invoke when the user
+  wants a browser-openable architecture diagram as HTML/SVG (not Mermaid-only,
+  not Python-generated raster). Use when the user asks to "create architecture
+  diagram", "draw system architecture", "visualize layers", "architecture
+  overview", "system design diagram", "SVG architecture", "dark-theme diagram",
+  "microservice architecture", "HTML diagram", "inline SVG architecture",
+  "아키텍처 다이어그램", "시스템 아키텍처", "다크 테마 다이어그램", "레이어
+  다이어그램", or needs a visual map of components and relationships. Do NOT use
+  for simple flowcharts (use flowchart skill). Do NOT use for data visualization
+  charts (use infographic skill). Do NOT use for cloud provider deployment
+  topology with vendor-specific icons (use deployment-diagram skill). Do NOT use
+  for UML class or sequence diagrams (use class-diagram or the appropriate UML
+  skill). Do NOT use for Python diagrams-as-code PNG/SVG generation (use
+  diagrams-generator skill). Do NOT use for Mermaid-based visual explainers or
+  diff reviews (use visual-explainer skill).
+metadata:
+  author: thaki
+  version: 1.2.0
+  category: diagrams
 ---
 
 # Architecture Diagram Generator
 
-**Quick Start:** Choose layout (single/two/three-column) -> Pick visual style -> Define layers with components -> Wrap as direct HTML in Markdown.
+## Role
 
-## Critical Rules
+You are a technical diagram specialist. Deliver one self-contained `.html` file
+with inline SVG that matches this skill's dark theme, semantic colors, and
+z-order rules. Prefer the simplest layout that fits the user's description.
 
-### Rule 1: Direct HTML Embedding
-Write architecture diagrams as direct HTML in Markdown. **NEVER** use code blocks (` ```html `). The HTML must be embedded directly without fencing.
+**Workflow:** Identify components and relationships -> Choose layout from
+`references/patterns.md` -> Copy `assets/template.html` -> Customize SVG ->
+Save as standalone `.html` -> Run **Verification**.
 
-### Rule 2: No Empty Lines in HTML Structure
-Do NOT add empty lines within the HTML architecture diagram structure. Keep the entire HTML block continuous to prevent parsing errors.
+Merge **Cocoon-AI-style** traits (standalone HTML, dark canvas, readable SVG)
+with **this repository's** pattern catalog and optional **Thaki / ai-platform-webui**
+context (`--project-context` or **Project Context** section).
 
-### Rule 3: Incremental Creation
-Build diagrams step by step:
-1. Create the overall framework (wrapper, sidebars, main) and define CSS styles
-2. Add layer containers with titles
-3. Fill in components layer by layer
-4. Add details and highlights
+## Honest Reporting
 
-### Rule 4: Flexible Layout Structure
-Choose layout based on complexity:
-- **Single Column**: Main content only (simple architectures)
-- **Two Column**: Main + one sidebar (monitoring or security emphasis)
-- **Three Column**: Full layout with both sidebars (complex systems)
+When the prompt is ambiguous or missing deployment detail, state uncertainty
+explicitly. Do not invent components, trust zones, data flows, or vendor choices
+the user did not supply.
 
-### Rule 5: Layer-Based Organization
-Each layer needs:
-- Clear semantic meaning (User, Application, AI/Logic, Data, Infrastructure)
-- Consistent color coding via CSS classes
-- Grid-based layout for components (`.arch-grid-2` through `.arch-grid-6`)
-- Appropriate nesting for sub-components
+## Rationalization Detection
 
-### Rule 6: Color Semantics
-Use consistent semantic meaning for layers:
-- **User Layer** (`.user`) -- interfaces and clients
-- **Application Layer** (`.application`) -- business logic and APIs
-- **AI/Logic Layer** (`.ai`) -- intelligence, rules, processing engines
-- **Data Layer** (`.data`) -- databases, caches, storage
-- **Infrastructure Layer** (`.infra`) -- containers, networking, DevOps
-- **External Services** (`.external`) -- third-party APIs (dashed border)
+Before placing every box or arrow, ask whether it is grounded in the user text.
+If you infer structure, label it in the diagram (for example `inferred` in the
+sublabel) or ask the user to confirm before claiming **VERDICT: PASS**.
 
-## Visual Styles
+## Domain Memory
 
-Choose a style that matches the project tone:
+- Layout and style catalog: `references/patterns.md` (12 layouts, 12 styles).
+- Stack defaults for this product: **Project Context** below; honor
+  `--project-context` when the user passes it.
 
-| # | Style | Suitable For |
+## Failure Modes Checklist
+
+Scan before save: overlapping boxes without 40px vertical gap; arrows drawn
+after component rects; legend inside a boundary group; missing opaque `#0f172a`
+mask rect; semantic color mismatch for layer type; viewBox too small for content.
+
+## Design System
+
+### Color Palette
+
+| Component Type | Fill (rgba) | Stroke |
 |---|---|---|
-| 1 | Steel Blue | Consulting, banking, government, RFP proposals |
-| 2 | Ember Warm | Retail, education, lifestyle brands |
-| 3 | Neon Dark | Tech talks, gaming, cybersecurity dashboards |
-| 4 | Stark Block | Creative studios, indie devs, tech blogs |
-| 5 | Ocean Teal | Travel, logistics, green tech |
-| 6 | Dusk Glow | Social media, entertainment, martech |
-| 7 | Rose Bloom | Fashion, luxury, premium memberships |
-| 8 | Sage Forest | Healthcare, agritech, clean energy |
-| 9 | Frost Clean | Design tools, developer docs, API references |
-| 10 | Indigo Deep | Enterprise white papers, internal platforms |
-| 11 | Pastel Mix | SaaS products, startups, product docs |
-| 12 | Slate Dark | Enterprise dark mode, developer dashboards |
+| Frontend | `rgba(8, 51, 68, 0.4)` | `#22d3ee` (cyan-400) |
+| Backend | `rgba(6, 78, 59, 0.4)` | `#34d399` (emerald-400) |
+| Database | `rgba(76, 29, 149, 0.4)` | `#a78bfa` (violet-400) |
+| Cloud / Infra | `rgba(120, 53, 15, 0.3)` | `#fbbf24` (amber-400) |
+| Security / Auth | `rgba(136, 19, 55, 0.4)` | `#fb7185` (rose-400) |
+| Messaging / Bus | `rgba(251, 146, 60, 0.3)` | `#fb923c` (orange-400) |
+| External / Generic | `rgba(30, 41, 59, 0.5)` | `#94a3b8` (slate-400) |
 
-## Layout Patterns
+### Typography
 
-| # | Layout | Best For |
+JetBrains Mono via Google Fonts. Sizes: 12px component names, 9px sublabels, 8px annotations, 7px tiny labels.
+
+### Background
+
+Dark slate `#020617` with subtle SVG grid pattern (`#1e293b`, 40px spacing, 0.5px stroke).
+
+### Component Box
+
+Two-layer rect for arrow masking: opaque background (`#0f172a`) then semi-transparent styled rect on top. Rounded corners `rx="6"`, 1.5px stroke.
+
+```svg
+<rect x="X" y="Y" width="W" height="H" rx="6" fill="#0f172a"/>
+<rect x="X" y="Y" width="W" height="H" rx="6" fill="FILL" stroke="STROKE" stroke-width="1.5"/>
+<text x="CX" y="Y+20" fill="white" font-size="11" font-weight="600" text-anchor="middle">LABEL</text>
+<text x="CX" y="Y+36" fill="#94a3b8" font-size="9" text-anchor="middle">sublabel</text>
+```
+
+### Arrows and Connections
+
+Define an SVG marker for arrowheads. Draw arrows **early** in the SVG (after background grid) so they render behind component boxes (SVG paints in document order).
+
+```svg
+<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+  <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+</marker>
+```
+
+Auth/security flows: dashed lines in rose (`#fb7185`). Message buses: orange rect connectors (`rx="4"`, height 20px).
+
+### Boundary Groups
+
+- **Security groups:** Dashed stroke (`stroke-dasharray="4,4"`), transparent fill, rose color.
+- **Region/cluster boundaries:** Larger dashed stroke (`stroke-dasharray="8,4"`), amber color, `rx="12"`.
+
+## Constraints
+
+**Freedom level: Medium** -- structured output format (HTML+SVG), but flexible component arrangement and labeling.
+
+1. **Self-contained output** -- single `.html` file with embedded CSS and inline SVG. No external stylesheets except Google Fonts. No JavaScript.
+2. **Arrow z-order masking** -- draw connection arrows before component boxes in SVG. Use opaque background rect (`#0f172a`) under each component to fully mask arrows behind semi-transparent fills.
+3. **Spacing discipline** -- standard component height 60px, minimum vertical gap 40px. Place inline connectors (message buses) centered in gaps, never overlapping adjacent components.
+4. **Legend outside boundaries** -- legends must be placed at least 20px below the lowest boundary box. Expand SVG viewBox height as needed.
+5. **Incremental creation** -- build step by step: SVG frame and defs -> boundary groups -> arrows -> component boxes -> labels -> legend.
+6. **No empty lines in HTML** -- keep the entire HTML block continuous to prevent Markdown parsing errors.
+
+## Output Discipline
+
+- Do not add components, layers, or connections the user did not request
+- Do not add decorative SVG elements (gradients, shadows, animations) beyond the design system
+- Match diagram complexity to the described architecture -- a 3-component system does not need 20 boxes
+- Try the simplest layout first; escalate to complex patterns only when the architecture demands it
+
+## Gotcha Catalog
+
+| Bug | Cause | Fix |
 |---|---|---|
-| 1 | Three-Column | Complex systems with monitoring + security sidebars |
-| 2 | Single Stack | Simple services, microservice detail views |
-| 3 | Left Sidebar | DevOps-centric views with operations emphasis |
-| 4 | Right Sidebar | Governance-focused views with security emphasis |
-| 5 | Pipeline | Data pipelines, CI/CD flows, ETL processes |
-| 6 | Two-Column Split | Before/after comparisons, migration architecture |
-| 7 | Dashboard | System overviews with KPIs, executive summaries |
-| 8 | Grid Catalog | Service catalogs, equal-weight microservices |
-| 9 | Banner + Center | Gateway-centric architectures |
-| 10 | Nested Containers | Cloud deployments, VPC/network topology |
-| 11 | Layer Layouts | Per-layer patterns: grid, sub-group, product group, KPI |
-| 12 | Connectors | SVG overlay connectors between components |
+| Arrows visible through components | Missing opaque background rect | Add `fill="#0f172a"` rect before styled rect |
+| Component overlap | Vertical gap < 40px | Recalculate Y positions with minimum spacing |
+| Legend inside cluster boundary | Legend Y < boundary bottom | Move legend below all boundaries, expand viewBox |
+| Bus connector overlaps component | Bus placed at boundary instead of gap center | Center bus in the gap between components |
+| Font not rendering | Missing Google Fonts link | Add JetBrains Mono `<link>` in `<head>` |
 
-## Common CSS Classes
+## Project Context
 
-- `.arch-wrapper` -- flex container for sidebar + main layout
-- `.arch-sidebar` -- fixed-width sidebar column
-- `.arch-main` -- flexible main content area
-- `.arch-layer` -- layer container (add: `.user`, `.application`, `.ai`, `.data`, `.infra`, `.external`)
-- `.arch-box` -- component box; `.arch-box.highlight` for key items; `.arch-box.tech` for smaller tech items
-- `.arch-grid-2` through `.arch-grid-6` -- grid column layouts
-- `.arch-sidebar-panel` -- sidebar panel container
-- `.arch-sidebar-item` -- sidebar item; `.arch-sidebar-item.metric` for highlighted metrics
+When diagramming this project's architecture, use these domain terms:
 
-## Template: Three-Column Architecture
+- **Frontend:** React 19, Vite, TDS (@thakicloud/shared)
+- **Backend:** Go/Fiber microservices, NATS messaging
+- **Auth:** Keycloak SSO, RBAC
+- **Data:** PostgreSQL, Redis
+- **Infra:** K8s (multi-cluster: control-plane + worker), ArgoCD, Kueue (GPU scheduling), Helm
+- **AI/ML:** vLLM inference, fine-tuning pipelines
 
-```html
-<style scoped>
-.arch-wrapper { display: flex; gap: 16px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 13px; }
-.arch-sidebar { width: 180px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
-.arch-main { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-.arch-layer { border-radius: 12px; padding: 14px; }
-.arch-layer-title { font-weight: 700; font-size: 13px; margin-bottom: 10px; }
-.arch-grid { display: grid; gap: 8px; }
-.arch-grid-2 { grid-template-columns: repeat(2, 1fr); }
-.arch-grid-3 { grid-template-columns: repeat(3, 1fr); }
-.arch-grid-4 { grid-template-columns: repeat(4, 1fr); }
-.arch-box { border-radius: 8px; padding: 10px; text-align: center; font-size: 12px; border: 1px solid rgba(0,0,0,0.08); }
-.arch-box small { display: block; margin-top: 4px; opacity: 0.7; font-size: 10px; }
-.arch-box.highlight { font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.arch-sidebar-panel { border-radius: 10px; padding: 12px; }
-.arch-sidebar-title { font-weight: 700; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-.arch-sidebar-item { font-size: 11px; padding: 6px 8px; margin-bottom: 4px; border-radius: 6px; background: rgba(255,255,255,0.5); }
-/* Semantic layer colors */
-.arch-layer.user { background: #dbeafe; }
-.arch-layer.application { background: #dcfce7; }
-.arch-layer.ai { background: #fef3c7; }
-.arch-layer.data { background: #fce7f3; }
-.arch-layer.infra { background: #f3e8ff; }
-.arch-layer.external { background: #f1f5f9; border: 2px dashed #94a3b8; }
-</style>
-<div class="arch-wrapper">
-<div class="arch-sidebar">
-  <div class="arch-sidebar-panel" style="background:#f0fdf4;">
-    <div class="arch-sidebar-title">Monitoring</div>
-    <div class="arch-sidebar-item">Prometheus</div>
-    <div class="arch-sidebar-item">Grafana</div>
-    <div class="arch-sidebar-item">Alertmanager</div>
-  </div>
-</div>
-<div class="arch-main">
-  <div class="arch-layer user">
-    <div class="arch-layer-title">User Layer</div>
-    <div class="arch-grid arch-grid-3">
-      <div class="arch-box highlight">Web App<br><small>React</small></div>
-      <div class="arch-box">Mobile App<br><small>React Native</small></div>
-      <div class="arch-box">Admin Portal<br><small>Next.js</small></div>
-    </div>
-  </div>
-  <div class="arch-layer application">
-    <div class="arch-layer-title">Application Layer</div>
-    <div class="arch-grid arch-grid-4">
-      <div class="arch-box">API Gateway<br><small>Kong</small></div>
-      <div class="arch-box">Auth Service<br><small>Keycloak</small></div>
-      <div class="arch-box">Core Service<br><small>Go/Fiber</small></div>
-      <div class="arch-box">Worker<br><small>NATS</small></div>
-    </div>
-  </div>
-  <div class="arch-layer data">
-    <div class="arch-layer-title">Data Layer</div>
-    <div class="arch-grid arch-grid-3">
-      <div class="arch-box highlight">PostgreSQL<br><small>Primary DB</small></div>
-      <div class="arch-box">Redis<br><small>Cache</small></div>
-      <div class="arch-box">S3<br><small>Object Storage</small></div>
-    </div>
-  </div>
-  <div class="arch-layer infra">
-    <div class="arch-layer-title">Infrastructure Layer</div>
-    <div class="arch-grid arch-grid-3">
-      <div class="arch-box">Kubernetes<br><small>Orchestration</small></div>
-      <div class="arch-box">ArgoCD<br><small>GitOps</small></div>
-      <div class="arch-box">Helm<br><small>Packaging</small></div>
-    </div>
-  </div>
-</div>
-<div class="arch-sidebar">
-  <div class="arch-sidebar-panel" style="background:#fef2f2;">
-    <div class="arch-sidebar-title">Security</div>
-    <div class="arch-sidebar-item">mTLS</div>
-    <div class="arch-sidebar-item">RBAC</div>
-    <div class="arch-sidebar-item">Vault</div>
-  </div>
-</div>
-</div>
-```
+## Layout Patterns & Visual Styles
 
-## Advanced Features
+Read `references/patterns.md` for the full catalog: 12 visual styles (Steel Blue through Slate Dark), 12 layout patterns (three-column, pipeline, dashboard, nested containers, etc.), CSS class reference, and SVG-specific layout examples.
 
-### Product Groups
-```html
-<div class="arch-product-group">
-  <div class="arch-product">
-    <div class="arch-product-title">Product A</div>
-    <div class="arch-grid arch-grid-2">
-      <div class="arch-box">Feature 1</div>
-      <div class="arch-box highlight">Feature 2</div>
-    </div>
-  </div>
-</div>
-```
+## Template
 
-### SVG Connectors
-Use an SVG overlay as the last child of a `position: relative` container. Always use `<path>` with `M`/`L` for strictly horizontal and vertical segments.
+Copy and customize the base template at `assets/template.html`. Key customization points:
 
-```html
-<svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible;">
-  <defs>
-    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#94a3b8" stroke-width="1"/>
-    </marker>
-  </defs>
-  <path d="M 200,72 L 200,90 L 400,90 L 400,108" class="arch-conn" marker-end="url(#arrowhead)"/>
-</svg>
-```
+1. Update `<title>` and header text
+2. Modify SVG viewBox dimensions (default: `1100 x 700`)
+3. Add/remove/reposition component boxes using the color palette
+4. Draw connection arrows between components (before component rects)
+5. Update the three summary cards
+6. Update footer metadata
 
-## Best Practices
+## Output
 
-1. **Direct embedding only** -- never use ` ```html ` code blocks
-2. **No empty lines** -- keep the entire HTML block continuous
-3. **Incremental development** -- framework first, then layers, then components
-4. **Highlight key components** -- use `.highlight` for critical items
-5. **Add tech details** -- include stack info in `<small>` tags
-6. **Balance density** -- avoid overcrowding components with text
-7. **Maintain color semantics** -- stick to established layer meanings
+Save the generated `.html` file. The file must:
+- Render correctly when opened directly in any modern browser
+- Contain no external dependencies except Google Fonts CDN
+- Use the dark theme design system defined above
+- Include a header, SVG diagram, summary cards, and footer
+
+## Verification
+
+Before declaring the diagram complete, check each item and report the result:
+
+1. Confirm all arrows are drawn before component rects in SVG order
+2. Verify minimum 40px vertical gap between all adjacent components
+3. Check legend position is outside all boundary groups
+4. Validate all component colors match the semantic palette
+5. Open the file in a browser to visually verify rendering (or state if browser
+   access is unavailable and rely on 1-4 plus checklist)
+6. For org-wide, security-boundary, or customer-facing diagrams: confirm with the
+   user that inferred zones and trust boundaries are acceptable before **PASS**
+7. If any element is not directly supported by the user prompt, it is labeled
+   `inferred` or removed
+
+**VERDICT: PASS** if checks 1-5 and 7 pass, and check 6 is satisfied when it
+applies. **VERDICT: FAIL — [item numbers]** otherwise.

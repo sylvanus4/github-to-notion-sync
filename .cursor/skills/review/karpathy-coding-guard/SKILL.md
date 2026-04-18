@@ -13,7 +13,7 @@ description: >-
   "check my approach", "implementation guard", "pre-coding check".
 metadata:
   author: thaki
-  version: "1.0.0"
+  version: "1.2.0"
   source: "forrestchang/andrej-karpathy-skills (adapted)"
   category: "behavioral-guardrail"
 ---
@@ -45,6 +45,16 @@ Before writing any code, answer these four questions **out loud** in your respon
 | You're about to create a new file | STOP — confirm the file doesn't already exist and is truly needed |
 | You're about to add a dependency | STOP — check if existing code already solves it |
 | You feel "this might also need..." | STOP — that's scope creep. Ask first |
+
+### Rationalization Detection
+
+If any of these thoughts cross your mind, **you are rationalizing** — pause and re-evaluate:
+
+- "It's just a small refactor while I'm here" → orphan rule violation
+- "This will be needed eventually" → speculative generalization
+- "The user probably meant..." → hidden assumption — ask instead
+- "I'll add this test later" → step-verify violation
+- "This is obvious, no need to explain" → ambiguity suppression
 
 > **Cross-ref:** `critical-thinking.mdc` — apply the Opposite Direction Test to your
 > chosen approach. What's the strongest argument against it?
@@ -187,6 +197,44 @@ Use these four tests as a final check before responding with code:
 | 2 | "Does every changed line trace to the user's request?" | Revert untraceable changes |
 | 3 | "Did I transform the task into a verifiable goal?" | Define success criteria before coding |
 | 4 | "If multiple interpretations exist, did I present them?" | Surface ambiguity, don't resolve silently |
+
+## Gotchas & Known Failure Modes
+
+| Failure Mode | Symptom | Prevention |
+|---|---|---|
+| **Gate fatigue** | Agent starts answering the 4 pre-implementation questions mechanically without genuine thought | Periodically check: did the answers actually change your approach? If not, you're cargo-culting |
+| **Over-gating trivial tasks** | Agent runs the full gate protocol for a typo fix or single-line config change | The ~10-line / 2+ file threshold exists for a reason — skip this skill for genuinely trivial work |
+| **Scope creep via "composability"** | Agent invokes `deep-review`, `simplify`, `omc-ai-slop-cleaner` etc. during the pre-implementation gate when only the guard itself was needed | This skill gates the START of work — composed skills run AFTER implementation, not during the gate |
+| **Stale pattern matching** | Agent applies Go/Fiber anti-patterns to a Python script or React anti-patterns to a Vue file | Always confirm the current file's stack before applying project-specific examples |
+| **False orphan cleanup** | Agent "cleans up" code it considers orphaned but was created in a prior session | Only clean orphans you created in the CURRENT session — when in doubt, mention but don't touch |
+
+## Constraints & Scope
+
+- **IN scope**: Non-trivial implementations, refactors, bugfixes touching 2+ files or ~10+ lines
+- **OUT of scope**: Trivial one-line fixes, config changes, documentation-only edits, code review (use `deep-review`)
+- **Freedom level**: LOW — follow the gates literally; do not adapt or skip steps
+- **Output**: Structured gate response (see Section 6 below) before any code
+
+## Section 6: Activation Output Format
+
+When this skill activates, respond with this structure before writing any code:
+
+```
+### Karpathy Guard — Pre-Implementation Gate
+
+**Assumptions:** [list what you're assuming]
+**Ambiguity:** [none / list interpretations with tradeoffs]
+**Simpler alternative:** [considered and rejected because X / adopting Y instead]
+**Scope:** [files that will change and why]
+**Success criteria:** [declarative goal — what is true after this change]
+**Rationalization check:** [none detected / caught: "X" → corrected to Y]
+```
+
+## References
+
+- [`references/examples.md`](references/examples.md) — Generic Python before/after anti-pattern
+  examples adapted from the upstream repository. Complements the project-specific
+  Go/Fiber + React/FSD examples in this file.
 
 ## Composed With
 

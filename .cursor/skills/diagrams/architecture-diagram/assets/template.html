@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020617;color:#e2e8f0;font-family:'JetBrains Mono',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px}
+.header{text-align:center;margin-bottom:32px;max-width:900px}
+.header h1{font-size:22px;font-weight:700;color:#f8fafc;letter-spacing:-0.5px}
+.header p{font-size:12px;color:#64748b;margin-top:8px;line-height:1.6}
+.diagram-card{background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:24px;max-width:1160px;width:100%}
+svg text{font-family:'JetBrains Mono',monospace}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1160px;width:100%;margin-top:24px}
+.card{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:20px}
+.card-title{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.card-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8}
+.card-body{font-size:11px;color:#cbd5e1;line-height:1.7}
+.footer{margin-top:32px;text-align:center;font-size:10px;color:#475569}
+.footer span{color:#64748b}
+</style>
+</head>
+<body>
+<div class="header">
+<h1><!-- TITLE --></h1>
+<p><!-- DESCRIPTION --></p>
+</div>
+<div class="diagram-card">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 700" width="100%">
+<!-- Background grid pattern -->
+<defs>
+<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+</pattern>
+<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+<polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+</marker>
+<marker id="arrowhead-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+<polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/>
+</marker>
+</defs>
+<rect width="1100" height="700" fill="#020617"/>
+<rect width="1100" height="700" fill="url(#grid)"/>
+<!-- ============================================ -->
+<!-- STEP 1: Draw ARROWS here (before components) -->
+<!-- ============================================ -->
+<!-- Example arrow:
+<line x1="200" y1="90" x2="200" y2="140" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+-->
+<!-- Example auth flow (dashed rose):
+<line x1="900" y1="100" x2="900" y2="200" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4" marker-end="url(#arrowhead-rose)"/>
+-->
+<!-- ============================================ -->
+<!-- STEP 2: Boundary groups (dashed rects)       -->
+<!-- ============================================ -->
+<!-- Example cluster boundary:
+<rect x="30" y="30" width="500" height="400" rx="12" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+<text x="45" y="52" fill="#fbbf24" font-size="10" font-weight="600">Control Plane Cluster</text>
+-->
+<!-- Example security group:
+<rect x="50" y="260" width="200" height="150" rx="8" fill="none" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="65" y="278" fill="#fb7185" font-size="9">Auth Boundary</text>
+-->
+<!-- ============================================ -->
+<!-- STEP 3: Component boxes                      -->
+<!-- ============================================ -->
+<!-- Frontend component (cyan):
+<rect x="100" y="80" width="140" height="60" rx="6" fill="#0f172a"/>
+<rect x="100" y="80" width="140" height="60" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+<text x="170" y="105" fill="white" font-size="11" font-weight="600" text-anchor="middle">Web App</text>
+<text x="170" y="121" fill="#94a3b8" font-size="9" text-anchor="middle">React 19</text>
+-->
+<!-- Backend component (emerald):
+<rect x="100" y="180" width="140" height="60" rx="6" fill="#0f172a"/>
+<rect x="100" y="180" width="140" height="60" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+<text x="170" y="205" fill="white" font-size="11" font-weight="600" text-anchor="middle">API Server</text>
+<text x="170" y="221" fill="#94a3b8" font-size="9" text-anchor="middle">Go / Fiber</text>
+-->
+<!-- Database component (violet):
+<rect x="100" y="280" width="140" height="60" rx="6" fill="#0f172a"/>
+<rect x="100" y="280" width="140" height="60" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+<text x="170" y="305" fill="white" font-size="11" font-weight="600" text-anchor="middle">PostgreSQL</text>
+<text x="170" y="321" fill="#94a3b8" font-size="9" text-anchor="middle">Primary DB</text>
+-->
+<!-- Infra component (amber):
+<rect x="100" y="380" width="140" height="60" rx="6" fill="#0f172a"/>
+<rect x="100" y="380" width="140" height="60" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+<text x="170" y="405" fill="white" font-size="11" font-weight="600" text-anchor="middle">Kubernetes</text>
+<text x="170" y="421" fill="#94a3b8" font-size="9" text-anchor="middle">Orchestration</text>
+-->
+<!-- Auth component (rose):
+<rect x="300" y="180" width="140" height="60" rx="6" fill="#0f172a"/>
+<rect x="300" y="180" width="140" height="60" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+<text x="370" y="205" fill="white" font-size="11" font-weight="600" text-anchor="middle">Keycloak</text>
+<text x="370" y="221" fill="#94a3b8" font-size="9" text-anchor="middle">SSO / RBAC</text>
+-->
+<!-- Messaging component (orange):
+<rect x="300" y="280" width="140" height="60" rx="6" fill="#0f172a"/>
+<rect x="300" y="280" width="140" height="60" rx="6" fill="rgba(251,146,60,0.3)" stroke="#fb923c" stroke-width="1.5"/>
+<text x="370" y="305" fill="white" font-size="11" font-weight="600" text-anchor="middle">NATS</text>
+<text x="370" y="321" fill="#94a3b8" font-size="9" text-anchor="middle">Messaging</text>
+-->
+<!-- External component (slate):
+<rect x="500" y="180" width="140" height="60" rx="6" fill="#0f172a"/>
+<rect x="500" y="180" width="140" height="60" rx="6" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,4"/>
+<text x="570" y="205" fill="white" font-size="11" font-weight="600" text-anchor="middle">External API</text>
+<text x="570" y="221" fill="#94a3b8" font-size="9" text-anchor="middle">3rd Party</text>
+-->
+<!-- ============================================ -->
+<!-- STEP 4: Message bus connector (orange rect)  -->
+<!-- ============================================ -->
+<!-- Example message bus between components:
+<rect x="80" y="155" width="360" height="20" rx="4" fill="rgba(251,146,60,0.15)" stroke="#fb923c" stroke-width="1"/>
+<text x="260" y="168" fill="#fb923c" font-size="8" text-anchor="middle">Event Bus</text>
+-->
+<!-- ============================================ -->
+<!-- STEP 5: Legend (outside all boundaries)      -->
+<!-- ============================================ -->
+<!--
+<rect x="30" y="620" width="10" height="10" rx="2" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1"/>
+<text x="46" y="629" fill="#94a3b8" font-size="8">Frontend</text>
+<rect x="120" y="620" width="10" height="10" rx="2" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1"/>
+<text x="136" y="629" fill="#94a3b8" font-size="8">Backend</text>
+<rect x="210" y="620" width="10" height="10" rx="2" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1"/>
+<text x="226" y="629" fill="#94a3b8" font-size="8">Database</text>
+<rect x="300" y="620" width="10" height="10" rx="2" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1"/>
+<text x="316" y="629" fill="#94a3b8" font-size="8">Infra</text>
+<rect x="370" y="620" width="10" height="10" rx="2" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1"/>
+<text x="386" y="629" fill="#94a3b8" font-size="8">Security</text>
+<rect x="460" y="620" width="10" height="10" rx="2" fill="rgba(251,146,60,0.3)" stroke="#fb923c" stroke-width="1"/>
+<text x="476" y="629" fill="#94a3b8" font-size="8">Messaging</text>
+<rect x="560" y="620" width="10" height="10" rx="2" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="576" y="629" fill="#94a3b8" font-size="8">External</text>
+-->
+</svg>
+</div>
+<div class="cards">
+<div class="card">
+<div class="card-title">
+<div class="card-dot" style="background:#34d399"></div>
+<span class="card-label"><!-- CARD 1 LABEL --></span>
+</div>
+<div class="card-body"><!-- CARD 1 BODY --></div>
+</div>
+<div class="card">
+<div class="card-title">
+<div class="card-dot" style="background:#22d3ee"></div>
+<span class="card-label"><!-- CARD 2 LABEL --></span>
+</div>
+<div class="card-body"><!-- CARD 2 BODY --></div>
+</div>
+<div class="card">
+<div class="card-title">
+<div class="card-dot" style="background:#fbbf24"></div>
+<span class="card-label"><!-- CARD 3 LABEL --></span>
+</div>
+<div class="card-body"><!-- CARD 3 BODY --></div>
+</div>
+</div>
+<div class="footer">
+<span>Architecture Diagram</span> · Generated with Architecture Diagram Skill
+</div>
+</body>
+</html>
