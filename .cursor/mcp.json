@@ -1,0 +1,42 @@
+{
+  "mcpServers": {
+    "huggingface": {
+      "url": "https://huggingface.co/mcp?login"
+    },
+    "kis-backtest": {
+      "type": "http",
+      "url": "http://127.0.0.1:3846/mcp",
+      "description": "KIS backtesting MCP server — requires local backtester (bash backtester/scripts/start_mcp.sh)"
+    },
+    "tradingview-ta": {
+      "command": "python",
+      "args": ["-m", "tradingview_mcp"],
+      "env": {},
+      "description": "atilaahmettaner/tradingview-mcp — 30+ TA tools, backtesting, sentiment (Yahoo Finance data, headless)"
+    },
+    "tradingview-screener": {
+      "command": "npx",
+      "args": ["-y", "tradingview-mcp-server"],
+      "description": "fiale-plus/tradingview-mcp-server — 100+ screener fields, 14 pre-built strategies (TradingView API, headless)"
+    },
+    "kb-brain": {
+      "command": "python",
+      "args": ["scripts/kb_mcp_server.py"],
+      "env": {
+        "KB_ROOT": "knowledge-bases"
+      },
+      "description": "LLM Knowledge Base brain — search, read, write wiki articles via FTS5/vector hybrid search (GBrain-inspired)"
+    },
+    "user-vibe-trading": {
+      "command": "uv",
+      "args": ["run", "--project", "/Users/hanhyojung/thaki/Vibe-Trading", "vibe-trading-mcp"],
+      "env": {},
+      "description": "Vibe-Trading MCP — 16 finance research tools (backtest, swarm, factor analysis, options, patterns, market data)"
+    },
+    "code-review-graph": {
+      "command": "uvx",
+      "args": ["code-review-graph", "serve"],
+      "description": "Code Review Graph — AST-based knowledge graph with 22 MCP tools for token-efficient code reviews, blast-radius analysis, and architecture queries"
+    }
+  }
+}

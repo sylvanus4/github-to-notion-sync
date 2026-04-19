@@ -1,0 +1,17 @@
+version: 1
+completed_missions:
+- id: M-001
+  type: project-health-scan
+  started_at: '2026-03-15T12:37:05.871818+00:00'
+  completed_at: '2026-03-15T12:40:15.712778+00:00'
+  output: outputs/sentinel/M-001-report.md
+  evidence_count: 4
+  cycle: 1
+cycle_history: []
+metrics:
+  total_missions_completed: 1
+  total_missions_failed: 1
+  total_cycles: 0
+  avg_mission_duration_minutes: 0
+  evidence_rejection_count: 0
+  last_updated: '2026-03-15T12:41:05.202812+00:00'

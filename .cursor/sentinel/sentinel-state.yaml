@@ -1,0 +1,486 @@
+version: 1
+sentinel:
+  status: paused
+  current_cycle: 2
+  last_heartbeat: '2026-03-15T12:40:49.855116+00:00'
+  next_heartbeat: '2026-03-15T13:40:49.855252+00:00'
+missions:
+- id: M-001
+  type: project-health-scan
+  priority: 1
+  status: completed
+  phase: null
+  created_at: '2026-03-15T12:36:56.078661+00:00'
+  started_at: '2026-03-15T12:37:05.871818+00:00'
+  completed_at: '2026-03-15T12:40:15.712778+00:00'
+  evidence:
+  - phase_id: M-001-PHS-01
+    evidence: &id001
+      lint_command: ruff check backend/app/ && eslint frontend/src/
+      lint_output_path: outputs/sentinel/M-001-lint.log
+      error_count: 0
+      warning_count: 1
+    timestamp: '2026-03-15T12:37:34.293332+00:00'
+  - phase_id: M-001-PHS-02
+    evidence: &id002
+      typecheck_command: mypy backend/app/ --ignore-missing-imports && npx tsc --noEmit
+      typecheck_output_path: outputs/sentinel/M-001-typecheck.log
+      error_count: 940
+    timestamp: '2026-03-15T12:39:22.710912+00:00'
+  - phase_id: M-001-PHS-03
+    evidence: &id003
+      files_analyzed: 119
+      issues_found: 3
+      issues_fixed: 0
+      quality_score: 7.5
+    timestamp: '2026-03-15T12:39:47.316632+00:00'
+  - phase_id: M-001-PHS-04
+    evidence: &id004
+      report_path: outputs/sentinel/M-001-report.md
+      overall_health_score: 7.5
+      recommendations_count: 3
+    timestamp: '2026-03-15T12:40:11.164684+00:00'
+  dependencies: []
+  output: outputs/sentinel/M-001-report.md
+  error_count: 0
+  max_retries: 2
+  notes: ''
+- id: M-002
+  type: pipeline-optimizer
+  priority: 2
+  status: pending
+  phase: null
+  created_at: '2026-03-15T12:36:56.078847+00:00'
+  started_at: null
+  completed_at: null
+  evidence: []
+  dependencies: []
+  output: null
+  error_count: 0
+  max_retries: 2
+  notes: ''
+- id: M-003
+  type: skill-ecosystem-growth
+  priority: 3
+  status: pending
+  phase: null
+  created_at: '2026-03-15T12:36:56.078855+00:00'
+  started_at: null
+  completed_at: null
+  evidence: []
+  dependencies: []
+  output: null
+  error_count: 0
+  max_retries: 2
+  notes: ''
+- id: M-004
+  type: data-quality-patrol
+  priority: 1
+  status: blocked
+  phase: null
+  created_at: '2026-03-15T12:36:56.078861+00:00'
+  started_at: '2026-03-15T12:40:38.318178+00:00'
+  completed_at: null
+  evidence: []
+  dependencies: []
+  output: null
+  error_count: 2
+  max_retries: 2
+  notes: '[FAIL 2026-03-15T12:41:05.201862+00:00] Test cleanup'
+- id: M-005
+  type: security-dependency-sweep
+  priority: 2
+  status: pending
+  phase: null
+  created_at: '2026-03-15T12:36:56.078867+00:00'
+  started_at: null
+  completed_at: null
+  evidence: []
+  dependencies: []
+  output: null
+  error_count: 0
+  max_retries: 2
+  notes: ''
+- id: M-006
+  type: test-coverage-patrol
+  priority: 2
+  status: pending
+  phase: null
+  created_at: '2026-03-15T12:36:56.078873+00:00'
+  started_at: null
+  completed_at: null
+  evidence: []
+  dependencies: []
+  output: null
+  error_count: 0
+  max_retries: 2
+  notes: ''
+- id: M-007
+  type: doc-freshness-checker
+  priority: 4
+  status: pending
+  phase: null
+  created_at: '2026-03-15T12:36:56.078878+00:00'
+  started_at: null
+  completed_at: null
+  evidence: []
+  dependencies: []
+  output: null
+  error_count: 0
+  max_retries: 2
+  notes: ''
+phases:
+  M-001:
+  - id: M-001-PHS-01
+    name: Run linter and collect error count
+    status: completed
+    evidence_required:
+    - lint_command
+    - lint_output_path
+    - error_count
+    - warning_count
+    evidence_provided: *id001
+    order: 1
+    skill: ci-quality-gate
+    completed_at: '2026-03-15T12:37:34.293195+00:00'
+  - id: M-001-PHS-02
+    name: Run type checker
+    status: completed
+    evidence_required:
+    - typecheck_command
+    - typecheck_output_path
+    - error_count
+    evidence_provided: *id002
+    order: 2
+    skill: ci-quality-gate
+    depends_on:
+    - M-001-PHS-01
+    completed_at: '2026-03-15T12:39:22.710734+00:00'
+  - id: M-001-PHS-03
+    name: Analyze code quality metrics (diff mode)
+    status: completed
+    evidence_required:
+    - files_analyzed
+    - issues_found
+    - issues_fixed
+    - quality_score
+    evidence_provided: *id003
+    order: 3
+    skill: simplify
+    depends_on:
+    - M-001-PHS-02
+    completed_at: '2026-03-15T12:39:47.316485+00:00'
+  - id: M-001-PHS-04
+    name: Generate health report summary
+    status: completed
+    evidence_required:
+    - report_path
+    - overall_health_score
+    - recommendations_count
+    evidence_provided: *id004
+    order: 4
+    skill: deep-review
+    depends_on:
+    - M-001-PHS-03
+    completed_at: '2026-03-15T12:40:11.164525+00:00'
+  M-002:
+  - id: M-002-PO-01
+    name: Run daily pipeline in dry-run mode
+    status: pending
+    evidence_required:
+    - pipeline_command
+    - pipeline_output_path
+    - stages_completed
+    - stages_failed
+    evidence_provided: {}
+    order: 1
+    skill: today
+  - id: M-002-PO-02
+    name: Evaluate data quality of pipeline outputs
+    status: pending
+    evidence_required:
+    - quality_score
+    - dimension_scores
+    - hallucination_flags
+    evidence_provided: {}
+    order: 2
+    skill: ai-quality-evaluator
+    depends_on:
+    - M-002-PO-01
+  - id: M-002-PO-03
+    name: Profile API endpoint performance
+    status: pending
+    evidence_required:
+    - endpoints_profiled
+    - p50_ms
+    - p95_ms
+    - slow_endpoints
+    evidence_provided: {}
+    order: 3
+    skill: performance-profiler
+    depends_on:
+    - M-002-PO-01
+  - id: M-002-PO-04
+    name: Generate optimization recommendations
+    status: pending
+    evidence_required:
+    - report_path
+    - recommendations_count
+    - priority_fixes
+    evidence_provided: {}
+    order: 4
+    skill: general
+    depends_on:
+    - M-002-PO-02
+    - M-002-PO-03
+  M-003:
+  - id: M-003-SEG-01
+    name: Mine recent transcripts for skill candidates
+    status: pending
+    evidence_required:
+    - transcripts_scanned
+    - candidates_found
+    - candidates_list
+    evidence_provided: {}
+    order: 1
+    skill: autoskill-evolve
+  - id: M-003-SEG-02
+    name: Audit existing skill quality
+    status: pending
+    evidence_required:
+    - skills_audited
+    - critical_findings
+    - high_findings
+    - skills_needing_update
+    evidence_provided: {}
+    order: 2
+    skill: skill-optimizer
+  - id: M-003-SEG-03
+    name: Discover workflow patterns from sessions
+    status: pending
+    evidence_required:
+    - sessions_analyzed
+    - patterns_discovered
+    - pattern_frequency_map
+    evidence_provided: {}
+    order: 3
+    skill: workflow-miner
+    depends_on:
+    - M-003-SEG-01
+  - id: M-003-SEG-04
+    name: Generate skill evolution report
+    status: pending
+    evidence_required:
+    - report_path
+    - skills_created
+    - skills_merged
+    - skills_discarded
+    - recommendations
+    evidence_provided: {}
+    order: 4
+    skill: general
+    depends_on:
+    - M-003-SEG-01
+    - M-003-SEG-02
+    - M-003-SEG-03
+  M-004:
+  - id: M-004-DQP-01
+    name: Check data freshness for all tracked tickers
+    status: pending
+    evidence_required:
+    - total_tickers
+    - stale_tickers
+    - freshest_date
+    - oldest_date
+    - gap_count
+    evidence_provided: {}
+    order: 1
+    skill: weekly-stock-update
+  - id: M-004-DQP-02
+    name: Validate data quality and consistency
+    status: pending
+    evidence_required:
+    - records_checked
+    - anomalies_found
+    - anomaly_details
+    - data_quality_score
+    evidence_provided: {}
+    order: 2
+    skill: trading-data-quality-checker
+    depends_on:
+    - M-004-DQP-01
+  - id: M-004-DQP-03
+    name: Backfill missing data if gaps detected
+    status: pending
+    evidence_required:
+    - tickers_backfilled
+    - records_inserted
+    - backfill_command
+    evidence_provided: {}
+    order: 3
+    skill: weekly-stock-update
+    depends_on:
+    - M-004-DQP-01
+  - id: M-004-DQP-04
+    name: Generate data quality report
+    status: pending
+    evidence_required:
+    - report_path
+    - overall_quality_score
+    - action_items
+    evidence_provided: {}
+    order: 4
+    skill: general
+    depends_on:
+    - M-004-DQP-02
+    - M-004-DQP-03
+  M-005:
+  - id: M-005-SDS-01
+    name: Scan Python dependencies for CVEs
+    status: pending
+    evidence_required:
+    - scan_command
+    - packages_scanned
+    - vulnerabilities_found
+    - critical_count
+    - high_count
+    evidence_provided: {}
+    order: 1
+    skill: dependency-auditor
+  - id: M-005-SDS-02
+    name: Scan Node.js dependencies for CVEs
+    status: pending
+    evidence_required:
+    - scan_command
+    - packages_scanned
+    - vulnerabilities_found
+    - critical_count
+    - high_count
+    evidence_provided: {}
+    order: 2
+    skill: dependency-auditor
+  - id: M-005-SDS-03
+    name: Run secret detection scan
+    status: pending
+    evidence_required:
+    - scan_command
+    - files_scanned
+    - secrets_found
+    - false_positives
+    evidence_provided: {}
+    order: 3
+    skill: security-expert
+  - id: M-005-SDS-04
+    name: Generate security posture report
+    status: pending
+    evidence_required:
+    - report_path
+    - overall_risk_level
+    - action_items
+    - patches_available
+    evidence_provided: {}
+    order: 4
+    skill: general
+    depends_on:
+    - M-005-SDS-01
+    - M-005-SDS-02
+    - M-005-SDS-03
+  M-006:
+  - id: M-006-TCP-01
+    name: Run test suite and collect coverage metrics
+    status: pending
+    evidence_required:
+    - test_command
+    - tests_passed
+    - tests_failed
+    - tests_skipped
+    - coverage_percent
+    evidence_provided: {}
+    order: 1
+    skill: test-suite
+  - id: M-006-TCP-02
+    name: Identify untested code paths
+    status: pending
+    evidence_required:
+    - uncovered_files
+    - uncovered_functions
+    - coverage_gaps
+    evidence_provided: {}
+    order: 2
+    skill: qa-test-expert
+    depends_on:
+    - M-006-TCP-01
+  - id: M-006-TCP-03
+    name: Run E2E smoke tests (dry-run)
+    status: pending
+    evidence_required:
+    - e2e_command
+    - specs_passed
+    - specs_failed
+    - browser_targets
+    evidence_provided: {}
+    order: 3
+    skill: e2e-testing
+  - id: M-006-TCP-04
+    name: Generate test coverage improvement plan
+    status: pending
+    evidence_required:
+    - report_path
+    - priority_files
+    - estimated_tests_needed
+    - current_vs_target_coverage
+    evidence_provided: {}
+    order: 4
+    skill: general
+    depends_on:
+    - M-006-TCP-02
+    - M-006-TCP-03
+  M-007:
+  - id: M-007-DFC-01
+    name: Scan docs for staleness (last modified vs code changes)
+    status: pending
+    evidence_required:
+    - docs_scanned
+    - stale_docs
+    - staleness_days
+    - most_outdated
+    evidence_provided: {}
+    order: 1
+    skill: codebase-archaeologist
+  - id: M-007-DFC-02
+    name: Check MEMORY.md completeness
+    status: pending
+    evidence_required:
+    - sections_checked
+    - missing_entries
+    - outdated_entries
+    - completeness_score
+    evidence_provided: {}
+    order: 2
+    skill: context-engineer
+  - id: M-007-DFC-03
+    name: Identify code-documentation drift
+    status: pending
+    evidence_required:
+    - api_endpoints_checked
+    - undocumented_endpoints
+    - drift_score
+    evidence_provided: {}
+    order: 3
+    skill: technical-writer
+    depends_on:
+    - M-007-DFC-01
+  - id: M-007-DFC-04
+    name: Generate documentation freshness report
+    status: pending
+    evidence_required:
+    - report_path
+    - overall_freshness_score
+    - priority_updates
+    evidence_provided: {}
+    order: 4
+    skill: general
+    depends_on:
+    - M-007-DFC-01
+    - M-007-DFC-02
+    - M-007-DFC-03

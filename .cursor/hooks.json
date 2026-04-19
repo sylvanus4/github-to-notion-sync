@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "node .cursor/hooks/fat-thin-guard.mjs",
+        "matcher": "Write"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "node .cursor/hooks/post-task-asset-extractor.mjs"
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "hooks": [
+    {
+      "event": "afterFileEdit",
+      "script": ".cursor/hooks/scripts/after-file-edit.js",
+      "description": "Auto-format Python (ruff) and JS/TS (Prettier) after edits; warn on print()/console.log; CRG incremental graph update"
+    },
+    {
+      "event": "beforeShellExecution",
+      "script": ".cursor/hooks/scripts/before-shell.js",
+      "description": "Block destructive commands (force push to main/dev, rm -rf /, DROP TABLE)"
+    },
+    {
+      "event": "beforeSubmitPrompt",
+      "script": ".cursor/hooks/scripts/before-prompt.js",
+      "description": "Scan prompts for API keys, tokens, private keys, and PII patterns"
+    },
+    {
+      "event": "beforeTabFileRead",
+      "script": ".cursor/hooks/scripts/before-tab-read.js",
+      "description": "Block Tab autocomplete from reading .env, .pem, credentials, and secret files"
+    },
+    {
+      "event": "sessionStart",
+      "script": ".cursor/hooks/scripts/session-start.js",
+      "description": "Show branch, uncommitted changes, and unpushed commits at session start"
+    },
+    {
+      "event": "sessionEnd",
+      "script": ".cursor/hooks/scripts/session-end.js",
+      "description": "Remind about uncommitted files, unpushed commits, and flag substantial sessions for KB ingest"
+    }
+  ]
+}

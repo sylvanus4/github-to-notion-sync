@@ -1,0 +1,352 @@
+version: 1
+
+templates:
+  project-health-scan:
+    description: "Full project health assessment: lint, type-check, code quality, and architecture review"
+    cadence_hours: 6
+    priority: 1
+    skills:
+      - deep-review
+      - simplify
+      - ci-quality-gate
+    phases:
+      - id: PHS-01
+        name: "Run linter and collect error count"
+        order: 1
+        evidence_required:
+          - lint_command
+          - lint_output_path
+          - error_count
+          - warning_count
+        skill: ci-quality-gate
+      - id: PHS-02
+        name: "Run type checker"
+        order: 2
+        evidence_required:
+          - typecheck_command
+          - typecheck_output_path
+          - error_count
+        skill: ci-quality-gate
+        depends_on:
+          - PHS-01
+      - id: PHS-03
+        name: "Analyze code quality metrics (diff mode)"
+        order: 3
+        evidence_required:
+          - files_analyzed
+          - issues_found
+          - issues_fixed
+          - quality_score
+        skill: simplify
+        depends_on:
+          - PHS-02
+      - id: PHS-04
+        name: "Generate health report summary"
+        order: 4
+        evidence_required:
+          - report_path
+          - overall_health_score
+          - recommendations_count
+        skill: deep-review
+        depends_on:
+          - PHS-03
+
+  pipeline-optimizer:
+    description: "Trading pipeline dry-run, quality evaluation, and performance profiling"
+    cadence_hours: 12
+    priority: 2
+    skills:
+      - today
+      - ai-quality-evaluator
+      - performance-profiler
+    phases:
+      - id: PO-01
+        name: "Run daily pipeline in dry-run mode"
+        order: 1
+        evidence_required:
+          - pipeline_command
+          - pipeline_output_path
+          - stages_completed
+          - stages_failed
+        skill: today
+      - id: PO-02
+        name: "Evaluate data quality of pipeline outputs"
+        order: 2
+        evidence_required:
+          - quality_score
+          - dimension_scores
+          - hallucination_flags
+        skill: ai-quality-evaluator
+        depends_on:
+          - PO-01
+      - id: PO-03
+        name: "Profile API endpoint performance"
+        order: 3
+        evidence_required:
+          - endpoints_profiled
+          - p50_ms
+          - p95_ms
+          - slow_endpoints
+        skill: performance-profiler
+        depends_on:
+          - PO-01
+      - id: PO-04
+        name: "Generate optimization recommendations"
+        order: 4
+        evidence_required:
+          - report_path
+          - recommendations_count
+          - priority_fixes
+        depends_on:
+          - PO-02
+          - PO-03
+
+  skill-ecosystem-growth:
+    description: "Mine transcripts for skill candidates, audit existing skills, discover workflow patterns"
+    cadence_hours: 24
+    priority: 3
+    skills:
+      - autoskill-evolve
+      - skill-optimizer
+      - workflow-miner
+    phases:
+      - id: SEG-01
+        name: "Mine recent transcripts for skill candidates"
+        order: 1
+        evidence_required:
+          - transcripts_scanned
+          - candidates_found
+          - candidates_list
+        skill: autoskill-evolve
+      - id: SEG-02
+        name: "Audit existing skill quality"
+        order: 2
+        evidence_required:
+          - skills_audited
+          - critical_findings
+          - high_findings
+          - skills_needing_update
+        skill: skill-optimizer
+      - id: SEG-03
+        name: "Discover workflow patterns from sessions"
+        order: 3
+        evidence_required:
+          - sessions_analyzed
+          - patterns_discovered
+          - pattern_frequency_map
+        skill: workflow-miner
+        depends_on:
+          - SEG-01
+      - id: SEG-04
+        name: "Generate skill evolution report"
+        order: 4
+        evidence_required:
+          - report_path
+          - skills_created
+          - skills_merged
+          - skills_discarded
+          - recommendations
+        depends_on:
+          - SEG-01
+          - SEG-02
+          - SEG-03
+
+  data-quality-patrol:
+    description: "Verify stock data freshness, gap detection, and financial data consistency"
+    cadence_hours: 6
+    priority: 1
+    skills:
+      - weekly-stock-update
+      - trading-data-quality-checker
+    phases:
+      - id: DQP-01
+        name: "Check data freshness for all tracked tickers"
+        order: 1
+        evidence_required:
+          - total_tickers
+          - stale_tickers
+          - freshest_date
+          - oldest_date
+          - gap_count
+        skill: weekly-stock-update
+      - id: DQP-02
+        name: "Validate data quality and consistency"
+        order: 2
+        evidence_required:
+          - records_checked
+          - anomalies_found
+          - anomaly_details
+          - data_quality_score
+        skill: trading-data-quality-checker
+        depends_on:
+          - DQP-01
+      - id: DQP-03
+        name: "Backfill missing data if gaps detected"
+        order: 3
+        evidence_required:
+          - tickers_backfilled
+          - records_inserted
+          - backfill_command
+        skill: weekly-stock-update
+        depends_on:
+          - DQP-01
+      - id: DQP-04
+        name: "Generate data quality report"
+        order: 4
+        evidence_required:
+          - report_path
+          - overall_quality_score
+          - action_items
+        depends_on:
+          - DQP-02
+          - DQP-03
+
+  security-dependency-sweep:
+    description: "Scan for CVEs, run threat modeling, audit compliance posture"
+    cadence_hours: 24
+    priority: 2
+    skills:
+      - security-expert
+      - dependency-auditor
+      - compliance-governance
+    phases:
+      - id: SDS-01
+        name: "Scan Python dependencies for CVEs"
+        order: 1
+        evidence_required:
+          - scan_command
+          - packages_scanned
+          - vulnerabilities_found
+          - critical_count
+          - high_count
+        skill: dependency-auditor
+      - id: SDS-02
+        name: "Scan Node.js dependencies for CVEs"
+        order: 2
+        evidence_required:
+          - scan_command
+          - packages_scanned
+          - vulnerabilities_found
+          - critical_count
+          - high_count
+        skill: dependency-auditor
+      - id: SDS-03
+        name: "Run secret detection scan"
+        order: 3
+        evidence_required:
+          - scan_command
+          - files_scanned
+          - secrets_found
+          - false_positives
+        skill: security-expert
+      - id: SDS-04
+        name: "Generate security posture report"
+        order: 4
+        evidence_required:
+          - report_path
+          - overall_risk_level
+          - action_items
+          - patches_available
+        depends_on:
+          - SDS-01
+          - SDS-02
+          - SDS-03
+
+  test-coverage-patrol:
+    description: "Analyze test coverage gaps, generate missing tests, verify test quality"
+    cadence_hours: 12
+    priority: 2
+    skills:
+      - test-suite
+      - qa-test-expert
+      - e2e-testing
+    phases:
+      - id: TCP-01
+        name: "Run test suite and collect coverage metrics"
+        order: 1
+        evidence_required:
+          - test_command
+          - tests_passed
+          - tests_failed
+          - tests_skipped
+          - coverage_percent
+        skill: test-suite
+      - id: TCP-02
+        name: "Identify untested code paths"
+        order: 2
+        evidence_required:
+          - uncovered_files
+          - uncovered_functions
+          - coverage_gaps
+        skill: qa-test-expert
+        depends_on:
+          - TCP-01
+      - id: TCP-03
+        name: "Run E2E smoke tests (dry-run)"
+        order: 3
+        evidence_required:
+          - e2e_command
+          - specs_passed
+          - specs_failed
+          - browser_targets
+        skill: e2e-testing
+      - id: TCP-04
+        name: "Generate test coverage improvement plan"
+        order: 4
+        evidence_required:
+          - report_path
+          - priority_files
+          - estimated_tests_needed
+          - current_vs_target_coverage
+        depends_on:
+          - TCP-02
+          - TCP-03
+
+  doc-freshness-checker:
+    description: "Audit documentation staleness, update MEMORY.md, check code-doc drift"
+    cadence_hours: 48
+    priority: 4
+    skills:
+      - context-engineer
+      - technical-writer
+      - codebase-archaeologist
+    phases:
+      - id: DFC-01
+        name: "Scan docs for staleness (last modified vs code changes)"
+        order: 1
+        evidence_required:
+          - docs_scanned
+          - stale_docs
+          - staleness_days
+          - most_outdated
+        skill: codebase-archaeologist
+      - id: DFC-02
+        name: "Check MEMORY.md completeness"
+        order: 2
+        evidence_required:
+          - sections_checked
+          - missing_entries
+          - outdated_entries
+          - completeness_score
+        skill: context-engineer
+      - id: DFC-03
+        name: "Identify code-documentation drift"
+        order: 3
+        evidence_required:
+          - api_endpoints_checked
+          - undocumented_endpoints
+          - drift_score
+        skill: technical-writer
+        depends_on:
+          - DFC-01
+      - id: DFC-04
+        name: "Generate documentation freshness report"
+        order: 4
+        evidence_required:
+          - report_path
+          - overall_freshness_score
+          - priority_updates
+        depends_on:
+          - DFC-01
+          - DFC-02
+          - DFC-03
