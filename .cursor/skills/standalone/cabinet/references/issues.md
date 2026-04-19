@@ -46,4 +46,3 @@ Recent issues from the repository (10 total).
 ### #1: Demo video upload
 **Labels:** No labels | **Closed:** 2026-04-03
 [View on GitHub](https://github.com/hilash/cabinet/issues/1)
-

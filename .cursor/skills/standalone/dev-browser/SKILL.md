@@ -231,6 +231,35 @@ console.log(snapshot);
 SCRIPT
 ```
 
+## Persistent Session Architecture (Daemon Pattern)
+
+For long-running browser automation that spans multiple agent turns or survives context window resets, use `--connect` mode with a background Chrome process:
+
+```bash
+# 1. Launch Chrome with persistent debugging port (keep running in background)
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
+  --remote-debugging-port=9222 \
+  --user-data-dir=/tmp/chrome-persistent &
+
+# 2. Subsequent agent turns reattach to the same session
+dev-browser --connect ws://127.0.0.1:9222 <<'SCRIPT'
+const page = await browser.getPage("session");
+// Page state, cookies, localStorage all survive across invocations
+const url = page.url();
+console.log("Resumed at:", url);
+SCRIPT
+```
+
+Key benefits:
+- **Session continuity**: Login state, cookies, and page context persist across separate agent invocations
+- **Context-window independence**: The browser session outlives any single LLM context window
+- **Multi-turn workflows**: Complex flows (form wizard, checkout, multi-page scraping) can be split across multiple agent turns without re-authenticating
+
+Design guidelines:
+1. Use a fixed debugging port (9222) per workflow to avoid port conflicts
+2. Store session metadata (login status, current step) in a local JSON file for agent recovery
+3. Clean up background Chrome processes when the workflow completes
+
 ## Error Handling
 
 | Error | Cause | Fix |

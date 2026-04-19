@@ -349,6 +349,53 @@ agent-browser diff url https://staging.app.com https://prod.app.com --screenshot
 agent-browser close
 ```
 
+## Coordinate-Based Clicking (Fallback)
+
+When snapshot refs fail — cross-origin iframes, shadow DOM, canvas elements, or elements invisible to the accessibility tree — fall back to coordinate-based clicking via annotated screenshots:
+
+```bash
+agent-browser screenshot --annotate
+# Identify target visually → note pixel coordinates (x, y) from the annotation
+
+agent-browser eval --stdin <<'EVALEOF'
+(async () => {
+  const cdp = await page.context().newCDPSession(page);
+  const x = 350, y = 220;
+  await cdp.send('Input.dispatchMouseEvent', {type:'mousePressed', x, y, button:'left', clickCount:1});
+  await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased', x, y, button:'left', clickCount:1});
+})()
+EVALEOF
+```
+
+Use this pattern only when `@eN` refs are unavailable. Coordinate clicks penetrate iframe/shadow DOM boundaries that ref-based clicks cannot reach.
+
+## Domain Skill Accumulation
+
+When automating a site repeatedly, extract reusable patterns into site-specific template scripts under `templates/domains/`:
+
+```
+templates/domains/
+├── github-login.sh        # GitHub OAuth flow
+├── jira-ticket-create.sh  # Jira ticket automation
+└── slack-post.sh          # Slack message posting
+```
+
+Each domain script should:
+1. Accept parameters (credentials via env vars, never hardcoded)
+2. Include retry logic for known flaky selectors
+3. Document which selectors are fragile and likely to break on site updates
+4. Record the date last verified working
+
+```bash
+# templates/domains/github-login.sh
+# Verified: 2026-04-19 | Fragile selectors: #login_field (stable), .js-sign-in-button (stable)
+agent-browser auth login github
+agent-browser wait --url "**/github.com"
+agent-browser snapshot -i
+```
+
+Over time this creates a site-specific knowledge base that survives across sessions and agents.
+
 ## Error Handling
 
 | Error | Cause | Fix |
