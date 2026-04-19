@@ -358,7 +358,7 @@ new_string: KEY="새값"
 
 고정값:
 - **도메인**: `tkai-api-local.thakicloud.net`
-- **Caddyfile 위치**: 프로젝트 루트 (`ai-platform-webui/Caddyfile`)
+- **Caddyfile 위치**: 프로젝트 루트 (`ai-platform-strategy/Caddyfile`)
 - **참조 가이드**: `ai-platform/backend/go/docs/local/local_caddy_https_guide.md`
 
 ### 7-1. Caddy 설치 확인
@@ -410,7 +410,7 @@ sudo caddy trust
 
 ### 7-4. Caddyfile 생성
 
-Working directory: 프로젝트 루트 (`ai-platform-webui/`)
+Working directory: 프로젝트 루트 (`ai-platform-strategy/`)
 
 ```bash
 ls Caddyfile 2>/dev/null

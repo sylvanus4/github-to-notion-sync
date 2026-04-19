@@ -40,11 +40,11 @@ Tuesday morning workflow: enforce the opt-in label policy, verify dev HEAD conta
 
 ```json
 {
-  "repository": "thakicloud/ai-platform-webui",
+  "repository": "thakicloud/ai-platform-strategy",
   "collection_deadline": "10:00",
   "timezone": "Asia/Seoul",
   "dev_branch": "dev",
-  "image_registry": "ghcr.io/thakicloud/ai-platform-webui"
+  "image_registry": "ghcr.io/thakicloud/ai-platform-strategy"
 }
 ```
 
@@ -159,7 +159,7 @@ Excluded:
   - release:blocked: {n}
 
 Source: dev HEAD ({short_sha})
-RC Image: ghcr.io/thakicloud/ai-platform-webui:rc-{TIMESTAMP}
+RC Image: ghcr.io/thakicloud/ai-platform-strategy:rc-{TIMESTAMP}
 Production Tag (Thursday): vYYYY.MM.DD
 ```
 
@@ -186,7 +186,7 @@ Write to `outputs/release-ops/{date}/collection.json`:
   "target_release_date": "2026-04-10",
   "dev_head_sha": "abc123def",
   "rc_image_tag": "rc-20260408103000",
-  "rc_image_url": "ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000",
+  "rc_image_url": "ghcr.io/thakicloud/ai-platform-strategy:rc-20260408103000",
   "production_tag": "v2026.04.10",
   "notion_page_id": "<page_id>",
   "total_merged": 48,

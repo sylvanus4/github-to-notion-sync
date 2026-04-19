@@ -249,7 +249,7 @@ Invoke `eod-ship` as defined in `daily-pm-orchestrator` Phase 3.
 **Parallel with Phase 2.** Skip if `--skip-phase 3` flag is set.
 
 1. `cursor-sync` — Propagate today's `.cursor/` changes across 5 repos
-2. Dev branch merge (`ai-platform-webui` specific)
+2. Dev branch merge (when `eod-ship` / project-registry defines merging `origin/dev` into the current branch; not a single-repo exception)
 3. `release-ship` for current project: domain-commit → push → issue → PR
 4. `release-ship` × 5 managed projects (sequential)
 5. Slack consolidated shipping report

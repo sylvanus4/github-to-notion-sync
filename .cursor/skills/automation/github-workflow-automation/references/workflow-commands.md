@@ -38,7 +38,7 @@ query($owner: String!, $repo: String!, $issueNumber: Int!) {
       }
     }
   }
-}' -f owner='ThakiCloud' -f repo='ai-platform-webui' -F issueNumber=$ISSUE_NUMBER
+}' -f owner='ThakiCloud' -f repo='ai-platform-strategy' -F issueNumber=$ISSUE_NUMBER
 ```
 
 필드 ID 조회 (최초 1회):
@@ -238,7 +238,7 @@ query($owner: String!, $repo: String!, $issueNumber: Int!) {
       }
     }
   }
-}' -f owner='ThakiCloud' -f repo='ai-platform-webui' -F issueNumber=$ISSUE_NUMBER \
+}' -f owner='ThakiCloud' -f repo='ai-platform-strategy' -F issueNumber=$ISSUE_NUMBER \
   | jq -r '.data.repository.issue.projectItems.nodes[] | select(.project.number == 5) | .id')
 ```
 
@@ -251,7 +251,7 @@ query($owner: String!, $repo: String!, $issueNumber: Int!) {
 
 ## 📋 이슈
 - #{NUMBER} {제목}
-- URL: https://github.com/ThakiCloud/ai-platform-webui/issues/{NUMBER}
+- URL: https://github.com/ThakiCloud/ai-platform-strategy/issues/{NUMBER}
 
 ## ⚙️ 프로젝트 설정
 - Priority: P0 | Size: {XS~XL} | Estimate: {0.5~8} | Sprint: {현재}

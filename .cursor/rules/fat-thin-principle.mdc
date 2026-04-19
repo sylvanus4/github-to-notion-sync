@@ -1,7 +1,7 @@
 ---
-description: "Fat Skills / Fat Code / Thin Harness — agentic engineering principles enforced during skill and harness creation, review, and evolution"
+description: "Fat Skills / Fat Code / Thin Harness — agentic engineering principles enforced during skill and harness creation, review, and evolution. Consolidated into workflow-patterns.mdc."
 globs: ["**/*.md", "**/SKILL.md"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Fat Skills / Fat Code / Thin Harness

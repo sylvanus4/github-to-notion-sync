@@ -22,9 +22,9 @@ Changes not staged for commit:
 
 # Step A: 이슈 생성
 $ gh issue create --title "새로운 기능 컴포넌트 추가" --body "..." --assignee @me
-https://github.com/ThakiCloud/ai-platform-webui/issues/123
+https://github.com/ThakiCloud/ai-platform-strategy/issues/123
 
-$ gh project item-add 5 --owner ThakiCloud --url https://github.com/ThakiCloud/ai-platform-webui/issues/123
+$ gh project item-add 5 --owner ThakiCloud --url https://github.com/ThakiCloud/ai-platform-strategy/issues/123
 
 # (프로젝트 필드 설정 - Priority: P0, Size: S, Estimate: 2, Sprint: 현재)
 
@@ -55,7 +55,7 @@ $ gh pr create --title "#123 feat: add NewFeature component" --body "..." --base
 
 ## 📋 이슈
 - #123 새로운 기능 컴포넌트 추가
-- URL: https://github.com/ThakiCloud/ai-platform-webui/issues/123
+- URL: https://github.com/ThakiCloud/ai-platform-strategy/issues/123
 
 ## ⚙️ 프로젝트 설정
 - Priority: P0
@@ -71,7 +71,7 @@ $ gh pr create --title "#123 feat: add NewFeature component" --body "..." --base
 
 ## 🔗 PR
 - #124 feat: add NewFeature component
-- URL: https://github.com/ThakiCloud/ai-platform-webui/pull/124
+- URL: https://github.com/ThakiCloud/ai-platform-strategy/pull/124
 - Base: dev ← Head: issue/123-add-new-feature
 - 머지 전략: Squash
 ```

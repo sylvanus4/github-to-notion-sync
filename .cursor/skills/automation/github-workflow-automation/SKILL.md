@@ -1,6 +1,6 @@
 ---
 name: github-workflow-automation
-description: ai-platform-webui 레포지토리의 GitHub 워크플로우를 자동화합니다. 변경사항 확인, 이슈 생성, 브랜치 생성, 커밋, 푸시, PR 생성/업데이트, 이슈 코멘트까지 전체 흐름 처리. 이슈 만들어줘, 커밋해줘, PR 생성해줘, 변경사항 정리해줘, 깃 워크플로우 요청 시 사용합니다. Do NOT use for 코드 생성(fsd-development), 화면 구현(implement-screen), Notion 문서 동기화(notion-docs-sync), 또는 디자인 리뷰(design-review).
+description: ai-platform-strategy 레포지토리의 GitHub 워크플로우를 자동화합니다. 변경사항 확인, 이슈 생성, 브랜치 생성, 커밋, 푸시, PR 생성/업데이트, 이슈 코멘트까지 전체 흐름 처리. 이슈 만들어줘, 커밋해줘, PR 생성해줘, 변경사항 정리해줘, 깃 워크플로우 요청 시 사용합니다. Do NOT use for 코드 생성(fsd-development), 화면 구현(implement-screen), Notion 문서 동기화(notion-docs-sync), 또는 디자인 리뷰(design-review).
 metadata:
   version: 1.1.0
   category: execution

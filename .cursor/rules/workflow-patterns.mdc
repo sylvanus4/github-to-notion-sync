@@ -1,73 +1,37 @@
 ---
-description: "Agent workflow pattern selection: Sequential, Parallel, and Evaluator-Optimizer. Guides when to use each pattern and how to combine them."
+description: "Consolidated agent workflow guide: pattern selection (Sequential/Parallel/Eval-Opt), orchestration principles, and Fat/Thin architecture."
 alwaysApply: true
 ---
 
-# Workflow Patterns
+# Workflow & Orchestration Guide
 
-Three workflow patterns cover the majority of multi-agent use cases. Pick the simplest pattern that solves the problem.
+## 1. Workflow Patterns
 
-## Pattern Definitions
+Pick the simplest pattern that solves the problem.
 
-### Sequential
+| Pattern | Use when | Constraint |
+|---------|----------|------------|
+| **Sequential** | B needs A's output | Adds latency |
+| **Parallel** | Independent subtasks, multiple perspectives | Max 4 concurrent subagents |
+| **Evaluator-Optimizer** | First-draft quality falls short + measurable criteria | Define max iterations (default 2), threshold, stopping criteria |
 
-Tasks execute in a predetermined order. Each step processes inputs and passes results to the next.
+**Decision**: Single agent can handle it? → Just do it. Dependencies? → Sequential. Independent? → Parallel. Quality gap? → Add Eval-Opt loop. Patterns compose freely (e.g., Parallel review → Sequential fix → Eval-Opt gate).
 
-**Use when:** Tasks have dependencies — step B needs step A's output.
-**Tradeoff:** Adds latency (each step waits for the previous one).
-**Examples:** `today` (6-phase pipeline), `ci-quality-gate` (8 sequential gates), `bugfix-loop` (reproduce → fix → verify), `release-commander` Groups C/D.
+**Eval-Opt guardrail**: If deterministic tools exist (linters, tests), use those instead.
 
-### Parallel
+## 2. Orchestration Principles
 
-Independent tasks run across multiple agents simultaneously. Results are aggregated after all agents complete (fan-out/fan-in).
+- **Plan first**: Enter plan mode for 3+ step tasks. Re-plan immediately if something goes sideways.
+- **Subagents**: Use liberally to keep main context clean. One task per subagent.
+- **Verify before done**: Never mark complete without proving it works. Run tests, check logs.
+- **Autonomous bugs**: Given a bug report, just fix it — no hand-holding.
+- **Simplicity**: Make changes as simple as possible. Find root causes, not temporary fixes.
+- **Completeness over shortcuts**: When AI time is cheap and human time is expensive, prefer thorough over fast — unless user explicitly requests speed.
 
-**Use when:** Tasks are independent and benefit from multiple perspectives or faster completion.
-**Tradeoff:** Costs more (multiple concurrent API calls) and requires an aggregation strategy.
-**Constraint:** Max 4 concurrent subagents.
-**Examples:** `deep-review` (4 domain agents), `simplify` (4 review agents), `diagnose` (3 analysis agents), `test-suite` (2 review agents).
+## 3. Fat/Thin Architecture
 
-### Evaluator-Optimizer
-
-Two roles in an iterative cycle: one generates content, another evaluates it against specific criteria, and the generator refines based on feedback. Continues until quality threshold is met or max iterations reached.
-
-**Use when:** First-draft quality consistently falls short of requirements, AND you have measurable quality criteria.
-**Tradeoff:** Multiplies token usage and adds iteration time.
-**Requirements:** (a) measurable quality criteria, (b) max iteration count, (c) quality threshold.
-**Examples:** `ai-quality-evaluator` scoring reports, `sp-subagent-dev` spec + quality review loops, `anthropic-skill-creator` human-in-loop iteration.
-
-## Decision Tree
-
-```
-1. Can a single agent handle this effectively?
-   → YES: No workflow needed. Just do it.
-   → NO: Continue.
-
-2. Do tasks have sequential dependencies (B needs A's output)?
-   → YES: Use Sequential.
-
-3. Can subtasks run independently?
-   → YES: Use Parallel.
-
-4. Does first-draft quality fall short, AND can you measure improvement?
-   → YES: Add Evaluator-Optimizer loop at the quality-critical stage.
-```
-
-## Combination Rules
-
-Patterns are composable. Common combinations:
-
-- **Parallel + Sequential**: Parallel review agents → Sequential fix application (used by `simplify`, `deep-review`, `ship`)
-- **Sequential + Parallel stages**: Sequential pipeline with parallel processing at bottleneck points (used by `release-commander`, `incident-to-improvement`)
-- **Parallel + Evaluator-Optimizer**: Parallel review → Fix → Re-evaluate against original findings → Iterate if quality not met (used by `simplify --refine`, `deep-review --refine`)
-- **Sequential + Evaluator-Optimizer gate**: Sequential pipeline with quality gate before final output (used by `today` pipeline before Slack posting)
-
-## Evaluator-Optimizer Guardrails
-
-When adding an evaluator-optimizer loop, ALWAYS define:
-
-1. **Max iteration count** — default: 2 for code review, 2 for report generation
-2. **Quality threshold** — specific and measurable (e.g., "no Critical/High findings remain", "score >= 8.0")
-3. **Stopping criteria** — any of: max iterations reached, quality threshold met, no improvement between iterations
-4. **Scope reduction** — re-evaluate only modified files, not the entire corpus
-
-If deterministic tools exist (linters, type checkers, test runners), use those instead of an evaluator-optimizer loop. Reserve the pattern for subjective quality dimensions.
+| Layer | Contains | Red flag |
+|-------|----------|----------|
+| **Fat Skills** (SKILL.md) | Heuristics, judgment, prompts, reasoning | >20 lines inline code → extract to `scripts/` |
+| **Fat Code** (scripts/, src/) | Parsing, API calls, calculations, validation | Inline in SKILL.md >50 lines → extract |
+| **Thin Harness** | Execution order, parallelism, I/O contracts | >250 lines body or contains domain logic → extract to skill |

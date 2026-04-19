@@ -110,7 +110,7 @@ The decision to rebuild is made by the Release Owner based on the nature of the 
 ```
 🧪 QA Gate Result — {date}
 
-RC Image: ghcr.io/thakicloud/ai-platform-webui:rc-{timestamp}
+RC Image: ghcr.io/thakicloud/ai-platform-strategy:rc-{timestamp}
 Environment: dev (RC image)
 
 Passed: {n} | Conditional Pass: {n} | Failed: {n} | Not Tested: {n}
@@ -144,7 +144,7 @@ Write to `outputs/release-ops/{date}/qa-results.json`:
   "date": "2026-04-09",
   "target_release_date": "2026-04-10",
   "rc_image_tag": "rc-20260408103000",
-  "rc_image_url": "ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000",
+  "rc_image_url": "ghcr.io/thakicloud/ai-platform-strategy:rc-20260408103000",
   "rc_image_verified": true,
   "rc_rebuilt": false,
   "gate_status": "OPEN",

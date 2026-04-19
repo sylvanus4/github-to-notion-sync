@@ -327,7 +327,7 @@ If Phase 1 classified meeting as non-sprint, skip Phase 2.
 
 1. Delegate to `sprint-orchestrator` skill:
    - Scope: All untriaged issues/PRs since last run
-   - Target: ThakiCloud repositories (ai-platform-webui primary)
+   - Target: ThakiCloud repositories (ai-platform-strategy primary)
    - Output: `phase-3-triage.json`
 
 2. The sprint-orchestrator runs:

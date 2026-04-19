@@ -21,24 +21,12 @@ Lightweight pipeline to go from uncommitted changes to a merged PR. Chains domai
 
 ## Repository-Specific Behavior
 
-### ai-platform-webui (ThakiCloud/ai-platform-webui)
-
-**Exception**: This repo works exclusively on the `tmp` branch. PR creation and merge steps are **always skipped**. The pipeline is:
-
-```
-commit → push → issue → report
-```
-
-No cross-branch merges. No PRs targeting `dev` or `main`. All work stays on `tmp`.
-
-### Other repos
-
-Full pipeline applies: `commit → push → issue → PR → merge`.
+All managed repositories (including `ai-platform-strategy`) use the **same full pipeline**: `commit → push → issue → PR → merge`. Branch names, PR bases, and merge policies follow each repo's `CONTRIBUTING.md` and [eod-ship project-registry.md](../../pipeline/eod-ship/references/project-registry.md).
 
 ## Usage
 
 ```
-/release-ship                    # full pipeline (webui: commit→push→issue→report)
+/release-ship                    # full pipeline (commit → push → issue → PR → merge)
 /release-ship --no-pr            # commit → push → issue (skip PR and merge)
 /release-ship --no-issue         # commit → push → PR → merge (skip issue creation)
 /release-ship --no-merge         # commit → push → issue → PR (skip merge)
@@ -50,16 +38,14 @@ Full pipeline applies: `commit → push → issue → PR → merge`.
 
 Which steps execute in each scenario:
 
-| Scenario | Step 1 | Step 2 | Step 2.5 | Step 3 | Step 3.5 | Step 4 (Issue) | Step 5 (PR) | Step 6 (Merge) | Step 7 |
-|----------|--------|--------|----------|--------|----------|----------------|-------------|----------------|--------|
-| **webui** (default) | ✅ | ✅ | ✅ | ✅ push | ✅ detect | **✅ MANDATORY** | ❌ skip | ❌ skip | ✅ |
-| **webui** `--no-issue` | ✅ | ✅ | ✅ | ✅ push | ✅ detect | ❌ skip | ❌ skip | ❌ skip | ✅ |
-| **other repo** (default) | ✅ | ✅ | ✅ | ✅ push | ✅ detect | **✅ MANDATORY** | ✅ | ✅ | ✅ |
-| **other repo** `--no-pr` | ✅ | ✅ | ✅ | ✅ push | ✅ detect | **✅ MANDATORY** | ❌ skip | ❌ skip | ✅ |
-| **other repo** `--no-issue` | ✅ | ✅ | ✅ | ✅ push | ✅ detect | ❌ skip | ✅ | ✅ | ✅ |
-| **other repo** `--no-merge` | ✅ | ✅ | ✅ | ✅ push | ✅ detect | **✅ MANDATORY** | ✅ | ❌ skip | ✅ |
+| Scenario | Step 1 | Step 2 | Step 2.5 | Step 3 | Step 4 (Issue) | Step 5 (PR) | Step 6 (Merge) | Step 7 |
+|----------|--------|--------|----------|--------|----------------|-------------|----------------|--------|
+| **Default** | ✅ | ✅ | ✅ | ✅ push | **✅ MANDATORY** | ✅ | ✅ | ✅ |
+| **`--no-pr`** | ✅ | ✅ | ✅ | ✅ push | **✅ MANDATORY** | ❌ skip | ❌ skip | ✅ |
+| **`--no-issue`** | ✅ | ✅ | ✅ | ✅ push | ❌ skip | ✅ | ✅ | ✅ |
+| **`--no-merge`** | ✅ | ✅ | ✅ | ✅ push | **✅ MANDATORY** | ✅ | ❌ skip | ✅ |
 
-**Key rule**: Step 4 (Issue Creation) is ALWAYS executed unless `--no-issue` is explicitly set. `IS_WEBUI` only affects Steps 5 and 6.
+**Key rule**: Step 4 (Issue Creation) is ALWAYS executed unless `--no-issue` is explicitly set. Steps 5 and 6 follow `--no-pr` / `--no-merge` only.
 
 ## Workflow
 
@@ -74,9 +60,9 @@ git log --oneline -5
 1. If working directory is clean:
    - **Standalone mode**: Stop and inform the user.
    - **Pipeline mode** (invoked by `eod-ship`, `sod-ship`, `morning-ship`): Do NOT stop. Set `STEP2_SKIPPED=true`, skip Steps 2–3 (no new commits to create or push), and proceed directly to Step 4 for orphan detection.
-2. Extract the current branch name.
+2. Extract the current branch name into `CURRENT_BRANCH` (for example `dev` or `issue/123-feature`).
 3. Extract issue number from branch: `issue/{NUMBER}-*` or `epic/{NUMBER}`.
-4. Check for existing PRs: `gh pr list --head tmp --json number,url --jq '.[0]'`.
+4. Check for existing PRs: `gh pr list --head "$CURRENT_BRANCH" --json number,url --jq '.[0]'`.
 
 ### Step 2: Domain-Split Commits
 
@@ -93,7 +79,7 @@ Follow the `domain-commit` skill pattern. For domain-to-path mapping and hook re
 
 ### Step 2.5: Pre-Push Quality Gate
 
-Before `git push origin HEAD:tmp`, verify:
+Before `git push origin HEAD`, verify:
 - [ ] All pre-commit hooks passed (no bypassed commits via `--no-verify`)
 - [ ] `git status --short` is empty (all changes committed)
 - [ ] All commit messages follow `TYPE: Summary` format — Conventional Commits (check via `git log --oneline -N`)
@@ -105,40 +91,31 @@ If diff exceeds 500 lines, warn the user and suggest splitting into sequential d
 ### Step 3: Push
 
 ```bash
-git push origin HEAD:tmp
+git push origin HEAD
 ```
 
-If push fails (e.g., rejected), inform the user with remediation steps (`git pull origin tmp`).
+If push fails (for example rejected non-fast-forward), inform the user with remediation steps (`git pull` with the configured upstream, or `git pull origin dev` when working on `dev` without upstream).
 
 ### Step 3.5: Determine Execution Path
 
-Detect the repository and set execution flags. This step decides which subsequent steps to execute.
-
-```bash
-REPO_URL=$(git remote get-url origin)
-IS_WEBUI=false
-echo "$REPO_URL" | grep -q 'ai-platform-webui' && IS_WEBUI=true
-```
-
 **Decision logic** (apply in order):
 
-1. **Step 4 (Issue Creation)**: Execute UNLESS `--no-issue` is explicitly set. `IS_WEBUI` does NOT affect Step 4.
-2. **Step 5 (PR Creation)**: Execute UNLESS `IS_WEBUI` is true OR `--no-pr` is set.
-3. **Step 6 (Merge)**: Execute UNLESS `IS_WEBUI` is true OR `--no-pr` is set OR `--no-merge` is set.
+1. **Step 4 (Issue Creation)**: Execute UNLESS `--no-issue` is explicitly set.
+2. **Step 5 (PR Creation)**: Execute UNLESS `--no-pr` is set.
+3. **Step 6 (Merge)**: Execute UNLESS `--no-pr` is set OR `--no-merge` is set.
 4. **Step 7 (Report)**: ALWAYS execute.
 
 **Resulting execution paths:**
 
-- `IS_WEBUI=true`: Step 4 → Step 7 (Steps 5 and 6 skipped)
-- `IS_WEBUI=false` (default): Step 4 → Step 5 → Step 6 → Step 7
-- `--no-issue`: Skip Step 4, continue with Steps 5/6/7 based on other flags
-- `--no-pr`: Skip Steps 5 and 6, continue with Step 7
+- **Default**: Step 4 → Step 5 → Step 6 → Step 7
+- **`--no-issue`**: Skip Step 4, continue with Steps 5/6/7 based on other flags
+- **`--no-pr`**: Skip Steps 5 and 6, continue with Step 7
 
 ### Step 4: Create Issues and Link to Project (MANDATORY)
 
-> **⚠️ CRITICAL**: This step ALWAYS executes unless `--no-issue` is explicitly set. The `IS_WEBUI` flag does NOT skip this step — it only skips Steps 5 and 6 (PR and Merge). In pipeline mode (invoked by eod-ship, sod-ship, etc.), issue creation is auto-confirmed without user prompts.
+> **⚠️ CRITICAL**: This step ALWAYS executes unless `--no-issue` is explicitly set. In pipeline mode (invoked by eod-ship, sod-ship, etc.), issue creation is auto-confirmed without user prompts.
 
-If `--no-issue` flag is set, skip to Step 5 (or Step 7 if `IS_WEBUI`).
+If `--no-issue` flag is set, skip to Step 5 (or Step 7 if `--no-pr` is also set).
 
 This step converts the domain-split commits from Step 2 into tracked GitHub issues on ThakiCloud Project #5. It follows patterns from the [commit-to-issue](../commit-to-issue/SKILL.md) skill. For project field IDs, option IDs, and GraphQL queries, see [commit-to-issue/references/project-config.md](../commit-to-issue/references/project-config.md).
 
@@ -148,10 +125,10 @@ This step converts the domain-split commits from Step 2 into tracked GitHub issu
 
 When `STEP2_SKIPPED=true`:
 
-1. Check for unpushed commits:
+1. Check for unpushed commits (requires upstream `@{u}` configured; if missing, `git fetch origin` then compare against the intended base such as `origin/dev`):
 
 ```bash
-git log origin/tmp..HEAD --oneline
+git log @{u}..HEAD --oneline
 ```
 
 2. Check for commits in the last 24 hours without `#NNNN` references:
@@ -162,7 +139,7 @@ git log --oneline --since="24 hours ago" HEAD | grep -v '#[0-9]'
 
 3. Filter out merge commits and commits already linked to an existing issue.
 4. For any orphan commits found, proceed to 4b to create issues.
-5. If zero orphan commits found, log `{orphan_fallback: "clean", orphan_count: 0}` and skip to Step 5 (or Step 7 if `IS_WEBUI`).
+5. If zero orphan commits found, log `{orphan_fallback: "clean", orphan_count: 0}` and skip to Step 5 (or Step 7 if `--no-pr`).
 
 **Do NOT skip Step 4 just because Step 2 was a no-op.**
 
@@ -248,7 +225,7 @@ Record verification result: `{project5_check: {issues_verified: N, issues_total:
 
 ### Step 5: PR Create or Update
 
-**Skip this step** if `IS_WEBUI` is true (ai-platform-webui works on `tmp` only — no PRs).
+**Skip this step** if `--no-pr` is set.
 
 Determine target branch (override with `--base`):
 
@@ -266,7 +243,7 @@ For PR body and title format, see [references/pr-template.md](references/pr-temp
 #### 5a. If PR already exists
 
 ```bash
-PR_NUMBER=$(gh pr list --head tmp --json number --jq '.[0].number')
+PR_NUMBER=$(gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number')
 ```
 
 Update the PR body with current changes. For the PR body template, see [references/pr-template.md](references/pr-template.md).
@@ -300,7 +277,7 @@ Brief explanation
 EOF
 )" \
   --base $TARGET_BRANCH \
-  --head tmp \
+  --head "$CURRENT_BRANCH" \
   --assignee sylvanus4
 ```
 
@@ -308,9 +285,7 @@ For the full PR body template, see [references/pr-template.md](references/pr-tem
 
 ### Step 6: Merge PR (Auto-Merge by Default)
 
-**Skip this step** if `IS_WEBUI` is true (ai-platform-webui works on `tmp` only — no merges).
-
-If `--no-pr` or `--no-merge` flag is set, skip to Step 7 (Report).
+**Skip this step** (go to Step 7) if `--no-pr` or `--no-merge` is set.
 
 Auto-merge the PR created or updated in Step 5. This is the DEFAULT behavior — do NOT ask the user whether to merge. Just merge it.
 
@@ -351,42 +326,18 @@ If the checkout or pull fails (e.g., uncommitted changes), warn the user but do 
 
 ### Step 7: Report
 
-**ai-platform-webui** format (no PR/Merge):
-
-```
-Release Ship Report
-====================
-Pipeline: commit → push → issue → report (webui: tmp-only mode)
-
-Commits:
-  TYPE: commit message 1
-  TYPE: commit message 2
-
-Push:
-  Branch: tmp → origin/tmp
-
-Issues:
-  #N1 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
-  #N2 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
-
-GitHub Project #5 검증:
-  이슈 등록: N/N 확인 ✅ (or ⚠️ M개 누락)
-  필드 완성도: N/N 완전 ✅ (or ⚠️ M개 불완전)
-```
-
-**Other repos** format (full pipeline):
-
 ```
 Release Ship Report
 ====================
 Pipeline: commit → push → issue → PR → merge
+(omit PR/Merge lines when `--no-pr` / `--no-merge`; omit Issues when `--no-issue`)
 
 Commits:
   TYPE: commit message 1
   TYPE: commit message 2
 
 Push:
-  Branch: [branch] → origin/tmp
+  Branch: [current branch] → origin (same branch)
 
 Issues:
   #N1 TYPE: Title → Project #5 (Done, P2, S, Sprint X)
@@ -395,28 +346,33 @@ Issues:
 PR:
   URL: https://github.com/ThakiCloud/REPO/pull/N
   Title: [PR title]
-  Base: [target] ← [branch]
+  Base: [target] ← [source branch]
   Status: [Created | Updated]
 
 Merge:
   PR #N merged via squash into [base branch]
-  Branch: deleted
+  Branch: deleted (when applicable)
+
+GitHub Project #5 검증:
+  이슈 등록: N/N 확인 ✅ (or ⚠️ M개 누락)
+  필드 완성도: N/N 완전 ✅ (or ⚠️ M개 불완전)
 ```
 
 If `--no-issue` was used, omit the Issues section. If `--no-pr` was used, omit the PR and Merge sections. If `--no-merge` was used, omit the Merge section.
 
 ## Examples
 
-### Example 1: ai-platform-webui (tmp-only mode)
+### Example 1: Full pipeline on ai-platform-strategy
 
-User runs `/release-ship` on `tmp` in `ai-platform-webui`.
+User runs `/release-ship` on `issue/123-feature` (or `dev`) in `ai-platform-strategy`.
 
 1. `git status` finds 6 changed files across `.cursor/skills/`, `.cursor/commands/`, `docs/`
 2. 3 domain-split commits created
-3. Push to `origin/tmp`
+3. `git push origin HEAD`
 4. Create 3 issues from commits → add to Project #5 with fields (Done, P2, S, current sprint, 0.5 SP each)
-5. PR and merge skipped (webui: tmp-only mode)
-6. Report with commit list, issue URLs — no PR/merge sections
+5. PR created or updated targeting `dev` (or `main` per branch rules)
+6. Squash-merge PR; checkout and pull base branch
+7. Report with commits, issues, PR URL, merge status
 
 ### Example 2: Full pipeline from other repo
 
@@ -438,7 +394,7 @@ User runs `/release-ship --no-pr` to commit and push only.
 3. Issues created and added to Project #5
 4. Report without PR and Merge sections
 
-### Example 4: Existing PR update (non-webui repos)
+### Example 4: Existing PR update
 
 User runs `/release-ship` on a branch that already has an open PR.
 
@@ -466,7 +422,7 @@ User runs `/release-ship --no-issue` to ship without creating issues.
 |----------|--------|
 | No changes detected | Inform user and stop |
 | Pre-commit hook fails | Fix lint errors, re-commit (never amend) |
-| Push rejected | Report error; suggest `git pull origin tmp` |
+| Push rejected | Report error; suggest `git pull` (upstream) or `git pull origin dev` when on `dev` |
 | Issue creation fails (permission) | Report error; continue with PR creation |
 | Project item-add fails | Report error; continue with PR creation |
 | Sprint field outdated | Re-query current sprint iteration via GraphQL |
@@ -481,7 +437,7 @@ User runs `/release-ship --no-issue` to ship without creating issues.
 ## Safety Rules
 
 - **Never force push** (`--force`) to any branch
-- **Never push directly** to `main` or `dev`
+- **Never push directly** to `main` without following that repo's release policy
 - **Never amend** failed commits; create new ones
 - **Never commit** `.env`, credentials, or secret files
 - **Only push to origin**, never upstream
@@ -489,5 +445,3 @@ User runs `/release-ship --no-issue` to ship without creating issues.
 - **Pipeline mode** (invoked by eod-ship, sod-ship, morning-ship, or any batch pipeline): Auto-confirm issue creation — do NOT skip this step. The pipeline caller has already been approved by the user.
 - **Reference local guides**: [commit-to-issue/references/](../commit-to-issue/references/) for issue config, [references/pr-template.md](references/pr-template.md) for PR format
 - **Never merge** without a successfully created PR in the same pipeline run
-- **ai-platform-webui**: Never create PRs or merge to other branches — `tmp` is the only working branch
-- **ai-platform-webui**: Never delete `tmp` branch (it is reused permanently)

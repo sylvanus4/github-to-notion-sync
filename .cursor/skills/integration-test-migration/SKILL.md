@@ -97,7 +97,7 @@ func setupTestFixtures(t *testing.T, db *sql.DB) {
              ON CONFLICT (id) DO NOTHING`, testOrgID, "test-org-domain")
 
     // 2. users (password CHECK: char_length >= 60 — testutil 헬퍼 사용)
-    //    import "github.com/ThakiCloud/ai-platform-webui/ai-platform/backend/go/internal/testutil"
+    //    import "github.com/ThakiCloud/ai-platform-strategy/ai-platform/backend/go/internal/testutil"
     db.Exec(`INSERT INTO users (id, name, username, email, password, organization_id)
              VALUES ($1, 'test-user', 'test-user', 'test@test.local', $2, $3)
              ON CONFLICT (id) DO NOTHING`, testUserID, testutil.TestBcryptHash(t), testOrgID)

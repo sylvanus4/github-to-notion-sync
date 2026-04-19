@@ -39,8 +39,8 @@ Target paths use `{BASE}` which resolves to the detected environment's base path
 
 | Alias | Repo | Relative Path | Bidirectional |
 |-------|------|---------------|---------------|
-| `github-to-notion-sync` | `thakicloud/github-to-notion-sync` | `{BASE}/github-to-notion-sync` | **yes** |
-| `ai-platform-webui` | `thakicloud/ai-platform-webui` | `{BASE}/ai-platform-webui` | **yes** |
+| `github-to-notion-sync` | `sylvanus4/github-to-notion-sync` | `{BASE}/github-to-notion-sync` | **yes** |
+| `ai-platform-strategy` | `thakicloud/ai-platform-strategy` | `{BASE}/ai-platform-strategy` | **yes** |
 | `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `{BASE}/ai-model-event-stock-analytics` | **yes** |
 | `ai-template` | `thakicloud/ai-template` | `{BASE}/ai-template` | **yes** |
 
@@ -54,7 +54,7 @@ Skills are organized into subdirectories under `.cursor/skills/`. During push, o
 | Alias | Skill Groups |
 |-------|-------------|
 | `ai-model-event-stock-analytics` | `all` |
-| `ai-platform-webui` | `all` |
+| `ai-platform-strategy` | `all` |
 | `github-to-notion-sync` | `gws`, `nlm`, `pipeline`, `workflow`, `anthropic`, `standalone`, `addyosmani`, `omc`, `notion` |
 | `ai-template` | `workflow`, `anthropic`, `ce`, `ecc`, `standalone`, `addyosmani`, `omc` |
 
@@ -111,7 +111,7 @@ Skills are organized into subdirectories under `.cursor/skills/`. During push, o
 ### Rationale for Per-Repo Selection
 
 - **ai-model-event-stock-analytics**: Main project — needs every group
-- **ai-platform-webui**: Main development workspace with 970+ skills — needs every group (same as ai-model-event-stock-analytics)
+- **ai-platform-strategy**: Main development workspace with 970+ skills — needs every group (same as ai-model-event-stock-analytics)
 - **github-to-notion-sync**: Notion automation — needs gws (Google Workspace), nlm (NotebookLM), pipeline (orchestration), workflow (patterns), anthropic (doc generation), standalone (utilities)
 - **ai-template**: Template repo — needs only generic, project-agnostic groups: workflow, anthropic, ce, ecc, standalone
 

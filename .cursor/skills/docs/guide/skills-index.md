@@ -14,7 +14,7 @@
 
 ## 하위 문서
 
-레포지토리: [ThakiCloud/ai-platform-webui](https://github.com/ThakiCloud/ai-platform-webui) (`.cursor/skills/`)
+레포지토리: [ThakiCloud/ai-platform-strategy](https://github.com/ThakiCloud/ai-platform-strategy) (`.cursor/skills/`)
 
 | 문서 | 스킬 | 설명 |
 |------|------|------|

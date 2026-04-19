@@ -109,7 +109,7 @@ Aggregate current release cycle state from all sources:
 
    Phase: {current_phase}
    Target Deploy: {thursday_date}
-   RC Image: ghcr.io/thakicloud/ai-platform-webui:rc-{timestamp}
+   RC Image: ghcr.io/thakicloud/ai-platform-strategy:rc-{timestamp}
    Production Tag: vYYYY.MM.DD
 
    Label Status:

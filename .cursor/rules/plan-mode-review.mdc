@@ -1,6 +1,6 @@
 ---
 description: "Interactive engineering review framework for Plan Mode — activates automatically when Plan Mode is active"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Plan Mode Engineering Review

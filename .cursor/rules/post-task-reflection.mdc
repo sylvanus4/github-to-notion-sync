@@ -1,6 +1,6 @@
 ---
-description: "Post-task reflection protocol — structured introspection after non-trivial tasks"
-alwaysApply: true
+description: "Post-task reflection protocol — structured introspection after non-trivial tasks. Trigger: after 8+ tool-call tasks or error recovery."
+alwaysApply: false
 ---
 
 # Post-Task Reflection Protocol

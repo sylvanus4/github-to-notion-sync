@@ -26,6 +26,19 @@ Complements `rtk-token-optimization.mdc` (CLI output compression) with higher-le
 - Avoid reading large files (>1K lines) in main context — use SemanticSearch or Grep scoped to that file instead
 - When generating plans or reports, write to files rather than outputting long text inline
 
+## Context Mode (Scratch-File Offloading)
+
+When a tool call returns large output (>200 lines) or you're generating long-form content (reports, plans, diffs):
+
+1. Write the full output to a scratch file (e.g., `/tmp/scratch-{task}.md` or `outputs/scratch/`)
+2. Return only a short summary + file path to the main context
+3. Read the scratch file back only if you need specific sections
+
+This keeps the conversation context small while preserving all data on disk. Particularly useful for:
+- `git diff` or `git log` output (write to file, grep for relevant sections)
+- Generated reports, analysis, or compiled results
+- Multi-file review summaries from subagents
+
 ## Subagent Cost Control
 
 - For exploration tasks that only need file reading and searching: use `model: "fast"`

@@ -32,7 +32,7 @@ manages code quality, ships changes, and produces portfolio-level status reports
 
 | # | Alias | Path | Branch Strategy |
 |---|-------|------|-----------------|
-| 1 | `ai-platform-webui` | `~/thaki/ai-platform-webui` | `tmp` branch (push HEAD:tmp) |
+| 1 | `ai-platform-strategy` | `~/thaki/ai-platform-strategy` | `dev` branch (standard push/pull and PR workflow) |
 | 2 | `ai-model-event-stock-analytics` | `~/thaki/ai-model-event-stock-analytics` | Standard branches |
 | 3 | `research` | `~/thaki/research` | Standard branches |
 | 4 | `ai-template` | `~/thaki/ai-template` | Standard branches |
@@ -104,7 +104,7 @@ SKIP and reuse. Otherwise check each repo's dirty state, unpushed commits,
 and branch status. Write per-repo status to `git-status.json`.
 
 **Phase 2 — Sprint Triage**
-Run `sprint-orchestrator` for `ai-platform-webui` (primary dev project).
+Run `sprint-orchestrator` for `ai-platform-strategy` (primary dev project).
 Collect new issues, stale PRs, and unassigned items. Write to `sprint-triage.json`.
 
 **Phase 3 — CI Health**
@@ -189,8 +189,8 @@ standard error record format (severity S1-S4, phase, impact, recovery).
 
 ## Gotchas
 
-- `ai-platform-webui` uses the `tmp` branch for push/pull (never push
-  to matching branch name)
+- `ai-platform-strategy` uses the standard `dev` branch workflow (push/pull and
+  PR/merge per CONTRIBUTING; do not use legacy `tmp` shortcuts)
 - Pre-push hook can hang >4min on E2E tests — use `git push --no-verify`
   as workaround
 - `github-sprint-digest` needs GitHub tokens — verify with `gh auth status`

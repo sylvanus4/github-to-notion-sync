@@ -1,7 +1,7 @@
 ---
 title: Workflow Orchestration
-description: Agent workflow rules covering planning, subagents, self-improvement, verification, elegance, bug fixing, task management, and core principles. Always enforced.
-alwaysApply: true
+description: Agent workflow rules covering planning, subagents, self-improvement, verification, elegance, bug fixing, task management, and core principles. Consolidated into workflow-patterns.mdc.
+alwaysApply: false
 ---
 
 ## Workflow Orchestration

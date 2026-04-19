@@ -15,7 +15,7 @@ query($owner: String!, $repo: String!, $issueNumber: Int!) {
       }
     }
   }
-}' -f owner='ThakiCloud' -f repo='ai-platform-webui' -F issueNumber=$ISSUE_NUMBER
+}' -f owner='ThakiCloud' -f repo='ai-platform-strategy' -F issueNumber=$ISSUE_NUMBER
 ```
 
 ## Project Field ID Query (one-time)

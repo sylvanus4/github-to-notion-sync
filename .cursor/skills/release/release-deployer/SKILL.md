@@ -112,8 +112,8 @@ The RC image (already verified by QA on dev) is promoted to the production tag a
 
 ```bash
 # 1. Tag the RC image as the production release
-#    source: ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000
-#    target: ghcr.io/thakicloud/ai-platform-webui:v2026.04.10
+#    source: ghcr.io/thakicloud/ai-platform-strategy:rc-20260408103000
+#    target: ghcr.io/thakicloud/ai-platform-strategy:v2026.04.10
 #    Trigger CI workflow to re-tag:
 gh workflow run release-webui.yaml -f image_tag=v2026.04.10
 
@@ -186,7 +186,7 @@ Collect and record improvement points:
   "date": "2026-04-10",
   "production_tag": "v2026.04.10",
   "rc_image_tag": "rc-20260408103000",
-  "rc_image_url": "ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000",
+  "rc_image_url": "ghcr.io/thakicloud/ai-platform-strategy:rc-20260408103000",
   "deployed": 13,
   "rolled_back": 0,
   "dev_restored": true,
@@ -207,7 +207,7 @@ Write to `outputs/release-ops/{date}/deploy-results.json`:
 {
   "date": "2026-04-10",
   "rc_image_tag": "rc-20260408103000",
-  "rc_image_url": "ghcr.io/thakicloud/ai-platform-webui:rc-20260408103000",
+  "rc_image_url": "ghcr.io/thakicloud/ai-platform-strategy:rc-20260408103000",
   "production_tag": "v2026.04.10",
   "git_tag": "v2026.04.10",
   "total_candidates": 13,

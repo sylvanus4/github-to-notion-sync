@@ -38,7 +38,7 @@ z-order rules. Prefer the simplest layout that fits the user's description.
 Save as standalone `.html` -> Run **Verification**.
 
 Merge **Cocoon-AI-style** traits (standalone HTML, dark canvas, readable SVG)
-with **this repository's** pattern catalog and optional **Thaki / ai-platform-webui**
+with **this repository's** pattern catalog and optional **Thaki / ai-platform-strategy**
 context (`--project-context` or **Project Context** section).
 
 ## Honest Reporting

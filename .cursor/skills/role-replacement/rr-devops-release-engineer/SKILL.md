@@ -54,7 +54,7 @@ A DevOps / Release Engineer who manually:
 - Manages environment pre-flight checks (CLI tools, MCP connectivity, env vars)
 - Routes intelligence artifacts to Karpathy KB topics in the research repo
 - Syncs session memory (transcript extraction, index rebuilding, attention decay)
-- Handles repository-specific exceptions (ai-platform-webui tmp-only mode, dev branch merges)
+- Applies per-repo git rules from `project-registry.md` (standard `full` mode on `dev`, PR/merge per CONTRIBUTING, `origin/dev` merges where the workflow defines them)
 - Posts consolidated shipping reports to Slack with threaded per-project details
 - Verifies GitHub Project #5 registration and field completeness for all created issues/PRs
 - Runs lat.md drift checks across repos with architecture knowledge graphs
@@ -131,7 +131,7 @@ ai-context-router query:
 **MemKraft layers loaded:**
 - **HOT**: Current repo states from last session, active branch per repo, pending push/pull status
 - **WARM**: Conflict resolution history (last 30 days), MCP connectivity patterns, common shipping errors, repo activity frequency
-- **Knowledge**: Project registry paths (office/home), cursor-sync skill group whitelists, repository-specific rules (tmp-only for webui), GitHub Project #5 field IDs and option mappings
+- **Knowledge**: Project registry paths (office/home), cursor-sync skill group whitelists, per-repo branch and merge rules from project-registry, GitHub Project #5 field IDs and option mappings
 
 Store loaded context as `ops_context` for all downstream phases.
 
@@ -161,9 +161,9 @@ Build `preflight` map with `connected`, `disconnected`, `work_items`.
 Invoke `sod-ship` Phases 1-4 in sequence:
 
 1. **Pre-flight scan**: Scan all 5 repos for dirty state, unpushed commits, behind commits
-2. **Ship local changes**: For dirty repos, domain-commit + push (webui → `HEAD:tmp`, others → `HEAD`)
-3. **Pull remote changes**: Fetch + pull for all repos (webui → `pull origin tmp`, others → standard pull)
-4. **Dev merge** (webui only): `git merge origin/dev --no-edit` into current branch
+2. **Ship local changes**: For dirty repos, domain-commit + push per project-registry (standard `full` mode: push current `HEAD` to the configured upstream, typically `dev` or a feature branch)
+3. **Pull remote changes**: Fetch + pull for all repos per project-registry (typically track `dev` and pull from the configured remote branch)
+4. **Dev merge** (when `sod-ship` / registry defines it): `git merge origin/dev --no-edit` into the current branch
 5. **Verify sync**: Classify each repo as SYNCED / PARTIAL / FAILED / SKIPPED
 
 **MemKraft enhancement**: During conflict resolution:
@@ -257,13 +257,13 @@ Invoke `eod-ship` Phases 2-3 logic for 6 projects (current + 5 managed):
 3. ai-template
 4. ai-model-event-stock-analytics (if not current)
 5. research
-6. ai-platform-webui (tmp-only mode: commit → push → issue → report, no PR/merge)
+6. ai-platform-strategy (standard `full` mode: commit → push → issue → PR → merge per CONTRIBUTING)
 
 For each project with dirty state:
 1. `domain-commit` → domain-split commits by directory prefix
-2. `git push` → webui to `HEAD:tmp`, others to `HEAD`
+2. `git push` → push current branch to its configured upstream (per project-registry; `ai-platform-strategy` uses standard `dev`, not `tmp`)
 3. `release-ship` Step 4 → Create issues from commits, add to Project #5, set all 5 fields
-4. `release-ship` Steps 5-6 → Create/update PR, squash-merge (skip for webui)
+4. `release-ship` Steps 5-6 → Create/update PR, squash-merge per CONTRIBUTING (all managed repos, including `ai-platform-strategy`)
 
 **Pipeline mode**: No confirmation prompts. Issues, PRs, and merges execute automatically.
 
@@ -280,7 +280,7 @@ Pre-Slack verification (from `eod-ship` Phase 3½):
 - [ ] No `.env`, credentials, or secrets committed
 - [ ] All shipped repos have clean `git status`
 - [ ] No orphaned untracked content files
-- [ ] Branch consistency (webui → tmp, others → standard)
+- [ ] Branch consistency per project-registry (including `dev` tracking for `ai-platform-strategy`)
 - [ ] Issue field completeness: ALL 5 fields set for every issue on Project #5
 - [ ] GitHub Project #5 registration verified for all issues and PRs
 - [ ] lat.md drift check for repos with knowledge graphs
@@ -384,7 +384,7 @@ memkraft:
       - project registry (5 repos, office/home paths, modes)
       - cursor-sync skill group whitelists per target repo
       - GitHub Project #5 field IDs and option mappings
-      - repository-specific rules (webui tmp-only, dev merge protocol)
+      - repository-specific rules from project-registry (branch tracking, dev merge protocol)
       - domain-commit path-to-type mapping
 
   provenance_tag: rr-devops-release-engineer
@@ -406,7 +406,7 @@ memkraft:
 | A1 | ATG gateway down | Non-blocking (optional accelerator) |
 | A2 | Single repo pull conflict | Attempt rebase; if fails, abort and mark PARTIAL; continue with others |
 | A2 | Push rejected (diverged) | Defer push, pull first, retry; if still fails, mark FAILED |
-| A2 | Dev merge conflict (webui) | Auto-resolve simple (--theirs); complex → abort, report files |
+| A2 | Dev merge conflict | Auto-resolve simple (--theirs); complex → abort, report files |
 | A3a | cursor-sync rsync failure | Warn and continue; git sync results unaffected |
 | A3b | KB router script missing | Skip KB routing (research repo may not exist on this machine) |
 | B2 | Memory script failure | Warn and continue; memory sync is optional |
@@ -427,7 +427,7 @@ memkraft:
 - Never push directly to `main` or `dev`
 - Never amend failed commits; create new ones
 - Never commit `.env`, credentials, or secret files
-- ai-platform-webui: Never create PRs or merge — tmp-only mode
+- `ai-platform-strategy`: Use standard PR/merge into `dev` per CONTRIBUTING (no legacy `tmp`-only shortcuts)
 - Always return to original working directory after each project
 - `GITHUB_TOKEN`, `SLACK_TOKEN` never logged in output files
 - GitHub Project #5 field values use option IDs, not raw values (tamper-resistant)

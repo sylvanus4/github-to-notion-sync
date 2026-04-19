@@ -68,7 +68,7 @@ query($owner: String!, $repo: String!, $issueNumber: Int!) {
       }
     }
   }
-}' -f owner='ThakiCloud' -f repo='ai-platform-webui' -F issueNumber=$ISSUE_NUMBER
+}' -f owner='ThakiCloud' -f repo='ai-platform-strategy' -F issueNumber=$ISSUE_NUMBER
 ```
 
 ---
@@ -113,10 +113,10 @@ gh project item-edit \
 
 ```bash
 # Epic 이슈의 node_id
-EPIC_NODE_ID=$(gh api repos/ThakiCloud/ai-platform-webui/issues/$EPIC_NUMBER --jq '.node_id')
+EPIC_NODE_ID=$(gh api repos/ThakiCloud/ai-platform-strategy/issues/$EPIC_NUMBER --jq '.node_id')
 
 # 서브 이슈의 node_id
-SUB_ISSUE_NODE_ID=$(gh api repos/ThakiCloud/ai-platform-webui/issues/$SUB_ISSUE_NUMBER --jq '.node_id')
+SUB_ISSUE_NODE_ID=$(gh api repos/ThakiCloud/ai-platform-strategy/issues/$SUB_ISSUE_NUMBER --jq '.node_id')
 ```
 
 ### addSubIssue Mutation
@@ -275,7 +275,7 @@ gh api graphql -f query='...' | jq -r --arg today "$TODAY" '
 ### 이슈 존재 여부 확인
 
 ```bash
-gh api repos/ThakiCloud/ai-platform-webui/issues/$ISSUE_NUMBER --jq '.number' > /dev/null 2>&1
+gh api repos/ThakiCloud/ai-platform-strategy/issues/$ISSUE_NUMBER --jq '.number' > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "❌ 이슈가 존재하지 않습니다: #$ISSUE_NUMBER"
   exit 1
@@ -285,7 +285,7 @@ fi
 ### 프로젝트 권한 확인
 
 ```bash
-gh api repos/ThakiCloud/ai-platform-webui --jq '.permissions.push' > /dev/null 2>&1
+gh api repos/ThakiCloud/ai-platform-strategy --jq '.permissions.push' > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "❌ 레포지토리 접근 권한이 없습니다"
   exit 1

@@ -1,6 +1,6 @@
 ---
-description: "Agent work observability: intermediate checkpoints, staged commits, blueprint-based deviation detection, PR sizing"
-alwaysApply: true
+description: "Agent work observability: intermediate checkpoints, staged commits, blueprint-based deviation detection, PR sizing. Trigger: tasks touching >5 files or >30 min."
+alwaysApply: false
 ---
 
 # Observability

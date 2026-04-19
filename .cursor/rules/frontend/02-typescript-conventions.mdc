@@ -1,6 +1,7 @@
 ---
 description: TypeScript 타입 규칙, 코드 패턴, 상태 관리, 접근성, 성능. 모든 프론트엔드 작업에 적용.
-alwaysApply: true
+globs: ["**/*.ts", "**/*.tsx", "**/*.vue"]
+alwaysApply: false
 ---
 
 # TypeScript & Code Conventions

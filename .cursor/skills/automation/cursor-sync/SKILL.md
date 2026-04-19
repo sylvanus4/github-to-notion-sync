@@ -25,8 +25,8 @@ Research는 5개 레포의 `.cursor/` 에셋 **머지 허브**입니다. 5개 �
 
 ```
 [github-to-notion-sync]        ─┐
-[ai-platform-webui]            ─┼─ rsync -au ──▶ [research] ─── rsync -ac ──▶ [github-to-notion-sync]
-[ai-model-event-stock-analytics]─┤  (Pull Phase)   (허브)    (Push Phase)     [ai-platform-webui]
+[ai-platform-strategy]            ─┼─ rsync -au ──▶ [research] ─── rsync -ac ──▶ [github-to-notion-sync]
+[ai-model-event-stock-analytics]─┤  (Pull Phase)   (허브)    (Push Phase)     [ai-platform-strategy]
 [ai-template]                  ─┘                                             [ai-model-event-stock-analytics]
                                                                               [ai-template]
 ```
@@ -149,7 +149,7 @@ The `-u` flag ensures research's own newer edits are NOT overwritten. New files 
 Pull Phase (N-Repo merge)
 =========================
   github-to-notion-sync:          commands/: +5 new
-  ai-platform-webui:              skills/: +2 new
+  ai-platform-strategy:              skills/: +2 new
   ai-model-event-stock-analytics: 0 new files
   ai-template:                    0 new files
   Total new files pulled: 7
@@ -305,11 +305,11 @@ for g in gws nlm pipeline workflow anthropic standalone; do
   rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/$g/ $BASE/github-to-notion-sync/.cursor/skills/$g/
 done
 
-# Target 2: ai-platform-webui (groups: all)
-rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/ai-platform-webui/.cursor/commands/
-rsync -ac $EXCLUDES $RESEARCH/.cursor/rules/    $BASE/ai-platform-webui/.cursor/rules/
-rsync -ac $EXCLUDES $RESEARCH/.claude/skills/   $BASE/ai-platform-webui/.claude/skills/
-rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/   $BASE/ai-platform-webui/.cursor/skills/
+# Target 2: ai-platform-strategy (groups: all)
+rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/ai-platform-strategy/.cursor/commands/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/rules/    $BASE/ai-platform-strategy/.cursor/rules/
+rsync -ac $EXCLUDES $RESEARCH/.claude/skills/   $BASE/ai-platform-strategy/.claude/skills/
+rsync -ac $EXCLUDES $RESEARCH/.cursor/skills/   $BASE/ai-platform-strategy/.cursor/skills/
 
 # Target 3: ai-model-event-stock-analytics (groups: all)
 rsync -ac $EXCLUDES $RESEARCH/.cursor/commands/ $BASE/ai-model-event-stock-analytics/.cursor/commands/
@@ -339,7 +339,7 @@ done
 After all syncs complete, verify file counts per repo. Repos with `all` skill groups should match research; others will have fewer skills (filtered).
 
 ```bash
-for repo in research github-to-notion-sync ai-platform-webui ai-model-event-stock-analytics ai-template; do
+for repo in research github-to-notion-sync ai-platform-strategy ai-model-event-stock-analytics ai-template; do
   path="$BASE/$repo"
   cmd_count=$(find "$path/.cursor/commands/" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
   skill_count=$(find "$path/.cursor/skills/" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
@@ -361,14 +361,14 @@ Pull Phase:
 
 Push Phase:
   github-to-notion-sync:          OK (groups: gws, nlm, pipeline, workflow, anthropic, standalone)
-  ai-platform-webui:              OK (groups: all)
+  ai-platform-strategy:              OK (groups: all)
   ai-model-event-stock-analytics: OK (groups: all)
   ai-template:                    OK (groups: workflow, anthropic, ce, ecc, standalone)
 
 Verification:
   research:                       commands: 461 | skills: 584 | rules: 51
   ai-model-event-stock-analytics: commands: 461 | skills: 584 | rules: 51  (all groups)
-  ai-platform-webui:              commands: 461 | skills: 584 | rules: 51  (all groups)
+  ai-platform-strategy:              commands: 461 | skills: 584 | rules: 51  (all groups)
   github-to-notion-sync:          commands: 461 | skills: ~120 | rules: 51  (6 groups)
   ai-template:                    commands: 461 | skills: ~82  | rules: 51  (5 groups)
 
@@ -400,7 +400,7 @@ These rules prevent the issues discovered during testing with macOS openrsync:
 
 ### Example 1: Full N-Repo sync (default — most common)
 
-User made new skills in `ai-platform-webui` and new commands in `github-to-notion-sync`. They switch to research and run `/cursor-sync`.
+User made new skills in `ai-platform-strategy` and new commands in `github-to-notion-sync`. They switch to research and run `/cursor-sync`.
 
 Agent actions:
 1. Validate 4 targets exist
