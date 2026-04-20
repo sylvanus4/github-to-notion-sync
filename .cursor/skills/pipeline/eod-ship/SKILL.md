@@ -108,11 +108,29 @@ git status --short
 ```
 
 1. If clean, record `{project: "current", status: "clean"}` and skip to Phase 3
-2. **Submodule pointer inclusion**: When `git status` shows modified submodule paths (`ai-suite`, `thaki-ui`), these changes MUST be included in the commit. The `release-ship` domain-commit step already picks up all staged changes; ensure `git add ai-suite thaki-ui` is run if submodule pointers have changed. This captures the submodule pointer updates made by sod-ship's Step 3a½ or manual `git submodule update` runs.
+2. **Submodule pointer inclusion**: When `git status` shows modified submodule paths (`ai-suite`, `thaki-ui`, `ai-platform-webui`), these changes MUST be included in the commit. The `release-ship` domain-commit step already picks up all staged changes; ensure `git add ai-suite thaki-ui ai-platform-webui` is run if submodule pointers have changed. This captures the submodule pointer updates made by sod-ship's Step 3a½ or manual `git submodule update` runs.
 3. If dirty, execute release-ship pipeline (domain-commit → push → **issue** → PR → merge)
 4. Issue creation is MANDATORY for shipped commits — do not skip Step 4 of release-ship
 5. Capture result: `{commits: [...], issues: [...], pr_url: "...", merged: bool}`
 6. **Post-execution issue verification**: If commits were shipped (commits list non-empty) but issues list is empty, this is a FAILURE. Re-run release-ship Step 4 (issue creation) immediately. Log `{issue_verification: "re-run"}`. If re-run also produces no issues, log `{issue_verification: "FAILED"}` and include in the Slack warning.
+
+### Phase 2½: Merge Current Branch to Main
+
+After Phase 2 completes (current project is pushed), merge the current branch into `main`:
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+git checkout main
+git pull origin main
+git merge "$CURRENT_BRANCH" --no-edit
+git push origin main
+git checkout "$CURRENT_BRANCH"
+```
+
+1. If current branch IS `main`, skip this phase and record `{main_merge: "skipped", reason: "already on main"}`
+2. If merge conflicts occur, **abort the merge** (`git merge --abort`), return to the original branch, and record `{main_merge: "conflict", branch: "$CURRENT_BRANCH"}`. Include in the Slack message as a warning.
+3. On success, record `{main_merge: "ok", branch: "$CURRENT_BRANCH", target: "main"}`
+4. **Always return** to the original working branch after this phase
 
 ### Phase 3: Release Ship (Managed Projects)
 
@@ -337,6 +355,7 @@ User runs `/eod-ship` at end of day with changes across 3 projects.
 1. cursor-sync: 4 targets synced, 6 files updated
 2. memory sync: 3개 트랜스크립트 추출, 인덱스 리빌드 완료
 3. Current project (github-to-notion-sync): 2 domain-split commits, PR #15 merged
+3½. Main merge: dev → main merged and pushed
 4. ai-template: clean, skipped
 5. ai-model-event-stock-analytics: 3 commits, PR #22 merged
 6. research: 1 commit, PR #9 merged
@@ -393,7 +412,7 @@ User runs `/eod-ship --dry-run` to preview.
 ## Safety Rules
 
 - **Never force push** (`--force`) to any branch in any project
-- **Never push directly** to `main` or `dev` in any project
+- **Never push directly** to `main` or `dev` in any project **except** the current repo (`ai-platform-strategy`) during Phase 2½, which explicitly merges the current branch into `main` and pushes
 - **Never amend** failed commits; create new ones
 - **Never commit** `.env`, credentials, or secret files
 - **Always return** to original working directory after processing each project

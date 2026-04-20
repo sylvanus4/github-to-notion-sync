@@ -1,0 +1,187 @@
+---
+description: GitHub 워크플로우 전반(이슈, PR, 프로젝트 보드, 라벨, CI/CD)에 대한 통합 규칙
+alwaysApply: true
+---
+
+# GitHub 워크플로우 규칙
+
+이 규칙은 ThakiCloud `ai-platform-strategy` 레포지토리의 GitHub 워크플로우 전반을 정의한다.
+Git 컨벤션(브랜치, 커밋, PR 제목/본문 형식)은 `git-rules.mdc`를 따르고,
+릴리스 운영(이미지 태깅, RC 프로모션)은 `release-ops-rules.mdc`를 따른다.
+이 규칙은 그 외 GitHub 고유 워크플로우를 다룬다.
+
+---
+
+## 1. 이슈 관리
+
+### 이슈 생성 원칙
+- 모든 작업은 GitHub Issue로 추적한다. 이슈 없이 코드 변경을 시작하지 않는다.
+- 이슈 제목은 **영어**로 작성하되, 본문은 한국어 또는 영어로 작성한다.
+- Epic 이슈는 하위 이슈를 체크리스트(`- [ ]`)로 나열하고, 각 하위 이슈를 별도 Issue로 생성하여 링크한다.
+
+### 이슈 분류
+| 분류 | 라벨 | 설명 |
+|------|------|------|
+| 버그 | `bug` | 기대와 다른 동작 |
+| 기능 | `feature` | 신규 기능 |
+| 개선 | `enhancement` | 기존 기능 개선 |
+| 문서 | `documentation` | 문서 변경 |
+| 인프라 | `infra` | 인프라/DevOps 작업 |
+
+### ThakiCloud Project #5 연동 (필수)
+- 생성된 모든 이슈는 **ThakiCloud Project #5** (AI 플랫폼 팀)에 추가한다.
+- `gh project item-add 5 --owner ThakiCloud --url <ISSUE_URL>` 실행 후, 반드시 **5개 필드**(Status, Priority, Size, Sprint, Estimate)를 설정한다.
+- Epic과 하위 이슈 모두 동일 프로젝트에 추가한다.
+
+### 이슈 라이프사이클
+```
+Todo → In Progress → (PR 생성) → Done → 25-Archive
+```
+- 작업 시작 시 Status를 `In Progress`로 변경한다.
+- PR이 머지되면 `Done`으로 변경한다.
+- 스프린트 종료 시 완료 이슈는 `25-Archive`로 이동한다.
+
+---
+
+## 2. Pull Request 워크플로우
+
+### PR 생성 규칙
+- PR은 반드시 관련 이슈를 참조한다 (`Resolves #N` 또는 `Related to #N`).
+- PR 제목 형식: `#<ISSUE_NUMBER> <type>: <summary>` (영어).
+- PR 본문은 `CONTRIBUTING.md`의 템플릿(Issue?, Changes?, Why we need?, Test?, CC, Anything else?)을 따른다.
+- `release:approved` 또는 `hotfix` 라벨이 붙은 PR은 5개 필수 섹션(Changes, User Impact, QA Method, Rollback Method, Related Issue/Ticket)을 모두 채운다.
+
+### PR 리뷰 프로세스
+1. PR 생성 시 최소 **1명의 리뷰어**를 지정한다.
+2. 리뷰어는 24시간 이내 리뷰를 완료하는 것을 목표로 한다.
+3. 리뷰 코멘트에 대해 모두 해결(resolve)한 후 re-request review 한다.
+4. CI 체크가 모두 통과해야 머지 가능하다.
+5. Approve 없이 셀프 머지하지 않는다 (긴급 hotfix 제외, hotfix 시에도 사후 리뷰 필수).
+
+### 머지 전략
+- **Squash and Merge**를 기본으로 사용한다.
+- 머지 커밋 메시지는 Conventional Commits 형식을 따른다.
+- 머지 후 소스 브랜치는 자동 삭제한다.
+
+---
+
+## 3. GitHub 라벨 체계
+
+### 영역 라벨
+| 라벨 | 설명 |
+|------|------|
+| `backend` | Go/Python 백엔드 |
+| `frontend` | React/Vite 프론트엔드 (ai-suite) |
+| `infra` | Helm, K8s, CI/CD |
+| `docs` | 문서 |
+
+### 우선순위 라벨
+| 라벨 | 설명 |
+|------|------|
+| `priority:critical` | 즉시 대응 필요 |
+| `priority:high` | 이번 스프린트 내 처리 |
+| `priority:medium` | 다음 스프린트 고려 |
+| `priority:low` | 백로그 |
+
+### 릴리스 라벨 (3-Label Gate System)
+| 라벨 | 의미 |
+|------|------|
+| `release:approved` | dev 검증 완료, 이번 주 릴리스 포함 |
+| `release:hold` | 검증 미완료, 보류 |
+| `release:blocked` | 차단 사유 있음 |
+
+### 리스크 라벨
+| 라벨 | 의미 |
+|------|------|
+| `risk:low` | 영향 범위 작음 |
+| `risk:medium` | 중간 영향 |
+| `risk:high` | 높은 영향, 롤백 계획 필수 |
+
+### 심각도 라벨
+| 라벨 | 의미 |
+|------|------|
+| `severity:critical` | 서비스 장애 수준 |
+| `severity:major` | 주요 기능 영향 |
+| `severity:minor` | 부수 기능 영향 |
+
+---
+
+## 4. GitHub CLI 사용 규칙
+
+### 필수 도구
+- `gh` CLI를 사용하여 이슈/PR/프로젝트 작업을 수행한다.
+- `gh auth status`로 인증 상태를 확인한 후 작업한다.
+
+### 이슈 생성 패턴
+```bash
+gh issue create --title "<TITLE>" --body "<BODY>" --label "<LABELS>"
+gh project item-add 5 --owner ThakiCloud --url <ISSUE_URL>
+# 이후 5개 필드 설정 스크립트 실행
+```
+
+### PR 생성 패턴
+```bash
+gh pr create --title "#<ISSUE> <type>: <summary>" --body "$(cat <<'EOF'
+## Issue?
+#<ISSUE_NUMBER>
+
+## Changes?
+<변경 내용>
+
+## Why we need?
+<필요 이유>
+
+## Test?
+<테스트 방법>
+EOF
+)"
+```
+
+---
+
+## 5. CI/CD 기대사항
+
+### PR 머지 전 필수 체크
+- 린트(lint) 통과
+- 타입 체크 통과
+- 단위/통합 테스트 통과
+- 빌드 성공
+
+### 이미지 빌드 타이밍
+- 이미지 빌드는 PR이 `dev` 브랜치에 머지된 **후** 발생한다 (pre-merge 빌드 아님).
+- dev 환경의 이미지 태그: `dev-{TIMESTAMP}`
+- RC 이미지 태그: `rc-{TIMESTAMP}` (화요일 취합 시 생성)
+- 프로덕션 이미지 태그: `vYYYY.MM.DD` (목요일 배포 시 프로모션)
+
+### GitHub Actions 컨벤션
+- 워크플로우 파일은 `.github/workflows/` 디렉토리에 위치한다.
+- 워크플로우 이름은 목적을 명확히 나타낸다.
+- 시크릿은 GitHub Secrets에 저장하고, 코드에 직접 기록하지 않는다.
+
+---
+
+## 6. 브랜치 보호 규칙
+
+### `main` 브랜치
+- 직접 푸시 금지
+- PR을 통해서만 변경
+- force push 금지
+
+### `dev` 브랜치
+- 모든 기능 브랜치의 머지 대상
+- 직접 푸시는 긴급 수정 시에만 허용
+- 릴리스 전 QA 환경으로 사용
+
+---
+
+## 7. 에이전트 행동 규칙
+
+GitHub 관련 작업 시 에이전트가 반드시 따라야 하는 규칙:
+
+1. **이슈 먼저**: 코드 변경 전 관련 이슈가 존재하는지 확인하고, 없으면 생성한다.
+2. **프로젝트 연동 필수**: 이슈 생성 후 반드시 ThakiCloud Project #5에 추가하고 필드를 설정한다.
+3. **PR 템플릿 준수**: PR 생성 시 반드시 `CONTRIBUTING.md`의 템플릿을 따른다.
+4. **라벨 부착**: 이슈와 PR에 적절한 영역/우선순위 라벨을 부착한다.
+5. **force push 금지**: `main`, `dev` 브랜치에 force push하지 않는다.
+6. **시크릿 커밋 금지**: `.env`, 자격 증명, API 키 등을 커밋하지 않는다.
+7. **셀프 머지 자제**: 리뷰 없이 PR을 머지하지 않는다.

@@ -1,6 +1,6 @@
 ## EOD Ship
 
-End-of-day multi-project shipping pipeline: cursor-sync assets, release-ship the current project and 5 managed projects, then post a consolidated summary to Slack `#효정-할일`.
+End-of-day multi-project shipping pipeline: cursor-sync assets, release-ship the current project (푸시 포함), **작업 브랜치를 `main`에 머지·푸시(Phase 2½)**, 5개 관리 프로젝트 release-ship, Slack `#효정-할일`에 요약.
 
 ### Usage
 
@@ -24,10 +24,11 @@ End-of-day multi-project shipping pipeline: cursor-sync assets, release-ship the
 ### Workflow
 
 1. **Cursor Sync** — Sync `.cursor/` assets to all target projects
-2. **Ship Current** — Release-ship the current working directory
-3. **Ship 5 Projects** — Release-ship each managed project sequentially
-4. **Slack** — Post consolidated report to `#효정-할일`
-5. **Report** — Display summary in chat
+2. **Ship Current** — `release-ship`로 현재 레포 커밋·푸시(서브모듈 포인터 `ai-suite` / `thaki-ui` / `ai-platform-webui` 포함)
+3. **Merge to main** — 현재 브랜치가 `main`이 아니면 `main`에 머지 후 `git push origin main`, 다시 원래 브랜치로 복귀
+4. **Ship 5 Projects** — 관리 프로젝트를 순서대로 release-ship
+5. **Slack** — Post consolidated report to `#효정-할일`
+6. **Report** — Display summary in chat
 
 ### Execution
 

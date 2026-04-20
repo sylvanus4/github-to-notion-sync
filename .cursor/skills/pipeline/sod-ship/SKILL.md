@@ -3,7 +3,7 @@ name: sod-ship
 description: >-
   Start-of-day git sync pipeline: commit dirty working directories, push
   unpushed commits, pull remote changes for all 5 managed projects, update
-  git submodules (ai-suite, thaki-ui), then run cursor-sync to propagate
+  git submodules (ai-suite, thaki-ui, ai-platform-webui), then run cursor-sync to propagate
   .cursor/ assets across all repos. Use when the user runs /sod-ship, asks
   to "sync all projects", "start of day sync", "pull all repos",
   "컴퓨터 바꿔서 작업 시작", "아침 싱크", "프로젝트 동기화", "서브모듈 싱크",
@@ -18,7 +18,7 @@ metadata:
 ---
 # SOD Ship — Start-of-Day Git Sync Pipeline
 
-Bidirectional git sync for all managed projects: commit dirty repos, push unpushed commits, pull remote changes, update git submodules (ai-suite, thaki-ui), and verify everything is in sync. Designed for starting work on a new day or switching to a different computer.
+Bidirectional git sync for all managed projects: commit dirty repos, push unpushed commits, pull remote changes, update git submodules (ai-suite, thaki-ui, ai-platform-webui), and verify everything is in sync. Designed for starting work on a new day or switching to a different computer.
 
 ## Configuration
 
@@ -273,16 +273,16 @@ git pull origin dev
 
 #### Step 3a½: Update Submodules (ai-platform-strategy only)
 
-After pulling `ai-platform-strategy`, update its two git submodules to track their remote HEAD:
+After pulling `ai-platform-strategy`, update its three git submodules to track their remote HEAD:
 
 ```bash
 cd AI_PLATFORM_STRATEGY_PATH
 git submodule update --init --remote
 ```
 
-This fetches the latest commits from `ai-suite` (main) and `thaki-ui` (develop) remotes and advances the submodule pointers.
+This fetches the latest commits from `ai-suite` (main), `thaki-ui` (develop), and `ai-platform-webui` (dev) remotes and advances the submodule pointers.
 
-- If submodule update succeeds and `git status` shows changed submodule pointers, record `{submodules_updated: true, changed: ["ai-suite", "thaki-ui"]}`.
+- If submodule update succeeds and `git status` shows changed submodule pointers, record `{submodules_updated: true, changed: ["ai-suite", "thaki-ui", "ai-platform-webui"]}`.
 - If submodule pointers are already up-to-date, record `{submodules_updated: false}`.
 - If submodule update fails (network error, merge conflict inside submodule), warn and continue. Record `{submodules_updated: false, error: "..."}`. This is non-blocking.
 
