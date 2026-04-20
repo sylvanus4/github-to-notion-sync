@@ -138,4 +138,3 @@ flowchart TD
 - Notion MCP (`plugin-notion-workspace-notion`) does not support file uploads (binary attachments). Markdown content will be rendered directly as Notion page content.
 - Pipe tables in markdown may not render in Notion. If tables fail, convert to bulleted lists as per the learned-memory rule.
 - Each meeting creates exactly one sub-page under the parent, keeping meetings organized and distinct.
-
