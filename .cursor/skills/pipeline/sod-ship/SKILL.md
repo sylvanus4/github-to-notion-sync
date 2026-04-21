@@ -283,6 +283,7 @@ git submodule update --init --remote
 This fetches the latest commits from `ai-suite` (main), `thaki-ui` (develop), and `ai-platform-webui` (dev) remotes and advances the submodule pointers.
 
 - If submodule update succeeds and `git status` shows changed submodule pointers, record `{submodules_updated: true, changed: ["ai-suite", "thaki-ui", "ai-platform-webui"]}`.
+
 - If submodule pointers are already up-to-date, record `{submodules_updated: false}`.
 - If submodule update fails (network error, merge conflict inside submodule), warn and continue. Record `{submodules_updated: false, error: "..."}`. This is non-blocking.
 
