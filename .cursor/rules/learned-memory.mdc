@@ -19,11 +19,16 @@ alwaysApply: true
 - Do not modify .plan.md files during implementation; do not recreate existing todos; with pre-created todos mark first in_progress and finish the list
 - Before claiming Slack/MCP broken: verify .env keys and session tool availability; do not dismiss user credentials without mismatch evidence
 - Do not bulk-delete .cursor/ skills without explicit approval; user reverts aggressive reductions
+- When user asks for "계획 문서" or PRD: produce the planning document, NOT code implementation (user correction: "계획 문서를 달라고 했는데 개발을 해버렸네")
+- Complex tasks: maximize skill composition step-by-step ("적절한 스킬들을 단계별로 최대한 많이 활용해서 작업해줘" — recurring instruction)
+- Post-task hooks should auto-trigger memory updates + skill extraction (post-task-skill-evaluator, cursor-skill-factory pattern)
 - Subagent outputs must be verified — missing files = pipeline failure
 - today Slack must include BUY/SELL thread (sector/RSI/ADX); DOCX must be substantive Korean; orchestrator must call generate_daily_report message builders (no title-only main posts)
 - twitter-timeline-to-slack: never #random; default #press; #ai-coding-radar for Claude/Cursor only
 - skill-autoimprove: pure-output skills only, not execution skills with side effects
 - Apply Karpathy Opposite Direction Test on all analyses, reviews, and validations
+- External GitHub repos → selective-external-github-to-project-skills로 분석 후 프로젝트 맞춤 스킬 생성 (recurring workflow); 스킬 최적화 + 진화 + setup-doctor 업데이트까지 풀 사이클 실행
+- Company-wide meeting transcripts → group-meeting-digest로 그룹별(AI Platform Group 등) 관점 요약 + decision-router로 의사결정 채널 라우팅
 - Markdown→Notion: follow md-to-notion SKILL.md with table conversion + validation steps
 - google-daily: preflight auth (Slack/Notion/gws) before downstream steps
 - After gws Drive uploads: include shareable Google file URLs (webViewLink or equivalent) in the reply, not upload-only confirmation
@@ -42,6 +47,8 @@ alwaysApply: true
 - Trading: agent-desk, MiroFish L5, Toss/KIS/Kiwoom integrations → memory/topics/trading-stack.md
 - Slack: #h-report, #효정-할일, #deep-research-trending, #bespin-news; MCP `slack_send_message` uses `message` not `text`; `invalid_blocks` → simplify mrkdwn → memory/topics/slack-routing.md
 - Skills: ~1000 across 23+ subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/`; `.cursor/skills/persona/` — distillation meta-tools (nuwa, distill, self-distillation, etc.) plus founder/investor modes (buffett, munger, musk, naval, bezos, thiel, dalio, altman, zuckerberg); RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
+- eod-ship: Phase 3.75에 daily-skill-digest 추가 (git log + transcript 패턴 추출 → Slack 공유); sprint-dogfood 스킬 (Issue #3831, 4-phase Plan→Execute→Analyze→Integrate 파이프라인); full-page-capture 스킬 (Playwright CLI 풀페이지 스크린샷, 16384px 섹션 분할) → memory/topics/skill-ecosystem.md
+- Kueue: LocalQueue CRUD API 엔드포인트 + Admin UI 선행 개발 필요 (동적 LQ/CQ 생성·바인딩 어드민 기능 우선) → docs/planned/queue-management/
 - Role-based RAG pack: `knowledge-bases/_role-registry.json`, `docs/role-based-wiki-strategy*.md`, `docs/role-wiki-quick-reference*.md` → memory/topics/workspace-facts.md
 - PDF: OpenDataLoader local extract for kb-ingest / paper-review / Cognee (skill `opendataloader`) → memory/topics/workspace-facts.md
 - GitHub: hyojunguy/ai-model-event-stock-analytics; project board #22; ThakiCloud org project board #5 (`https://github.com/orgs/ThakiCloud/projects/5`) for cross-repo issue linking; ai-platform-strategy uses standard dev-branch workflow (tmp-branch convention retired); dev→main merge: PR 없이 로컬에서 직접 머지 선호
@@ -49,7 +56,7 @@ alwaysApply: true
 - 7-tier platform (Free→Enterprise); Thaki model names only; CPU-first Phase 0 path in financial models
 - AutoResearchClaw at ~/thaki/AutoResearchClaw/; MiroFish at ~/thaki/MiroFish/ (L5 escalation only)
 - ATG: optional accelerator at port 4000; direct MCP fallback when unavailable
-- Kueue: users target **LocalQueue** (+ PriorityClass); **ClusterQueue** is admin quota/preemption policy—each LQ binds to one CQ; multiple CQs coexist; multi-cluster ML placement via **MultiKueue** keeps user flow LQ-centric (cluster visibility optional in UI) — `docs/planned/queue-management/`, `docs/multi-cluster-centralization/ko/`
+- Kueue: users target **LocalQueue** (+ PriorityClass); **ClusterQueue** is admin quota/preemption policy—each LQ binds to one CQ; multiple CQs coexist; multi-cluster ML placement via **MultiKueue** keeps user flow LQ-centric (cluster visibility optional in UI); **service admin이 Admin UI에서 LQ+CQ 동적 생성·바인딩**; 새 CQ 생성 시 default LQ 자동 바인딩 — `docs/planned/queue-management/`, `docs/planned/queue-management/queue-roles-and-responsibilities.ko.md`
 - Weekly release ops: Tue collect → Wed QA → Thu deploy; GitHub labels + Notion Weekly Release/Hotfix Queue; Slack #release-control / #hotfix-alert; skills under `.cursor/skills/release/` → memory/topics/workspace-facts.md
 - Pre-push hook can hang >4min on E2E tests — use git push --no-verify as workaround
 - Vibe-Trading at ~/thaki/Vibe-Trading/; MCP `user-vibe-trading`; 7 skills under `.cursor/skills/vibe-trading/`; MCP-only (no venv merge) → memory/topics/skill-ecosystem.md, workspace-facts.md

@@ -71,6 +71,9 @@ The user provides:
 | lat-md | `lat` CLI (npm), LAT_LLM_KEY (opt) | lat-md |
 | code-review-graph | `code-review-graph` CLI (pip), Python 3.9+ | code-review-graph, deep-review, simplify, code-review-all, ship, refactor-simulator, codemap-updater, ci-quality-gate, domain-commit |
 | rhwp-documents | `rhwp` CLI (cargo), `cargo`, `@rhwp/core` (npm opt) | rhwp-viewer, rhwp-converter, rhwp-debug, rhwp-pipeline, rhwp-setup, rhwp-web-editor |
+| stitch-mcp | Stitch MCP server configured, Node ≥18 | stitch-design, stitch-loop, stitch-react-components, stitch-remotion |
+| shadcn-ui | Node ≥18, npm, `class-variance-authority` + `clsx` + `tailwind-merge` (npm), shadcn MCP (opt) | shadcn-ui |
+| ui-design-quality | `.cursor/rules/design-system.mdc` exists, Node ≥18 | refined-swiss-prompt-enhancer, anti-slop-ui-guard, design-md-generator, ui-design-harness, design-qa-checklist |
 | carbonyl-browser | `carbonyl` CLI | carbonyl-browser |
 | obsidian-vault | `obsidian` CLI, Obsidian.app | obsidian-files, obsidian-search, obsidian-notes, obsidian-daily, obsidian-admin, obsidian-dev, obsidian-kb-bridge, brain-full-crew |
 | feynman-research | `alpha` CLI | feynman-alpha-research, feynman-peer-review, feynman-paper-audit, feynman-replication, feynman-source-comparison, feynman-research-watch |
@@ -91,7 +94,7 @@ For the complete env var registry, see [references/env-var-registry.md](referenc
 Check each tool via `command -v`:
 
 ```bash
-for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp agent-reach rdt mcporter rhwp cargo carbonyl obsidian alpha dot lat paperclip runpodctl java code-review-graph; do
+for tool in gws hf gh act ffmpeg yt-dlp docker playwright pre-commit ruff uv rsync node python3 python3.11 pip3 npm npx pnpm researchclaw gitleaks rtk agent-browser dev-browser expect-cli pandoc jq cognee tossctl go marp agent-reach rdt mcporter rhwp cargo carbonyl obsidian alpha dot lat paperclip runpodctl java code-review-graph; do
   command -v "$tool" >/dev/null 2>&1 && echo "PASS $tool" || echo "FAIL $tool"
 done
 ```
@@ -111,7 +114,7 @@ done
 **Node global packages** — check via `npm list -g --depth=0`:
 
 ```bash
-for pkg in "@googleworkspace/cli" docx pptxgenjs agent-browser dev-browser expect-cli "@rhwp/core" remotion "@remotion/cli" lat.md "@paperclip-ai/cli"; do
+for pkg in "@googleworkspace/cli" docx pptxgenjs agent-browser dev-browser expect-cli "@rhwp/core" remotion "@remotion/cli" lat.md "@paperclip-ai/cli" class-variance-authority clsx tailwind-merge; do
   npm list -g --depth=0 2>/dev/null | grep -q "$pkg" && echo "PASS $pkg" || echo "FAIL $pkg"
 done
 ```

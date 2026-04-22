@@ -7,7 +7,6 @@ metadata:
   version: "1.0.0"
   category: "addyosmani"
 ---
-
 # Code Review and Quality
 
 ## Overview
@@ -315,6 +314,10 @@ Part of code review is dependency review:
 - [ ] **Approve** — Ready to merge
 - [ ] **Request changes** — Issues must be addressed
 ```
+## See Also
+
+- For detailed security review guidance, see `references/security-checklist.md`
+- For performance review checks, see `references/performance-checklist.md`
 
 ## Common Rationalizations
 

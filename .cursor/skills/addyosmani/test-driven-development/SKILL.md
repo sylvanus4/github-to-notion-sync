@@ -7,7 +7,6 @@ metadata:
   version: "1.0.0"
   category: "addyosmani"
 ---
-
 # Test-Driven Development
 
 ## Overview
@@ -346,6 +345,10 @@ then verifies the test passes.
 ```
 
 This separation ensures the test is written without knowledge of the fix, making it more robust.
+
+## See Also
+
+For detailed testing patterns, examples, and anti-patterns across frameworks, see `references/testing-patterns.md`.
 
 ## Common Rationalizations
 

@@ -13,7 +13,7 @@ description: >
   github-sprint-digest).
 metadata:
   author: thaki
-  version: "2.1.0"
+  version: "2.0.0"
   category: pipeline
 triggers:
   - daily digest
@@ -49,27 +49,6 @@ python scripts/daily_skill_digest.py --pretty
 python scripts/daily_skill_digest.py --pretty --project=ai-platform-strategy
 ```
 
-## JSON Output Schema
-
-The extractor produces a single JSON object with these exact keys:
-
-| Key | Type | Description |
-|-----|------|-------------|
-| `date` | `string` | ISO date `YYYY-MM-DD` |
-| `session_count` | `int` | Number of transcript sessions parsed |
-| `total_tool_calls` | `int` | Aggregate tool_use events across all sessions |
-| `tool_usage` | `dict[str, int]` | Tool name → invocation count |
-| `skill_invocations` | `dict[str, int]` | Skill name → invocation count |
-| `skill_by_category` | `dict[str, int]` | Category directory → aggregate invocations |
-| `per_project` | `dict[str, {sessions, tool_calls}]` | Project name → session/tool counts |
-| `commands_used` | `dict[str, int]` | Slash commands detected → count |
-| `top_tool_chains` | `list[{pattern, count}]` | Recurring tool sequences from SPM |
-| `files_touched` | `dict[str, int]` | Directory category → file count |
-| `git_stats` | `{commits, additions, deletions}` | Today's git activity |
-
-Use these exact key names when reading the JSON. Do NOT assume aliases
-(e.g., use `session_count` not `sessions`, use `pattern` not `chain`).
-
 ## Execution Steps
 
 ### 1. Run the Extractor
@@ -98,19 +77,13 @@ Read the JSON output and produce a concise Korean narrative covering:
   which project received the most attention
 - **Top 5 tool chains** (recurring patterns from SPM)
 - **File activity** heatmap by FSD layer / directory
-  - **Coding pattern** observation — one sentence characterizing the day using
-    category-aware language based on the dominant `skill_by_category` entry:
-    - `pipeline`: "파이프라인 오케스트레이션과 자동화에 집중한 하루"
-    - `review`: "코드 리뷰와 품질 개선에 집중한 하루"
-    - `frontend`: "프론트엔드 FSD 개발에 집중한 하루"
-    - `research`: "리서치와 논문 분석 중심의 하루"
-    - `trading`: "투자 분석과 트레이딩 전략에 집중한 하루"
-    - `automation`: "스킬 자동화와 워크플로우 최적화에 집중한 하루"
-    - `infra`: "인프라와 DevOps 운영에 집중한 하루"
-    - `knowledge-base`: "지식 관리와 KB 구축에 집중한 하루"
-    - `planning`: "기획과 스펙 작성에 집중한 하루"
-    - `ce`: "컨텍스트 엔지니어링과 에이전트 설계에 집중한 하루"
-    - (fallback — no single category > 40%): "다양한 도메인을 넘나드는 멀티태스킹 하루"
+- **Coding pattern** observation — one sentence characterizing the day using
+  category-aware language:
+  - pipeline-dominant: "파이프라인 오케스트레이션과 자동화에 집중한 하루"
+  - review-dominant: "코드 리뷰와 품질 개선에 집중한 하루"
+  - frontend-dominant: "프론트엔드 FSD 개발에 집중한 하루"
+  - research-dominant: "리서치와 논문 분석 중심의 하루"
+  - mixed: "다양한 도메인을 넘나드는 멀티태스킹 하루"
 
 ### 3. Format Slack mrkdwn
 

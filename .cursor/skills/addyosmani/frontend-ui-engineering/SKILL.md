@@ -7,7 +7,6 @@ metadata:
   version: "1.0.0"
   category: "addyosmani"
 ---
-
 # Frontend UI Engineering
 
 ## Overview
@@ -178,7 +177,13 @@ Every component must meet these standards:
 <button onClick={handleClick}>Click me</button>        // ✓ Focusable by default
 <div onClick={handleClick}>Click me</div>               // ✗ Not focusable
 <div role="button" tabIndex={0} onClick={handleClick}    // ✓ But prefer <button>
-     onKeyDown={e => e.key === 'Enter' && handleClick()}>
+     onKeyDown={e => {
+       if (e.key === 'Enter') handleClick();
+       if (e.key === ' ') e.preventDefault();
+     }}
+     onKeyUp={e => {
+       if (e.key === ' ') handleClick();
+     }}>
   Click me
 </div>
 ```
@@ -290,6 +295,10 @@ function useToggleTask() {
   });
 }
 ```
+
+## See Also
+
+For detailed accessibility requirements and testing tools, see `references/accessibility-checklist.md`.
 
 ## Common Rationalizations
 
