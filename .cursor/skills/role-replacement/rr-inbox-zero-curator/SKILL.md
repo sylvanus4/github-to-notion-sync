@@ -273,7 +273,7 @@ Sources:
 - Social: {tweets signaling competitive or market changes}
 Route:
 - Personal decisions → #효정-의사결정
-- Team/CTO decisions → #7층-리더방
+- Team/CTO decisions → #ai-리더방
 Return { status, decisions_routed, channels_used }.
 ```
 

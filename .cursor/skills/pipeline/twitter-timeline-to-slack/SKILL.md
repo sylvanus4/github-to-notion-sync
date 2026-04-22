@@ -710,7 +710,7 @@ This skill orchestrates:
 | Channel | ID | Scope |
 |---|---|---|
 | `효정-의사결정` | `C0ANBST3KDE` | Personal decisions (tool adoption, portfolio) |
-| `7층-리더방` | `C0A6Q7007N2` | Team/CTO decisions (infra, strategy, competitive) |
+| `ai-리더방` | `C0A6Q7007N2` | Team/CTO decisions (infra, strategy, competitive) |
 
 Step 3g uses these channels. See [references/decision-template.md](references/decision-template.md) for the full decision routing rules.
 

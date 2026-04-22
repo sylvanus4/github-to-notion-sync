@@ -81,7 +81,7 @@ Phase 3: High-Value Content Repurposing (conditional)
   └─ content-repurposing-engine → multi-platform output for top items
 
 Phase 4: Decision Routing & Daily Digest
-  ├─ decision-router → #효정-의사결정 / #7층-리더방
+  ├─ decision-router → #효정-의사결정 / #ai-리더방
   └─ Daily velocity report → #효정-할일
 
 Phase 5: MemKraft Write-back & Session Close
@@ -220,7 +220,7 @@ Collect all decision flags from Phase 1A (twitter-timeline-to-slack Step 3g), Ph
 
 Invoke `decision-router` for each flagged item:
 - Personal decisions → `#효정-의사결정` (`C0ANBST3KDE`)
-- Team/CTO decisions → `#7층-리더방` (`C0A6Q7007N2`)
+- Team/CTO decisions → `#ai-리더방` (`C0A6Q7007N2`)
 
 #### 4b: Daily Content Velocity Report
 
@@ -298,7 +298,7 @@ Authoritative routing table. Phase 1 skills use their internal classification, b
 | Press / News (default) | `#press` | `C0A7NCP33LG` | twitter-timeline-to-slack, unified-intel-intake |
 | Tasks / Follow-ups | `#효정-할일` | `C0AA8NT4T8T` | daily digest, summaries |
 | Personal Decisions | `#효정-의사결정` | `C0ANBST3KDE` | decision-router |
-| Team/CTO Decisions | `#7층-리더방` | `C0A6Q7007N2` | decision-router |
+| Team/CTO Decisions | `#ai-리더방` | `C0A6Q7007N2` | decision-router |
 
 ## Output Protocol (File-First)
 
@@ -360,7 +360,7 @@ memkraft:
 | Topic channels (11+) | See routing matrix | Per-item 3-message threads |
 | `#효정-할일` | `C0AA8NT4T8T` | Daily velocity report |
 | `#효정-의사결정` | `C0ANBST3KDE` | Personal decision items |
-| `#7층-리더방` | `C0A6Q7007N2` | Team/CTO decision items |
+| `#ai-리더방` | `C0A6Q7007N2` | Team/CTO decision items |
 
 ## Error Recovery
 

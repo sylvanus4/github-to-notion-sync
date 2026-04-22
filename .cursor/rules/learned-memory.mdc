@@ -9,7 +9,7 @@ alwaysApply: true
 <!-- Full detail → memory/topics/preferences.md -->
 
 - Always respond in Korean; docs in Korean; English only for proper nouns/technical terms
-- Plans and SKILL.md in English when explicitly requested ("영어로 계획해줘")
+- Plans and SKILL.md in English when explicitly requested ("영어로 계획해줘"); results, reports, and deliverables always in Korean unless told otherwise
 - Professional doc style: cite sources with URLs, sensitivity analysis for sizing/financial models
 - Documents must be self-contained, substantive prose — never skeleton/template-only output
 - Slack → #효정-할일 (C0AA8NT4T8T), never DM; threaded replies; decision routing via decision-router
@@ -27,6 +27,7 @@ alwaysApply: true
 - Markdown→Notion: follow md-to-notion SKILL.md with table conversion + validation steps
 - google-daily: preflight auth (Slack/Notion/gws) before downstream steps
 - After gws Drive uploads: include shareable Google file URLs (webViewLink or equivalent) in the reply, not upload-only confirmation
+- Dashboard/admin tools (gpu-dashboard, K8s Resource Dashboard): always show a prominent TEST_MODE/LIVE_MODE indicator; dedicated GPU management tab required separate from general cluster overview
 - Presentations: practical demos over abstractions; Steve Jobs for keynotes; Korean speaker scripts
 - NLM slides: upload PDF directly; skip papers >9 months old
 - Notion API: no pipe tables; clean up ephemeral MCP/upload files after automation tasks
@@ -40,10 +41,10 @@ alwaysApply: true
 - Daily KB raw from today: `python scripts/kb_daily_ingest.py`; Karpathy loop ingest→compile→query→lint via kb-* skills → memory/topics/pipeline-ops.md
 - Trading: agent-desk, MiroFish L5, Toss/KIS/Kiwoom integrations → memory/topics/trading-stack.md
 - Slack: #h-report, #효정-할일, #deep-research-trending, #bespin-news; MCP `slack_send_message` uses `message` not `text`; `invalid_blocks` → simplify mrkdwn → memory/topics/slack-routing.md
-- Skills: 109+ in 23 subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/`; `.cursor/skills/persona/` — distillation meta-tools (nuwa, distill, self-distillation, etc.) plus founder/investor modes (buffett, munger, musk, naval, bezos, thiel, dalio, altman, zuckerberg); RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
+- Skills: ~1000 across 23+ subdirs, 8 harness orchestrators, 11 marketing skills; Pika under `.cursor/skills/pika/`; `.cursor/skills/persona/` — distillation meta-tools (nuwa, distill, self-distillation, etc.) plus founder/investor modes (buffett, munger, musk, naval, bezos, thiel, dalio, altman, zuckerberg); RunPod quartet `runpod-setup`/`pods`/`volumes`/`transfer` + `runpod-*` commands → memory/topics/skill-ecosystem.md
 - Role-based RAG pack: `knowledge-bases/_role-registry.json`, `docs/role-based-wiki-strategy*.md`, `docs/role-wiki-quick-reference*.md` → memory/topics/workspace-facts.md
 - PDF: OpenDataLoader local extract for kb-ingest / paper-review / Cognee (skill `opendataloader`) → memory/topics/workspace-facts.md
-- GitHub: hyojunguy/ai-model-event-stock-analytics; project board #22; ai-platform-strategy uses standard dev-branch workflow (tmp-branch convention retired); dev→main merge: PR 없이 로컬에서 직접 머지 선호
+- GitHub: hyojunguy/ai-model-event-stock-analytics; project board #22; ThakiCloud org project board #5 (`https://github.com/orgs/ThakiCloud/projects/5`) for cross-repo issue linking; ai-platform-strategy uses standard dev-branch workflow (tmp-branch convention retired); dev→main merge: PR 없이 로컬에서 직접 머지 선호
 - gws CLI: `gws` not `gwcli`; gmail +triage --max N; strip keyring prefix; OAuth2 via `~/.config/gws/credentials.json` plaintext preferred over encrypted keyring for multi-machine; verify with `gws auth status` (token_valid, credential_storage) → memory/topics/runbooks.md
 - 7-tier platform (Free→Enterprise); Thaki model names only; CPU-first Phase 0 path in financial models
 - AutoResearchClaw at ~/thaki/AutoResearchClaw/; MiroFish at ~/thaki/MiroFish/ (L5 escalation only)

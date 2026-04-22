@@ -112,7 +112,7 @@ executive feedback reporting.
 │  ┌────────────────┐                                              │
 │  │ decision-router │ ← Route CRITICAL findings:                  │
 │  │                 │   Product gaps → #효정-의사결정               │
-│  │                 │   Escalation → #7층-리더방                   │
+│  │                 │   Escalation → #ai-리더방                   │
 │  └──────┬─────────┘                                              │
 │         ▼                                                        │
 │  Phase 5: MemKraft Write-back & Session Close                    │
@@ -259,8 +259,8 @@ Invoke `decision-router` for items requiring human decisions:
 | Signal Type | Route | Channel |
 |---|---|---|
 | Product gap from feedback (RICE > 500) | Personal decision | #효정-의사결정 |
-| Escalation requiring leadership attention | Team/CTO decision | #7층-리더방 |
-| SLA policy change recommendation | Team decision | #7층-리더방 |
+| Escalation requiring leadership attention | Team/CTO decision | #ai-리더방 |
+| SLA policy change recommendation | Team decision | #ai-리더방 |
 | New known issue announcement | Informational | #h-report |
 
 ### Phase 5: MemKraft Write-back & Session Close
@@ -332,7 +332,7 @@ Write consolidated Slack summary to #효정-할일:
 | Content | Channel | Format |
 |---|---|---|
 | Daily CS summary | #효정-할일 | 3-message thread |
-| P1 escalation alert | #7층-리더방 | Immediate, structured |
+| P1 escalation alert | #ai-리더방 | Immediate, structured |
 | Product gap decisions | #효정-의사결정 | Decision-router format |
 | Weekly feedback report | #h-report | Summary + Drive link |
 | Trend alerts (critical) | #효정-할일 | Inline with daily summary |
@@ -474,6 +474,6 @@ Actions:
 2. Phase 1a: Triage → P1 Critical, mood: anxious, urgency: 5/5
 3. Phase 1e: Supervisor fast-paths to Escalation
    - Package: reproduction steps, customer context from MemKraft, business impact ($200K ARR at risk)
-   - Post immediately to #7층-리더방 and Slack engineering channel
+   - Post immediately to #ai-리더방 and Slack engineering channel
 4. Phase 2: Flag as potential systematic issue if 2+ other tickets share symptoms
 5. Phase 5: Update Acme Corp entity in MemKraft with escalation record

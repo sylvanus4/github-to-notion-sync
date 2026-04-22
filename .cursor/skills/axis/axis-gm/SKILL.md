@@ -114,7 +114,7 @@ Write detected synergies to `synergies.json`.
 
 **Phase 3 — Decision Queue**
 Collect items tagged as requiring human decision from any axis. Classify using
-`decision-router` logic (personal → `#효정-의사결정`, team → `#7층-리더방`).
+`decision-router` logic (personal → `#효정-의사결정`, team → `#ai-리더방`).
 Write to `decisions-pending.json`.
 
 **Phase 4 — Consolidated Brief**
@@ -190,7 +190,7 @@ Write to `outputs/axis/gm/{date}/dashboard.html`.
 
 - `#효정-할일` — consolidated briefings and axis alerts
 - `#효정-의사결정` — personal decisions requiring action
-- `#7층-리더방` — team/CTO decisions (via decision-router)
+- `#ai-리더방` — team/CTO decisions (via decision-router)
 
 ## Automation Level
 

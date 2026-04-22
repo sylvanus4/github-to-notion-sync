@@ -211,7 +211,7 @@ The GM axis:
 
 2. **Decision Routing** — route decision items:
    - Personal decisions → `#효정-의사결정`
-   - Team/CTO decisions → `#7층-리더방`
+   - Team/CTO decisions → `#ai-리더방`
 
 3. **Dispatch Manifest** — write to `outputs/axis/dispatch/{date}/dispatch-morning.json`
 
@@ -391,7 +391,7 @@ Each axis writes to `outputs/axis/{axis-name}/{date}/` — see individual axis S
 |---------|---------|
 | `#효정-할일` | Consolidated briefings, axis alerts, errand reminders |
 | `#효정-의사결정` | Personal decisions, automation level upgrades, critical failures |
-| `#7층-리더방` | Team/CTO decisions (via decision-router) |
+| `#ai-리더방` | Team/CTO decisions (via decision-router) |
 | `#h-report` | Trading signals and daily report (via today pipeline) |
 | `#deep-research-trending` | AI research radar posts (via axis-learning) |
 

@@ -102,7 +102,7 @@ Route processed content to the appropriate Slack channel using the topic classif
 
 After posting, invoke `decision-router` to check if the content requires a decision:
 - Personal decisions → `#효정-의사결정`
-- Team/CTO decisions → `#7층-리더방`
+- Team/CTO decisions → `#ai-리더방`
 
 ### Step 7: Aggregate Daily Report
 
