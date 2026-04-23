@@ -48,10 +48,10 @@ The project manages ArgoCD cluster secrets via the Go `clustermanager/argocd` pa
 
 ```go
 // Secret naming convention
-SecretPrefix       = "cluster-"           // all cluster secrets start with this
-InClusterSecretName = "cluster-local"     // Helm-managed, never delete
-SecretLabelKey     = "argocd.argoproj.io/secret-type"
-SecretLabelValue   = "cluster"
+SecretPrefix       = "cluster-"           // all cluster secrets start with this  # pragma: allowlist secret
+InClusterSecretName = "cluster-local"     // Helm-managed, never delete  # pragma: allowlist secret
+SecretLabelKey     = "argocd.argoproj.io/secret-type"  # pragma: allowlist secret
+SecretLabelValue   = "cluster"  # pragma: allowlist secret
 ServerURLFormat    = "%s/k8s/%s"          // CP proxy-based URL
 ```
 

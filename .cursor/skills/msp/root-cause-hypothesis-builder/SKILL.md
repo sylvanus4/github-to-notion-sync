@@ -78,19 +78,19 @@ Rank + counter-evidence + evidence_gaps + next_investigation_steps (read-only)
 
 ## Detailed Workflow
 
-1. **Ingest Skill #1 triage report**  
+1. **Ingest Skill #1 triage report**
    Validate JSON (required fields, RFC3339 `time_window`, `tenant_id`). Extract `affected_resources`, `primary_signals`, and blast-radius hints for scoped queries.
 
-2. **Gather additional evidence (read-only)**  
+2. **Gather additional evidence (read-only)**
    Within the same window and blast radius: CloudTrail / GCP Audit Logs; CloudWatch / Cloud Monitoring metrics and log samples; AWS Config / GCP Asset Inventory where relevant. De-duplicate; attach citations (event id, query id, metric name + timestamp). Redact PII/secrets before LLM; cite pointers to raw stores for humans.
 
-3. **Generate N hypotheses**  
+3. **Generate N hypotheses**
    Cover mechanisms and failure modes (e.g. config change, dependency outage, quota, bad deploy, credential expiry, network partition). **N** configurable (default 3–7).
 
-4. **Score each hypothesis**  
+4. **Score each hypothesis**
    For each: tag evidence as supporting, contradicting, or missing. Apply confidence rubric (0.0–1.0); set `confidence_band` (low | medium | high). Require **counter_evidence** and **falsification_criteria**; cap confidence when gaps are large.
 
-5. **Rank and next steps**  
+5. **Rank and next steps**
    Sort by `confidence` (then by severity of remaining gaps). Emit `evidence_gaps` with **read-only** `suggested_collection` (queries, not mutating runbooks). Order `next_investigation_steps`.
 
 **Optional:** Run **diagnose-inspired** prompts in-process (same session) instead of full multi-agent `diagnose` to limit tool/token scope; still **no fixes** and **no** definitive root-cause wording.
@@ -186,8 +186,8 @@ Invocation MUST use **read-only** IAM / viewer roles scoped to the tenant. **No 
 
 ## Cross-References
 
-- [`docs/msp-skills/APPROVAL_BOUNDARY_SPEC.md`](../../../docs/msp-skills/APPROVAL_BOUNDARY_SPEC.md) — Tier 1 rules  
-- [`docs/msp-skills/MSP_SKILL_REGISTRY.md`](../../../docs/msp-skills/MSP_SKILL_REGISTRY.md) — suite index  
-- [`docs/msp-skills/plans/root-cause-hypothesis-builder.md`](../../../docs/msp-skills/plans/root-cause-hypothesis-builder.md) — planning source  
-- Upstream: Skill #1 plan — `docs/msp-skills/plans/incident-triage-summarizer.md`  
+- [`docs/msp-skills/APPROVAL_BOUNDARY_SPEC.md`](../../../docs/msp-skills/APPROVAL_BOUNDARY_SPEC.md) — Tier 1 rules
+- [`docs/msp-skills/MSP_SKILL_REGISTRY.md`](../../../docs/msp-skills/MSP_SKILL_REGISTRY.md) — suite index
+- [`docs/msp-skills/plans/root-cause-hypothesis-builder.md`](../../../docs/msp-skills/plans/root-cause-hypothesis-builder.md) — planning source
+- Upstream: Skill #1 plan — `docs/msp-skills/plans/incident-triage-summarizer.md`
 - Composed pattern: [`.cursor/skills/review/diagnose/SKILL.md`](../review/diagnose/SKILL.md) (read-only subset; no auto-fix)

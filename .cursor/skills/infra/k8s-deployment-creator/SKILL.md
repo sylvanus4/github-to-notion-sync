@@ -145,15 +145,15 @@ spec:
               # NFS lock handling: wait for any existing lock
               LOCK_FILE="{{ .Values.initContainer.modelPath }}/.download.lock"
               CACHE_DIR="{{ .Values.initContainer.modelPath }}/cache-$(hostname)"
-              
+
               if [ -f "$LOCK_FILE" ]; then
                 echo "Another pod is downloading. Waiting..."
                 while [ -f "$LOCK_FILE" ]; do sleep 5; done
               fi
-              
+
               # Pod-unique cache directory to avoid cross-pod conflicts
               mkdir -p "$CACHE_DIR"
-              
+
               # Download model via huggingface-cli or s3
               {{- if .Values.s3ModelStreaming.enabled }}
               runai-model-streamer download \

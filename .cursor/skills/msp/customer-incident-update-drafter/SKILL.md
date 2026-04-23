@@ -166,13 +166,13 @@ If mode = send (Tier 2):
     - Escalation flags
     - Tone scores
     - Send channel specification
-  
+
   Approval gate:
     TTL: 2 hours (customer comms are time-sensitive)
     On approval: Send via specified channel, log attributed audit entry
     On rejection: Return draft with rejection_reason, allow re-edit
     On timeout: Save draft, alert approver of expired comm
-    
+
   Escalation: Alert at 75% TTL (90 minutes)
 ```
 
