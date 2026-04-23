@@ -3,7 +3,7 @@ name: sod-ship
 description: >-
   Start-of-day git sync pipeline: commit dirty working directories, push
   unpushed commits, pull remote changes for all 5 managed projects, update
-  git submodules (ai-suite, thaki-ui, ai-platform-webui, ml-platform), then run cursor-sync to propagate
+  git submodules (ai-suite, thaki-ui, ai-platform-webui), then run cursor-sync to propagate
   .cursor/ assets across all repos. Use when the user runs /sod-ship, asks
   to "sync all projects", "start of day sync", "pull all repos",
   "컴퓨터 바꿔서 작업 시작", "아침 싱크", "프로젝트 동기화", "서브모듈 싱크",
@@ -18,7 +18,7 @@ metadata:
 ---
 # SOD Ship — Start-of-Day Git Sync Pipeline
 
-Bidirectional git sync for all managed projects: commit dirty repos, push unpushed commits, pull remote changes, update git submodules (ai-suite, thaki-ui, ai-platform-webui, ml-platform), and verify everything is in sync. Designed for starting work on a new day or switching to a different computer.
+Bidirectional git sync for all managed projects: commit dirty repos, push unpushed commits, pull remote changes, update git submodules (ai-suite, thaki-ui, ai-platform-webui), and verify everything is in sync. Designed for starting work on a new day or switching to a different computer.
 
 ## Configuration
 
@@ -48,18 +48,6 @@ Arguments can be combined freely. Defaults: commit+push+pull all, run pre-flight
 **Skip if** `--skip-doctor` flag is set.
 
 Run lightweight environment diagnostics and live MCP connectivity probes before starting git operations. Results are stored in a `preflight` map and surfaced in the Slack notification (Phase 5) and Chat Report (Phase 6).
-
-#### Step 0-pre: Source `.env`
-
-Before any environment variable check, explicitly source the project `.env` file so that secrets defined there (e.g. `GITHUB_TOKEN`, `SLACK_USER_TOKEN`) are available in the current shell session. Cursor's Shell tool starts fresh sessions that do **not** auto-load `.env`.
-
-```bash
-set -a
-source /Users/hanhyojung/thaki/ai-platform-strategy/.env 2>/dev/null || true
-set +a
-```
-
-> **Every Shell call in subsequent phases that needs these variables must also run the `source` line above**, or the caller must chain `set -a && source .env && set +a &&` before the actual command. The simplest pattern is to prepend the source line at the top of each Shell invocation.
 
 #### Step 0a: CLI & Environment Checks
 
@@ -268,34 +256,33 @@ git fetch origin
 
 #### Step 3a: Pull
 
-- **`ai-platform-strategy`**: If `git branch --show-current` is `main`, run `git pull origin main`. On any other branch (for example `issue/*`), run `git pull` so the configured upstream is respected.
+- **`ai-platform-strategy`**: If `git branch --show-current` is `dev`, run `git pull origin dev`. On any other branch (for example `issue/*`), run `git pull` so the configured upstream is respected.
 - **All other managed projects**: Run `git pull` (default remote + upstream tracking branch).
 
-**Default pull (most projects, or `ai-platform-strategy` on a non-`main` branch):**
+**Default pull (most projects, or `ai-platform-strategy` on a non-`dev` branch):**
 
 ```bash
 git pull
 ```
 
-**`ai-platform-strategy` on `main` only:**
+**`ai-platform-strategy` on `dev` only:**
 
 ```bash
-git pull origin main
+git pull origin dev
 ```
 
 #### Step 3a½: Update Submodules (ai-platform-strategy only)
 
-After pulling `ai-platform-strategy`, update its four git submodules to track their remote HEAD:
+After pulling `ai-platform-strategy`, update its three git submodules to track their remote HEAD:
 
 ```bash
 cd AI_PLATFORM_STRATEGY_PATH
 git submodule update --init --remote
 ```
 
-This fetches the latest commits from `ai-suite` (main), `thaki-ui` (develop), `ai-platform-webui` (dev), and `ml-platform` (main) remotes and advances the submodule pointers.
+This fetches the latest commits from `ai-suite` (main), `thaki-ui` (develop), and `ai-platform-webui` (dev) remotes and advances the submodule pointers.
 
-- If submodule update succeeds and `git status` shows changed submodule pointers, record `{submodules_updated: true, changed: ["ai-suite", "thaki-ui", "ai-platform-webui", "ml-platform"]}`.
-
+- If submodule update succeeds and `git status` shows changed submodule pointers, record `{submodules_updated: true, changed: ["ai-suite", "thaki-ui", "ai-platform-webui"]}`.
 - If submodule pointers are already up-to-date, record `{submodules_updated: false}`.
 - If submodule update fails (network error, merge conflict inside submodule), warn and continue. Record `{submodules_updated: false, error: "..."}`. This is non-blocking.
 
@@ -880,6 +867,6 @@ User runs `/sod-ship` and every project is already up to date.
 - **Never amend** failed commits; create new ones
 - **Never commit** `.env`, credentials, or secret files
 - **Never switch branches** automatically — work on the current branch only
-- **ai-platform-strategy** (full mode): Same git rules as other managed repos (`git push origin HEAD`, `git pull` or `git pull origin main` when on `main`)
+- **ai-platform-strategy** (full mode): Same git rules as other managed repos (`git push origin HEAD`, `git pull` or `git pull origin dev` when on `dev`)
 - **Always return** to original working directory after processing each project
 - **Always display** pre-flight scan before making any changes

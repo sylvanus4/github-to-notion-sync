@@ -33,7 +33,7 @@ comprehensive DOCX, and post a Drive-linked summary to `#효정-할일`.
 | `효정-할일` | `C0AA8NT4T8T` | Final summary post |
 | `효정-insight` | `C0A8SSPC9RU` | (optional override for high-impact articles) |
 | `효정-의사결정` | `C0ANBST3KDE` | Personal decision items (decision-router) |
-| `ai-리더방` | `C0A6Q7007N2` | Team/CTO decision items (decision-router) |
+| `7층-리더방` | `C0A6Q7007N2` | Team/CTO decision items (decision-router) |
 
 ## Configuration
 
@@ -653,7 +653,7 @@ On **successful** completion of Phase 6, set `manifest.json` `completed_at` and 
 **Inputs (files only):** Read `flags.skip_decisions` from `manifest.json` and `articles_processed[].decision_flag` (or equivalent) from `phase-3-per-article-pipeline.json`. Do **not** use ad-hoc memory of Step 3f.
 
 After Phase 6, collect all articles flagged in Step 3f **from `phase-3-per-article-pipeline.json` only** and post consolidated
-DECISION messages to `#ai-리더방` (`C0A6Q7007N2`).
+DECISION messages to `#7층-리더방` (`C0A6Q7007N2`).
 
 If no decision items were flagged → skip this phase entirely; set `manifest.json` phase `7` `status` to `skipped` and finalize `overall_status` / `completed_at` if not already set.
 
@@ -746,7 +746,7 @@ Actions:
 4. Generate DOCX from phase-2/3 JSON only → `phase-4-docx-generation.json`
 5. Upload to Google Drive → `phase-5-drive-upload.json`
 6. Post summary to #효정-할일 from JSON inputs only → `phase-6-summary-slack.json`
-7. (If decisions) Post to #ai-리더방 from `phase-3` flags → `phase-7-decision-summary.json`; finalize `manifest.json`
+7. (If decisions) Post to #7층-리더방 from `phase-3` flags → `phase-7-decision-summary.json`; finalize `manifest.json`
 
 ### Example 2: Expected article thread quality
 

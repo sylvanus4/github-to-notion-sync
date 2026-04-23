@@ -198,7 +198,7 @@ outputs from disk. Format follows `ai-brief` provenance structure.
 ### 의사결정 필요 항목
 {count}건이 decision channels로 라우팅됨
 - Personal (#효정-의사결정): {count}건
-- Team (#ai-리더방): {count}건
+- Team (#7층-리더방): {count}건
 
 ### EA 추천 액션
 Based on schedule density and pending items:
@@ -248,7 +248,7 @@ Inherits from `google-daily`:
 |---|---|
 | Main Channel | `#효정-할일` (`C0AA8NT4T8T`) |
 | Decision (Personal) | `#효정-의사결정` (`C0ANBST3KDE`) |
-| Decision (Team) | `#ai-리더방` (`C0A6Q7007N2`) |
+| Decision (Team) | `#7층-리더방` (`C0A6Q7007N2`) |
 
 ## Error Recovery
 

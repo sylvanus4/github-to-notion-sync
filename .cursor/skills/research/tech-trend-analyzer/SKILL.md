@@ -290,7 +290,7 @@ Use `md-to-notion` to publish the full analysis report as a Notion page.
 ### Step 4d: Decision Router
 
 Invoke `decision-router` to check if any action items qualify as decisions
-requiring routing to `#효정-의사결정` or `#ai-리더방`.
+requiring routing to `#효정-의사결정` or `#7층-리더방`.
 
 ---
 

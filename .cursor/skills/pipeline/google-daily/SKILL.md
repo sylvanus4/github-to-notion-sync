@@ -31,7 +31,7 @@ All intermediate and final aggregation steps persist to `outputs/google-daily/{d
 | Channel ID | `C0AA8NT4T8T` |
 | Decision (Personal) | `#효정-의사결정` |
 | Decision (Personal) ID | `C0ANBST3KDE` |
-| Decision (Team) | `#ai-리더방` |
+| Decision (Team) | `#7층-리더방` |
 | Decision (Team) ID | `C0A6Q7007N2` |
 
 All Slack messages go to `#효정-할일`. Decision items go to their respective channels. Never use DM.
@@ -272,7 +272,7 @@ Skip if `skip-decisions` flag is set (record in `manifest.json` under `flags.ski
 
 Review `colleague_emails[]` (from `phase-2-gmail.json`) for decision keywords: 승인, 결정, 예산, 아키텍처, 채용, 제안, 검토 요청, approve, budget, architecture, hire, proposal, review.
 
-- Emails requesting approval, budget, or architectural decisions → scope: **team**, post to `#ai-리더방` (`C0A6Q7007N2`)
+- Emails requesting approval, budget, or architectural decisions → scope: **team**, post to `#7층-리더방` (`C0A6Q7007N2`)
 - Emails with explicit questions requiring a personal response → scope: **personal**, post to `#효정-의사결정` (`C0ANBST3KDE`)
 
 **Step 4.5b — Scan reply-needed emails:**

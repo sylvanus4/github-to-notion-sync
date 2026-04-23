@@ -4,7 +4,7 @@ description: >-
   Detect decision-worthy items from pipeline outputs and route them to the
   appropriate Slack decision channel. Personal decisions (trading, email replies,
   tool adoption) go to #효정-의사결정; team/CTO decisions (infra, strategy,
-  partnerships, budget) go to #ai-리더방. Invoked inline by other pipeline
+  partnerships, budget) go to #7층-리더방. Invoked inline by other pipeline
   skills after their main posting is complete. Use when a pipeline skill
   (google-daily, today, bespin-news-digest, twitter-timeline-to-slack,
   x-to-slack) detects content that requires a decision.
@@ -27,7 +27,7 @@ normal posting workflow.
 | Channel | ID | Scope | Description |
 |---|---|---|---|
 | `효정-의사결정` | `C0ANBST3KDE` | personal | Solo decisions (trading, email replies, tool adoption) |
-| `ai-리더방` | `C0A6Q7007N2` | team | Team/CTO decisions (infra, strategy, partnerships, budget) |
+| `7층-리더방` | `C0A6Q7007N2` | team | Team/CTO decisions (infra, strategy, partnerships, budget) |
 
 > **Action Required**: Replace `C0ANBST3KDE` and `C0A6Q7007N2` with actual
 > channel IDs after creating the channels in Slack. Use `slack_search_channels`
@@ -96,7 +96,7 @@ Any of the following criteria:
 - Calendar scheduling conflicts
 - Content follow-up decisions
 
-### Team (`#ai-리더방`)
+### Team (`#7층-리더방`)
 
 Any of the following criteria:
 
@@ -153,7 +153,7 @@ Pipeline skills invoke the decision router as follows:
 4. Format using the DECISION message template
 5. Post to the appropriate channel via `slack_send_message`:
    - Personal → `효정-의사결정` (`C0ANBST3KDE`)
-   - Team → `ai-리더방` (`C0A6Q7007N2`)
+   - Team → `7층-리더방` (`C0A6Q7007N2`)
 6. If multiple decisions are detected, post each as a separate message (not threaded)
 
 ### Threshold Principle

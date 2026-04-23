@@ -38,18 +38,6 @@ Arguments can be combined freely. Defaults: sync all, ship all, memory sync, pos
 
 ## Workflow
 
-### Phase 0: Source `.env`
-
-Explicitly source the project `.env` file so that secrets (e.g. `GITHUB_TOKEN`, `SLACK_USER_TOKEN`) are available in every subsequent Shell call. Cursor's Shell tool starts fresh sessions that do **not** auto-load `.env`.
-
-```bash
-set -a
-source /Users/hanhyojung/thaki/ai-platform-strategy/.env 2>/dev/null || true
-set +a
-```
-
-> **Every Shell call in subsequent phases that needs these variables must also run the `source` line above**, or the caller must chain `set -a && source .env && set +a &&` before the actual command.
-
 ### Phase 1: Cursor Sync
 
 **Skip if** `--skip-sync` flag is set.
@@ -120,7 +108,7 @@ git status --short
 ```
 
 1. If clean, record `{project: "current", status: "clean"}` and skip to Phase 3
-2. **Submodule pointer inclusion**: When `git status` shows modified submodule paths (`ai-suite`, `thaki-ui`, `ai-platform-webui`, `ml-platform`), these changes MUST be included in the commit. The `release-ship` domain-commit step already picks up all staged changes; ensure `git add ai-suite thaki-ui ai-platform-webui ml-platform` is run if submodule pointers have changed. This captures the submodule pointer updates made by sod-ship's Step 3a½ or manual `git submodule update` runs.
+2. **Submodule pointer inclusion**: When `git status` shows modified submodule paths (`ai-suite`, `thaki-ui`, `ai-platform-webui`), these changes MUST be included in the commit. The `release-ship` domain-commit step already picks up all staged changes; ensure `git add ai-suite thaki-ui ai-platform-webui` is run if submodule pointers have changed. This captures the submodule pointer updates made by sod-ship's Step 3a½ or manual `git submodule update` runs.
 3. If dirty, execute release-ship pipeline (domain-commit → push → **issue** → PR → merge)
 4. Issue creation is MANDATORY for shipped commits — do not skip Step 4 of release-ship
 5. Capture result: `{commits: [...], issues: [...], pr_url: "...", merged: bool}`
@@ -425,7 +413,7 @@ User runs `/eod-ship` at end of day with changes across 3 projects.
 1. cursor-sync: 4 targets synced, 6 files updated
 2. memory sync: 3개 트랜스크립트 추출, 인덱스 리빌드 완료
 3. Current project (github-to-notion-sync): 2 domain-split commits, PR #15 merged
-3½. Main merge: current branch → main merged and pushed
+3½. Main merge: dev → main merged and pushed
 4. ai-template: clean, skipped
 5. ai-model-event-stock-analytics: 3 commits, PR #22 merged
 6. research: 1 commit, PR #9 merged

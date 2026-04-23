@@ -7,10 +7,10 @@ Skip this step entirely if `skip-decisions` flag is set.
 
 ## Detection Criteria
 
-- Tweet about a tool/technology with clear adoption-or-not signal for the platform → **team** scope, MEDIUM urgency → post to `#ai-리더방` (`C0A6Q7007N2`)
+- Tweet about a tool/technology with clear adoption-or-not signal for the platform → **team** scope, MEDIUM urgency → post to `#7층-리더방` (`C0A6Q7007N2`)
 - Personal tool/workflow adoption signal → **personal** scope, LOW urgency → post to `#효정-의사결정` (`C0ANBST3KDE`)
 - Market-moving news requiring portfolio adjustment → **personal** scope, HIGH urgency → post to `#효정-의사결정` (`C0ANBST3KDE`)
-- Competitor announcement requiring strategic response → **team** scope, MEDIUM urgency → post to `#ai-리더방` (`C0A6Q7007N2`)
+- Competitor announcement requiring strategic response → **team** scope, MEDIUM urgency → post to `#7층-리더방` (`C0A6Q7007N2`)
 
 Check primarily Message 3 insights for actionable strategic implications. Only
 post when the decision signal is clear and actionable — default to NOT posting.
@@ -45,4 +45,4 @@ C. 보류 / 추가 조사 필요
 | Channel | ID | Scope |
 |---|---|---|
 | `효정-의사결정` | `C0ANBST3KDE` | Personal decisions (tool adoption, portfolio) |
-| `ai-리더방` | `C0A6Q7007N2` | Team/CTO decisions (infra, strategy, competitive) |
+| `7층-리더방` | `C0A6Q7007N2` | Team/CTO decisions (infra, strategy, competitive) |
