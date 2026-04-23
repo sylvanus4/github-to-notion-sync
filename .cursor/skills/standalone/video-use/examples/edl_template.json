@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "sources": {
+    "CLIP_A": "/absolute/path/to/clip_a.mp4",
+    "CLIP_B": "/absolute/path/to/clip_b.mp4"
+  },
+  "ranges": [
+    {
+      "source": "CLIP_A",
+      "start": 2.42,
+      "end": 8.15,
+      "beat": "HOOK",
+      "quote": "The opening line that grabs attention.",
+      "reason": "Cleanest delivery, strong energy, no verbal slips."
+    },
+    {
+      "source": "CLIP_B",
+      "start": 14.30,
+      "end": 28.90,
+      "beat": "PROBLEM",
+      "quote": "Here is the problem we are solving...",
+      "reason": "Only take without the false start. Clear pacing."
+    },
+    {
+      "source": "CLIP_A",
+      "start": 35.00,
+      "end": 52.70,
+      "beat": "SOLUTION",
+      "quote": "This is how we fixed it.",
+      "reason": "Best explanation of the core mechanism."
+    },
+    {
+      "source": "CLIP_B",
+      "start": 60.10,
+      "end": 72.50,
+      "beat": "CTA",
+      "quote": "Try it yourself today.",
+      "reason": "Natural close, includes the product URL mention."
+    }
+  ],
+  "grade": "auto",
+  "overlays": [
+    {
+      "file": "edit/animations/slot_1/render.mp4",
+      "start_in_output": 15.0,
+      "duration": 7.0
+    }
+  ],
+  "subtitles": "edit/master.srt",
+  "total_duration_s": 62.43
+}

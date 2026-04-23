@@ -1,0 +1,17 @@
+round	mutation	dimension	score_before	score_after	accepted	reason
+0	baseline	clarity	8	8	-	initial baseline
+0	baseline	completeness	7	7	-	initial baseline
+0	baseline	robustness	6	6	-	initial baseline — weak on cold meetings
+0	baseline	composability	8	8	-	initial baseline
+0	baseline	safety	7	7	-	initial baseline
+1	cold-meeting-handling	clarity	8	9	yes	explicit first-touch meeting handling and domain-based name inference
+1	cold-meeting-handling	completeness	7	8	yes	low-confidence banner when <2/4 sources return data
+1	cold-meeting-handling	robustness	6	8	yes	Slack delivery fallback prevents pipeline blockage
+1	cold-meeting-handling	composability	8	8	no-change	no composition change
+1	cold-meeting-handling	safety	7	8	yes	clear "first interaction — no deal history" note prevents hallucinated context
+2	constraint-gates	clarity	9	9	no-change	already clear
+2	constraint-gates	completeness	8	8	no-change	already complete
+2	constraint-gates	robustness	8	9	yes	added gotcha about CRM data staleness
+2	constraint-gates	composability	8	8	no-change	no change
+2	constraint-gates	safety	8	8	no-change	already safe
+3	-	-	-	-	skipped	convergence at 8.4/10

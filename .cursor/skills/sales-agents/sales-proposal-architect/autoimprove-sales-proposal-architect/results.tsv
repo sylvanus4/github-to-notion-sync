@@ -1,0 +1,17 @@
+round	mutation	dimension	score_before	score_after	accepted	reason
+0	baseline	clarity	8	8	-	initial baseline
+0	baseline	completeness	7	7	-	initial baseline
+0	baseline	robustness	6	6	-	initial baseline — weak on hybrid segments
+0	baseline	composability	8	8	-	initial baseline
+0	baseline	safety	7	7	-	initial baseline
+1	segment-detection-hardening	clarity	8	9	yes	explicit hybrid segment handling and multi-BU detection
+1	segment-detection-hardening	completeness	7	8	yes	page count verification and section pruning rules
+1	segment-detection-hardening	robustness	6	8	yes	ask-user rule for ambiguous segments prevents misidentification
+1	segment-detection-hardening	composability	8	8	no-change	no composition change
+1	segment-detection-hardening	safety	7	8	yes	segment misidentification flagged as highest-impact failure mode
+2	constraint-gates	clarity	9	9	no-change	already clear
+2	constraint-gates	completeness	8	9	yes	added gotcha about template freshness and architecture diagram accuracy
+2	constraint-gates	robustness	8	8	no-change	already robust
+2	constraint-gates	composability	8	8	no-change	no change
+2	constraint-gates	safety	8	9	yes	added verification step for ThakiCloud capability claims
+3	-	-	-	-	skipped	convergence at 8.6/10

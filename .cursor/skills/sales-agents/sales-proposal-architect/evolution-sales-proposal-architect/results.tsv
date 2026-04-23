@@ -1,0 +1,4 @@
+variant	accuracy	procedure	conciseness	trigger_precision	boundary_clarity	composite	status
+A_baseline	7	7	7	8	7	7.2	baseline
+B_restructure_add_constraints	8	8	7	8	8	7.8	winner
+C_aggressive_compress	7	7	8	7	7	7.2	rejected

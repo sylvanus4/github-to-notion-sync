@@ -25,6 +25,7 @@ alwaysApply: true
 - Subagent outputs must be verified — missing files = pipeline failure
 - today Slack must include BUY/SELL thread (sector/RSI/ADX); DOCX must be substantive Korean; orchestrator must call generate_daily_report message builders (no title-only main posts)
 - twitter-timeline-to-slack: never #random; default #press; #ai-coding-radar for Claude/Cursor only
+- x-to-slack: when the user asks to expand a quote chain or “same person’s posts” (e.g. to #press), post **each** item as its **own Slack thread** and include **images and videos** in each thread (not one combined thread without media)
 - skill-autoimprove: pure-output skills only, not execution skills with side effects
 - Apply Karpathy Opposite Direction Test on all analyses, reviews, and validations
 - External GitHub repos → selective-external-github-to-project-skills로 분석 후 프로젝트 맞춤 스킬 생성 (recurring workflow); 스킬 최적화 + 진화 + setup-doctor 업데이트까지 풀 사이클 실행

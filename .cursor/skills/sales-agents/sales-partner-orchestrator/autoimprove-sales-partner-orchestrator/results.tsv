@@ -1,0 +1,17 @@
+round	mutation	dimension	score_before	score_after	accepted	reason
+0	baseline	clarity	7	7	-	initial baseline
+0	baseline	completeness	7	7	-	initial baseline
+0	baseline	robustness	5	5	-	initial baseline — weak on bilingual comms and vague commitments
+0	baseline	composability	8	8	-	initial baseline
+0	baseline	safety	7	7	-	initial baseline
+1	bilingual-commitment-extraction	clarity	7	9	yes	explicit firm-vs-tentative commitment classification
+1	bilingual-commitment-extraction	completeness	7	8	yes	Korean+English dual extraction with semantic dedup
+1	bilingual-commitment-extraction	robustness	5	8	yes	tentative items flagged for human confirmation, ambiguous owners flagged, no arbitrary deadline inference
+1	bilingual-commitment-extraction	composability	8	8	no-change	no composition change
+1	bilingual-commitment-extraction	safety	7	9	yes	prevents tracking vague intent as firm commitments
+2	constraint-gates	clarity	9	9	no-change	already clear
+2	constraint-gates	completeness	8	9	yes	added gotcha about email thread context loss
+2	constraint-gates	robustness	8	9	yes	added gotcha about partner name spelling variations
+2	constraint-gates	composability	8	8	no-change	no change
+2	constraint-gates	safety	9	9	no-change	already strong
+3	-	-	-	-	skipped	convergence at 8.8/10

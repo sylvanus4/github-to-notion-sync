@@ -1,0 +1,17 @@
+round	mutation	dimension	score_before	score_after	accepted	reason
+0	baseline	clarity	8	8	-	initial baseline
+0	baseline	completeness	7	7	-	initial baseline
+0	baseline	robustness	5	5	-	initial baseline — weak on KB unavailability
+0	baseline	composability	8	8	-	initial baseline
+0	baseline	safety	8	8	-	initial baseline
+1	bilingual-qa-parsing	clarity	8	9	yes	explicit Korean security terminology extraction
+1	bilingual-qa-parsing	completeness	7	8	yes	Korean context clues for segment detection (공공/금융/enterprise)
+1	bilingual-qa-parsing	robustness	5	8	yes	KB unavailability fallback with 0.5 max confidence cap
+1	bilingual-qa-parsing	composability	8	8	no-change	no composition change
+1	bilingual-qa-parsing	safety	8	9	yes	mandatory security team verification note when KB empty
+2	constraint-gates	clarity	9	9	no-change	already clear
+2	constraint-gates	completeness	8	9	yes	added gotcha about version pinning for policy docs
+2	constraint-gates	robustness	8	9	yes	added gotcha about segment misidentification impact
+2	constraint-gates	composability	8	8	no-change	no change
+2	constraint-gates	safety	9	9	no-change	already strong
+3	-	-	-	-	skipped	convergence at 8.8/10

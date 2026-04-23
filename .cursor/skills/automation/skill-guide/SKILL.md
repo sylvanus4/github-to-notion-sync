@@ -1,9 +1,9 @@
 ---
 name: skill-guide
 description: >-
-  Interactive skill discovery and usage guide: scans the local skills library,
-  matches user intent to available skills, suggests chains, and gives copy-paste
-  invocation patterns without opening every SKILL.md manually.
+  Interactive skill and agent team discovery guide: scans the local skills library
+  and agent-teams registry, matches user intent to available skills or multi-agent
+  teams, suggests chains, and gives copy-paste invocation patterns.
   Korean triggers: "어떤 스킬 써야 해?", "스킬 찾기", "스킬 추천", "스킬 가이드",
   "스택 기반 추천", "기술 스택 맞는 스킬".
   English triggers: "skill guide", "find skill", "which skill", "help me choose",
@@ -74,6 +74,33 @@ or when the user's request implies project-specific technology context.
 
 This mode reduces noise from 700+ skills to the ~30 most stack-relevant candidates,
 making recommendations more precise for project-specific tasks.
+
+## Agent Team Discovery
+
+When the user's intent maps to a **multi-step collaborative workflow** (not a single skill),
+check `.cursor/skills/agent-teams/team-registry.md` for a matching agent team.
+
+| Intent Signal | Recommend Team Instead of Skill |
+|---------------|-------------------------------|
+| "deep research with report", "연구 리포트" | Research & Report Team |
+| "create content", "콘텐츠 제작" | Content Production Team |
+| "strategic analysis", "전략 분석" | Strategic Intelligence Team |
+| "incident response", "장애 대응" | Incident Response Team |
+| "ship code", "코드 출시" | Code Ship Team |
+| "build knowledge base", "KB 구축" | Knowledge Builder Team |
+| "analyze meeting", "회의 분석" | Meeting Intelligence Team |
+| "prepare deal package", "딜 준비" | Sales Deal Team |
+
+**When to recommend a team over a single skill:**
+- The task requires 3+ sequential or parallel sub-tasks
+- Quality review / iteration is expected
+- Multiple perspectives or expertise domains are needed
+- The user asks for "end-to-end", "전체 파이프라인", or "팀으로"
+
+**How to invoke a team:** Read the coordinator SKILL.md and follow its protocol:
+```
+Read: .cursor/skills/agent-teams/{team}/coordinator/SKILL.md
+```
 
 ## Procedure
 

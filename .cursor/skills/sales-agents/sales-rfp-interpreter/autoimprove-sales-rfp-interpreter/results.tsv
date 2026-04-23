@@ -1,0 +1,17 @@
+round	mutation	dimension	score_before	score_after	accepted	reason
+0	baseline	clarity	8	8	-	initial baseline
+0	baseline	completeness	7	7	-	initial baseline
+0	baseline	robustness	6	6	-	initial baseline
+0	baseline	composability	8	8	-	initial baseline
+0	baseline	safety	7	7	-	initial baseline
+1	bilingual-extraction	clarity	8	9	yes	explicit bilingual handling removes ambiguity in multi-language RFPs
+1	bilingual-extraction	completeness	7	8	yes	covers Korean+English dual extraction with dedup
+1	bilingual-extraction	robustness	6	8	yes	Korean honorific hedging → unclear default prevents false priority assignment
+1	bilingual-extraction	composability	8	8	no-change	no impact on downstream composition
+1	bilingual-extraction	safety	7	8	yes	KB lookup fallback prevents silent failures
+2	constraint-gates	clarity	9	9	no-change	constraints were already clear from round 1
+2	constraint-gates	completeness	8	9	yes	added max-30 cap and truncation guidance
+2	constraint-gates	robustness	8	8	no-change	already robust from round 1
+2	constraint-gates	composability	8	8	no-change	no composition change
+2	constraint-gates	safety	8	9	yes	explicit prohibition on generating downstream outputs
+3	-	-	-	-	skipped	convergence reached — composite score 8.6/10 exceeds 8.0 threshold
