@@ -1,0 +1,66 @@
+[
+  {
+    "id": "EVAL-01-PHASE-ORDER",
+    "scenario": "Agent receives request: 'pixelle pipeline for AI trends targeting YouTube Shorts'. Agent attempts to run Phase 2 (video generation) before Phase 1 (script generation).",
+    "question": "Does the skill text make it unambiguous that Phase 1 MUST complete before Phase 2 begins?",
+    "expected": "PASS — The skill explicitly states phase ordering and dependency (Phase 2 needs Phase 1 output)",
+    "dimension": "Phase Dependency Clarity",
+    "weight": 2
+  },
+  {
+    "id": "EVAL-02-COMFYUI-FALLBACK",
+    "scenario": "Agent runs the pipeline but ComfyUI is not available. Agent is about to select 'image_default.html' template.",
+    "question": "Does the skill text provide clear guidance to fall back to static_* templates when ComfyUI is unavailable?",
+    "expected": "PASS — Constraints section and Common Mistakes table both cover this fallback",
+    "dimension": "Error Recovery Guidance",
+    "weight": 2
+  },
+  {
+    "id": "EVAL-03-SKIP-PHASE",
+    "scenario": "User says 'pixelle pipeline --skip-phase4'. Agent must know exactly which phases to run and which to skip.",
+    "question": "Does the skill text document how to handle partial pipeline runs (skipping phases)?",
+    "expected": "PASS — Examples section shows --skip-phase4 pattern and Honest Reporting covers SKIPPED status",
+    "dimension": "Partial Execution Support",
+    "weight": 1
+  },
+  {
+    "id": "EVAL-04-OUTPUT-VERIFICATION",
+    "scenario": "Pipeline finishes. Agent needs to verify all outputs exist before reporting success.",
+    "question": "Does the skill provide concrete verification commands (not just a checklist of concepts)?",
+    "expected": "PASS — Verification section includes bash commands for ls and json validation",
+    "dimension": "Verification Concreteness",
+    "weight": 2
+  },
+  {
+    "id": "EVAL-05-LANGUAGE-ROUTING",
+    "scenario": "User requests a Korean-language video. Agent needs to select appropriate TTS voice.",
+    "question": "Does the skill text guide voice selection based on language, or is it English-only?",
+    "expected": "PARTIAL — Examples mention ko-KR-SunHiNeural but no systematic language-to-voice mapping exists",
+    "dimension": "Internationalization Guidance",
+    "weight": 1
+  },
+  {
+    "id": "EVAL-06-MANIFEST-SCHEMA",
+    "scenario": "Agent needs to write manifest.json after pipeline completes. What fields should it contain?",
+    "question": "Does the skill define the manifest.json schema (required fields, types)?",
+    "expected": "FAIL — manifest.json is referenced multiple times but its schema is never defined",
+    "dimension": "Output Schema Completeness",
+    "weight": 2
+  },
+  {
+    "id": "EVAL-07-SUBAGENT-FAILURE",
+    "scenario": "Phase 1 hook-generator subagent fails. Agent needs to decide: abort or continue?",
+    "question": "Does the skill specify failure handling per subagent (which are critical vs optional)?",
+    "expected": "PARTIAL — Subagent Contract says 'continue with remaining phases' but doesn't classify which failures are blocking",
+    "dimension": "Failure Handling Granularity",
+    "weight": 2
+  },
+  {
+    "id": "EVAL-08-INTERMEDIATE-ARTIFACTS",
+    "scenario": "Phase 1 produces script.md and hook.md. Phase 2 needs these as input. How does the agent find them?",
+    "question": "Does the skill specify intermediate artifact file paths between phases?",
+    "expected": "PARTIAL — Output Structure shows final paths but not intermediate handoff paths between phases",
+    "dimension": "Inter-Phase Data Flow",
+    "weight": 1
+  }
+]

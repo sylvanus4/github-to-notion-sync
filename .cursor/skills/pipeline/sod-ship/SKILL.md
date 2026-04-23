@@ -584,6 +584,56 @@ Pull: M개 커밋 수신 → {fast-forward|rebase|충돌}
 
 Omit thread replies for projects with no activity on either direction (push or pull).
 
+#### Step 5d: Git Work History Thread (어제+오늘 작업 내역)
+
+Post a threaded reply that shows **yesterday and today's commit history** across all 5 repos with **local file paths**. This helps the user orient where work was done locally after switching computers or starting a new day.
+
+**Data collection** — Run for each managed project:
+
+```bash
+cd PROJECT_PATH
+git log --all --since="yesterday 00:00" \
+  --format="__COMMIT__%h|%ad|%s" --date=format:"%m-%d %H:%M" \
+  --name-only
+```
+
+Parse the output to build a per-repo commit list with changed file paths. For each commit, prepend `PROJECT_PATH/` to each file path so the user sees the **absolute local path**.
+
+**Grouping rule**: If a single commit touches more than 10 files, collapse to the common parent folder(s) with file counts instead of listing every file. Example: `📁 .cursor/skills/ (42 files)` instead of listing 42 individual paths.
+
+**Thread message template** — Post as a single thread reply (split into multiple messages if > 4000 chars):
+
+```
+*📋 어제+오늘 Git 작업 내역*
+
+*📂 ai-platform-strategy* (`/Users/hanhyojung/thaki/ai-platform-strategy`)
+> `abc1234` 04-22 15:30 — feat(skill): add duplicate execution prevention
+>   └ `.cursor/skills/pipeline/group-meeting-digest/SKILL.md`
+> `def5678` 04-22 18:45 — fix(frontend): table rendering bug
+>   └ `ai-suite/src/components/Table.tsx`
+>   └ `ai-suite/src/components/Table.test.tsx`
+> `ghi9012` 04-23 09:15 — chore: sync cursor assets
+>   └ 📁 `.cursor/skills/` (42 files)
+>   └ 📁 `.cursor/commands/` (15 files)
+
+*📂 research* (`/Users/hanhyojung/thaki/research`)
+> `jkl3456` 04-22 20:00 — docs: add paper review output
+>   └ `outputs/papers/2026-04-22-attention-paper.md`
+
+*📂 github-to-notion-sync* — 커밋 없음
+*📂 ai-template* — 커밋 없음
+*📂 ai-model-event-stock-analytics* — 커밋 없음
+```
+
+**Rules**:
+- Always include the full **local absolute path** of the repo in parentheses
+- Show changed file paths **relative to the repo root** (so the user can mentally combine: repo path + relative path = full local path)
+- For repos with 0 commits in the window, show `— 커밋 없음` on a single line
+- Sort repos by commit count (most active first), then alphabetically
+- Sort commits within each repo reverse-chronologically (newest first)
+- If the total message exceeds 4000 chars, split into multiple thread replies (one per repo or group of repos)
+- If no commits exist across ALL repos, post: `*📋 어제+오늘 Git 작업 내역*\n\n모든 레포에 어제+오늘 커밋 없음`
+
 #### Slack Message Rules
 
 - Use `**bold**` (standard markdown, the MCP tool converts automatically)

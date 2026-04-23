@@ -1,0 +1,4 @@
+iteration	mutation_id	target_eval	baseline_score	post_score	accepted	description
+1	M1-LANG-VOICE	EVAL-05	PARTIAL	PASS	yes	Added Language-to-Voice Mapping table with 5 languages and Edge-TTS voice IDs
+2	M2-MANIFEST	EVAL-06	FAIL	PASS	yes	Added Manifest Schema section defining required/optional JSON fields with example
+3	M3-SUBAGENT-FAIL	EVAL-07+08	PARTIAL	PASS	yes	Added blocking/non-blocking classification per subagent, intermediate artifact paths with {dir} convention, failure handling rules
