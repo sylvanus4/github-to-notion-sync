@@ -27,40 +27,13 @@ description: >-
 - **언어**: 모든 출력물(추출, 압축, Slack 메시지, 최종 보고서)은 **반드시 한글**로 작성한다. 원문이 영어여도 한글로 번역하여 출력한다.
 - **저장 형식**: 모든 Phase 산출물과 최종 보고서는 `.md` (마크다운) 파일로 저장한다.
 - **저장 경로**: `outputs/group-meeting-digest/{date}/` 하위에 Phase별 파일과 최종 보고서를 저장한다.
+
+## Output Rules
+
+- **언어**: 모든 출력물(추출, 압축, Slack 메시지, 최종 보고서)은 **반드시 한글**로 작성한다. 원문이 영어여도 한글로 번역하여 출력한다.
+- **저장 형식**: 모든 Phase 산출물과 최종 보고서는 `.md` (마크다운) 파일로 저장한다.
+- **저장 경로**: `outputs/group-meeting-digest/{date}/` 하위에 Phase별 파일과 최종 보고서를 저장한다.
 - **최종 보고서**: 파이프라인 완료 시 전체 결과를 통합한 `outputs/group-meeting-digest/{date}/group-meeting-digest-{date}.md`를 생성한다.
-
-## Duplicate Execution Prevention (중복 실행 방지)
-
-Phase 1 시작 전에 반드시 아래 체크를 수행한다.
-
-### 메커니즘
-
-1. **입력 해시 생성**: 입력 텍스트(Notion 페이지 본문, 로컬 파일 내용, Raw text)의 앞 2000자를 SHA-256 해시로 계산한다.
-2. **기존 해시 확인**: `outputs/group-meeting-digest/{date}/.content-hash` 파일이 존재하면 저장된 해시와 비교한다.
-3. **판정**:
-   - 해시 일치 → **SKIP**: "이미 동일 입력으로 실행된 결과가 존재합니다" 메시지와 함께 기존 최종 보고서 경로를 안내하고 파이프라인을 종료한다.
-   - 해시 불일치 → 기존 결과를 덮어쓰고 새로 실행한다.
-   - `.content-hash` 파일 없음 → 신규 실행으로 진행한다.
-4. **해시 저장**: Phase 1 완료 직후 `.content-hash` 파일에 해시값을 기록한다.
-
-### 해시 생성 방법
-
-```bash
-echo -n "${INPUT_FIRST_2000_CHARS}" | shasum -a 256 | cut -d' ' -f1
-```
-
-또는 Shell에서 직접:
-```bash
-printf '%s' "텍스트 내용..." | shasum -a 256 | cut -d' ' -f1
-```
-
-### 저장 파일
-
-`outputs/group-meeting-digest/{date}/.content-hash` — 한 줄에 SHA-256 해시값만 기록.
-
-### 강제 재실행
-
-사용자가 `--force` 또는 "다시 실행해줘", "강제 실행" 등을 명시하면 해시 비교를 건너뛰고 기존 결과를 덮어쓴다.
 
 ## Input Modes
 
@@ -302,8 +275,7 @@ Phase별 중간 산출물도 동일 디렉토리에 `.md` 형식으로 보존한
 
 ```
 Task Progress:
-- [ ] Phase 0: 중복 실행 체크 (입력 해시 ↔ .content-hash 비교)
-- [ ] Phase 1: 회의 원문 수집 및 구조화 추출 → phase-1-extract.md 저장 → .content-hash 기록
+- [ ] Phase 1: 회의 원문 수집 및 구조화 추출 → phase-1-extract.md 저장
 - [ ] Phase 2: 그룹 관점 필터링 및 압축 → phase-2-compress.md 저장
 - [ ] Phase 3: 의사결정 Slack 라우팅
 - [ ] 최종 보고서 생성 → group-meeting-digest-{date}.md 저장

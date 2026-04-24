@@ -43,6 +43,7 @@ Target paths use `{BASE}` which resolves to the detected environment's base path
 | `ai-platform-strategy` | `thakicloud/ai-platform-strategy` | `{BASE}/ai-platform-strategy` | **yes** |
 | `ai-model-event-stock-analytics` | `thakicloud/ai-model-event-stock-analytics` | `{BASE}/ai-model-event-stock-analytics` | **yes** |
 | `ai-template` | `thakicloud/ai-template` | `{BASE}/ai-template` | **yes** |
+| `teacher-admin-saas` | `sylvanus4/teacher-admin-saas` | `{BASE}/teacher-admin-saas` | **yes** |
 
 The alias is used with `--targets` flag: `/cursor-sync --targets ai-template`.
 The repo identifier is used with `--repo` flag: `/cursor-sync --repo thakicloud/ai-template`.
@@ -57,6 +58,7 @@ Skills are organized into subdirectories under `.cursor/skills/`. During push, o
 | `ai-platform-strategy` | `all` |
 | `github-to-notion-sync` | `gws`, `nlm`, `pipeline`, `workflow`, `anthropic`, `standalone`, `addyosmani`, `omc`, `notion` |
 | `ai-template` | `workflow`, `anthropic`, `ce`, `ecc`, `standalone`, `addyosmani`, `omc` |
+| `teacher-admin-saas` | `all` |
 
 ### Available Skill Groups (43 total)
 

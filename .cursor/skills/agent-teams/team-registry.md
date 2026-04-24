@@ -36,7 +36,28 @@ passing via `_workspace/{team}/` file-based handoff.
 
 ## How to Invoke
 
-Invoke any team by reading its coordinator SKILL.md and following its protocol:
+### 커맨드로 호출 (권장)
+
+```
+/team {team-name} {goal}          # 통합 디스패처
+/team list                         # 팀 목록 조회
+/team-research-report {topic}      # 개별 팀 직접 호출
+/team-code-ship diff
+```
+
+| Command | Team |
+|---------|------|
+| `/team` | 통합 디스패처 — 팀 이름으로 라우팅 |
+| `/team-research-report` | Research & Report |
+| `/team-content-production` | Content Production |
+| `/team-strategic-intel` | Strategic Intelligence |
+| `/team-incident-response` | Incident Response |
+| `/team-code-ship` | Code Ship |
+| `/team-knowledge-builder` | Knowledge Builder |
+| `/team-meeting-intel` | Meeting Intelligence |
+| `/team-sales-deal` | Sales Deal |
+
+### 코디네이터 직접 호출
 
 ```
 Read: .cursor/skills/agent-teams/{team}/coordinator/SKILL.md
@@ -44,6 +65,22 @@ Read: .cursor/skills/agent-teams/{team}/coordinator/SKILL.md
 
 The coordinator handles all expert dispatch, context management, and quality
 gates internally.
+
+### 서브에이전트로 호출
+
+다른 오케스트레이터나 파이프라인에서 에이전트 팀을 서브에이전트로 실행할 때:
+
+```
+Task(subagent_type="generalPurpose", description="{team} coordinator"):
+  prompt:
+    1. Read .cursor/skills/agent-teams/{team}/coordinator/SKILL.md
+    2. Goal: {goal description}
+    3. Follow the coordinator protocol exactly.
+    4. Each expert agent must be dispatched as a Task subagent.
+```
+
+코디네이터 자체가 서브에이전트로 실행되면, 코디네이터 내부에서 각 전문가를
+다시 Task 서브에이전트로 디스패치한다 (중첩 서브에이전트 패턴).
 
 ## Relationship to Existing Skills
 

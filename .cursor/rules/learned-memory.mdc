@@ -23,7 +23,7 @@ alwaysApply: true
 - Complex tasks: maximize skill composition step-by-step ("적절한 스킬들을 단계별로 최대한 많이 활용해서 작업해줘" — recurring instruction)
 - Post-task hooks should auto-trigger memory updates + skill extraction (post-task-skill-evaluator, cursor-skill-factory pattern)
 - Subagent outputs must be verified — missing files = pipeline failure
-- today Slack must include BUY/SELL thread (sector/RSI/ADX); DOCX must be substantive Korean; orchestrator must call generate_daily_report message builders (no title-only main posts)
+- today Slack must include BUY/SELL thread (sector/RSI/ADX); DOCX must be substantive Korean (A4, 맑은 고딕, 테이블 여백 넉넉, 코드블록 모노스페이스+음영, Mermaid→PNG 이미지 변환 후 삽입, pandoc→anthropic-docx 후처리); orchestrator must call generate_daily_report message builders (no title-only main posts)
 - twitter-timeline-to-slack: never #random; default #press; #ai-coding-radar for Claude/Cursor only
 - x-to-slack: when the user asks to expand a quote chain or “same person’s posts” (e.g. to #press), post **each** item as its **own Slack thread** and include **images and videos** in each thread (not one combined thread without media)
 - skill-autoimprove: pure-output skills only, not execution skills with side effects

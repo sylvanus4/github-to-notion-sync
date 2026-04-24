@@ -245,6 +245,65 @@ new Paragraph({
 })
 ```
 
+### Mermaid Diagram Rendering
+
+When source content contains ` ```mermaid ``` ` code blocks, render them as PNG
+images before embedding. Neither Pandoc nor docx-js can render Mermaid natively.
+
+**Prerequisite:** `npm install -g @mermaid-js/mermaid-cli` (provides `mmdc`)
+
+**Render a single diagram:**
+```bash
+mmdc -i diagram.mmd -o diagram.png -w 1200 -b transparent
+```
+
+**Embed rendered diagram via ImageRun:**
+```javascript
+new Paragraph({
+  alignment: AlignmentType.CENTER,
+  children: [new ImageRun({
+    type: "png",
+    data: fs.readFileSync("diagrams/diagram-1.png"),
+    transformation: { width: 600, height: 400 },
+    altText: { title: "Diagram", description: "Mermaid diagram", name: "diagram-1" }
+  })]
+})
+```
+
+**Full workflow — extract, render, embed:**
+1. Scan source markdown for ` ```mermaid ... ``` ` blocks
+2. Write each block to a `.mmd` file
+3. Render each `.mmd` to PNG via `mmdc -i X.mmd -o X.png -w 1200 -b transparent`
+4. Replace each mermaid block with `ImageRun` referencing the rendered PNG
+5. Add a caption `Paragraph` below each image with the diagram title
+
+**Pre-processing helper (Python) — extract and render all Mermaid blocks:**
+```python
+import re, subprocess, os
+
+def preprocess_mermaid(md_path, output_dir="diagrams"):
+    """Extract mermaid blocks from markdown, render to PNG, return modified markdown."""
+    os.makedirs(output_dir, exist_ok=True)
+    with open(md_path) as f:
+        content = f.read()
+    idx = 0
+    def replace_block(match):
+        nonlocal idx
+        idx += 1
+        mmd_path = os.path.join(output_dir, f"diagram-{idx}.mmd")
+        png_path = os.path.join(output_dir, f"diagram-{idx}.png")
+        with open(mmd_path, "w") as f:
+            f.write(match.group(1))
+        subprocess.run(["mmdc", "-i", mmd_path, "-o", png_path,
+                        "-w", "1200", "-b", "transparent"], check=True)
+        return f"![Diagram {idx}]({png_path})"
+    result = re.sub(r'```mermaid\n(.*?)\n```', replace_block, content, flags=re.DOTALL)
+    # Strip HTML tags unsupported by docx-js / Pandoc
+    result = result.replace('<details>', '').replace('</details>', '')
+    result = re.sub(r'<summary>(.*?)</summary>', r'**\1**', result)
+    return result
+```
+
 ### Page Breaks
 
 ```javascript
@@ -437,6 +496,287 @@ const doc = new Document({
 ```
 
 **Edit existing document (tracked change):** Unpack → edit `unpacked/word/document.xml` using patterns from [references/xml-reference.md](references/xml-reference.md) → pack.
+
+---
+
+## Korean Style Guide (한글 DOCX)
+
+When producing Korean DOCX documents, apply this pipeline for professional formatting.
+Pandoc's default styling is insufficient for Korean — always post-process with `python-docx`.
+
+### Design Tokens
+
+| Token | Value |
+|-------|-------|
+| Page size | A4 (21.0 × 29.7 cm) |
+| Margins | 2.54 cm all sides |
+| Body font | 맑은 고딕 (Malgun Gothic) 10pt |
+| Heading font | 맑은 고딕 Bold, color `#1A3C6E` |
+| Code font | D2Coding 9pt (fallback: Consolas) |
+| Body color | `#333333` |
+| Code background | `#F0F0F0` |
+| Table header BG | `#1A3C6E` (white text) |
+| Zebra stripe BG | `#F8F9FA` |
+| Line spacing | 1.15 |
+
+### Heading Sizes
+
+| Level | Size | Space Before | Space After |
+|-------|------|-------------|-------------|
+| H1 | 18pt | 24pt | 12pt |
+| H2 | 14pt | 18pt | 8pt |
+| H3 | 12pt | 14pt | 6pt |
+| H4 | 11pt | 10pt | 4pt |
+
+### Reference Document Generator
+
+Generate a `korean-reference.docx` for Pandoc's `--reference-doc`:
+
+```python
+from docx import Document
+from docx.shared import Pt, Cm, RGBColor
+from docx.oxml.ns import qn, nsdecls
+from docx.oxml import parse_xml
+
+doc = Document()
+
+for section in doc.sections:
+    section.page_width = Cm(21.0)
+    section.page_height = Cm(29.7)
+    section.top_margin = Cm(2.54)
+    section.bottom_margin = Cm(2.54)
+    section.left_margin = Cm(2.54)
+    section.right_margin = Cm(2.54)
+
+FONT_KR = '맑은 고딕'
+COLOR_HEADING = RGBColor(0x1A, 0x3C, 0x6E)
+COLOR_BODY = RGBColor(0x33, 0x33, 0x33)
+
+def set_font(style, name, size, bold=False, color=None):
+    font = style.font
+    font.name = name
+    font.size = Pt(size) if size else None
+    font.bold = bold
+    if color:
+        font.color.rgb = color
+    rpr = style.element.get_or_add_rPr()
+    ea = rpr.find(qn('w:rFonts'))
+    if ea is None:
+        ea = parse_xml(f'<w:rFonts {nsdecls("w")} w:eastAsia="{name}"/>')
+        rpr.insert(0, ea)
+    else:
+        ea.set(qn('w:eastAsia'), name)
+
+set_font(doc.styles['Normal'], FONT_KR, 10, color=COLOR_BODY)
+doc.styles['Normal'].paragraph_format.space_after = Pt(4)
+doc.styles['Normal'].paragraph_format.line_spacing = 1.15
+
+for name, size, sb, sa in [
+    ('Heading 1', 18, 24, 12), ('Heading 2', 14, 18, 8),
+    ('Heading 3', 12, 14, 6),  ('Heading 4', 11, 10, 4),
+]:
+    s = doc.styles[name]
+    set_font(s, FONT_KR, size, bold=True, color=COLOR_HEADING)
+    s.paragraph_format.space_before = Pt(sb)
+    s.paragraph_format.space_after = Pt(sa)
+
+doc.add_heading('Heading 1', level=1)
+doc.add_heading('Heading 2', level=2)
+doc.add_paragraph('Normal paragraph text.')
+doc.save('korean-reference.docx')
+```
+
+### Post-Processing Helpers (python-docx)
+
+These functions are used in the Pandoc post-processing step (see `pandoc` skill Mode 8).
+
+```python
+from docx.shared import Pt, Cm, RGBColor
+from docx.oxml.ns import qn, nsdecls
+from docx.oxml import parse_xml
+
+FONT_KR = '맑은 고딕'
+FONT_CODE = 'D2Coding'
+FONT_CODE_FB = 'Consolas'
+COLOR_BODY = RGBColor(0x33, 0x33, 0x33)
+COLOR_HEADING = RGBColor(0x1A, 0x3C, 0x6E)
+CODE_BG = 'F0F0F0'
+
+# Pandoc syntax-highlight character styles
+TOKEN_STYLES = {
+    'AttributeTok', 'FunctionTok', 'KeywordTok', 'NormalTok',
+    'StringTok', 'DataTypeTok', 'CommentTok', 'OtherTok', 'DecValTok',
+    'BuiltInTok', 'OperatorTok', 'ControlFlowTok', 'VariableTok',
+    'BaseNTok', 'FloatTok', 'ConstantTok', 'CharTok', 'SpecialCharTok',
+    'SpecialStringTok', 'ImportTok', 'DocumentationTok', 'AnnotationTok',
+    'PreprocessorTok', 'InformationTok', 'WarningTok', 'AlertTok',
+    'ErrorTok', 'RegionMarkerTok',
+}
+
+def set_run_font_kr(run, name, size, color, bold=False):
+    """Set Korean-compatible font on a run (body/heading text)."""
+    run.font.name = name
+    run.font.size = Pt(size)
+    run.font.color.rgb = color
+    run.font.bold = bold
+    rpr = run._element.get_or_add_rPr()
+    ea = rpr.find(qn('w:rFonts'))
+    if ea is None:
+        ea = parse_xml(f'<w:rFonts {nsdecls("w")} w:eastAsia="{name}"/>')
+        rpr.insert(0, ea)
+    else:
+        ea.set(qn('w:eastAsia'), name)
+
+def set_run_code_font(run):
+    """Set monospace font on a code run."""
+    run.font.name = FONT_CODE
+    run.font.size = Pt(9)
+    rpr = run._element.get_or_add_rPr()
+    ea = rpr.find(qn('w:rFonts'))
+    if ea is None:
+        ea = parse_xml(
+            f'<w:rFonts {nsdecls("w")} w:eastAsia="{FONT_CODE}" '
+            f'w:hAnsi="{FONT_CODE}" w:cs="{FONT_CODE_FB}"/>'
+        )
+        rpr.insert(0, ea)
+    else:
+        ea.set(qn('w:eastAsia'), FONT_CODE)
+        ea.set(qn('w:hAnsi'), FONT_CODE)
+        ea.set(qn('w:cs'), FONT_CODE_FB)
+
+def add_para_shading(para, hex_color):
+    """Add background shading to an entire paragraph."""
+    ppr = para._element.get_or_add_pPr()
+    shd = ppr.find(qn('w:shd'))
+    if shd is not None:
+        ppr.remove(shd)
+    shd = parse_xml(
+        f'<w:shd {nsdecls("w")} w:val="clear" w:color="auto" w:fill="{hex_color}"/>'
+    )
+    ppr.append(shd)
+
+def set_cell_margins(cell, top=80, bottom=80, left=120, right=120):
+    """Set cell padding in DXA units (80 DXA ≈ 1.4mm, 120 DXA ≈ 2.1mm)."""
+    tc = cell._element
+    tcPr = tc.find(qn('w:tcPr'))
+    if tcPr is None:
+        tcPr = parse_xml(f'<w:tcPr {nsdecls("w")}/>')
+        tc.insert(0, tcPr)
+    mar = tcPr.find(qn('w:tcMar'))
+    if mar is not None:
+        tcPr.remove(mar)
+    mar = parse_xml(
+        f'<w:tcMar {nsdecls("w")}>'
+        f'<w:top w:w="{top}" w:type="dxa"/>'
+        f'<w:bottom w:w="{bottom}" w:type="dxa"/>'
+        f'<w:start w:w="{left}" w:type="dxa"/>'
+        f'<w:end w:w="{right}" w:type="dxa"/>'
+        f'</w:tcMar>'
+    )
+    tcPr.append(mar)
+
+def set_cell_shading(cell, hex_color):
+    """Set cell background color."""
+    tc = cell._element
+    tcPr = tc.find(qn('w:tcPr'))
+    if tcPr is None:
+        tcPr = parse_xml(f'<w:tcPr {nsdecls("w")}/>')
+        tc.insert(0, tcPr)
+    shd = tcPr.find(qn('w:shd'))
+    if shd is not None:
+        tcPr.remove(shd)
+    shd = parse_xml(
+        f'<w:shd {nsdecls("w")} w:val="clear" w:color="auto" w:fill="{hex_color}"/>'
+    )
+    tcPr.append(shd)
+
+def set_table_borders(table, color='999999', size='4'):
+    """Apply uniform borders to a table."""
+    tbl = table._element
+    tblPr = tbl.find(qn('w:tblPr'))
+    if tblPr is None:
+        tblPr = parse_xml(f'<w:tblPr {nsdecls("w")}/>')
+        tbl.insert(0, tblPr)
+    borders = tblPr.find(qn('w:tblBorders'))
+    if borders is not None:
+        tblPr.remove(borders)
+    border_xml = f'<w:tblBorders {nsdecls("w")}>'
+    for side in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
+        border_xml += (
+            f'<w:{side} w:val="single" w:sz="{size}" '
+            f'w:space="0" w:color="{color}"/>'
+        )
+    border_xml += '</w:tblBorders>'
+    tblPr.append(parse_xml(border_xml))
+
+def is_code_para(para):
+    """Detect code paragraphs by Pandoc's *Tok character styles."""
+    for run in para.runs:
+        if run.style and run.style.name in TOKEN_STYLES:
+            return True
+    return False
+```
+
+### Full Post-Processing Pipeline
+
+```python
+from docx import Document
+
+doc = Document("output.docx")
+
+# A4 page setup
+for section in doc.sections:
+    from docx.shared import Cm
+    section.page_width = Cm(21.0)
+    section.page_height = Cm(29.7)
+    section.top_margin = Cm(2.54)
+    section.bottom_margin = Cm(2.54)
+    section.left_margin = Cm(2.54)
+    section.right_margin = Cm(2.54)
+
+HEADING_SIZES = {'Heading 1': 18, 'Heading 2': 14, 'Heading 3': 12, 'Heading 4': 11}
+
+for para in doc.paragraphs:
+    sn = para.style.name if para.style else ''
+    if is_code_para(para):
+        add_para_shading(para, CODE_BG)
+        for run in para.runs:
+            set_run_code_font(run)
+    elif sn in HEADING_SIZES:
+        for run in para.runs:
+            set_run_font_kr(run, FONT_KR, HEADING_SIZES[sn], COLOR_HEADING, bold=True)
+    else:
+        for run in para.runs:
+            set_run_font_kr(run, FONT_KR, 10, COLOR_BODY)
+
+for table in doc.tables:
+    set_table_borders(table)
+    for row_idx, row in enumerate(table.rows):
+        for cell in row.cells:
+            set_cell_margins(cell, top=80, bottom=80, left=120, right=120)
+            if row_idx == 0:
+                set_cell_shading(cell, '1A3C6E')
+                for p in cell.paragraphs:
+                    for r in p.runs:
+                        set_run_font_kr(r, FONT_KR, 9, RGBColor(0xFF, 0xFF, 0xFF), bold=True)
+            elif row_idx % 2 == 0:
+                set_cell_shading(cell, 'F8F9FA')
+
+doc.save("output.docx")
+```
+
+### Key Points
+
+- **`w:eastAsia` font attribute** is required for Korean glyphs to render correctly in
+  Word; set it on every run that may contain Korean text.
+- **Pandoc code blocks** use character-level `*Tok` styles (`KeywordTok`, `StringTok`,
+  etc.) — there is no paragraph-level `Source Code` style. Detect code paragraphs by
+  checking if any run uses a `*Tok` style.
+- **Table cell margins** use DXA units (80 DXA ≈ 1.4mm, 120 DXA ≈ 2.1mm).
+- **Combine with Mermaid pipeline** (see "Creating New Documents > Mermaid Diagram
+  Embedding") for diagrams in Korean documents.
+- See the `pandoc` skill "Mode 8: Korean DOCX Pipeline" for the complete two-stage
+  workflow (Pandoc + post-processing).
 
 ---
 

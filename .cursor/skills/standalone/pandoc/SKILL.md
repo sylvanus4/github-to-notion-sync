@@ -195,6 +195,166 @@ Use `-t gfm` (GitHub-Flavored Markdown) for maximum compatibility with
 downstream tools. `--wrap=none` prevents mid-word line breaks in CJK text
 and produces single-line paragraphs for cleaner downstream parsing.
 
+## Mode 7: Mermaid-Aware Conversion
+
+Pandoc cannot render Mermaid diagrams natively. When the source markdown
+contains ` ```mermaid ``` ` code blocks, **pre-process** them into images
+before running Pandoc.
+
+**Prerequisite:** `npm install -g @mermaid-js/mermaid-cli` (provides `mmdc`)
+
+**Full workflow:**
+
+```bash
+# 1. Create diagrams directory
+mkdir -p diagrams
+
+# 2. Extract and render all mermaid blocks (Python one-liner or script)
+python3 -c "
+import re, subprocess, os
+os.makedirs('diagrams', exist_ok=True)
+with open('input.md') as f: content = f.read()
+idx = 0
+def repl(m):
+    global idx; idx += 1
+    mmd = f'diagrams/diagram-{idx}.mmd'; png = f'diagrams/diagram-{idx}.png'
+    with open(mmd, 'w') as f: f.write(m.group(1))
+    subprocess.run(['mmdc', '-i', mmd, '-o', png, '-w', '1200', '-b', 'transparent'], check=True)
+    return f'![Diagram {idx}]({png})'
+result = re.sub(r'\x60\x60\x60mermaid\n(.*?)\n\x60\x60\x60', repl, content, flags=re.DOTALL)
+# Strip HTML tags Pandoc handles poorly
+result = result.replace('<details>', '').replace('</details>', '')
+result = re.sub(r'<summary>(.*?)</summary>', r'**\1**', result)
+with open('input-for-docx.md', 'w') as f: f.write(result)
+"
+
+# 3. Convert pre-processed markdown to DOCX
+pandoc input-for-docx.md -o output.docx --from markdown --to docx --resource-path=.
+```
+
+**Key points:**
+- `--resource-path=.` tells Pandoc to resolve relative image paths from the
+  current directory.
+- The pre-processing step replaces each Mermaid block with a standard markdown
+  image reference (`![caption](path.png)`), which Pandoc embeds natively.
+- HTML `<details>`/`<summary>` tags are stripped since Pandoc DOCX output does
+  not support them; `<summary>` content is converted to bold text.
+- Combine with `--reference-doc` (Mode 3) for branded output.
+- Use `-w 1200` or higher for crisp diagrams; adjust per diagram complexity.
+
+## Mode 8: Korean DOCX Pipeline (Pandoc + python-docx Post-Processing)
+
+When producing Korean DOCX documents, Pandoc's default styling is insufficient.
+Use a two-stage pipeline: Pandoc generates the structural DOCX, then `python-docx`
+post-processes it for professional Korean formatting.
+
+**Stage 1: Pandoc with Korean reference-doc**
+
+```bash
+pandoc input.md -o output.docx \
+  --reference-doc=korean-reference.docx \
+  --resource-path=. \
+  -f markdown -t docx \
+  --highlight-style=kate
+```
+
+The `korean-reference.docx` template defines base styles (A4, Malgun Gothic,
+heading colors). Generate one with `python-docx` — see the `anthropic-docx`
+skill's "Korean Style Guide" section for the creation script.
+
+**Stage 2: python-docx post-processing (via anthropic-docx)**
+
+Pandoc's reference-doc applies style *definitions* but doesn't enforce them on
+every run. The post-processing script forces consistent formatting:
+
+```python
+from docx import Document
+from docx.shared import Pt, Cm, RGBColor
+from docx.oxml.ns import qn, nsdecls
+from docx.oxml import parse_xml
+
+doc = Document("output.docx")
+
+FONT_KR = '맑은 고딕'
+FONT_CODE = 'D2Coding'
+FONT_CODE_FB = 'Consolas'
+COLOR_BODY = RGBColor(0x33, 0x33, 0x33)
+COLOR_HEADING = RGBColor(0x1A, 0x3C, 0x6E)
+CODE_BG = 'F0F0F0'
+
+# Pandoc syntax-highlight character styles (detect code blocks by these)
+TOKEN_STYLES = {
+    'AttributeTok', 'FunctionTok', 'KeywordTok', 'NormalTok',
+    'StringTok', 'DataTypeTok', 'CommentTok', 'OtherTok', 'DecValTok',
+    'BuiltInTok', 'OperatorTok', 'ControlFlowTok', 'VariableTok',
+    'BaseNTok', 'FloatTok', 'ConstantTok', 'CharTok', 'SpecialCharTok',
+    'SpecialStringTok', 'ImportTok', 'DocumentationTok', 'AnnotationTok',
+    'PreprocessorTok', 'InformationTok', 'WarningTok', 'AlertTok',
+    'ErrorTok', 'RegionMarkerTok',
+}
+
+def is_code_para(para):
+    for run in para.runs:
+        rs = run.style.name if run.style else ''
+        if rs in TOKEN_STYLES:
+            return True
+    return False
+
+# Apply formatting per paragraph type
+for para in doc.paragraphs:
+    if is_code_para(para):
+        # Monospace + shading
+        add_para_shading(para, CODE_BG)
+        for run in para.runs:
+            set_run_code_font(run)  # D2Coding 9pt
+    elif para.style.name.startswith('Heading'):
+        for run in para.runs:
+            set_run_font_kr(run, FONT_KR, heading_size, COLOR_HEADING, bold=True)
+    else:
+        for run in para.runs:
+            set_run_font_kr(run, FONT_KR, 10, COLOR_BODY)
+
+# Table formatting: header row shading, generous cell padding, alternating rows
+for table in doc.tables:
+    for row_idx, row in enumerate(table.rows):
+        for cell in row.cells:
+            set_cell_margins(cell, top=80, bottom=80, left=120, right=120)
+            if row_idx == 0:
+                set_cell_shading(cell, '1A3C6E')  # dark header
+                # white text
+            elif row_idx % 2 == 0:
+                set_cell_shading(cell, 'F8F9FA')  # zebra stripe
+
+doc.save("output.docx")
+```
+
+See the `anthropic-docx` skill's "Korean Style Guide" section for complete
+helper functions (`set_run_font_kr`, `set_run_code_font`, `add_para_shading`,
+`set_cell_margins`, `set_cell_shading`, `set_table_borders`).
+
+**Key points:**
+- Pandoc assigns `*Tok` character styles (e.g., `KeywordTok`, `StringTok`) for
+  syntax highlighting — there is no `Source Code` *paragraph* style. Detect
+  code blocks by checking if any run in a paragraph uses a `*Tok` style.
+- `w:eastAsia` font attribute is required for Korean glyphs to render correctly.
+- Table cell margins use DXA units (80 DXA ≈ 1.4mm, 120 DXA ≈ 2.1mm).
+- Always re-apply A4 page dimensions in post-processing to guarantee consistency.
+
+**Combined one-liner (Mermaid + Korean pipeline):**
+
+```bash
+# 1. Pre-process Mermaid (Mode 7)
+python3 preprocess_mermaid.py input.md > input-for-docx.md
+
+# 2. Pandoc with Korean reference
+pandoc input-for-docx.md -o output.docx \
+  --reference-doc=korean-reference.docx \
+  --resource-path=. --highlight-style=kate
+
+# 3. Post-process with python-docx
+python3 korean_postprocess.py output.docx
+```
+
 ## Defaults Files
 
 Store repeatable configurations in YAML defaults files to avoid long CLI
