@@ -206,6 +206,24 @@ Pipeline-level: Each stage persists its output URL. If a later stage fails, earl
 - Batch image series: Parallelize up to 3 concurrent requests
 - Multi-scene video: Sequential (each scene depends on prompt consistency)
 
+## Prompt Library as Input Source
+
+For any pipeline mode, the initial text prompt can be sourced from
+`seedance-video-prompts` instead of user-provided text:
+
+```bash
+# Random prompt for product showcase
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py random --category photography
+
+# Search for themed prompts for cinematic story
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py search "fashion runway"
+
+# Browse categories for content series
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py stats
+```
+
+Seedance prompts are model-agnostic text and work with all Muapi T2V/I2V endpoints.
+
 ## Environment Variables
 
 Same as muapi-image-studio (shared Muapi service configuration).

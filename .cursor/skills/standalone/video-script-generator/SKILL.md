@@ -204,6 +204,28 @@ Generate: Hook (real-world problem solved by lists) → Concept intro → Live c
 - **presentation-strategist** — Design the narrative arc before scripting
 - **winston-speaking-coach** — Run a full Winston coaching session to refine the script's Empowerment Promise, Circle & Star threading, and Near Miss examples before recording
 
+## Seedance Prompt Library
+
+When generating scripts for AI video content, reference
+`seedance-video-prompts` for proven scene descriptions. Each prompt
+in the library has been tested with Seedance 2.0 and includes
+category and tag metadata for scene matching:
+
+```bash
+# Find prompts matching a script theme
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py search "aerial city"
+
+# Browse by category for scene inspiration
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py by-category --category nature --limit 5
+
+# Get a random prompt for creative ideation
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py random
+```
+
+Use library prompts as scene-level visual direction in the script's
+**Visual Direction** sections, or as the basis for T2V generation prompts
+when the script transitions to video production.
+
 ## Winston Framework Integration
 
 Video scripts for Educational and YouTube (≥ 5 min) formats incorporate Patrick Winston's "How to Speak" principles:

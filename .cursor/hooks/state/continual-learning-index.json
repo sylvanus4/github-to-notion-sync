@@ -1,48 +1,263 @@
 {
-  "files": {
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/0a8bd5b8-ce9e-4383-a4c5-199e59d6f7db/0a8bd5b8-ce9e-4383-a4c5-199e59d6f7db.jsonl": {
-      "mtime": "2026-04-21T05:05:00Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/0bb8a193-dd60-4091-bac4-7e760679b0ee/0bb8a193-dd60-4091-bac4-7e760679b0ee.jsonl": {
-      "mtime": "2026-04-20T08:18:30Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/1d724712-d859-4bfc-ba06-c6c23b7ad2f8/1d724712-d859-4bfc-ba06-c6c23b7ad2f8.jsonl": {
-      "mtime": "2026-04-20T23:59:42Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/288a2e9f-381b-42c4-b603-849de0c7c21c/288a2e9f-381b-42c4-b603-849de0c7c21c.jsonl": {
-      "mtime": "2026-04-21T04:52:12Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/31cbb72e-58df-45b4-ae91-e49a8458e62a/31cbb72e-58df-45b4-ae91-e49a8458e62a.jsonl": {
-      "mtime": "2026-04-20T05:36:11Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/5ab90f3d-cdea-46c2-b8a0-18281c069af0/5ab90f3d-cdea-46c2-b8a0-18281c069af0.jsonl": {
-      "mtime": "2026-04-21T07:21:04Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/867c2cf9-936f-43a1-af20-ad3c20b2d23e/867c2cf9-936f-43a1-af20-ad3c20b2d23e.jsonl": {
-      "mtime": "2026-04-20T03:54:58Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/b0197606-0411-4bc8-9070-7bf6c6c36343/b0197606-0411-4bc8-9070-7bf6c6c36343.jsonl": {
-      "mtime": "2026-04-21T07:31:07Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/bcde552c-0e1a-4ce7-9187-f47f2ef29b82/bcde552c-0e1a-4ce7-9187-f47f2ef29b82.jsonl": {
-      "mtime": "2026-04-21T07:30:47Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/db47d6e1-9429-4e35-9354-06c2237b73b9/db47d6e1-9429-4e35-9354-06c2237b73b9.jsonl": {
-      "mtime": "2026-04-19T22:49:35Z",
-      "processed": true
-    },
-    "/Users/hanhyojung/.cursor/projects/Users-hanhyojung-thaki-ai-platform-strategy/agent-transcripts/e456d1ba-ebaa-49ed-be05-ba57041a7578/e456d1ba-ebaa-49ed-be05-ba57041a7578.jsonl": {
-      "mtime": "2026-04-21T07:21:17Z",
-      "processed": true
-    }
+  "b47b0faf-7a15-4406-8a34-880dec9b0be3": {
+    "mtime": 1776491927
+  },
+  "66974485-4c3e-41a8-8a9c-e6a46f936b99": {
+    "mtime": 1776600938
+  },
+  "86c3d1cb-fe3e-4e1b-b86f-483a8c1edefd": {
+    "mtime": 1776589431
+  },
+  "84401bd4-379b-4479-9917-11670448fd9e": {
+    "mtime": 1776863440
+  },
+  "6682152d-18a4-4263-a69e-db006818f638": {
+    "mtime": 1776862602
+  },
+  "ed9e5936-6808-49c4-a148-f883fcc0a965": {
+    "mtime": 1776808648
+  },
+  "bb42f025-7a04-41e0-8075-c93c30e51e05": {
+    "mtime": 1776496213
+  },
+  "af2b371d-8d7a-4edc-8249-c9c80b705044": {
+    "mtime": 1776596053
+  },
+  "296ff8b6-4111-4716-b412-42ab75167137": {
+    "mtime": 1776677324
+  },
+  "03451c6c-3105-40c2-a484-a6a256b7bc7a": {
+    "mtime": 1776676088
+  },
+  "583615dd-955d-4883-9468-670bf9e4bd05": {
+    "mtime": 1776520240
+  },
+  "295c6c9e-fb38-48b7-9256-75625faa932e": {
+    "mtime": 1776768564
+  },
+  "4cbb3b60-4572-4626-86f0-da547f922cf7": {
+    "mtime": 1776786173
+  },
+  "671ea795-cfff-41ff-9a4e-78106022c332": {
+    "mtime": 1776603123
+  },
+  "4087ab69-7cf2-4b1b-8b10-6190092082f8": {
+    "mtime": 1776782504
+  },
+  "730b9e2b-94ae-4983-9403-8deb3eca03c7": {
+    "mtime": 1776768133
+  },
+  "f03e0cd0-793c-44d6-8c65-191d99db8aee": {
+    "mtime": 1776497885
+  },
+  "eb6ba7b2-3e35-4f7a-ab8e-18319ac52243": {
+    "mtime": 1776486097
+  },
+  "4aab33b5-7c0f-45b4-bf86-d0e42a637f0a": {
+    "mtime": 1776483610
+  },
+  "11904a2f-0768-4eae-b84d-b09a3a6a19a3": {
+    "mtime": 1776495915
+  },
+  "61dcb313-c597-4406-9e99-57f66e32cf50": {
+    "mtime": 1776780169
+  },
+  "85a163a6-b785-4634-838b-1ee2c6b36c22": {
+    "mtime": 1776868519
+  },
+  "2a84b389-4c3a-4c88-94d5-f66bca3c4c11": {
+    "mtime": 1776693759
+  },
+  "9af709a2-ebfb-48cf-91d6-6f6779f80f74": {
+    "mtime": 1776785437
+  },
+  "f6d358f2-734e-4788-a49c-a1254177081c": {
+    "mtime": 1776521486
+  },
+  "700fd856-a087-4130-aec2-963bd6a497da": {
+    "mtime": 1776512638
+  },
+  "02176767-5bec-4222-a305-868e2427c632": {
+    "mtime": 1776687095
+  },
+  "8594c459-6165-4e78-b4b1-5d2df3beb198": {
+    "mtime": 1776865926
+  },
+  "325cf63f-2c0b-4c8a-866a-19f315000ddd": {
+    "mtime": 1776603534
+  },
+  "09e2d40d-db64-4969-b7df-45fc8b7e6299": {
+    "mtime": 1776607997
+  },
+  "cb63b2e1-e372-46bf-89f6-9b43aaa3e4c5": {
+    "mtime": 1776857635
+  },
+  "7982846b-0074-4d14-9d40-99ff36a2bd1a": {
+    "mtime": 1776796130
+  },
+  "c802e0ae-a2bc-4b53-b652-f9bcb9966ce6": {
+    "mtime": 1776522653
+  },
+  "02fa7690-153e-4f4c-91ad-071e712ea9ae": {
+    "mtime": 1776489770
+  },
+  "a7a01c45-2d0f-4b5f-8a3d-81252619a1ec": {
+    "mtime": 1776604324
+  },
+  "1d39d072-98dd-4ae2-9f2d-2fc7e7f5a2af": {
+    "mtime": 1776519951
+  },
+  "9568c5b5-870c-40e4-83f8-0e08f84b3bbd": {
+    "mtime": 1776594595
+  },
+  "4e1beaac-fb81-41a4-9207-b113af197505": {
+    "mtime": 1776867012
+  },
+  "dd1f566f-8533-4523-a4f3-7ecf3a27094f": {
+    "mtime": 1776678318
+  },
+  "1a632170-568c-4a4b-9169-142d7d98a0da": {
+    "mtime": 1776695928
+  },
+  "b5738b4f-5b7b-4a66-acc7-c3190dcba88b": {
+    "mtime": 1776679189
+  },
+  "0fd8d427-ade0-442b-9878-f7ca2d3ebcbe": {
+    "mtime": 1776866501
+  },
+  "67c16c43-1f02-41fb-84c4-cd732367970d": {
+    "mtime": 1776697320
+  },
+  "dcd684e7-ced6-4b1a-9f93-f240c1174fb0": {
+    "mtime": 1776773577
+  },
+  "9d20f05e-41ce-4ac4-92b8-159692c77252": {
+    "mtime": 1776678079
+  },
+  "7c711616-612a-4918-abf0-4a941f00994b": {
+    "mtime": 1776796261
+  },
+  "0627d015-198e-494a-8cce-205f7380590b": {
+    "mtime": 1776521076
+  },
+  "7e0646d3-f8b8-42e5-b42f-c16f937c47bc": {
+    "mtime": 1776775799
+  },
+  "5fe77cab-3080-4fdd-a7a2-ccd21d13d2f2": {
+    "mtime": 1776494391
+  },
+  "94797e10-602c-4bda-9ca0-38c7cf36f071": {
+    "mtime": 1776783908
+  },
+  "6242b498-a7db-48e1-b381-68c02869109f": {
+    "mtime": 1776853115
+  },
+  "746a280d-d354-487f-ab74-580fab8644b7": {
+    "mtime": 1776604990
+  },
+  "fa5521d0-cc58-4bc4-aa22-95cf71974556": {
+    "mtime": 1776596948
+  },
+  "93d35e2c-c76e-4e34-a6bf-f26c2109ad39": {
+    "mtime": 1776571583
+  },
+  "af0be99a-df68-42b2-a34c-07ce07710eb9": {
+    "mtime": 1776594617
+  },
+  "3e7f6e4a-f684-4820-a4a6-dfb225a65e77": {
+    "mtime": 1776484404
+  },
+  "f860b964-4b68-4920-8529-15cf86c608c2": {
+    "mtime": 1776773622
+  },
+  "75bda0bb-0c77-4adf-bc9f-65e506cceef7": {
+    "mtime": 1776483753
+  },
+  "94b12d20-2c71-487b-9c06-db5fd1337809": {
+    "mtime": 1776866385
+  },
+  "e75da105-9421-42d7-bbbb-c4420340148c": {
+    "mtime": 1776519544
+  },
+  "2f6cb384-ba2f-40f4-837d-1bbde17630f2": {
+    "mtime": 1776489338
+  },
+  "829b259c-8a67-4b75-9e09-83f0188479c5": {
+    "mtime": 1776808751
+  },
+  "659ccf84-8505-4b16-bf7f-e95f6d92a755": {
+    "mtime": 1776948174
+  },
+  "1b7a86f5-05da-4af6-8155-36af81368ea6": {
+    "mtime": 1776945019
+  },
+  "ec896a75-af69-4075-8222-cf343df29903": {
+    "mtime": 1776944877
+  },
+  "5fd6eb13-5184-4e4c-abec-cf0dfbf7ca9f": {
+    "mtime": 1776944367
+  },
+  "2a4348f4-09c5-4f68-9406-e42e0050d346": {
+    "mtime": 1776944022
+  },
+  "ccc1c256-da1d-4760-ab37-2f7733dc0065": {
+    "mtime": 1776955001
+  },
+  "1a5fb597-f2a9-4efd-bdd3-ecf438f27822": {
+    "mtime": 1776942672
+  },
+  "8af0396d-054f-4a5d-a857-508bb6f4927a": {
+    "mtime": 1776869586
+  },
+  "cc7b75b9-9cd4-4408-bfc9-3fbff19f1082": {
+    "mtime": 1776961997
+  },
+  "b48e4af5-79e6-431e-b9ad-e758f5db607d": {
+    "mtime": 1776957784
+  },
+  "570bed26-eb74-464e-828c-c28a6f1a2943": {
+    "mtime": 1776956772
+  },
+  "5201951e-d230-4406-b023-01562078382d": {
+    "mtime": 1776946417
+  },
+  "2601e773-a1bc-4ca7-a4fb-9729b453a8b8": {
+    "mtime": 1776946296
+  },
+  "2c442439-432f-44e0-b178-5935be40cfb9": {
+    "mtime": 1776955581
+  },
+  "2a926fc6-2367-439f-8950-2ae84de8a71d": {
+    "mtime": 1777020992
+  },
+  "99f797d0-7e1b-48ec-a0a9-c3f7a8796a99": {
+    "mtime": 1777090044
+  },
+  "4c2b8900-bf06-4ade-b410-28f6435c7603": {
+    "mtime": 1777043749
+  },
+  "6066a7d5-a64a-43f9-b2d4-2171e37b00b1": {
+    "mtime": 1777108756
+  },
+  "7b7b3f71-dc5b-4189-a1be-6699d81efb8c": {
+    "mtime": 1777084366
+  },
+  "fbdfc2c1-8a36-4c6e-9958-c7aa6a465af5": {
+    "mtime": 1777081721
+  },
+  "93346c58-eee2-4a14-9b32-77b3b948da71": {
+    "mtime": 1777089344
+  },
+  "a4d3fe4f-b51e-435e-ab68-aa2a5fb48796": {
+    "mtime": 1777093962
+  },
+  "322cf278-f745-4333-aae8-f52116653b89": {
+    "mtime": 1777100132
+  },
+  "78d9eb39-8f80-4df3-ad26-70dbced25442": {
+    "mtime": 1777100423
+  },
+  "0e3d35aa-a108-4a22-8175-04c2262a09c6": {
+    "mtime": 1777119018
   }
 }

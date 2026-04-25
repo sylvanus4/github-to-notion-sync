@@ -172,6 +172,23 @@ result = await muapi_client.generate_video(
 | Focal length out of range | Value outside 14-200mm | Adjust to supported range |
 | Invalid aperture | Unsupported aperture setting | Use one of the 6 aperture modes |
 
+## Prompt Library Integration
+
+When enriching prompts with camera/lens modifiers, `seedance-video-prompts`
+provides pre-tested base prompts optimized for Seedance 2.0. The workflow:
+
+1. Select a base prompt from seedance-video-prompts (search or random)
+2. Apply camera movement, lens type, and aperture modifiers from this skill
+3. Pass the enriched prompt to the T2V model
+
+```bash
+# Get a cinematic base prompt
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py random --category cinematic
+
+# Then enrich with cinema settings
+# base_prompt + ", tracking shot, anamorphic lens, 35mm, cinematic depth of field"
+```
+
 ## Integration with Other Skills
 
 - **muapi-image-studio**: Generate the source image, then apply cinema controls for I2V
@@ -180,6 +197,7 @@ result = await muapi_client.generate_video(
 - **video-script-generator**: Write the script, then apply cinema settings per scene
 - **presentation-strategist**: Plan visual direction, then execute with cinema controls
 - **pika-text-to-video**: Alternative video backend; cinema prompts are model-agnostic text
+- **seedance-video-prompts**: 605+ curated base prompts for cinema enrichment
 
 ## Environment Variables
 

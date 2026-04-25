@@ -1,98 +1,178 @@
 #!/usr/bin/env node
 
 /**
- * Post-Task Asset Extractor Hook
+ * Post-Task Asset Extractor — postToolUse session-aware nudge hook.
  *
- * Fires on every postToolUse event. Tracks tool call count per session
- * (scoped by project directory). When the count crosses the configured
- * threshold (default 8), injects additional_context that nudges the
- * agent to run the Mandatory Self-Check Block from
- * hermes-inline-learning.mdc.
+ * Runs after every tool use. Maintains lightweight session state in a
+ * temp file, tracking tool call volume, unique tool diversity, and
+ * error-like patterns. When thresholds are crossed (informed by
+ * hermes-inline-learning.mdc and post-task-reflection.mdc), injects
+ * additional_context reminding the agent to evaluate the session for
+ * reusable asset extraction (skills, memory entries, patterns).
  *
- * Session boundary detection: a gap of >30 minutes between consecutive
- * tool calls resets the counter for a fresh session.
+ * Thresholds:
+ *   - 8+ tool calls → first nudge (skill extraction evaluation)
+ *   - 3+ unique tool types → multi-step workflow detected
+ *   - 20+ tool calls → second nudge (comprehensive reflection)
+ *
+ * Non-blocking: only surfaces reminders via additional_context.
+ * Resets state after 2 hours of inactivity (session boundary heuristic).
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-const THRESHOLD = 8;
-const SESSION_GAP_MS = 30 * 60 * 1000;
+const STATE_FILE = join(tmpdir(), "cursor-asset-extractor-state.json");
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const NUDGE_THRESHOLD_1 = 8;
+const NUDGE_THRESHOLD_2 = 20;
+const DIVERSITY_THRESHOLD = 3;
+const COOLDOWN_CALLS = 10;
 
-const projectHash = createHash('md5')
-  .update(process.cwd())
-  .digest('hex')
-  .slice(0, 8);
-const STATE_FILE = join(tmpdir(), `cursor-asset-extractor-${projectHash}.json`);
+function collectInput() {
+  return new Promise((res) => {
+    let buf = "";
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", (chunk) => (buf += chunk));
+    process.stdin.on("end", () => res(buf));
+  });
+}
+
+function freshState() {
+  return {
+    toolCallCount: 0,
+    uniqueTools: [],
+    errorPatternCount: 0,
+    lastNudgeAt: 0,
+    nudgeCount: 0,
+    startedAt: Date.now(),
+    lastActivityAt: Date.now(),
+  };
+}
 
 function loadState() {
   try {
-    if (existsSync(STATE_FILE)) {
-      return JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
-    }
+    if (!existsSync(STATE_FILE)) return freshState();
+    const data = JSON.parse(readFileSync(STATE_FILE, "utf8"));
+    if (Date.now() - data.lastActivityAt > SESSION_TTL_MS) return freshState();
+    return data;
   } catch {
-    /* corrupt or missing — start fresh */
+    return freshState();
   }
-  return { count: 0, nudged: false, lastToolCall: 0, hasErrors: false };
 }
 
 function saveState(state) {
-  writeFileSync(STATE_FILE, JSON.stringify(state));
+  try {
+    state.lastActivityAt = Date.now();
+    writeFileSync(STATE_FILE, JSON.stringify(state), "utf8");
+  } catch {
+    // silently fail — nudging is best-effort
+  }
 }
 
-let input = '';
-try {
-  input = readFileSync('/dev/stdin', 'utf-8');
-} catch {
-  process.stdout.write('{}');
-  process.exit(0);
+function detectErrorPattern(input) {
+  const resultStr = JSON.stringify(input).toLowerCase();
+  const patterns = ["error:", "failed", "exception", "traceback", "enoent", "permission denied"];
+  return patterns.some((p) => resultStr.includes(p));
 }
 
-let data = {};
-try {
-  data = JSON.parse(input);
-} catch {
-  process.stdout.write('{}');
-  process.exit(0);
+function extractToolName(input) {
+  return input.tool_name || input.toolName || input.name || "unknown";
 }
 
-const state = loadState();
-const now = Date.now();
+function buildNudge(state) {
+  const parts = ["**📋 Post-Task Asset Extractor** — session checkpoint:"];
 
-if (now - state.lastToolCall > SESSION_GAP_MS) {
-  state.count = 0;
-  state.nudged = false;
-  state.hasErrors = false;
+  parts.push(
+    `Session stats: ${state.toolCallCount} tool calls, ${state.uniqueTools.length} unique tools, ${state.errorPatternCount} error-like patterns.`
+  );
+
+  if (state.toolCallCount >= NUDGE_THRESHOLD_2) {
+    parts.push(
+      "",
+      "🔴 **Comprehensive reflection recommended.** This session has substantial work.",
+      "Before wrapping up, consider the 5-step post-task reflection protocol:",
+      "1. **Outcome Assessment** — Did the task succeed? Any unexpected findings?",
+      "2. **Pattern Detection** — Was this a multi-step workflow worth reusing?",
+      "3. **Memory Update** — Any facts, preferences, or decisions to persist?",
+      "4. **Skill Candidate Evaluation** — Apply the 3-gate filter: Not Googleable? Codebase-specific? Required real debugging effort?",
+      "5. **Lesson Capture** — Record in `tasks/lessons.md` if applicable.",
+      "",
+      "Skills to consider: `post-task-skill-evaluator`, `omc-learner`, `autoskill-extractor`.",
+      "Ref: `.cursor/rules/post-task-reflection.mdc`, `.cursor/rules/hermes-inline-learning.mdc`"
+    );
+  } else if (state.toolCallCount >= NUDGE_THRESHOLD_1) {
+    parts.push(
+      "",
+      "🟡 **Asset extraction checkpoint reached** (8+ tool calls).",
+      "When this task completes, evaluate whether the workflow is worth capturing:",
+      "- Reusable multi-step pattern? → Consider `cursor-skill-factory` or `omc-learner`",
+      "- New fact or decision? → Update `MEMORY.md` or invoke `memkraft-ingest`",
+      "- Hard-won debugging insight? → Capture as instinct via `ecc-continuous-learning`",
+      "",
+      "Ref: `.cursor/rules/hermes-inline-learning.mdc`"
+    );
+  }
+
+  if (state.errorPatternCount >= 2) {
+    parts.push(
+      "",
+      `⚡ Error recovery detected (${state.errorPatternCount} error-like patterns). Error recovery workflows are high-value skill candidates.`
+    );
+  }
+
+  return parts.join("\n");
 }
 
-state.count++;
-state.lastToolCall = now;
+function shouldNudge(state) {
+  if (state.toolCallCount < NUDGE_THRESHOLD_1) return false;
+  if (state.uniqueTools.length < DIVERSITY_THRESHOLD) return false;
+  if (state.nudgeCount > 0 && state.toolCallCount - state.lastNudgeAt < COOLDOWN_CALLS) return false;
 
-const output = data.toolOutput ?? data.tool_output ?? '';
-const outputStr = typeof output === 'string' ? output : JSON.stringify(output);
-if (/\b(error|Error|ERROR|failed|Failed|FAILED|exception|Exception)\b/.test(outputStr)) {
-  state.hasErrors = true;
+  if (state.nudgeCount === 0 && state.toolCallCount >= NUDGE_THRESHOLD_1) return true;
+  if (state.nudgeCount === 1 && state.toolCallCount >= NUDGE_THRESHOLD_2) return true;
+  if (state.errorPatternCount >= 2 && state.nudgeCount < 2) return true;
+
+  return false;
 }
 
-if (!state.nudged && state.count >= THRESHOLD) {
-  state.nudged = true;
-  saveState(state);
+async function main() {
+  try {
+    const raw = await collectInput();
+    if (!raw.trim()) process.exit(0);
 
-  const errorNote = state.hasErrors ? ', error recovery detected' : '';
-  const nudge = [
-    `[Asset Extraction Nudge] This session has reached ${state.count} tool calls${errorNote}.`,
-    'Before marking the task as done, evaluate per hermes-inline-learning.mdc:',
-    `1. Non-trivial? (${state.count} tool calls${errorNote})`,
-    '2. Reusable pattern not captured by an existing skill?',
-    '3. Passes 3-gate filter? (Non-Googleable, Codebase-specific, Hard-won)',
-    'If YES to all 3 → invoke autoskill-extractor.',
-    'If YES to 1-2 only → capture as memory entry.',
-  ].join(' ');
+    let input;
+    try {
+      input = JSON.parse(raw);
+    } catch {
+      process.exit(0);
+    }
 
-  process.stdout.write(JSON.stringify({ additional_context: nudge }));
-} else {
-  saveState(state);
-  process.stdout.write('{}');
+    const state = loadState();
+    state.toolCallCount++;
+
+    const toolName = extractToolName(input);
+    if (!state.uniqueTools.includes(toolName)) {
+      state.uniqueTools.push(toolName);
+    }
+
+    if (detectErrorPattern(input)) {
+      state.errorPatternCount++;
+    }
+
+    if (shouldNudge(state)) {
+      const msg = buildNudge(state);
+      state.lastNudgeAt = state.toolCallCount;
+      state.nudgeCount++;
+      saveState(state);
+      console.log(JSON.stringify({ additional_context: msg }));
+    } else {
+      saveState(state);
+    }
+  } catch {
+    process.exit(0);
+  }
 }
+
+main();

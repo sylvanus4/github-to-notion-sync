@@ -167,6 +167,34 @@ outputs/pika/
 | Phase 2 | All scenes fail | Stop pipeline, check API status and key |
 | Phase 3 | Editing plan generation fails | Provide raw manifest as fallback |
 
+## Phase 1 Enhancement: Library-Sourced Scenes
+
+When `--from-library` or "use seedance prompts" is requested:
+- Replace video-script-generator with seedance-video-prompts selection
+- Select N prompts matching the theme (via search or category browse)
+- Format each as a scene in the scene list JSON structure
+
+```bash
+# Select 5 cinematic prompts as scenes
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py by-category \
+  --category cinematic --limit 5
+
+# Or search for themed prompts
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py search "nature slow motion" --limit 5
+```
+
+Each returned prompt maps to one scene entry:
+```json
+{
+  "scene_id": 1,
+  "mode": "text-to-video",
+  "prompt": "<prompt text from library>",
+  "duration": 5,
+  "resolution": "1080p",
+  "aspect_ratio": "16:9"
+}
+```
+
 ## Cross-Skill References
 
 | Skill | Role in Pipeline |
@@ -180,3 +208,4 @@ outputs/pika/
 | `hook-generator` | Phase 4: Attention-grabbing captions |
 | `gws-drive` | Phase 4: Google Drive upload |
 | `presentation-strategist` | Pre-Phase 1: Presentation narrative design |
+| `seedance-video-prompts` | Phase 1 alt: Library-sourced scene prompts |

@@ -197,50 +197,41 @@ and produces single-line paragraphs for cleaner downstream parsing.
 
 ## Mode 7: Mermaid-Aware Conversion
 
-Pandoc cannot render Mermaid diagrams natively. When the source markdown
-contains ` ```mermaid ``` ` code blocks, **pre-process** them into images
-before running Pandoc.
+Pandoc cannot render Mermaid diagrams natively. When the source Markdown
+contains ` ```mermaid ``` ` code blocks, **pre-process** them into PNG images
+before running Pandoc using the shared `scripts/preprocess_mermaid.py` script.
 
-**Prerequisite:** `npm install -g @mermaid-js/mermaid-cli` (provides `mmdc`)
+**Prerequisites:**
+- `npm install -g @mermaid-js/mermaid-cli` (provides `mmdc`)
+- Python 3.9+
 
 **Full workflow:**
 
 ```bash
-# 1. Create diagrams directory
-mkdir -p diagrams
+# 1. Pre-process Mermaid blocks → PNG images + clean Markdown
+python3 scripts/preprocess_mermaid.py input.md \
+  --output-dir diagrams/ \
+  --output input-for-docx.md \
+  --width 1200 --scale 2 --background transparent
 
-# 2. Extract and render all mermaid blocks (Python one-liner or script)
-python3 -c "
-import re, subprocess, os
-os.makedirs('diagrams', exist_ok=True)
-with open('input.md') as f: content = f.read()
-idx = 0
-def repl(m):
-    global idx; idx += 1
-    mmd = f'diagrams/diagram-{idx}.mmd'; png = f'diagrams/diagram-{idx}.png'
-    with open(mmd, 'w') as f: f.write(m.group(1))
-    subprocess.run(['mmdc', '-i', mmd, '-o', png, '-w', '1200', '-b', 'transparent'], check=True)
-    return f'![Diagram {idx}]({png})'
-result = re.sub(r'\x60\x60\x60mermaid\n(.*?)\n\x60\x60\x60', repl, content, flags=re.DOTALL)
-# Strip HTML tags Pandoc handles poorly
-result = result.replace('<details>', '').replace('</details>', '')
-result = re.sub(r'<summary>(.*?)</summary>', r'**\1**', result)
-with open('input-for-docx.md', 'w') as f: f.write(result)
-"
+# 2. Convert pre-processed Markdown to DOCX
+pandoc input-for-docx.md -o output.docx \
+  --from markdown --to docx --resource-path=.
 
-# 3. Convert pre-processed markdown to DOCX
-pandoc input-for-docx.md -o output.docx --from markdown --to docx --resource-path=.
+# 3. Clean up temp files (optional — keep PNGs if archiving)
+rm -rf diagrams/*.mmd
 ```
 
 **Key points:**
 - `--resource-path=.` tells Pandoc to resolve relative image paths from the
   current directory.
-- The pre-processing step replaces each Mermaid block with a standard markdown
-  image reference (`![caption](path.png)`), which Pandoc embeds natively.
-- HTML `<details>`/`<summary>` tags are stripped since Pandoc DOCX output does
-  not support them; `<summary>` content is converted to bold text.
+- The pre-processing script extracts each Mermaid block, renders it to PNG via
+  `mmdc`, replaces the block with `![Diagram N](path.png)`, and strips
+  unsupported HTML tags (`<details>`/`<summary>`).
 - Combine with `--reference-doc` (Mode 3) for branded output.
-- Use `-w 1200` or higher for crisp diagrams; adjust per diagram complexity.
+- See the `mermaid-render` skill for advanced configuration: theme selection
+  (`--theme dark|forest|neutral`), batch processing, and Puppeteer/Chromium
+  troubleshooting.
 
 ## Mode 8: Korean DOCX Pipeline (Pandoc + python-docx Post-Processing)
 

@@ -8,7 +8,7 @@ Three-message thread structure for posting tweet intelligence to Slack.
 > - Section headers = `*bold text*` only, no emojis before/after.
 > - Use ONLY headers defined in templates below. Do NOT invent new ones.
 > - No decorative separators (═══, ───, ***).
-> - Media upload MANDATORY if tweet has photos/videos.
+> - Media upload MANDATORY if tweet has photos/videos — use `scripts/slack_upload_file.py` (NOT URL unfurling).
 
 ## Message 1: Title (Channel Post)
 
@@ -19,7 +19,23 @@ Message 1 is EXACTLY 2 lines — a Korean headline and the URL. Nothing else.
 {source URL}
 ```
 
-Capture `message_ts` from the response for thread replies.
+Capture `message_ts` from the response for thread replies and media uploads.
+
+### Media Upload (after Message 1)
+
+If the tweet has photos or videos, upload them to the thread immediately after Message 1:
+
+```bash
+# Single media
+python3 scripts/slack_upload_file.py \
+    --url "{media_url}" --channel {channel_id} --thread-ts "{message_ts}"
+
+# Multiple media (batch)
+python3 scripts/slack_upload_file.py \
+    --urls "{url_1}" "{url_2}" --channel {channel_id} --thread-ts "{message_ts}"
+```
+
+Media URLs come from FxTwitter: `tweet.media.photos[].url` or `tweet.media.videos[].url`.
 
 ### Message 1 Strict Rules
 

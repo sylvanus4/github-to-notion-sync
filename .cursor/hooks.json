@@ -11,6 +11,13 @@
       {
         "command": "node .cursor/hooks/post-task-asset-extractor.mjs"
       }
+    ],
+    "stop": [
+      {
+        "type": "prompt",
+        "prompt": "Before finishing, if this session involved 3+ tool calls and non-trivial multi-step work (not simple Q&A or trivial edits), invoke the post-task-skill-evaluator skill to evaluate whether the completed work should become a reusable Cursor skill. Skip silently if the work was trivial or you already ran this evaluation.",
+        "loop_limit": 1
+      }
     ]
   }
 }

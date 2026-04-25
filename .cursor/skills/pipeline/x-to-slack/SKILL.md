@@ -109,6 +109,39 @@ Before posting to Slack, verify all 3 thread messages are ready:
 - [ ] All messages use Slack mrkdwn (not markdown) — no `**` or `##`
 - [ ] Media attachments prepared via 3-step Slack upload flow if original tweet has images/video
 
+#### Media Upload Flow (MANDATORY when tweet has images/video)
+
+If the tweet contains `media.photos` or `media.videos`, upload each media file to the Slack thread using `scripts/slack_upload_file.py`. This replaces unreliable URL unfurling with direct file uploads via Slack's `files.uploadV2` API.
+
+**When to upload:** After Message 1 is posted (to obtain `message_ts` for thread targeting), before or alongside Messages 2–3.
+
+**Single image/video:**
+```bash
+python3 scripts/slack_upload_file.py \
+    --url "{media_url}" \
+    --channel {channel_id} \
+    --thread-ts "{message_ts}"
+```
+
+**Multiple media (batch mode):**
+```bash
+python3 scripts/slack_upload_file.py \
+    --urls "{url_1}" "{url_2}" "{url_3}" \
+    --channel {channel_id} \
+    --thread-ts "{message_ts}"
+```
+
+**How it works internally (3-step `files.uploadV2` flow):**
+1. `files.getUploadURLExternal` — request a temporary upload URL and `file_id` from Slack
+2. HTTP POST to the temp URL — push the downloaded media bytes
+3. `files.completeUploadExternal` — finalize the upload and share to `channel_id` + `thread_ts`
+
+**Media URL sources from FxTwitter API response:**
+- Photos: `tweet.media.photos[].url` (e.g. `https://pbs.twimg.com/media/xxx.jpg`)
+- Videos: `tweet.media.videos[].url` (direct MP4 URL)
+
+**Error handling:** If upload fails, log the error and continue with the remaining thread messages. Do NOT skip the entire post because of a media upload failure — the text content is still valuable.
+
 If web research returned no relevant results, note this in Message 2 rather than omitting the section. See [assets/templates/slack-thread.md](assets/templates/slack-thread.md) for the 3-message template structure.
 
 ### Step 4: Post to Slack (3 Messages)
@@ -371,3 +404,4 @@ Result: Thread with quote tweet context included
 | `slack_search_public_and_private` | `plugin-slack-slack` | Fallback: find private channel_id via `in:{name}` query |
 | `slack_send_message` | `plugin-slack-slack` | Post messages and thread replies |
 | `slack_read_channel` | `plugin-slack-slack` | Fallback to find message_ts |
+| `scripts/slack_upload_file.py` | Shell (direct Slack API) | Upload media files to Slack via `files.uploadV2` 3-step flow |

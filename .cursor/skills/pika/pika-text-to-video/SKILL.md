@@ -159,6 +159,27 @@ Show the user:
 | 3 | API error | Check FAL_KEY validity, network, or API status |
 | 4 | Missing FAL_KEY | Set FAL_KEY environment variable |
 
+## Prompt Library Integration
+
+When the user asks to "generate a video from prompt library", "use a seedance prompt",
+"random video prompt", or "seedance prompt":
+
+1. Run `uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py random`
+   or `search <keyword>` to find a prompt
+2. Use the returned prompt text as the `--prompt` argument for generation
+3. Optionally apply `muapi-cinema` modifiers on top of the library prompt
+
+```bash
+# Random prompt from the library
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py random
+
+# Search by theme
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py search "cinematic rain"
+
+# Browse a category
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py by-category --category cinematic --limit 5
+```
+
 ## Cross-Skill References
 
 - For live video meeting avatar: use `pikastream-video-meeting`
@@ -167,3 +188,4 @@ Show the user:
 - For subtitles on generated video: use `caption-subtitle-formatter`
 - For video script writing before generation: use `video-script-generator`
 - For publishing video content: use `content-repurposing-engine`
+- For curated video prompts: use `seedance-video-prompts`

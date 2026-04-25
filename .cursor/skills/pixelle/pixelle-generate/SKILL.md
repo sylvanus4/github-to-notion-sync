@@ -240,3 +240,22 @@ asyncio.run(main())
 
 **User:** "pixelle generate with my own images"
 → Mode 3 (asset-based): pipeline="asset_based", user provides image paths
+
+## Seedance Prompt Integration
+
+In `topic` mode, `seedance-video-prompts` provides tested prompt templates.
+Use `prompt_library.py random` to get inspiration or a complete prompt
+to pass as the `text` parameter:
+
+```bash
+# Get a random prompt for Pixelle topic mode
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py random
+
+# Search by theme
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py search "comedy"
+
+# Browse fantasy/surreal prompts for creative videos
+uv run .cursor/skills/standalone/seedance-video-prompts/scripts/prompt_library.py by-category --category fantasy-surreal --limit 3
+```
+
+The returned prompt text can be used directly as the `text` parameter in any generation mode.

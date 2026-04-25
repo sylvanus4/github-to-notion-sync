@@ -245,64 +245,68 @@ new Paragraph({
 })
 ```
 
-### Mermaid Diagram Rendering
+### Mermaid-to-DOCX Pipeline
 
-When source content contains ` ```mermaid ``` ` code blocks, render them as PNG
-images before embedding. Neither Pandoc nor docx-js can render Mermaid natively.
+When source Markdown contains ` ```mermaid ``` ` code blocks, **ALWAYS** pre-process
+with the `mermaid-render` skill before DOCX generation. Neither Pandoc nor docx-js
+can render Mermaid natively — diagrams must be converted to PNG images first.
 
-**Prerequisite:** `npm install -g @mermaid-js/mermaid-cli` (provides `mmdc`)
+**3-step pipeline:**
 
-**Render a single diagram:**
+**Step 1 — Pre-process Mermaid blocks into PNG images:**
 ```bash
-mmdc -i diagram.mmd -o diagram.png -w 1200 -b transparent
+python3 scripts/preprocess_mermaid.py input.md \
+  --output-dir diagrams/ \
+  --output clean.md \
+  --width 1200 --scale 2 --background transparent
 ```
+This extracts all ` ```mermaid ``` ` blocks, renders each to PNG via `mmdc`,
+strips unsupported HTML tags (`<details>`, `<summary>`), and writes clean
+Markdown with `![Diagram N](path.png)` image references.
 
-**Embed rendered diagram via ImageRun:**
+**Step 2 — Generate DOCX from clean Markdown:**
+
+Option A — docx-js with `ImageRun` embedding (programmatic control):
 ```javascript
-new Paragraph({
-  alignment: AlignmentType.CENTER,
-  children: [new ImageRun({
-    type: "png",
-    data: fs.readFileSync("diagrams/diagram-1.png"),
-    transformation: { width: 600, height: 400 },
-    altText: { title: "Diagram", description: "Mermaid diagram", name: "diagram-1" }
-  })]
-})
+const fs = require("fs");
+const glob = require("glob");
+const { Document, Packer, Paragraph, ImageRun, AlignmentType, TextRun } = require("docx");
+
+const pngFiles = glob.sync("diagrams/diagram-*.png").sort();
+const diagramSections = pngFiles.map((png, i) => [
+  new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [new ImageRun({
+      type: "png",
+      data: fs.readFileSync(png),
+      transformation: { width: 600, height: 400 },
+      altText: {
+        title: `Diagram ${i + 1}`,
+        description: "Mermaid diagram",
+        name: `diagram-${i + 1}`
+      }
+    })]
+  }),
+  new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text: `Figure ${i + 1}`, italics: true, size: 20 })]
+  })
+]).flat();
 ```
 
-**Full workflow — extract, render, embed:**
-1. Scan source markdown for ` ```mermaid ... ``` ` blocks
-2. Write each block to a `.mmd` file
-3. Render each `.mmd` to PNG via `mmdc -i X.mmd -o X.png -w 1200 -b transparent`
-4. Replace each mermaid block with `ImageRun` referencing the rendered PNG
-5. Add a caption `Paragraph` below each image with the diagram title
-
-**Pre-processing helper (Python) — extract and render all Mermaid blocks:**
-```python
-import re, subprocess, os
-
-def preprocess_mermaid(md_path, output_dir="diagrams"):
-    """Extract mermaid blocks from markdown, render to PNG, return modified markdown."""
-    os.makedirs(output_dir, exist_ok=True)
-    with open(md_path) as f:
-        content = f.read()
-    idx = 0
-    def replace_block(match):
-        nonlocal idx
-        idx += 1
-        mmd_path = os.path.join(output_dir, f"diagram-{idx}.mmd")
-        png_path = os.path.join(output_dir, f"diagram-{idx}.png")
-        with open(mmd_path, "w") as f:
-            f.write(match.group(1))
-        subprocess.run(["mmdc", "-i", mmd_path, "-o", png_path,
-                        "-w", "1200", "-b", "transparent"], check=True)
-        return f"![Diagram {idx}]({png_path})"
-    result = re.sub(r'```mermaid\n(.*?)\n```', replace_block, content, flags=re.DOTALL)
-    # Strip HTML tags unsupported by docx-js / Pandoc
-    result = result.replace('<details>', '').replace('</details>', '')
-    result = re.sub(r'<summary>(.*?)</summary>', r'**\1**', result)
-    return result
+Option B — Pandoc (simpler, uses image refs already in clean.md):
+```bash
+pandoc clean.md -o output.docx --reference-doc=template.docx
 ```
+
+**Step 3 — Clean up temp files:**
+```bash
+rm -rf diagrams/*.mmd  # keep PNGs if archiving, or rm -rf diagrams/
+```
+
+> **Advanced options:** See the `mermaid-render` skill for theme selection
+> (`--theme dark|forest|neutral`), batch processing, and troubleshooting
+> Puppeteer/Chromium issues.
 
 ### Page Breaks
 
