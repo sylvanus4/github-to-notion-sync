@@ -55,7 +55,7 @@ deduplication via `intel_registry.py` and Slack distribution.
 
 ## Prerequisites
 
-- `gws` CLI installed and authenticated: `gws auth login -s gmail`
+- `gws` CLI installed and authenticated: `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` 환경변수 설정 필수 (`gws gmail +triage --max 1`로 검증)
 - Slack MCP server connected with `SLACK_BOT_TOKEN` and `SLACK_USER_TOKEN` in `.env`
 - `intel_registry.py` accessible at `$RESEARCH_REPO/scripts/intelligence/` (graceful degradation if missing)
 - MemKraft memory store initialized for sender/topic pattern recall
@@ -488,7 +488,7 @@ Edit `outputs/rr-inbox-zero-curator/config.json`:
 ### Health Check
 
 Verify prerequisites before first run:
-1. `gws auth status` — Gmail auth valid
+1. `gws gmail +triage --max 1 2>&1 | head -3` — Gmail auth valid (GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE set)
 2. `.env` contains `SLACK_BOT_TOKEN` and `SLACK_USER_TOKEN`
 3. `python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" check "test"` — registry accessible
 4. `outputs/rr-inbox-zero-curator/` directory is writable

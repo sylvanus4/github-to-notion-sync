@@ -1,30 +1,50 @@
 ---
 name: omc-deep-interview
 description: >-
-  Socratic deep interview with mathematical ambiguity scoring that replaces vague
-  ideas with crystal-clear specifications before execution. Asks one targeted
-  question at a time, scores clarity across weighted dimensions, and gates on a
-  configurable ambiguity threshold (default 20%). Outputs a structured spec with
-  ontology tracking, clarity breakdown, and acceptance criteria. Use when the user
-  asks to "interview me", "deep interview", "clarify requirements", "don't assume
+  Two-mode interview engine: (1) Socratic Clarification — mathematical ambiguity
+  scoring that replaces vague ideas with crystal-clear specs; (2) Decision-Tree
+  Grilling — relentless stress-testing of an existing plan or design by walking
+  every branch until full shared understanding is reached. Both modes ask one
+  question at a time, but serve different purposes: Clarification goes from vague
+  → spec, Grilling goes from plan → validated plan. Use when the user asks to
+  "interview me", "deep interview", "clarify requirements", "don't assume
   anything", "make sure you understand", "ask me everything", "Socratic interview",
-  "requirements interview", "specification interview", "요구사항 인터뷰",
-  "딥 인터뷰", "소크라틱 인터뷰", "가정 검증", "모호성 제거", or has a vague idea
-  that needs thorough requirements clarification before implementation. Do NOT use
-  for detailed requests with file paths, function names, or acceptance criteria
-  (execute directly). Do NOT use for brainstorming or option exploration (use
-  sp-brainstorming). Do NOT use for plan creation without requirements gathering
-  (use sp-writing-plans). Do NOT use when the user says "just do it" or "skip the
-  questions".
+  "requirements interview", "specification interview", "grill me", "stress test
+  my plan", "poke holes", "challenge my design", "validate my plan", "poke holes
+  in this", "요구사항 인터뷰", "딥 인터뷰", "소크라틱 인터뷰", "가정 검증",
+  "모호성 제거", "인터뷰해줘", "질문 공세", "계획 검증", "설계 검증",
+  "구멍 찾아줘", or has a vague idea that needs clarification OR an existing plan
+  that needs validation. Do NOT use for detailed requests with file paths, function
+  names, or acceptance criteria (execute directly). Do NOT use for brainstorming or
+  option exploration (use sp-brainstorming). Do NOT use for plan creation without
+  requirements gathering (use sp-writing-plans). Do NOT use when the user says
+  "just do it" or "skip the questions". Do NOT use for consensus-based multi-agent
+  planning (use omc-ralplan).
 metadata:
   author: "oh-my-claudecode"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "requirements"
 ---
 
-# Deep Interview: Socratic Requirements Clarification
+# Deep Interview: Two-Mode Interview Engine
 
-Adapted from [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) deep-interview skill. Implements Ouroboros-inspired Socratic questioning with mathematical ambiguity gating.
+Adapted from [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) deep-interview skill and [mattpocock](https://github.com/mattpocock/cursor-skills) grill-me skill.
+
+## Mode Detection
+
+Before starting, detect which mode to use:
+
+| Signal | Mode |
+|--------|------|
+| User has a vague idea, no plan/design exists | **Socratic Clarification** |
+| User says "clarify", "requirements", "I have an idea" | **Socratic Clarification** |
+| User has an existing plan, design, or architecture | **Decision-Tree Grilling** |
+| User says "grill me", "stress test", "poke holes", "challenge" | **Decision-Tree Grilling** |
+| Ambiguous — ask the user which mode they want | Prompt with `AskQuestion` |
+
+---
+
+# MODE A: Socratic Clarification
 
 ## Instructions
 
@@ -184,9 +204,90 @@ Present execution options via `AskQuestion`:
 - User says "just do it" or "skip the questions" — respect their intent
 - User already has a PRD or plan file — use the plan directly
 
+---
+
+# MODE B: Decision-Tree Grilling
+
+Stress-test an existing plan, design, RFC, or architecture by walking every decision branch until full shared understanding is reached.
+
+## Instructions
+
+### Phase 1: Accept the Target
+
+The user presents a plan, design, RFC, or idea. Read it fully before asking anything. If the plan references code, use `Task` with `subagent_type="explore"` to understand the relevant codebase context.
+
+### Phase 2: Build a Decision Tree
+
+Mentally map the plan into a tree of decisions:
+- Each **node** is a decision point or assumption
+- **Branches** represent alternatives or dependencies
+- **Leaf nodes** are fully resolved decisions
+
+### Phase 3: Walk Every Branch
+
+For each decision point:
+
+1. **Ask ONE question** — never batch multiple questions in one message.
+2. **State your recommended answer** with reasoning — don't just ask, propose.
+3. **Wait for the user's response** before continuing.
+4. **Track** which branches are resolved vs open.
+
+### Phase 4: Resolve Codebase-Answerable Questions Autonomously
+
+If a question can be answered by exploring the codebase, explore it yourself instead of asking the user. Use `Task` with `subagent_type="explore"` for deeper investigations. Report your findings and move on.
+
+### Phase 5: Surface Dependencies
+
+When decision B depends on decision A, resolve A first. Call out dependency chains explicitly:
+
+> "Before we decide X, we need to settle Y."
+
+### Phase 6: Track Resolution State
+
+After covering a branch, summarize resolved decisions before moving to the next branch.
+
+## Grilling Rules
+
+- **One question at a time.** Compound questions get partial answers.
+- **Always provide your recommended answer.** Don't just ask — propose.
+- **Explore before asking.** If the codebase can answer it, look first.
+- **Be relentless.** Don't accept vague answers. Push for specifics: "What happens when X fails?" "How does this interact with Y?"
+- **Challenge assumptions.** If the user says "this should be simple," ask what makes them confident.
+- **Resolve, don't debate.** The goal is shared understanding, not winning arguments.
+- **Detect cycles.** If A depends on B and B depends on A, flag it and ask the user to break the cycle by fixing one decision first.
+- **Flag aspirational vs implemented.** If the plan references code that may not exist yet, ask whether it's aspirational or implemented.
+- **Stop when done.** When all branches are resolved, produce the Decision Summary.
+
+## Output: Decision Summary
+
+When all branches are resolved, produce:
+
+```markdown
+## Resolved Decisions
+
+1. [Decision]: [Resolution] — [Rationale]
+2. [Decision]: [Resolution] — [Rationale]
+...
+
+## Open Items (if any)
+
+- [Item requiring further investigation]
+```
+
+Then present execution options via `AskQuestion`:
+
+1. **Plan and Execute** — Create a plan with sp-writing-plans from the resolved decisions.
+2. **Execute directly** — Implement the validated plan using appropriate skills.
+3. **Continue grilling** — Explore additional branches or edge cases.
+4. **Export only** — Save the Decision Summary and stop.
+
+---
+
 ## Examples
 
 <example>
+**Mode A — Socratic Clarification:**
+
 User: "I want to build a task management thing"
 
 Round 1 | Targeting: Goal Clarity | Why now: Goal is the most undefined dimension at 0.1 | Ambiguity: 90%
@@ -226,4 +327,36 @@ Current ambiguity is 35% (threshold: 20%). Areas still unclear:
 
 Proceeding may require rework. Continue anyway?
 [Yes, proceed] [Ask 2-3 more questions] [Cancel]
+</example>
+
+<example>
+**Mode B — Decision-Tree Grilling:**
+
+User: "Here's my plan: We'll migrate from REST to GraphQL, use Apollo Server, add a schema-first approach, and deploy behind our existing NGINX reverse proxy."
+
+Agent (after reading the codebase):
+
+"I see you have 47 REST endpoints across 8 services. Let me walk through each decision.
+
+**Decision 1: Migration scope.** Will you migrate all 47 endpoints at once, or incrementally?
+
+My recommendation: Incremental — start with the 12 read-heavy endpoints in the `analytics` service. They have the most over-fetching (clients discard ~60% of response fields based on the frontend code I found), so GraphQL's field selection gives the biggest win there. The write-heavy `orders` service can stay REST longer since mutations add complexity.
+
+What's your preference?"
+</example>
+
+<example>
+**Mode B — Decision Summary output:**
+
+## Resolved Decisions
+
+1. **Migration scope**: Incremental, starting with analytics service — highest ROI from field selection
+2. **Schema approach**: Schema-first with `.graphql` files — enables codegen and type safety
+3. **Auth**: Reuse existing JWT middleware as Apollo context plugin — avoid rewriting auth
+4. **Deployment**: Apollo Server behind NGINX with `/graphql` path — coexists with REST
+
+## Open Items
+
+- Performance baseline: Need to measure current REST p95 latency before migration starts
+- Subscription support: Deferred to Phase 2; requires WebSocket infrastructure decision
 </example>

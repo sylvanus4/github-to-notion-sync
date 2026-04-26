@@ -124,7 +124,7 @@ Read and follow the `setup-doctor` skill (`.cursor/skills/automation/setup-docto
 | Check | Command / Method | Fail Action |
 |---|---|---|
 | PostgreSQL | `pg_isready` or connect test | ABORT pipeline |
-| `gws` CLI auth | `gws auth status` | WARN, skip Google phases |
+| `gws` CLI auth | `gws drive files list 2>&1 | head -3` | WARN, skip Google phases |
 | `TWITTER_COOKIE` | Check `.env` | WARN, skip Twitter |
 | Slack MCP | Test `slack_send_message` | WARN, skip Slack posts |
 | Notion MCP | Test search | WARN, skip Notion uploads |

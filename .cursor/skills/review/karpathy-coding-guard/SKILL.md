@@ -3,17 +3,22 @@ name: karpathy-coding-guard
 description: >-
   Behavioral guardrails to reduce common LLM coding mistakes: surface assumptions
   before coding, enforce simplicity, make surgical changes, and define verifiable
-  success criteria. Adapted from Karpathy's observations. Use when starting any
-  non-trivial implementation, refactoring, or bugfix to prevent overcomplication,
-  hidden assumptions, and scope creep. Do NOT use for trivial one-line fixes.
+  success criteria. Includes a Zoom-Out Gate that forces mapping the broader context
+  (callers, dependencies, siblings, data flow) before diving into unfamiliar code
+  areas. Adapted from Karpathy's observations. Use when starting any non-trivial
+  implementation, refactoring, or bugfix to prevent overcomplication, hidden
+  assumptions, and scope creep. Do NOT use for trivial one-line fixes.
   Do NOT use for code review (use deep-review or simplify).
   Do NOT use for post-implementation cleanup (use omc-ai-slop-cleaner).
-  Korean triggers: "코딩 가드레일", "구현 전 점검", "카파시 가이드", "접근법 점검".
+  Do NOT use for full codebase map generation (use codemap-updater).
+  Korean triggers: "코딩 가드레일", "구현 전 점검", "카파시 가이드", "접근법 점검",
+  "줌 아웃", "전체 그림", "상위 관점", "큰 그림 보여줘", "한 발짝 물러서".
   English triggers: "karpathy guard", "coding guardrails", "before I start coding",
-  "check my approach", "implementation guard", "pre-coding check".
+  "check my approach", "implementation guard", "pre-coding check", "zoom out",
+  "big picture", "broader context", "how does this fit", "map the modules".
 metadata:
   author: thaki
-  version: "1.2.0"
+  version: "2.0.0"
   source: "forrestchang/andrej-karpathy-skills (adapted)"
   category: "behavioral-guardrail"
 ---
@@ -45,6 +50,45 @@ Before writing any code, answer these four questions **out loud** in your respon
 | You're about to create a new file | STOP — confirm the file doesn't already exist and is truly needed |
 | You're about to add a dependency | STOP — check if existing code already solves it |
 | You feel "this might also need..." | STOP — that's scope creep. Ask first |
+
+### Zoom-Out Gate (Context Mapping)
+
+**Trigger:** Activate this gate when ANY of these conditions are true:
+- You are about to modify code in a module you haven't explored in this session
+- The change touches 3+ files across different directories
+- You cannot confidently name the callers and dependencies of the code you're editing
+- The user explicitly asks to "zoom out", "big picture", or "map the context"
+
+**Process:**
+
+1. **Identify the focus area** — What function, module, or file is at the center of the change?
+
+2. **Map the surroundings** — Using `SemanticSearch` or `Grep`, investigate:
+   - **Callers**: Who calls this code? Trace upward through the call chain.
+   - **Dependencies**: What does this code depend on? Trace downward.
+   - **Siblings**: What other modules sit at the same level of abstraction?
+   - **Data flow**: How does data enter, transform, and exit this area?
+   - **Async boundaries**: Check for event-driven or scheduled interactions not visible in call chains.
+
+3. **Present a one-screen context map** before proceeding:
+
+```
+#### Context Map: [Area Name]
+- **This module**: [one-sentence description]
+- **Callers**: [who uses this and why]
+- **Dependencies**: [what this uses and why]
+- **Siblings**: [same-level modules and their relationship]
+- **Data flow**: [source] → [transform] → [destination]
+- **Key insight**: [one non-obvious observation about how this fits the bigger picture]
+```
+
+4. **Validate scope** — Does the context map confirm your planned change scope is correct, or does it reveal additional files that should change or files that should NOT change?
+
+**Rules:**
+- The map must fit on one screen. If it doesn't, you're zooming in, not out.
+- Describe behaviors and roles, not code. Name modules by what they do, not by file names.
+- Surface surprises. If the code's context is unexpected, highlight it.
+- If the scope is the entire repo, redirect to `codemap-updater` instead.
 
 ### Rationalization Detection
 

@@ -32,6 +32,10 @@ All outputs MUST be in Korean (한국어). Technical terms may remain in English
 
 ## Workflow
 
+### Session Separation Rule
+
+When processing multiple transcripts (e.g., `--scope recent` with 5 transcripts), **each transcript MUST be processed in an isolated subagent via the Task tool**. Never load multiple transcripts into the same session context — earlier transcript patterns contaminate detection for later ones, producing false positive "repeated across sessions" signals.
+
 ### Step 1: Load transcripts
 
 Read JSONL and parse structured events. Each line is a JSON event (user message, assistant response, tool calls).

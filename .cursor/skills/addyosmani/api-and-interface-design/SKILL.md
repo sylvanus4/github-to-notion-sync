@@ -1,10 +1,24 @@
 ---
 name: api-and-interface-design
 description: >-
-  Guides stable API and interface design. Use when designing APIs, module boundaries, or any public interface. Use when creating REST or GraphQL endpoints, defining type contracts between modules, or establishing boundaries between frontend and backend. Do NOT use for project-specific FastAPI/Go backend review (use backend-expert). Do NOT use for FSD frontend patterns (use fsd-development).
+  Two-mode interface design skill. **Review mode** (default): guides stable API
+  and interface design with principles, patterns, and verification checklists.
+  **Design It Twice mode** (`--design-twice`): generates 3+ radically different
+  interface designs via parallel sub-agents, compares on depth/simplicity/
+  flexibility, and synthesizes the best hybrid — based on A Philosophy of
+  Software Design. Use when designing APIs, module boundaries, or any public
+  interface. Use when creating REST or GraphQL endpoints, defining type contracts
+  between modules, establishing boundaries between frontend and backend, or
+  exploring multiple interface shapes before committing. Triggers: "design it
+  twice", "interface design options", "competing designs", "compare API shapes",
+  "explore interface alternatives", "인터페이스 설계", "API 설계 비교",
+  "두 번 설계", "경쟁 설계", "모듈 인터페이스 옵션". Do NOT use for
+  project-specific FastAPI/Go backend review (use backend-expert). Do NOT use
+  for FSD frontend patterns (use fsd-development). Do NOT use for architecture-
+  level deepening (use deep-review --arch).
 metadata:
   author: "addyosmani"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "addyosmani"
 ---
 
@@ -286,6 +300,89 @@ function getTask(id: TaskId): Promise<Task> { ... }
 - Verbs in REST URLs (`/api/createTask`, `/api/getUsers`)
 - Third-party API responses used without validation or sanitization
 
+## Design It Twice Mode (`--design-twice`)
+
+> Your first idea is unlikely to be the best. Generate multiple radically
+> different designs, then compare. — *A Philosophy of Software Design*
+
+Activate with `--design-twice` flag, or when the user mentions "design it twice",
+"competing designs", "compare interface shapes", "explore alternatives",
+"두 번 설계", "경쟁 설계", or "인터페이스 옵션".
+
+### Workflow
+
+#### 1. Gather Requirements
+
+Before designing, understand:
+- What problem does this module solve?
+- Who are the callers? (other modules, external users, tests)
+- What are the key operations?
+- Constraints? (performance, compatibility, existing patterns)
+- What should be hidden inside vs exposed?
+
+Ask: "What does this module need to do? Who will use it?"
+
+#### 2. Generate Designs (Parallel Sub-Agents)
+
+Spawn 3+ sub-agents simultaneously using the Task tool. Each **must** produce a
+radically different approach — different in *structure*, not naming.
+
+Assign divergent constraints to force radical difference:
+- Agent 1: "Minimize method count — aim for 1–3 methods max"
+- Agent 2: "Maximize flexibility — support many use cases"
+- Agent 3: "Optimize for the most common case"
+- Agent 4 (optional): "Take inspiration from [specific paradigm/library]"
+
+Each sub-agent returns:
+1. **Interface signature** — types, methods, params
+2. **Usage example** — how a caller actually uses it
+3. **What it hides** — complexity kept internal
+4. **Trade-offs** — strengths and weaknesses
+
+#### 3. Present Designs
+
+Show each design sequentially so the user can absorb each approach before
+comparison. For each design, present: interface signature → usage examples →
+what it hides.
+
+#### 4. Compare Designs
+
+After all designs are shown, compare on:
+
+| Dimension | What to evaluate |
+|-----------|-----------------|
+| Interface simplicity | Fewer methods, simpler params = easier to use correctly |
+| General-purpose vs specialized | Flexibility vs focus |
+| Implementation efficiency | Does the shape allow efficient internals? |
+| Depth | Small interface hiding significant complexity (good) vs large interface with thin implementation (bad) |
+| Ease of correct use vs ease of misuse | Can callers get it wrong? |
+
+Discuss trade-offs in prose, not just tables. Highlight where designs diverge most.
+
+#### 5. Synthesize
+
+Often the best design combines insights from multiple options. Ask:
+- "Which design best fits your primary use case?"
+- "Any elements from other designs worth incorporating?"
+
+Produce the final recommended interface with rationale.
+
+### Design It Twice Anti-Patterns
+
+- Don't let sub-agents produce similar designs — enforce radical difference via constraints
+- Don't skip comparison — the value is in *contrast*
+- Don't implement — this mode is purely about interface shape
+- Don't evaluate based on implementation effort alone
+- Three designs with the same method signatures but different names are NOT different designs
+
+### Design It Twice Gotchas
+
+- Sub-agents tend to converge despite different constraints. Give each agent a
+  deliberately provocative constraint ("no methods, only data" vs "single method
+  that does everything") to force divergence.
+- Users may want to jump straight to implementation after seeing designs. Resist
+  — the synthesis step is where the best interfaces emerge.
+
 ## Verification
 
 After designing an API:
@@ -297,3 +394,4 @@ After designing an API:
 - [ ] New fields are additive and optional (backward compatible)
 - [ ] Naming follows consistent conventions across all endpoints
 - [ ] API documentation or types are committed alongside the implementation
+- [ ] (Design It Twice) At least 3 radically different designs were explored before committing

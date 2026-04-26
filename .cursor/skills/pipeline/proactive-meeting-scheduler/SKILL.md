@@ -158,7 +158,7 @@ Skipped (low confidence):
 
 | Error | Action |
 |-------|--------|
-| Gmail API auth failure | Prompt user to run `gws auth` or refresh credentials; exit with clear instructions |
+| Gmail API auth failure | Run `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`; verify with `gws gmail +triage --max 1` |
 | No reply-needed emails found | Exit cleanly with "no meeting signals to process"; no Slack post |
 | Calendar availability check fails | Propose meeting without specific slot; ask user to pick time manually |
 | Recipient email not found | Skip that proposal; log missing participant; continue with other emails |

@@ -31,7 +31,7 @@ alwaysApply: true
 - After implementation/simulation: produce a detailed usage/benefit report showing which KBs and skills are used, how they improve the workflow, and practical guidance for the target audience ("구현을 하였는데... 리포트 보고서를 상세하게 작성해줘야지")
 - skill-autoimprove: pure-output skills only, not execution skills with side effects
 - Apply Karpathy Opposite Direction Test on all analyses, reviews, and validations
-- External GitHub repos → selective-external-github-to-project-skills로 분석 후 프로젝트 맞춤 스킬 생성 (recurring workflow); 스킬 최적화 + 진화 + setup-doctor 업데이트까지 풀 사이클 실행
+- External GitHub repos → selective-external-github-to-project-skills로 분석 후 **기존 매칭 스킬에 기능 병합 우선** (독립 스킬 생성 X; "어디 스킬에 통합할지 찾고 통합해줘" 반복 교정); 스킬 최적화 + 검증 + setup-doctor 업데이트까지 풀 사이클 실행
 - Company-wide meeting transcripts → group-meeting-digest로 그룹별(AI Platform Group 등) 관점 요약 + decision-router로 의사결정 채널 라우팅
 - Markdown→Notion: follow md-to-notion SKILL.md with table conversion + validation steps
 - google-daily: preflight auth (Slack/Notion/gws) before downstream steps
@@ -40,6 +40,7 @@ alwaysApply: true
 - Presentations: practical demos over abstractions; Steve Jobs for keynotes; Korean speaker scripts
 - NLM slides: upload PDF directly; skip papers >9 months old
 - Notion API: no pipe tables; clean up ephemeral MCP/upload files after automation tasks
+- HWP 변환: 이미지 기반 PDF 변환 금지 ("이미지면 안돼"); 텍스트 보존 방식 필수 — HWP→DOCX 선호, rhwp-converter 또는 pandoc 사용; rhwp-pipeline for end-to-end
 - LLM session traces: fold high-signal items into memory/topics + MEMORY.md; support multi-machine via same repo path layout (home/office)
 
 ## Learned Workspace Facts

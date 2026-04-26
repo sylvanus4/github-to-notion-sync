@@ -1,20 +1,25 @@
 ---
 name: refactor-simulator
 description: >-
-  Before making any code change, simulate the blast radius by analyzing all
-  call sites, import chains, type dependencies, and test coverage for the
-  affected area. Uses code-review-graph AST-based MCP tools when available for
-  precise structural analysis (100% recall), with rg pattern fallback.
-  Produces a "what-if" impact report with risk scores — without
-  touching any code. Use when the user asks about "blast radius", "impact
-  analysis", "refactor simulator", "what if I change", "what if I rename", "what
-  if I move", "리팩토링 시뮬레이션", "영향 분석", "before refactoring", or wants to
-  understand the consequences of a proposed change before executing it. Do NOT
-  use for executing refactors (use simplify or generalPurpose), code review of
-  existing code (use deep-review), or debugging (use diagnose).
+  Two-mode refactoring preparation tool. **Simulate mode** (default):
+  simulate the blast radius by analyzing call sites, import chains, type
+  dependencies, and test coverage using code-review-graph AST or rg fallback,
+  producing a risk-scored impact report without touching code.
+  **Plan mode** (`--plan`): interview the user to create a detailed refactor
+  plan broken into the tiniest possible commits (each leaving the codebase
+  working), then file as a GitHub issue with decision document and testing
+  decisions. Use when the user asks about "blast radius", "impact analysis",
+  "refactor simulator", "what if I change", "what if I rename", "what if I
+  move", "refactor plan", "plan this refactor", "break refactor into commits",
+  "refactoring RFC", "리팩토링 시뮬레이션", "영향 분석", "리팩토링 계획", "리팩터 플랜",
+  "단계별 리팩토링", "작은 커밋으로 나눠서 리팩토링", "리팩토링 RFC", "안전한 리팩토링",
+  "before refactoring", or wants to understand consequences or plan incremental
+  steps for a proposed change. Do NOT use for executing refactors (use simplify
+  or generalPurpose), code review of existing code (use deep-review), or
+  debugging (use diagnose).
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "3.0.0"
   category: "execution"
 ---
 # Refactor Simulator — Pre-Change Blast Radius Analysis
@@ -240,6 +245,106 @@ Output: 4 files still import LegacyModal, 2 are in active routes. Risk score 18 
 User: "What if I move src/utils/auth.ts to src/lib/auth/index.ts?"
 
 Output: 23 files import from the old path, 5 barrel re-exports. Risk score 52 (HIGH). Recommends using a re-export shim at the old path temporarily.
+
+---
+
+## Plan Mode (`--plan`)
+
+When `--plan` is specified (or user says "refactor plan", "plan this refactor", "리팩토링 계획"), switch from blast-radius simulation to interactive refactor planning. The output is a GitHub issue containing a step-by-step plan.
+
+### Step 1: Interview (One Question at a Time)
+
+Ask questions sequentially. Do NOT batch questions. After each answer, decide if more context is needed or proceed.
+
+Questions to cover (skip those already answered):
+1. **What** needs refactoring and **why**? What problem does the current code cause?
+2. **Scope**: Which files/modules/layers are affected?
+3. **Constraints**: Backward compatibility? Performance budgets? Feature flags?
+4. **Risk tolerance**: Can behavior change slightly, or must it be perfectly transparent?
+5. **Testing**: What tests exist? What gaps concern you?
+
+Stop interviewing when you have enough to write a plan. Typically 3-5 exchanges.
+
+### Step 2: Blast Radius Pre-scan
+
+Before planning commits, run the standard simulation (Steps 1-5 from Simulate mode) to understand the full impact scope. Use this data to inform commit ordering.
+
+### Step 3: Decompose into Tiny Commits
+
+Break the refactor into the **smallest possible commits**, each leaving the codebase in a working, deployable state.
+
+Rules:
+- Each commit does ONE thing (rename, move, extract, inline, swap implementation)
+- Each commit must pass all existing tests (no "fix in next commit")
+- Order commits so early ones don't create unnecessary conflicts for later ones
+- If a commit touches >5 files, consider breaking it further
+- Mark commits that are **safe to revert independently**
+- Use `[refactor]` prefix in commit messages
+
+Patterns for tiny commits:
+| Pattern | Example |
+|---------|---------|
+| **Expand-Contract** | Add new interface → migrate callers one-by-one → remove old interface |
+| **Parallel Change** | Add new path alongside old → switch traffic → remove old path |
+| **Branch by Abstraction** | Introduce abstraction layer → swap implementation behind it |
+| **Strangler Fig** | New module intercepts calls → gradually replaces old module |
+
+### Step 4: Document Testing Decisions
+
+For each commit, specify:
+- **Existing tests** that validate correctness (name them)
+- **New tests** needed (describe what they cover)
+- **Manual checks** if automated testing isn't feasible (with specific steps)
+
+### Step 5: File GitHub Issue
+
+Run `gh issue create` with this template:
+
+```
+## Refactor: [Title]
+
+### Context
+- Why this refactor is needed
+- Current pain points
+
+### Scope
+- Affected modules/files (from blast radius scan)
+- Risk score: [from simulation]
+
+### Commit Plan
+
+#### Commit 1: [Description]
+- Files: [list]
+- Tests: [existing tests that validate | new tests needed]
+- Safe to revert: Yes/No
+
+#### Commit 2: [Description]
+- Files: [list]
+- Tests: [existing tests that validate | new tests needed]
+- Safe to revert: Yes/No
+
+[...repeat...]
+
+### Decisions Made
+- [Decision 1]: [Rationale]
+- [Decision 2]: [Rationale]
+
+### Rollback Strategy
+- Each commit is individually revertable: Yes/No
+- Point of no return: After commit [N] (explain why)
+
+### Acceptance Criteria
+- [ ] All existing tests pass after each commit
+- [ ] No behavioral changes (unless explicitly noted)
+- [ ] [Custom criteria from interview]
+```
+
+### Plan Mode Output
+- Print the issue URL
+- Print commit count and estimated risk
+- Do NOT execute any refactoring — plan only
+
+---
 
 ## Error Handling
 

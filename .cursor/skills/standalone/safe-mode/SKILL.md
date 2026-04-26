@@ -1,22 +1,27 @@
 ---
 name: safe-mode
 description: >-
-  Three-in-one safety tool: (1) intercept destructive shell commands (rm -rf,
+  Four-in-one safety tool: (1) intercept destructive shell commands (rm -rf,
   DROP TABLE, force-push, kubectl delete), (2) lock file edits to specific
   directories, (3) combined guard mode for maximum safety during production
-  debugging. Use when the user asks for "safe mode", "careful mode", "freeze
-  directory", "lock files", "guard mode", "safe-mode", "세이프 모드", "안전 모드",
-  "디렉토리 잠금", "파일 잠금", "가드 모드", or when working on production
-  systems. Do NOT use for general code review (use deep-review), security
-  auditing (use security-expert), or CI checks (use ci-quality-gate).
+  debugging, (4) install persistent Cursor hooks to block dangerous git commands
+  across sessions via beforeShellExecution hooks. Use when the user asks for "safe mode",
+  "careful mode", "freeze directory", "lock files", "guard mode", "git
+  guardrails", "block git push", "git safety hooks", "install git hooks",
+  "safe-mode", "세이프 모드", "안전 모드", "디렉토리 잠금", "파일 잠금",
+  "가드 모드", "git 가드레일", "위험한 git 명령 차단", "git push 차단",
+  "git 안전 훅", or when working on production systems. Do NOT use for general
+  code review (use deep-review), security auditing (use security-expert), CI
+  checks (use ci-quality-gate), or pre-commit linting hooks (use
+  setup-pre-commit).
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "2.0.0"
   category: "safety"
 ---
-# Safe Mode — Destructive Command Interception + Directory Scope Locking
+# Safe Mode — Four-in-One Safety Tool
 
-Three safety mechanisms in one skill to prevent catastrophic mistakes during agent operations.
+Four safety mechanisms in one skill to prevent catastrophic mistakes during agent operations.
 
 ## Modes
 
@@ -222,6 +227,136 @@ Agent: Safe Mode FREEZE activated. File edits restricted to: src/features/auth/
 
 [During session, all edits outside src/features/auth/ are blocked with warnings]
 ```
+
+## Mode 4: Git Guardrails — Persistent Hook-Based Git Safety
+
+Install a **persistent Cursor `beforeShellExecution` hook** that intercepts
+dangerous git commands across ALL sessions — not just the current one.
+
+### Trigger
+
+```
+/safe-mode git-guardrails            # install project-scoped hooks
+/safe-mode git-guardrails --global   # install global hooks
+```
+
+### What Gets Blocked
+
+| Command | Risk |
+|---------|------|
+| `git push` (all variants incl. `--force`) | Unreviewed code reaching remote |
+| `git reset --hard` | Uncommitted work loss |
+| `git clean -f` / `git clean -fd` | Untracked file deletion |
+| `git branch -D` | Branch history loss |
+| `git checkout .` / `git restore .` | Working tree changes loss |
+
+Read-only commands (`git status`, `git log`, `git diff`) are NEVER blocked.
+
+### Setup Process
+
+#### 1. Determine scope
+
+Ask: install for **this project only** or **globally**?
+
+- **Project**: `.cursor/hooks/block-dangerous-git.sh`
+- **Global**: `~/.cursor/hooks/block-dangerous-git.sh`
+
+#### 2. Create the hook script
+
+Write the blocking script to the chosen location:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    print(data.get('command', ''))
+except:
+    print('')
+" 2>/dev/null || echo "")
+
+BLOCKED_PATTERNS=(
+    "git push"
+    "git reset --hard"
+    "git clean -f"
+    "git clean -fd"
+    "git branch -D"
+    "git checkout \.$"
+    "git restore \.$"
+)
+
+for pattern in "${BLOCKED_PATTERNS[@]}"; do
+    if echo "$COMMAND" | grep -qE "$pattern"; then
+        echo "BLOCKED: '$COMMAND' matches blocked pattern '$pattern'. You do not have authority to run this command." >&2
+        exit 2
+    fi
+done
+
+exit 0
+```
+
+Make it executable with `chmod +x`.
+
+#### 3. Register in hooks.json
+
+Add to `.cursor/hooks.json` (project) or `~/.cursor/hooks.json` (global).
+Uses the Cursor v1 hooks schema with `beforeShellExecution` event:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/block-dangerous-git.sh",
+        "matcher": "git push|git reset --hard|git clean|git branch -D|git checkout \\\\.|git restore \\\\."
+      }
+    ]
+  }
+}
+```
+
+If `hooks.json` already exists, **merge** the `beforeShellExecution` entry
+into the existing `hooks` object. Never overwrite — that disables other hooks.
+
+#### 4. Customization
+
+Ask if the user wants to add or remove patterns from the blocked list. Edit
+the script accordingly.
+
+#### 5. Verify
+
+Test the hook:
+
+```bash
+echo '{"command":"git push origin main"}' | .cursor/hooks/block-dangerous-git.sh
+```
+
+Should exit with code 2 and print a BLOCKED message to stderr.
+
+### Git Guardrails vs Careful Mode
+
+| Aspect | Careful (Mode 1) | Git Guardrails (Mode 4) |
+|--------|-----------------|------------------------|
+| Persistence | Session-only | Persists across sessions via hooks.json |
+| Scope | All destructive commands | Git commands only |
+| Mechanism | Agent behavioral protocol | Cursor `beforeShellExecution` hook |
+| Bypass | `/safe-mode off` | Remove from hooks.json |
+| User terminal | Not affected | Not affected (agent-only) |
+
+### Git Guardrails Gotchas
+
+- `git checkout .` regex uses end-anchor (`\.$`) to avoid false positives on
+  branch checkouts like `git checkout feature-branch`.
+- The `python3` JSON parser may fail if Cursor's input format changes.
+  The `|| echo ""` fallback prevents crashes but may cause false negatives.
+- If `hooks.json` already has `beforeShellExecution` entries, merge into the
+  existing array. Overwriting disables other hooks.
+- Matcher uses JavaScript regex syntax (not POSIX). Backslashes need double-escaping in JSON.
 
 ## Error Handling
 

@@ -452,6 +452,7 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] Address specific baseline failures identified in RED
 - [ ] Code inline OR link to separate file
 - [ ] One excellent example (not multi-language)
+- [ ] **Session separation check:** If the skill processes multiple items (batch loops, list iteration, multi-file scans), includes explicit per-item subagent dispatch via Task tool directive to prevent context contamination
 - [ ] Run scenarios WITH skill - verify agents now comply
 
 **REFACTOR Phase - Close Loopholes:**

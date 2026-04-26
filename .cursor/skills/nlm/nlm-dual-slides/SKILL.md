@@ -270,12 +270,12 @@ This will:
 | Symptom | Fix |
 |---|---|
 | Authentication expired (NLM) | Run `nlm login` in terminal, then call `refresh_auth` MCP tool |
-| Authentication expired (Drive) | Run `gws auth login` |
+| Authentication expired (Drive) | Run `python3 ~/.config/gws/oauth2_manual.py` + `rm -f ~/.config/gws/token_cache.json ~/.config/gws/credentials.enc` |
 | Slides lack depth (expert) | Check that expert rewrite followed `references/expert-prompt.md` — ensure architecture diagrams, benchmark tables, equations are present |
 | Slides too complex (elementary) | Check that elementary rewrite followed `references/elementary-prompt.md` — ensure no jargon, no equations, analogies present |
 | Generation timeout | Poll `studio_status` every 30-60s; slides take **5-8 minutes** per deck |
 | File not found after download | Use **absolute path** in `output_path`; NLM MCP resolves from its own cwd |
-| Drive upload fails | Verify `gws auth status` and retry; check file path exists |
+| Drive upload fails | Verify `gws drive files list 2>&1 | head -3` works and retry; check file path exists |
 | Slack posting fails | Verify channel ID `C0AN34G4QHK` is accessible; use `slack_search_channels` to confirm |
 
 ## Skills Composed

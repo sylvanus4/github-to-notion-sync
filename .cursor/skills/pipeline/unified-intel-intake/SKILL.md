@@ -51,9 +51,60 @@ After content extraction, classify by primary topic. If multiple topics match, u
 | Research/Papers | paper, arxiv, model, benchmark | `#deep-research-trending` |
 | General Tech | framework, library, release, update | `#tech-news` |
 
+## Architecture: Fat Subagent Prompt Pattern
+
+Each URL is processed in an isolated `Task` subagent with a fresh context window.
+The orchestrator reads the quality contract from `references/subagent-quality-contract.md`
+and embeds it into each subagent prompt alongside item-specific data.
+
+### Why Subagents
+
+Processing N URLs in a single session causes context window exhaustion by item 3-5.
+Each subagent gets a fresh context with the full quality contract, producing consistent
+quality regardless of batch position.
+
+### Dispatch Loop
+
+```
+for each URL in input list:
+  1. Pre-classify content type from URL pattern (lightweight, no extraction)
+  2. If tweet/paper/hf_paper → route to dedicated skill directly (no subagent needed)
+  3. Otherwise → spawn Task(subagent_type="generalPurpose") with:
+     - Full quality contract (from references/subagent-quality-contract.md)
+     - URL, detected_type, output_file path, index
+  4. Wait for subagent completion
+  5. Read result JSON from output_file
+  6. If result has decision_type → invoke decision-router
+  7. Wait 10-15s (Slack rate limiting) before next item
+```
+
+### Subagent Return Contract
+
+```json
+{
+  "status": "completed|skipped|failed",
+  "file": "outputs/unified-intel/{date}/item-{index}.json",
+  "summary": "one-line Korean outcome",
+  "slack_ts": "message_ts (if posted)",
+  "quality_score": {
+    "msg1_chars": 80,
+    "msg2_chars": 800,
+    "msg3_chars": 400,
+    "websearch_count": 2,
+    "extraction_method": "defuddle|webfetch|transcript"
+  },
+  "classification": {
+    "content_type": "news|blog|release|video|github",
+    "topic": "ai-infra|k8s|security|market|research|general",
+    "relevance_score": 8,
+    "urgency": "immediate|daily|weekly"
+  }
+}
+```
+
 ## Workflow
 
-### Step 1: Accept Input
+### Phase 1: Accept Input (Orchestrator)
 
 Accept one or more content sources:
 - Direct URL(s)
@@ -61,54 +112,51 @@ Accept one or more content sources:
 - Gmail message with links (from `gmail-daily-triage`)
 - Slack message with shared link
 
-### Step 2: Extract Content
+### Phase 2: URL Pre-Classification (Orchestrator — lightweight)
 
-For each URL, use `defuddle` to extract clean markdown:
+For each URL, pattern-match to detect content type WITHOUT extraction:
 
-```
-defuddle extract <url>
-```
+| URL Pattern | `detected_type` | Routing |
+|-------------|-----------------|---------|
+| `arxiv.org` | `paper` | Delegate to `paper-review` or `alphaxiv-paper-lookup` directly |
+| `x.com`, `twitter.com` | `tweet` | Delegate to `x-to-slack` directly |
+| `huggingface.co/papers` | `hf_paper` | Delegate to `hf-trending-intelligence` directly |
+| `youtube.com`, `youtu.be` | `video` | → subagent |
+| `github.com` | `github` | → subagent |
+| Known news domains | `news` | → subagent |
+| Blog-like domains/paths | `blog` | → subagent |
+| Everything else | `unknown` | → subagent |
 
-For YouTube URLs, extract transcript. For PDFs, extract text.
+Tweets, papers, and HF papers are routed to their dedicated skills directly by
+the orchestrator — no subagent needed for these since they already have their
+own session-isolated pipelines.
 
-### Step 3: Classify
+### Phase 3: Per-URL Subagent Dispatch (Orchestrator → Task subagents)
 
-Run LLM classification on extracted content:
-- **Content type**: paper / news / tweet / blog / release / video
-- **Topic**: AI infra / K8s / security / market / research / general
-- **Relevance score**: 1-10 (based on alignment with tracked interests)
-- **Urgency**: immediate / daily / weekly
+For each URL that needs subagent processing:
 
-### Step 4: Route to Processing Skill
+1. Read `references/subagent-quality-contract.md`
+2. Spawn `Task(subagent_type="generalPurpose")` with the full quality contract
+   and item-specific data (`url`, `detected_type`, `output_file`, `index`)
+3. Wait for subagent to complete
+4. Read result JSON from `output_file`
+5. Wait 10-15 seconds before dispatching the next subagent (Slack rate limiting)
 
-Based on classification, invoke the appropriate skill:
+### Phase 4: Post-Dispatch Processing (Orchestrator)
 
-| Classification | Action |
-|---------------|--------|
-| Paper, relevance >= 7 | Full `paper-review` pipeline |
-| Paper, relevance 4-6 | Quick `alphaxiv-paper-lookup` summary |
-| Paper, relevance < 4 | Log to `paper-archive`, skip Slack |
-| Tweet | `x-to-slack` full pipeline |
-| News, relevance >= 5 | `defuddle` extract + LLM analysis + Slack thread |
-| News, relevance < 5 | Log only |
+After all subagents complete:
 
-### Step 5: Post to Slack
+1. **Decision routing**: For items with `decision_type` set, invoke `decision-router`
+   - `decision_personal` → `#효정-의사결정`
+   - `decision_team` → `#7층-리더방`
 
-Route processed content to the appropriate Slack channel using the topic classification. Follow the 3-message thread pattern from `x-to-slack`:
+2. **Quality validation**: Check each result's `quality_score`:
+   - `msg2_chars >= 600` (minimum for substantive summary)
+   - `msg3_chars >= 300` (minimum for action items)
+   - `websearch_count >= 2` (mandatory research)
+   - Log warnings for items below thresholds
 
-1. **Header**: Source, title, relevance score
-2. **Summary**: Key points, implications
-3. **Action items**: What this means for the team
-
-### Step 6: Decision Router
-
-After posting, invoke `decision-router` to check if the content requires a decision:
-- Personal decisions → `#효정-의사결정`
-- Team/CTO decisions → `#7층-리더방`
-
-### Step 7: Aggregate Daily Report
-
-At end of day, produce a digest of all processed intel:
+3. **Aggregate daily report**: Produce a digest of all processed intel:
 
 ```
 Daily Intel Digest
@@ -124,6 +172,17 @@ Top Stories:
 2. [News] NVIDIA H200 Production Ramp — Relevance: 8/10
 3. [Tweet] @karpathy on efficient fine-tuning — Relevance: 7/10
 ```
+
+### Subagent Internal Processing (reference only)
+
+Each subagent follows the quality contract in `references/subagent-quality-contract.md`:
+1. Extract content via `defuddle` (or `WebFetch` fallback)
+2. Classify: content_type, topic, relevance_score, urgency
+3. If relevance < 5 → skip (write result with `status: "skipped"`)
+4. Mandatory web research (2-3 queries)
+5. Post 3-message Slack thread to classified channel
+6. Self-check quality gates
+7. Write result JSON to `output_file`
 
 ## Error Handling
 

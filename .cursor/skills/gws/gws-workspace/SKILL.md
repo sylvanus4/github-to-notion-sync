@@ -31,59 +31,45 @@ Pre-built binaries also available on [GitHub Releases](https://github.com/google
 
 ## Authentication
 
-### Plaintext OAuth2 (proven working — recommended)
+### Manual OAuth2 Bypass (REQUIRED — default method)
 
-The most reliable method. Stores credentials as plaintext JSON at `~/.config/gws/credentials.json`.
-This avoids the encrypted credential decryption failures that occur when switching machines or after OS updates.
+The `gws` CLI's built-in encrypted credential store (`credentials.enc`) fails on macOS due to Keychain integration issues. **Always use the manual OAuth2 bypass** which stores plain-text credentials at `~/.config/gws/credentials.json`.
 
-```bash
-gws auth setup      # one-time: creates GCP project, enables APIs, logs in (requires gcloud)
-gws auth login      # subsequent logins with scope selection
-```
-
-Verify authentication:
+**Setup (already configured in `~/.zshrc`):**
 
 ```bash
-gws auth status     # confirm token_valid: true, credential_storage: plaintext
+export GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE="/Users/hanhyojung/.config/gws/credentials.json"
 ```
 
-If `gws auth status` shows `credential_storage: plaintext` and `token_valid: true`, authentication is working correctly.
-
-For unverified apps (testing mode), select individual service scopes:
+**Authenticate or re-authenticate:**
 
 ```bash
-gws auth login --scopes drive,gmail,calendar
+python3 ~/.config/gws/oauth2_manual.py
 ```
 
-### Encrypted Credentials (may fail — see Troubleshooting)
+This script opens a browser for Google OAuth2 consent, captures the authorization code via a local HTTP server, exchanges it for tokens with full scopes (Drive, Gmail, Calendar, Sheets, Docs, Chat), and writes `credentials.json` with `0o600` permissions.
 
-`gws auth login` may store credentials in encrypted form. This can fail with
-`Failed to decrypt credentials` when switching machines, after OS updates, or
-when the keyring backend changes. If encrypted credentials fail, fall back to
-the plaintext method above by running `gws auth logout` and re-authenticating.
-
-### Multiple Accounts
+**After authentication, clean stale caches:**
 
 ```bash
-gws auth login --account work@corp.com
-gws auth login --account personal@gmail.com
-gws auth list
-gws auth default work@corp.com
-gws --account personal@gmail.com drive files list
+rm -f ~/.config/gws/token_cache.json ~/.config/gws/credentials.enc
 ```
 
-### Headless / CI
+**Verify:**
 
 ```bash
-gws auth export --unmasked > credentials.json
-export GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE=/path/to/credentials.json
+gws drive files list 2>&1 | head -3
+gws gmail +triage --max 1 2>&1 | head -3
+gws calendar +agenda --today 2>&1 | head -3
 ```
 
-### Service Account
+> **Note**: `warning: failed to decrypt token cache` may appear — this is non-blocking. The `credentials.json` bypass ensures all commands work.
+
+### Service Account (CI / headless)
 
 ```bash
 export GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE=/path/to/service-account.json
-export GOOGLE_WORKSPACE_CLI_IMPERSONATED_USER=admin@example.com  # for domain-wide delegation
+export GOOGLE_WORKSPACE_CLI_IMPERSONATED_USER=admin@example.com
 ```
 
 ### Pre-obtained Token
@@ -175,7 +161,7 @@ gws schema <service>.<resource>.<method>
 **User says:** "Set up gws"
 
 **Actions:**
-1. Verify `gws` CLI is authenticated (`gws auth status`)
+1. Verify `gws` CLI is authenticated (`gws drive files list 2>&1 | head -3`)
 2. Execute the appropriate `gws` command with required parameters
 3. Confirm the result and report back
 
@@ -184,6 +170,6 @@ gws schema <service>.<resource>.<method>
 **User says:** "The command failed with an authentication error"
 
 **Actions:**
-1. Check auth status: `gws auth status`
-2. Re-authenticate if expired: `gws auth login`
+1. Check auth status: `gws drive files list 2>&1 | head -3` (real API call, not `gws auth status`)
+2. Re-authenticate if expired: `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`
 3. Retry the original command

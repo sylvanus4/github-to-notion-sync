@@ -39,7 +39,7 @@ Find conflict-free calendar slots, invite attendees, and create an agenda from e
 |-------|--------|
 | No common free slots found in 5-day window | Expand search to 10 business days; if still none, report top-3 least-conflict options |
 | Attendee email not recognized by Calendar API | Ask user to confirm the attendee's Google-compatible email address |
-| gws-calendar auth failure | Prompt user to re-authenticate via `gws auth login` |
+| gws-calendar auth failure | Run `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`; verify with `gws calendar +agenda --today` |
 | Ambiguous attendee name (multiple matches) | Present candidates and ask user to select |
 | Meeting duration not specified | Default to 30 minutes; confirm with user before creating |
 

@@ -14,7 +14,7 @@ metadata:
 ---
 # Gmail
 
-> **Prerequisites**: `gws` must be installed and authenticated. See `gws-workspace` skill.
+> **Prerequisites**: `gws` CLI installed + `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` env var set. See `gws-workspace` skill for the manual OAuth2 bypass setup.
 
 ```bash
 gws gmail <resource> <method> [flags]
@@ -205,7 +205,7 @@ gws gmail users settings filters get \
 **User says:** "Send email"
 
 **Actions:**
-1. Verify `gws` CLI is authenticated (`gws auth status`)
+1. Verify `gws` CLI is authenticated (`gws gmail +triage --max 1`)
 2. Execute the appropriate `gws` command with required parameters
 3. Confirm the result and report back
 
@@ -214,13 +214,15 @@ gws gmail users settings filters get \
 **User says:** "The command failed with an authentication error"
 
 **Actions:**
-1. Check auth status: `gws auth status`
-2. Re-authenticate if expired: `gws auth login`
-3. Retry the original command
+1. Verify `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` is set: `echo $GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`
+2. Re-authenticate: `python3 ~/.config/gws/oauth2_manual.py`
+3. Clean stale caches: `rm -f ~/.config/gws/token_cache.json ~/.config/gws/credentials.enc`
+4. Retry the original command
+
 ## Error Handling
 
 | Issue | Resolution |
 |-------|-----------|
-| Authentication error | Run `gws auth status` and re-authenticate if expired |
+| Authentication error | Run `python3 ~/.config/gws/oauth2_manual.py` and clean caches (`rm -f ~/.config/gws/token_cache.json ~/.config/gws/credentials.enc`) |
 | API rate limit | Wait and retry. For bulk operations, add delays between requests |
 | Resource not found | Verify the resource ID/name and check permissions |

@@ -81,6 +81,7 @@ Read each SKILL.md and evaluate against the checklist in [references/audit-check
 5. **Accuracy** — all referenced files/skills actually exist
 6. **Redundancy** — no duplicated content, no redundant fetches
 7. **Content Design Pattern** — classify as Tool Wrapper / Generator / Reviewer / Inversion / Pipeline; verify pattern-specific structural requirements (see [references/anthropic-best-practices.md](references/anthropic-best-practices.md) Section 10)
+8. **Session Separation** — if the skill processes multiple items (batch loops, list iteration, multi-file scans), verify it dispatches each item to an isolated subagent via Task tool. Flag skills that iterate over content items in a single session context without per-item subagent isolation as HIGH severity ("Multi-item processing without session separation — context contamination risk")
 
 For description quality assessment, see [references/frontmatter-patterns.md](references/frontmatter-patterns.md) for good/bad examples and templates.
 

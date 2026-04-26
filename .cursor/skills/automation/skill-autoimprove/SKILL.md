@@ -110,6 +110,7 @@ Fail condition: [What triggers a "no"]
 - Specific enough to be consistent. "Is the text readable?" is too vague. "Are all words spelled correctly with no truncated sentences?" is testable.
 - Not so narrow that the skill games the eval. "Contains fewer than 200 words" will make the skill optimize for brevity at the expense of everything else.
 - 3-6 evals is the sweet spot. More than that and the skill starts parroting eval criteria back instead of actually improving.
+- **Session separation check:** If the target skill processes multiple items (batch loops, list iteration, multi-file scans), include an eval verifying it dispatches each item to an isolated subagent via Task tool. Example: `EVAL N: Session Isolation / Question: Does the skill instruct per-item subagent dispatch for batch processing? / Pass: Skill body contains explicit Task tool dispatch per content item / Fail: Skill iterates over items in a single session context`.
 
 See [references/eval-guide.md](references/eval-guide.md) for detailed examples of good vs bad evals across text, visual, code, and document skills. For this repo’s domain and policy hooks, see [references/eval-criteria.md](references/eval-criteria.md).
 
@@ -211,6 +212,7 @@ This is the core autoresearch loop. Once started, run autonomously until stopped
    - Move a buried instruction higher in the skill (priority = position)
    - Add or improve an example that shows the correct behavior
    - Remove an instruction that causes the skill to over-optimize for one thing at the expense of others
+   - Add session-isolation directive for skills that iterate over multiple items (batch loops, list processing) — instruct the skill to dispatch each item to a separate subagent via Task tool to prevent context contamination
 
    Bad mutations:
    - Rewriting the entire skill from scratch
@@ -220,7 +222,7 @@ This is the core autoresearch loop. Once started, run autonomously until stopped
 
 3. **Make the change.** Edit SKILL.md with ONE targeted mutation.
 
-4. **Run the experiment.** Execute the skill [N] times with the same test inputs.
+4. **Run the experiment.** Execute the skill [N] times with the same test inputs. **Each test input MUST run in an isolated subagent via the Task tool** — never accumulate multiple test runs in the same session context. This prevents context contamination where earlier run outputs bias later runs and inflates apparent quality.
 
 5. **Score it.** Run every output through every eval. Calculate total score.
 

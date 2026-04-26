@@ -215,10 +215,11 @@ Generate an improved version of the skill body. Rules:
 | `add-constraints` | Add missing guardrails, error handling, or edge case instructions based on the feedback. Do not remove existing content. |
 | `simplify` | Remove redundant sentences, merge overlapping instructions, eliminate filler. Reduce character count while preserving all guidance. |
 | `specialize` | Narrow the skill's scope where feedback indicates over-generalization. Make workflow steps more specific. Add concrete examples. |
+| `add-session-isolation` | If the skill iterates over multiple items (batch loops, list processing, multi-file scans), add explicit directives to dispatch each item to a separate subagent via Task tool to prevent context contamination across items. |
 
 ### 4b. Evaluate Variants
 
-Score each variant against the **validation set** using the same LLM-Judge rubric.
+Score each variant against the **validation set** using the same LLM-Judge rubric. **Each variant MUST be evaluated in an isolated subagent via the Task tool** — never accumulate multiple variant evaluations in the same session context. This prevents earlier variant scores from biasing later evaluations through context contamination.
 
 ### 4c. Apply Constraint Gates
 
@@ -232,6 +233,7 @@ Before accepting any variant, it must pass ALL gates:
 | **Trigger preservation** | All baseline trigger keywords still present | Discard variant |
 | **Boundary preservation** | All baseline "Do NOT use" phrases still present | Discard variant |
 | **Section structure** | H2 section count ≥ baseline H2 count × 0.5 | Discard variant |
+| **Session isolation** | If skill processes multiple items, variant must contain per-item subagent dispatch directive (Task tool) | Warn (non-blocking) |
 
 Log constraint failures in `changelog.md` with the specific gate that failed.
 

@@ -178,7 +178,7 @@ Email sending and meeting scheduling NEVER auto-execute (safety constraint).
 
 Follow the protocol in `axis-dispatcher/references/failure-alerting.md`.
 
-Each phase runs independently. If email triage fails (e.g., gws auth issue),
+Each phase runs independently. If email triage fails (e.g., gws auth issue — run `python ~/.config/gws/oauth2_manual.py`),
 calendar briefing still runs. Failed phases are marked in the morning brief
 with the error context.
 

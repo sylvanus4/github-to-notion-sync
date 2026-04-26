@@ -93,29 +93,21 @@ gws gmail users messages modify \
 
 #### Category C -- bespin_news@bespinglobal.com
 
+**Delegate to `bespin-news-digest` skill.** Do NOT process articles inline.
+
 1. Fetch full message body: `gws gmail users messages get --params '{"userId": "me", "id": "MSG_ID"}'`
-2. Extract all URLs from the HTML body (filter out unsubscribe/tracking links)
-3. For each article URL, use `cursor-ide-browser` MCP tools to fetch content:
+2. Save the raw email body to a temp file for handoff
+3. Invoke `bespin-news-digest` which will:
+   - Extract article URLs from the email body
+   - Process each article in an isolated Task subagent (session-per-article)
+   - Generate the DOCX, upload to Drive, and post to Slack
+4. Record the `bespin-news-digest` outcome in the triage report
 
-```
-browser_navigate → URL
-browser_snapshot → extract article text
-```
+**Why delegate**: Processing N articles (5-15) with WebSearch + Slack posting per article
+exhausts the triage agent's context window. `bespin-news-digest` uses per-article subagents
+with fresh context for each, producing consistent quality regardless of article count.
 
-If browser tools are unavailable, fall back to `WebFetch` tool.
-
-4. Summarize each article in 2-3 sentences (Korean)
-5. Generate an "AI/GPU Cloud Insights" analysis section covering:
-   - Market trends relevant to AI infrastructure
-   - Competitor moves (cloud providers, GPU vendors)
-   - Technology shifts (new models, hardware, frameworks)
-   - Customer pain points and opportunities for ThakiCloud
-6. Compile into `/tmp/bespin-news-YYYY-MM-DD.docx` using `anthropic-docx` skill:
-   - Title: "Bespin News Digest - YYYY-MM-DD"
-   - Per-article section: title, source URL, 2-3 sentence summary
-   - Final section: "AI/GPU Cloud 핵심 인사이트" with 3-5 actionable bullet points
-
-**Output**: article summaries (for Slack thread), docx path, insight bullets
+**Output**: delegation status (success/failure), bespin-news-digest output path
 
 #### Category D -- Company Colleague Emails
 
@@ -249,10 +241,10 @@ Actions:
 
 | Situation | Action |
 |-----------|--------|
-| gws auth expired | Prompt: `gws auth login -s gmail` |
+| gws auth expired | Run `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`; verify with `gws gmail +triage --max 1` |
 | No emails yesterday | Report "받은편지함이 비어 있습니다" |
 | Playwright URL timeout | Skip article, note in digest as "[접속 불가]" |
 | Attachment download fails | Note in summary, continue with remaining |
 | Label creation fails | Use existing similar label or report error |
 | Filter already exists | Skip creation, note in report |
-| Filter creation 403 (insufficient scopes) | Prompt: `gws auth login -s gmail,gmail.settings.basic` -- filter creation requires the `gmail.settings.basic` scope beyond the standard `gmail.modify` scope |
+| Filter creation 403 (insufficient scopes) | Run `python ~/.config/gws/oauth2_manual.py` (full scope 포함) then `rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null` -- oauth2_manual.py includes all required scopes |

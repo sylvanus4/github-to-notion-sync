@@ -102,294 +102,76 @@ Before posting, read `outputs/twitter/{screen_name}/tweets.json` and check each 
 - For tweets where `is_thread === true`, load the `thread` array and `thread_text` field. These contain the full self-reply chain (oldest-first) reconstructed by the pipeline.
 - The `thread_text` field contains the combined text of all tweets in the thread, joined by `\n\n---\n\n`.
 
-### Phase 3: Post via x-to-slack (FULL workflow per tweet)
+### Phase 3: Post via x-to-slack (Subagent-per-Tweet Dispatch)
 
 **CRITICAL**: Each tweet MUST go through the complete x-to-slack workflow. Do NOT shortcut or summarize from raw tweet text alone.
 
-#### EXECUTION CONSTRAINT (CRITICAL — READ BEFORE PROCEEDING)
+#### Architecture: Fat Subagent Prompt Pattern
 
-Phase 3 MUST be executed by the MAIN agent — NOT delegated to subagents via
-the Task tool. Subagents produce drastically lower quality because they lack:
-- The full message templates and formatting rules
-- Quality gate context and character count minimums
-- WebSearch depth and follow-up capability
-- Access to the reference examples that define expected output quality
+Each tweet is processed by a **dedicated Task subagent** with a fresh context window.
+The orchestrator embeds the full quality contract (templates, formatting rules,
+quality gates, examples) into each subagent prompt so quality is identical to
+main-agent execution — without context window exhaustion.
 
-If you find yourself wanting to use the Task tool to "process tweets in parallel"
-or "handle each tweet via subagent" — STOP. This is the #1 cause of quality
-degradation. Process each tweet yourself, sequentially, in the main context.
+**Why subagents work now:**
+- Each subagent receives the **full quality contract** from
+  [references/subagent-quality-contract.md](references/subagent-quality-contract.md)
+- Each subagent gets a **fresh context window** — no degradation from prior tweets
+- No batch limit needed — process all unposted tweets in one invocation
+- File-first persistence: subagent writes results to disk, orchestrator reads them
 
-**Prohibited patterns:**
-- `Task tool` with prompt "process this tweet" or "post tweet to Slack"
-- Batching multiple tweets into a single subagent prompt
-- Summarizing tweet content without FxTwitter enrichment + WebSearch
-- Producing Message 2 shorter than 800 characters or Message 3 shorter than 400 characters
+#### Dispatch Loop
 
-#### BATCH LIMIT
+For each unposted tweet (newest first, excluding `skip_reason: "thread_member"`):
 
-Process a maximum of **3 tweets per invocation**. This prevents context window
-exhaustion which causes quality degradation in later tweets.
+1. **Read** the quality contract file: `references/subagent-quality-contract.md`
+2. **Prepare** tweet-specific input data (URL, FxTwitter URL, classified channel,
+   channel_id, thread info, media info, output file path)
+3. **Spawn** `Task(subagent_type="generalPurpose")` with:
+   - The full quality contract text (embedded verbatim in the prompt)
+   - Tweet-specific data as structured input
+   - Output file path: `outputs/twitter/{screen_name}/results/tweet-{id}.json`
+4. **Wait** for subagent completion
+5. **Read** the result JSON from disk
+6. **Validate** quality: check `quality_score.msg2_chars >= 800` and `msg3_chars >= 400`
+   - If below thresholds, log a warning (do not re-dispatch — the fresh context
+     means the subagent had optimal conditions)
+7. **Update** `tweets.json` with posting status (Step 3f)
+8. **Save** intelligence artifact (Step 3f-intel)
+9. **Wait** 10-15 seconds before next tweet (rate limiting)
 
-- If more than 3 unposted tweets exist, process the 3 newest first
-- After completing 3 tweets, report: "3/N tweets processed. Re-invoke
-  `/twitter-timeline-to-slack` to continue with the next batch."
-- Always pass `--limit 3` to `run_pipeline.js` unless the user explicitly
-  requests more via `--limit N`
-- The user can override with `--limit N` but quality may degrade beyond 5
+#### Subagent Return Contract
+
+Each subagent writes a JSON file to the specified output path:
+
+```json
+{
+  "status": "completed|failed|skipped",
+  "file": "outputs/twitter/.../tweet-{id}.json",
+  "summary": "one-line Korean outcome description",
+  "slack_ts": "message_ts from Message 1 (if posted)",
+  "quality_score": {
+    "msg1_chars": 150,
+    "msg2_chars": 1200,
+    "msg3_chars": 600,
+    "websearch_count": 3,
+    "media_uploaded": true
+  },
+  "tweet_url": "<original tweet URL>",
+  "channel": "<channel name>",
+  "posted_at": "<ISO timestamp>"
+}
+```
 
 The manifest from Phase 2 provides pre-computed fields for each tweet:
 - `has_media` / `media_type` / `media_url` — pre-extracted best media URL from tweets.json
 - `classified_channel` / `classified_topic` — from Phase 2 classification
 - `is_thread` / `thread_text` / `thread_count` — thread metadata
 
-For each unposted tweet (newest first, excluding `skip_reason: "thread_member"`), execute ALL of the following steps:
+### Orchestrator Post-Dispatch Responsibilities
 
-#### Step 3a: FxTwitter API Enrichment
-
-Convert the tweet URL by replacing `x.com` with `api.fxtwitter.com`. Use `WebFetch` to retrieve the full JSON response.
-
-Extract from the response:
-- `tweet.text` -- full tweet content
-- `tweet.author.name` + `tweet.author.screen_name` -- author identity
-- `tweet.author.description` -- author bio/context (include in summary)
-- `tweet.likes`, `tweet.retweets`, `tweet.views` -- engagement metrics
-- `tweet.quote` -- quoted tweet (if present, extract its text, author, and key data)
-- `tweet.media` -- attached images or videos
-- `tweet.created_at` -- timestamp
-
-**Thread enrichment**: If `is_thread === true` in tweets.json, also fetch the ROOT tweet URL (`thread[0].url` from the DB) via FxTwitter to get the root tweet's engagement stats and author info. Use the root tweet's engagement metrics (likes, retweets, views) as the primary stats since the root typically has higher engagement. Keep the full `thread_text` from the DB as the primary content source.
-
-If FxTwitter returns `code !== 200`, log the error and skip this tweet.
-
-#### Step 3b: Web Research (2-3 queries per tweet)
-
-Based on the enriched tweet content (use `thread_text` for thread tweets, single `tweet.text` otherwise):
-1. Identify 2-3 key topics, technologies, people, or entities mentioned across the full content
-2. Run `WebSearch` for each to gather:
-   - Background context
-   - Recent developments
-   - Broader implications
-3. Collect relevant URLs for the "참고 링크" section
-
-This step is **mandatory** -- never skip research. Even for simple tweets, at least 2 searches provide valuable context. For thread tweets, research should cover topics from ALL tweets in the thread, not just the first one.
-
-#### Step 3c: Topic Classification for Message 3
-
-Classify whether the tweet topic relates to **AI GPU Cloud** based on:
-- Mentions GPU, CUDA, NVIDIA, AMD ROCm, TPU, NPU, or AI accelerators
-- Discusses cloud infrastructure (AWS, GCP, Azure) in an AI/ML context
-- Covers ML training/inference infrastructure, model serving, or AI platform services
-- References GPU cluster management, orchestration (Kubernetes for AI), or MLOps
-- Discusses AI chip market, GPU supply/demand, or cloud GPU pricing
-
-If any criterion matches strongly → use **Message 3A** template.
-If none match → use **Message 3B** template (topic-specific insights with action items).
-
-#### Step 3d: Find Slack Channel
-
-Use the classified channel from Phase 2. Look up the `channel_id` from `outputs/twitter/slack-channels.json`.
-
-If the channel is not in the local registry, search via MCP:
-- Server: `plugin-slack-slack`
-- Tool: `slack_search_channels`
-- Query: the channel name
-
-#### Step 3e: Post 3-Message Slack Thread
-
-All messages use Slack mrkdwn format. Rules:
-- Use `*bold*` (single asterisk), `_italic_` (underscore)
-- Do NOT use `**double asterisks**` or `## headers`
-- Write content in Korean
-- Limit each message to under 4000 characters
-
-FORMATTING RULES — VIOLATING ANY OF THESE IS A QUALITY FAILURE:
-
-1. NO decorative emojis in section headers or body text.
-   - ALLOWED emojis (exhaustive list): ❤️ 🔁 👀 📎 1️⃣ 2️⃣ 3️⃣ (engagement stats and thread numbering only)
-     + ONE topic emoji per Message 1 title (`:robot_face:`, `:books:`, `:mag:`, `:newspaper:`, `:bulb:`, `:chart_with_upwards_trend:`, `:writing_hand:`, `:cloud:`, `:memo:`)
-   - FORBIDDEN: 🔍 💡 🚀 📊 🎯 ✅ ⚡ 🔗 📌 💰 🏆 or ANY other decorative emoji
-2. ALL body text MUST be in Korean. English is allowed ONLY for:
-   - Proper nouns (product names, person names, company names)
-   - Technical terms with no standard Korean translation
-   - URLs and code snippets
-3. Section headers use *bold text* ONLY — no emojis before or after.
-   Correct: *핵심 내용*
-   Wrong:   🔍 *핵심 내용* or 💡 Key Insights
-4. Do NOT invent new section headers. Use ONLY the headers defined in the template:
-   *Tweet 요약*, *핵심 내용*, *인용 트윗*, *추가 조사 결과*, *참고 링크*,
-   *스레드 전문*, *AI GPU Cloud 서비스 인사이트*, *핵심 시사점*, *적용 가능성*,
-   *Action Items*, *{주제} 인사이트*
-5. Do NOT add decorative separators (═══, ───, *** etc.)
-6. Media upload is MANDATORY — if the tweet has photos or videos, upload them. HARD FAILURE if skipped.
-
-**Message 1: Title (Channel Post)**
-
-```
-*{topic_emoji} {Subject} — {Korean description}*
-
-{One-line Korean summary with key features, numbers, or core insight}
-{source URL}
-```
-
-CRITICAL: Capture the `message_ts` from the response for thread replies.
-
-**Media Upload (between Message 1 and Message 2) — MANDATORY CHECK**
-
-After posting Message 1 and capturing `message_ts`, you **MUST** check for media. The manifest includes pre-extracted media info for each tweet:
-
-- `has_media` (boolean) — whether the tweet contains any media
-- `media_type` — `"video"` or `"photo"`
-- `media_url` — direct download URL (highest-bitrate mp4 for video, original jpg for photo)
-
-**Decision tree:**
-
-1. **If `has_media === true` in the manifest** → use `media_url` directly.
-2. **If manifest `media_url` is null but FxTwitter response has `tweet.media`** → extract manually:
-   - Videos: from `tweet.media.videos[0].formats`, pick the entry with the highest `bitrate` where `container === "mp4"`. Fallback: `tweet.media.videos[0].url`.
-   - Photos: use `tweet.media.photos[0].url`.
-3. **If neither source has media** → skip to Message 2.
-
-Run the upload script via Shell:
-
-```bash
-cd scripts/twitter && node upload_media_to_slack.js \
-  --url "<media_url>" \
-  --channel "<channel_id>" \
-  --thread-ts "<message_ts>" \
-  --title "<author_screen_name> - media"
-```
-
-If the upload fails, log the error and **continue** with Message 2. Media upload failure must NOT block the rest of the thread.
-
-**CRITICAL**: Do NOT skip this step. Every tweet with `has_media: true` MUST have a media upload attempt. This is a quality gate requirement.
-
-**Message 2: Detailed Summary (Thread Reply)**
-
-Send with `thread_ts` from Message 1.
-
-Use the **thread variant** when `is_thread === true`, otherwise use the **single tweet variant**.
-
-**Single tweet variant** (`is_thread === false`):
-
-```
-*Tweet 요약*
-- 작성자: @{screen_name} ({name}) — {author bio/context}
-- 반응: ❤️ {likes} | 🔁 {retweets} | 👀 {views}
-- 작성일: {created_at}
-
-*핵심 내용*
-{Tweet 내용을 한국어로 상세 요약. 원문이 영어인 경우 번역 포함.
-구체적 수치, 기술명, 제품명 등을 빠짐없이 포함.}
-
-{인용 트윗이 있는 경우:}
-*인용 트윗 (@{quote.author.screen_name} — {quote author context})*
-{quote.text를 한국어로 상세 요약. 구체적 수치와 핵심 주장 포함.}
-
-*추가 조사 결과*
-{WebSearch로 수집한 관련 정보를 상세 bullet point로 정리}
-- *{토픽1}*: {배경 설명과 최신 동향}
-- *{토픽2}*: {기술적 의미와 영향}
-- *{토픽3}*: {산업 맥락과 시사점}
-
-*참고 링크*
-- <{url1}|{title1}>
-- <{url2}|{title2}>
-- <{url3}|{title3}>
-```
-
-**BAD output (subagent quality — DO NOT produce this):**
-```
-원문 요약 (@username)
-개발자가 X를 시도했다는 내용. 조회 약 4만.
-```
-```
-리서치 컨텍스트
-일반적인 배경 설명. 별도 검증 필요.
-```
-
-This is what subagent delegation and context pressure produce: no author bio,
-no emoji-formatted engagement stats, no structured sections, no WebSearch findings,
-no reference links, no analytical depth. This is **never acceptable**.
-
-**GOOD output (expected quality — ALWAYS produce this level):**
-See Example 2 in the Examples section below for a complete reference. Every post
-MUST match that level of detail: author bio, emoji stats, 핵심 내용 with 3+ sentences,
-추가 조사 결과 with specific data points from WebSearch, 2+ 참고 링크, and
-a topic-specific Message 3 with concrete Action Items.
-
-**Thread variant** (`is_thread === true`):
-
-Use the `thread` array from tweets.json to show all tweets in the thread numbered sequentially. Use the ROOT tweet's engagement stats (first tweet in chain typically has higher engagement).
-
-```
-*Tweet 요약*
-- 작성자: @{screen_name} ({name}) — {author bio/context}
-- 반응: ❤️ {root_likes} | 🔁 {root_retweets} | 👀 {root_views} _(루트 트윗 기준)_
-- 작성일: {created_at}
-- 📎 스레드: {N}개 트윗
-
-*스레드 전문*
-1️⃣ {thread[0].text}
-
-2️⃣ {thread[1].text}
-
-{... continue for each tweet in thread ...}
-
-*핵심 내용*
-{스레드 전체 내용을 한국어로 종합 분석. 개별 트윗이 아닌 스레드 전체를
-하나의 서사로 요약. 원문이 영어인 경우 번역 포함.
-구체적 수치, 기술명, 제품명 등을 빠짐없이 포함.}
-
-{인용 트윗이 있는 경우:}
-*인용 트윗 (@{quote.author.screen_name} — {quote author context})*
-{quote.text를 한국어로 상세 요약. 구체적 수치와 핵심 주장 포함.}
-
-*추가 조사 결과*
-{WebSearch로 수집한 관련 정보를 상세 bullet point로 정리.
-스레드 전체 내용을 기반으로 리서치.}
-- *{토픽1}*: {배경 설명과 최신 동향}
-- *{토픽2}*: {기술적 의미와 영향}
-- *{토픽3}*: {산업 맥락과 시사점}
-
-*참고 링크*
-- <{url1}|{title1}>
-- <{url2}|{title2}>
-- <{url3}|{title3}>
-```
-
-**Message 3A: AI GPU Cloud related (Thread Reply)**
-
-```
-*AI GPU Cloud 서비스 인사이트*
-
-{이 트윗 주제가 AI GPU Cloud / AI 플랫폼 서비스에 어떤 의미를 가지는지 분석}
-
-*핵심 시사점*
-- {GPU 클라우드 인프라 관점에서의 인사이트}
-- {AI 플랫폼 서비스에 미칠 영향}
-- {팀이 취해야 할 액션 또는 고려사항}
-
-*적용 가능성*
-{구체적으로 우리 서비스에 어떻게 적용하거나 대응할 수 있는지}
-```
-
-**Message 3B: Topic-specific (Thread Reply)**
-
-```
-*{주제} 인사이트*
-
-{이 콘텐츠의 주제와 관련된 핵심 분석}
-
-*핵심 시사점*
-- {해당 분야의 트렌드 및 의미}
-- {기술적/비즈니스적 영향}
-- {주목할 점}
-
-*Action Items*
-- {팀에서 검토하거나 논의할 사항}
-- {추가 조사가 필요한 영역}
-- {적용 또는 대응 방안}
-```
+After each subagent completes and writes its result JSON to disk, the orchestrator
+performs the following steps before dispatching the next tweet.
 
 #### Step 3f: Update Local DB
 
@@ -422,65 +204,30 @@ python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
 
 If the research repo is not found, log a warning and skip (graceful degradation). The Slack post is already complete.
 
-#### Step 3f-verify: Quality Self-Check (MANDATORY)
+### Subagent Internal Processing (reference only)
 
-Before proceeding to the next tweet, verify the posted thread against ALL
-quality gate items. If ANY item below is missing, you MUST edit or re-post
-the deficient message:
+Each Task subagent autonomously performs the full per-tweet workflow.
+The authoritative specification is in [references/subagent-quality-contract.md](references/subagent-quality-contract.md).
 
-- [ ] Message 1 has bold Korean title with topic emoji, one-line summary, and source URL (no `>>>`)
-- [ ] Message 2 includes author bio context (not just @handle)
-- [ ] Message 2 includes engagement stats with ❤️/🔁/👀 emoji formatting
-- [ ] Message 2 "핵심 내용" section has 3+ sentences of substantive analysis
-- [ ] Message 2 "추가 조사 결과" has specific findings from 2+ WebSearches
-      (not generic background — cite specific data points, dates, numbers)
-- [ ] Message 2 "참고 링크" has 2+ URLs from WebSearch results
-- [ ] Message 3 has topic-specific analysis (not generic filler like
-      "이 콘텐츠는 흥미롭습니다")
-- [ ] Message 3 Action Items are concrete and actionable
-- [ ] Media upload was attempted if `has_media === true`
-
-**RED FLAG**: If your Message 2 is shorter than 800 characters or Message 3
-is shorter than 400 characters, the output is almost certainly too shallow.
-Go back and add depth — re-run WebSearch if needed, expand the analysis,
-add more specific data points.
-
-See [references/quality-enforcement.md](references/quality-enforcement.md) for
-the full quality gate with BAD vs GOOD output examples.
-
-#### Step 3g: Decision Extraction (skip if `skip-decisions`)
-
-Evaluate whether the tweet warrants a DECISION post. Default to NOT posting — only post when the decision signal is clear and actionable.
-
-See [references/decision-template.md](references/decision-template.md) for detection criteria, the DECISION post template, and channel routing rules.
-
-#### Step 3h: Long-Form Detection → x-to-notion (automatic)
-
-The x-to-slack workflow (Step 5) automatically detects long-form content and invokes x-to-notion. This step is inherited from x-to-slack — no additional logic is needed in twitter-timeline-to-slack.
-
-**Detection criteria** (ANY match triggers Notion publishing):
-
-| Criterion | Threshold |
-|---|---|
-| Tweet text length | > 500 characters |
-| X Article | `tweet.article` exists in FxTwitter response |
-| Thread | `is_thread === true` with 3+ tweets in thread array |
-| Quote + body combined | Total text (tweet + quote) > 400 characters |
-
-When a long-form tweet is detected:
-1. x-to-notion runs in the background after Slack posting
-2. A 4th Slack thread reply is added with the Notion page link
-3. If x-to-notion fails, the Slack thread remains intact — no failure propagation
-
-**Skip flag**: Pass `skip-notion` to the pipeline to disable x-to-notion for all tweets in the batch.
-
-#### Step 3i: Rate Limiting
-
-Wait 10-15 seconds before processing the next tweet to avoid Slack rate limits.
+Summary of subagent responsibilities:
+- **FxTwitter API enrichment**: Fetch full tweet data; for threads, also fetch root tweet
+- **Web Research**: 2-3 mandatory WebSearch queries per tweet
+- **Topic classification**: Determine Message 3 variant (AI GPU Cloud vs topic-specific)
+- **Slack channel lookup**: Resolve channel_id from classified channel name
+- **3-message Slack thread**: Post Message 1 (title), media upload, Message 2 (analysis), Message 3 (insights)
+- **Quality self-check**: Verify character minimums (msg2 >= 800, msg3 >= 400) and section completeness
+- **Decision extraction**: Post to decision channels when warranted (skip if `skip-decisions`)
+- **Long-form detection**: Auto-invoke x-to-notion for long content (skip if `skip-notion`)
 
 ### Quality Gate
 
-The authoritative quality checklist is in **Step 3f-verify** above. For the full quality gate with BAD vs GOOD output examples and thread-specific checks, see [references/quality-enforcement.md](references/quality-enforcement.md).
+Quality enforcement is embedded in each subagent prompt via the quality contract.
+The orchestrator validates returned `quality_score` metrics after each subagent completes:
+- `msg2_chars >= 800` and `msg3_chars >= 400` — if below, log a warning
+- `websearch_count >= 2` — if below, log a warning
+
+See [references/quality-enforcement.md](references/quality-enforcement.md) for
+BAD vs GOOD output examples.
 
 ### Phase 4: Local Storage
 
@@ -511,14 +258,14 @@ Phase 2.5: run_pipeline.js deduplicates thread members
            → only primary tweet (longest chain) kept per thread
 
 Phase 3:   For EACH unposted tweet (excluding thread members):
-           → Read thread data from tweets.json (is_thread, thread, thread_text)
-           → WebFetch FxTwitter API (enrichment; fetch root tweet too for threads)
-           → WebSearch x 2-3 (research based on thread_text for threads)
-           → Slack Message 1 (title post)
-           → Media upload if photo/video exists (upload_media_to_slack.js)
-           → Slack Message 2 (thread variant if is_thread) + Message 3 (thread replies)
-           → Update tweets.json (status)
-           → Wait 10-15s (rate limit)
+           → Orchestrator reads subagent-quality-contract.md
+           → Orchestrator spawns Task subagent with fat prompt + tweet data
+           → Subagent performs full workflow autonomously (fresh context):
+               FxTwitter enrichment → WebSearch → 3-message Slack thread → quality self-check
+           → Subagent writes result JSON to outputs/twitter/{screen_name}/
+           → Orchestrator reads result file, validates quality_score
+           → Orchestrator updates tweets.json (status, slack_ts)
+           → Orchestrator waits 10-15s (rate limit) before next subagent
 ```
 
 ### Script Commands
@@ -549,12 +296,12 @@ Actions:
 1. Run `node scripts/twitter/run_pipeline.js --fetch-only` to fetch tweets
 2. Read `outputs/twitter/hjguyhan/tweets.json` for unposted tweets
 3. Classify each tweet by topic → determine target channel
-4. For each tweet, execute Phase 3 (full x-to-slack workflow):
-   a. WebFetch FxTwitter API for enriched data
-   b. WebSearch 2-3 queries for context
-   c. Post 3-message Slack thread with full templates
-5. Update tweets.json with posting status after each tweet
-6. Wait 10-15s between tweets
+4. Read `references/subagent-quality-contract.md` for subagent prompt template
+5. For each unposted tweet, dispatch a Task subagent with the fat prompt + tweet data
+   → Subagent autonomously: FxTwitter enrichment → WebSearch → 3-message Slack thread
+   → Subagent writes result JSON to disk
+6. Orchestrator reads each result file, validates quality_score, updates tweets.json
+7. Wait 10-15s between subagent dispatches (rate limiting)
 
 ### Example 2: Expected output quality
 
@@ -702,7 +449,7 @@ Actions:
 ## Composed Skills
 
 This skill orchestrates:
-- **x-to-slack** -- Core tweet → Slack posting pipeline (FxTwitter enrichment + WebSearch + 3-message thread). Phase 3 follows its FULL workflow for each tweet.
+- **x-to-slack** -- Quality contract reference for per-tweet processing. Each tweet is dispatched to a Task subagent that follows the x-to-slack workflow autonomously with a fresh context window.
 - **scrapling** or **agent-browser** -- Fallback for tweet fetching if twittxr fails
 
 ## Decision Channels
@@ -725,6 +472,13 @@ Step 3g uses these channels. See [references/decision-template.md](references/de
 ## File Structure
 
 ```
+.cursor/skills/pipeline/twitter-timeline-to-slack/
+  SKILL.md                          # This orchestrator skill
+  references/
+    subagent-quality-contract.md    # Fat subagent prompt template (templates, rules, examples)
+    quality-enforcement.md          # Legacy quality reference (absorbed into subagent contract)
+    decision-template.md            # Decision channel routing rules
+
 scripts/twitter/
   fetch_timeline.js           # Tweet fetcher (twittxr + FxTwitter fallback)
   classify_tweet.js           # Topic classifier with keyword rules
@@ -737,6 +491,7 @@ outputs/twitter/
   slack-channels.json     # Channel ID registry
   {screen_name}/
     tweets.json           # Main tweet DB with posting status
+    results/              # Per-tweet subagent result JSONs
     archive/              # Daily snapshots
 ```
 

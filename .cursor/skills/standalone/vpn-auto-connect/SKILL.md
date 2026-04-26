@@ -107,8 +107,8 @@ Request had insufficient authentication scopes.
 ```
 
 ```bash
-gws auth logout
-gws auth login  # gmail.readonly scope 포함 선택
+python ~/.config/gws/oauth2_manual.py   # full scope 재인증
+rm ~/.config/gws/token_cache.json ~/.config/gws/credentials.enc 2>/dev/null
 ```
 
 ### 인증 코드를 찾을 수 없음

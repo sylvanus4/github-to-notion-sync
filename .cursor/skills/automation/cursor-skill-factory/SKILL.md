@@ -59,6 +59,10 @@ Passively monitor the current session or a batch of recent transcripts for:
 3. **Git history**: Repeated commit patterns via `git log --oneline -50`
 4. **Hook logs**: PreToolUse/PostToolUse hook events if ecc-continuous-learning is active
 
+### Session Separation for Transcript Analysis
+
+When analyzing multiple transcripts from the archive, **dispatch each transcript to an isolated subagent via the Task tool**. This prevents earlier transcript patterns from biasing pattern detection in later transcripts. Aggregate pattern evidence from subagent results after all transcripts are processed independently.
+
 ### Evidence Collection Format
 
 For each detected pattern, record:
@@ -184,6 +188,7 @@ Create a production-ready `SKILL.md` following Cursor conventions.
    - [ ] Workflow has numbered steps
    - [ ] No duplicate capability with existing skills
    - [ ] File size < 600 lines
+   - [ ] If skill processes multiple items (batch loops, list iteration, multi-file scans), includes explicit per-item subagent dispatch via Task tool to prevent context contamination
 
 ### File Creation
 

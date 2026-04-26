@@ -119,7 +119,7 @@ Proposed Meetings:
 
 | Error | Action |
 |-------|--------|
-| Calendar API auth failure | Prompt user to re-authenticate via `gws auth login`; skip calendar steps and output text-only proposals |
+| Calendar API auth failure | Re-authenticate: `python3 ~/.config/gws/oauth2_manual.py` + `rm -f ~/.config/gws/token_cache.json ~/.config/gws/credentials.enc`; skip calendar steps and output text-only proposals |
 | No reviewable PRs/issues found | Report "no items requiring discussion" and exit cleanly |
 | Attendee email not found | Log warning with GitHub username; propose meeting without that attendee and note in report |
 | All time slots occupied | Suggest next available day; offer to send async summary instead of meeting |

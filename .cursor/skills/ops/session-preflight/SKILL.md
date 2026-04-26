@@ -49,7 +49,7 @@ Check presence (not values) of required environment variables:
 | `SLACK_USER_TOKEN` | Slack thread cleanup |
 | `NOTION_API_KEY` | Notion MCP |
 | `HF_TOKEN` | HuggingFace Hub |
-| `GOOGLE_APPLICATION_CREDENTIALS` or gws auth | Google Workspace |
+| `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` or `GOOGLE_APPLICATION_CREDENTIALS` | Google Workspace (verify: `gws drive files list 2>&1 | head -3`) |
 
 Report: present / missing / expired (if checkable).
 

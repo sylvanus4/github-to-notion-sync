@@ -45,7 +45,7 @@ Generate a consolidated Korean intelligence report from the day's KB collection 
 - Slack MCP server connected
 - `outputs/kb-daily-build/{DATE}/collection-summary.md` exists
 - `knowledge-bases/*/wiki/` directories contain compiled articles
-- `gws` CLI installed and authenticated (`gws auth status` passes) — for Google Drive upload
+- `gws` CLI installed and authenticated (`GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` env var set; verify with `gws drive files list 2>&1 | head -3`) — for Google Drive upload
 - `knowledge-bases/_config/drive-upload.yaml` with `kb_report_folder_id` — for Google Drive upload
 - `anthropic-docx` skill available — for DOCX generation
 

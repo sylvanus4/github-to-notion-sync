@@ -1,10 +1,11 @@
 ---
 name: skill-upgrade-validator
 description: >-
-  Validate SKILL.md files against the 12 prompt engineering patterns defined in
-  skill-prompt-patterns.mdc. Scores compliance (0-12), generates upgrade
+  Validate SKILL.md files against the 13 prompt engineering patterns defined in
+  skill-prompt-patterns.mdc. Scores compliance (0-13), generates upgrade
   suggestions, and produces a summary report. Patterns 11-12 cover YAML trigger
   quality (Anthropic 5-component guide) and failure mode prevention (5 failure modes).
+  Pattern 13 covers session separation for multi-item processing skills.
   Use when the user asks to "validate skill patterns", "check skill compliance",
   "score skill patterns", "pattern coverage check", "skill pattern audit",
   "upgrade validator", "skill-upgrade-validator", "trigger quality check",
@@ -22,7 +23,7 @@ metadata:
 
 # Skill Upgrade Validator
 
-Validate SKILL.md files against the 12 prompt engineering patterns from `skill-prompt-patterns.mdc`. Produces a compliance score (0-12) per skill and actionable upgrade suggestions. Patterns 11-12 cover YAML trigger quality engineering and Anthropic's 5 failure mode prevention.
+Validate SKILL.md files against the 13 prompt engineering patterns from `skill-prompt-patterns.mdc`. Produces a compliance score (0-13) per skill and actionable upgrade suggestions. Patterns 11-12 cover YAML trigger quality engineering and Anthropic's 5 failure mode prevention. Pattern 13 covers session separation for multi-item processing skills.
 
 ## Input
 
@@ -49,6 +50,7 @@ Each pattern maps to specific text markers in a SKILL.md file.
 | 10 | Progressive Disclosure via Filesystem | Skill directory contains `references/`, `scripts/`, `assets/`, or `config.json`; OR SKILL.md references reading from companion files (e.g., "read references/", "see scripts/", "load config.json") |
 | 11 | Trigger Quality Engineering | YAML `description` contains: (a) 5+ distinct trigger phrases (count comma/quote-separated phrases in description), (b) at least one `Do NOT use for` clause, (c) directive language ("ALWAYS invoke", "Use when the user asks to", "Use when") — must satisfy all 3. Partial credit (0.5) if only 2 of 3 are met. |
 | 12 | Failure Mode Prevention | Contains at least 2 of: (a) `## Gotchas` or `## Known Issues` section (reuse Pattern 9 signal), (b) `## Constraints` with freedom level mention ("high freedom", "medium freedom", "low freedom") or explicit scope boundaries, (c) output format specification (`## Output Format` or inline format examples), (d) `disable-model-invocation: true` for side-effect skills, (e) explicit `## Edge Cases` or edge case handling section. Partial credit (0.5) if only 1 of the above is met. |
+| 13 | Session Separation | If the skill processes multiple items (batch loops, list iteration, multi-file scans, multi-transcript mining), it must contain explicit per-item subagent dispatch directives (e.g., "dispatch each item to an isolated subagent via Task tool", "each transcript MUST be processed in an isolated subagent"). Detected by: (a) presence of batch/loop/iteration language AND (b) subagent/Task tool isolation directive. **N/A** if the skill does not process multiple items. Partial credit (0.5) if the skill has batch processing but only mentions parallelism without explicit per-item isolation. |
 
 ## Tier Classification
 
@@ -105,6 +107,7 @@ For each absent pattern in a skill, generate a specific suggestion:
 | 10 (Progressive Disclosure) | "Move large reference material to `references/*.md`, add executable helpers to `scripts/`, and create `config.json` for user settings" |
 | 11 (Trigger Quality) | "Ensure YAML `description` includes 5-7+ trigger phrases with directive language ('ALWAYS invoke', 'Use when'), at least one `Do NOT use for...` negative boundary naming alternative skills, and third-person narration" |
 | 12 (Failure Mode Prevention) | "Add `## Constraints` with freedom level (High/Medium/Low), `## Output Format` with explicit structure, `## Gotchas` with edge case handling. Side-effect skills MUST use `disable-model-invocation: true` equivalent and Low freedom" |
+| 13 (Session Separation) | "If the skill iterates over multiple items (batch loops, list processing, multi-file scans, multi-transcript mining), add explicit per-item subagent dispatch via Task tool. Example: 'Each item MUST be processed in an isolated subagent via the Task tool — never accumulate multiple items in the same session context.'" |
 
 Only suggest patterns that are marked as Required or Optional for the skill's tier in the Application Guide.
 

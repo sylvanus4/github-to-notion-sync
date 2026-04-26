@@ -1,22 +1,28 @@
 ---
 name: prd-auto-generator
 description: >-
-  미팅·슬랙·기존 문서 등 다중 소스에서 PRD를 자동 생성. 상태/엣지 체크리스트,
-  API 스펙 연계, 디자인 시스템 컴포넌트 참조, 실행 모드에서는 Edge 매트릭스·상태 정의서·
-  정책 체크리스트까지 포함한 개발 착수용 기획서까지 지원.
-  Use when the user asks to "generate PRD from meeting", "auto PRD",
-  "PRD 자동 생성", "기획서 자동화", "회의록에서 PRD 만들어줘", "슬랙에서 PRD 추출",
-  "PRD from transcript", "실행 기획서 작성", "상세 PRD", "Edge Case 포함 기획서",
-  "상태 정의서 포함 PRD", "개발 착수용 기획서", "정책 반영 기획서",
-  "implementation-ready spec", "detailed PRD with edge cases".
-  Do NOT use for simple PRD from scratch only (use pm-execution create-prd).
-  Do NOT use for feature spec only (use kwp-product-management-feature-spec).
-  Do NOT use for code reverse spec (use code-to-spec; Notion 대조는 code-spec-comparator).
-  Do NOT use for full research PRD with human verification gates (use prd-research-factory)
-  when the user needs the complete research pipeline — this skill may still reference it in strategic mode.
+  Three-mode PRD generator. **Strategic mode**: discovery + positioning + market
+  framing from meetings, Slack, docs. **Implementation-ready mode**: full PRD +
+  edge-case matrix + state spec + policy checklist for dev handoff.
+  **Conversation-capture mode** (`--capture`): synthesize the current conversation
+  context and codebase understanding into a PRD without interviewing the user —
+  identifies deep modules, files as GitHub issue, captures contradictions. Use
+  when the user asks to "generate PRD from meeting", "auto PRD", "PRD 자동 생성",
+  "기획서 자동화", "회의록에서 PRD 만들어줘", "슬랙에서 PRD 추출", "PRD from
+  transcript", "실행 기획서 작성", "상세 PRD", "Edge Case 포함 기획서", "상태 정의서
+  포함 PRD", "개발 착수용 기획서", "정책 반영 기획서", "implementation-ready spec",
+  "detailed PRD with edge cases", "to PRD", "make a PRD from this", "PRD로
+  만들어", "대화에서 PRD", "지금까지 정리해서 PRD", "PRD 이슈로", "컨텍스트 PRD",
+  "capture this as PRD", "conversation to PRD". Do NOT use for simple PRD from
+  scratch only (use pm-execution create-prd). Do NOT use for feature spec only
+  (use kwp-product-management-feature-spec). Do NOT use for code reverse spec
+  (use code-to-spec; Notion 대조는 code-spec-comparator). Do NOT use for full
+  research PRD with human verification gates (use prd-research-factory) when the
+  user needs the complete research pipeline — this skill may still reference it
+  in strategic mode.
 metadata:
   author: "thaki"
-  version: "2.0.1"
+  version: "3.0.0"
   category: "generation"
 ---
 
@@ -179,5 +185,82 @@ Actions: Merge, dedupe conflicts into an **open issues** section → mode per us
 | Notion publish fails | Save local MD; retry instructions |
 | Conflicting requirements | List conflicts under open issues; do not silently merge |
 | Policy/Figma inaccessible | Mark sections TBD; continue other sections |
+
+## Conversation-Capture Mode (`--capture`)
+
+Activate when the user says "to PRD", "make a PRD from this", "capture this as
+PRD", "대화에서 PRD", "지금까지 정리해서 PRD", "컨텍스트 PRD", or uses
+`--capture` flag.
+
+### Core Principle
+
+**Do NOT interview the user.** Everything needed is already in the current
+conversation context and codebase. Synthesize, don't interrogate.
+
+### Workflow
+
+#### 1. Harvest Conversation Context
+
+Scan the entire conversation history for:
+- Stated goals, constraints, and requirements
+- Decisions made (and their rationale)
+- Contradictions or unresolved tensions
+- Technical discoveries from codebase exploration
+- User corrections or preference signals
+
+#### 2. Deep Module Identification
+
+Analyze the codebase (via SemanticSearch/Grep) to find:
+- **Deep modules**: small interface hiding significant complexity (GOOD)
+- **Shallow modules**: large interface with thin implementation (FLAG)
+- Existing patterns the PRD should reference or extend
+
+For each candidate deep module, note:
+- Interface surface area (method/prop count)
+- Hidden complexity (what callers don't see)
+- Reuse potential across features
+
+#### 3. Synthesize PRD
+
+Use `references/prd-template.md` as the scaffold. Fill sections from harvested
+context only — leave sections genuinely unknown as `TBD (not discussed)` rather
+than hallucinating content.
+
+Required sections:
+1. **Problem Statement** — from user's stated goals
+2. **Proposed Solution** — from conversation decisions
+3. **Deep Module Candidates** — from codebase analysis (Step 2)
+4. **Contradictions & Open Questions** — unresolved tensions found in Step 1
+5. **Technical Context** — relevant codebase patterns discovered
+6. **Scope Boundaries** — what was explicitly excluded in conversation
+
+#### 4. Contradiction Handling
+
+When contradictions are found between:
+- Earlier vs later statements → note both, mark which is more recent
+- User intent vs codebase reality → flag with evidence
+- Multiple stakeholder signals → list as open question
+
+Never silently resolve contradictions. Surface them in a dedicated section.
+
+#### 5. File as GitHub Issue (optional, `--file-issue`)
+
+When `--file-issue` is specified:
+
+```bash
+gh issue create \
+  --title "PRD: <feature-name>" \
+  --body "$(cat prd-output.md)" \
+  --label "prd,auto-generated" \
+  --project "ThakiCloud #5"
+```
+
+### Example: Conversation → PRD
+
+User has been discussing a new notification system for 20 messages. Context
+includes: requirements, rejected alternatives, codebase exploration results.
+
+Actions: Harvest all 20 messages → identify notification service as deep module
+candidate → synthesize PRD with contradictions section → file as issue.
 
 <!-- autoskill-merge anchor — do not remove -->

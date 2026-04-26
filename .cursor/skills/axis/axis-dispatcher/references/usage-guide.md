@@ -26,7 +26,7 @@
 [ ] outputs/axis/automation-levels.json 존재 여부
 [ ] outputs/axis/gm/entity-aliases.json 존재 여부
 [ ] Slack MCP 연결 확인
-[ ] gws CLI 인증 확인 (gws auth status)
+[ ] gws CLI 인증 확인 (`gws drive files list 2>&1 | head -3`)
 [ ] gh CLI 인증 확인 (gh auth status)
 [ ] tossctl 인증 확인 (해당 시)
 ```
@@ -533,7 +533,7 @@ axis-life 자동화 레벨 1로 올려줘. 7일간 클린 실행 확인됨.
 1. 에러 로그 확인: `outputs/axis/{axis}/{date}/errors.json`
 2. 원인 분류 확인 (AUTH_FAILURE, API_TIMEOUT 등)
 3. 해당 스킬의 사전 조건 확인:
-   - `gws auth status` (생활 축)
+   - `gws drive files list 2>&1 | head -3` (생활 축)
    - `gh auth status` (SidePM 축)
    - `tossctl session` (투자 축)
 4. 원인 해결 후 해당 축만 재실행

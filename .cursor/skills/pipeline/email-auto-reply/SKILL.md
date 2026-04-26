@@ -40,7 +40,7 @@ Knowledge-based email draft generation with human approval gate.
 |-------|--------|
 | No unread reply-needed emails found | Report "No emails requiring replies" and exit gracefully |
 | Cognee unavailable or empty | Proceed with recall-only context; note reduced context quality in draft headers |
-| gws-gmail auth failure | Prompt user to re-authenticate via `gws auth login` |
+| gws-gmail auth failure | Run `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`; verify with `gws gmail +triage --max 1` |
 | User rejects all drafts for an email | Skip that email, log as "deferred", move to next |
 | Send failure after approval | Retry once; if still failing, save draft in Gmail drafts folder and notify user |
 

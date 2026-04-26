@@ -13,7 +13,7 @@ metadata:
 
 Google Workspace 일일 작업을 순차 파이프라인으로 실행하는 마스터 오케스트레이터.
 
-> **Prerequisites**: `gws` CLI 설치 및 인증 (`gws auth login -s drive,gmail,calendar`). See `gws-workspace` skill.
+> **Prerequisites**: `gws` CLI 설치 및 인증 (`GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` 환경변수 설정 필수; `gws drive files list`로 검증). See `gws-workspace` skill.
 
 ## Pipeline
 
@@ -367,7 +367,7 @@ Resume from the **last successful `phase-*.json`** under `outputs/google-daily/{
 | Slack | Thread reply 실패 | 에러 보고, 계속 진행 |
 | Memory | MEMORY.md 쓰기 실패 | 에러 보고, 요약은 정상 완료 |
 | Orphan Cleanup | Script error | 에러 로그, 파이프라인 계속 |
-| Any | Auth expired | `gws auth login -s drive,gmail,calendar` 안내 |
+| Any | Auth expired | `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null` 안내 |
 
 ## Security Rules
 

@@ -162,13 +162,15 @@ python3 -c "import anthropic; print('anthropic OK')"
 | Type | Item | Install Command |
 |------|------|-----------------|
 | CLI | gws | `npm install -g @googleworkspace/cli` |
-| Auth | OAuth credentials | `gws auth login` (requires Google Cloud project with OAuth consent) |
+| Auth | OAuth credentials | `python ~/.config/gws/oauth2_manual.py` (manual OAuth2 bypass; `gws auth login` is unreliable) |
+| ENV | GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE | Set in `~/.zshrc` to `/Users/hanhyojung/.config/gws/credentials.json` |
 
 **Quick Setup:**
 
 ```bash
 npm install -g @googleworkspace/cli
-gws auth login
+python ~/.config/gws/oauth2_manual.py   # manual OAuth2 bypass (gws auth login은 Keychain 문제로 사용 불가)
+rm ~/.config/gws/token_cache.json ~/.config/gws/credentials.enc 2>/dev/null
 ```
 
 For detailed setup, invoke the `gws-workspace` skill.
@@ -177,7 +179,7 @@ For detailed setup, invoke the `gws-workspace` skill.
 
 ```bash
 command -v gws && echo "gws installed" || echo "gws missing"
-gws auth status 2>/dev/null
+gws drive files list 2>&1 | head -3   # real API call verification
 ```
 
 **Dependent Skills:** gws-*, calendar-daily-briefing, gmail-daily-triage, google-daily, ai-chief-of-staff, morning-ship

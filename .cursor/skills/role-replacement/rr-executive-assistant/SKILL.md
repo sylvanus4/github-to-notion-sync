@@ -50,7 +50,7 @@ pre-loading and provenance-tagged decision routing.
 
 ## Prerequisites
 
-- `gws` CLI installed and authenticated: `gws auth login -s drive,gmail,calendar`
+- `gws` CLI installed and authenticated: `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` env var set; verify with `gws drive files list 2>&1 | head -3`
 - Slack MCP server connected with `SLACK_BOT_TOKEN` and `SLACK_USER_TOKEN` in `.env`
 - MemKraft memory store initialized (see `memkraft` skill)
 - Memory topic files exist under `memory/topics/`
@@ -319,7 +319,7 @@ Every subagent dispatch MUST include:
 ### Health Check
 
 Verify prerequisites before first run:
-1. `gws auth status` — Google Workspace auth valid
+1. `gws drive files list 2>&1 | head -3` — Google Workspace auth valid (GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE set)
 2. `.env` contains `SLACK_BOT_TOKEN` and `SLACK_USER_TOKEN`
 3. `memory/topics/preferences.md` exists with sender patterns
 4. `outputs/google-daily/` directory is writable

@@ -49,7 +49,7 @@ All environment variables required or used by project skills, organized by capab
 
 ## google-workspace
 
-No env vars — uses OAuth via `gws auth login`. Credentials stored locally by gws CLI.
+| GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE | REQ | `/Users/hanhyojung/.config/gws/credentials.json` | Path to OAuth credentials JSON (manual OAuth2 bypass) | `~/.config/gws/oauth2_manual.py` |
 
 ## huggingface
 

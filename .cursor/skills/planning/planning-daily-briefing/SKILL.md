@@ -96,5 +96,5 @@ Mirror section **Procedure step 5**, plus footer metadata: source timestamps, ch
 
 - **Notion query empty**: State no rows returned **in Korean** and verify DB id/properties with user.
 - **Slack rate limits / no access**: Fall back to user-pasted highlights; note limitation.
-- **gws auth failure**: Omit calendar section; list exact CLI error class; suggest re-auth.
+- **gws auth failure**: Omit calendar section; list exact CLI error class; suggest `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`.
 - **Partial data**: Ship brief with a **data gaps** section (Korean heading); never fabricate tasks or meetings.

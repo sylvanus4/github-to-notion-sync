@@ -323,7 +323,7 @@ outputs/content-curator/{date}/
 | Requirement | Check | Recovery |
 |------------|-------|----------|
 | `TWITTER_COOKIE` in `.env` | `grep TWITTER_COOKIE .env` | Guide cookie registration per twitter-timeline-to-slack Phase 0 |
-| `gws` CLI authenticated | `gws gmail +triage --max 1` | `gws auth login -s gmail` |
+| `gws` CLI authenticated | `gws gmail +triage --max 1` | `python ~/.config/gws/oauth2_manual.py` then `rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null` |
 | Slack MCP available | Test `slack_send_message` | Check `.env` SLACK tokens |
 | `intel_registry.py` accessible | `ls $HOME/thaki/research/scripts/intelligence/intel_registry.py` | Graceful degradation (local dedup only) |
 | `python-docx` installed | `python3 -c "import docx"` | `pip install python-docx -q` |
@@ -370,7 +370,7 @@ memkraft:
 | Phase 1A | TWITTER_COOKIE expired | Log warning, skip Twitter, continue with 1B/1C |
 | Phase 1A | twittxr API failure | Fall back to FxTwitter → Agent-Reach chain per skill spec |
 | Phase 1B | No Bespin email found | Skip Phase 1B, note in daily digest |
-| Phase 1B | Gmail auth expired | `gws auth login -s gmail`, retry once |
+| Phase 1B | Gmail auth expired | `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`, retry once |
 | Phase 1C | No queued URLs | Skip Phase 1C (expected on quiet days) |
 | Phase 1 (all) | All three sources fail | Post error alert to `#효정-할일`, exit |
 | Phase 2 | No content processed | Skip Phase 2-3, generate minimal digest in Phase 4 |

@@ -5,13 +5,21 @@ description: >-
   diagnose bugs, errors, and performance issues, then synthesize findings into a
   single root cause and apply a fix. Includes blast radius warning for changes
   affecting >5 files, 3-strike escalation, and no-fix-without-investigation
-  iron law. Use when the user runs /diagnose, asks to "find the bug", "debug
-  this", "why is this failing", "root cause analysis", or "diagnose the error".
+  iron law. Supports --file-issue mode that skips inline fixing and instead
+  creates a GitHub issue with a TDD-based RED-GREEN fix plan — useful when the
+  bug should be tracked, assigned, or deferred rather than fixed immediately.
+  Use when the user runs /diagnose, asks to "find the bug", "debug this",
+  "why is this failing", "root cause analysis", "diagnose the error", "triage
+  this bug", "investigate and file an issue", "file an issue for this bug",
+  "이슈로 등록해줘", "버그 조사해서 이슈", "트리아지", or "버그 이슈 만들어줘".
   Do NOT use for code review (use /simplify or /deep-review), new feature work,
-  or general Q&A. Korean triggers: "진단", "리뷰", "디버깅", "수정".
+  or general Q&A. Do NOT use for batch auto-triage of incoming issues (use
+  sprint-orchestrator). Do NOT use for creating issues from git commits (use
+  commit-to-issue). Korean triggers: "진단", "리뷰", "디버깅", "수정",
+  "트리아지", "이슈 등록".
 metadata:
   author: "thaki"
-  version: "1.1.0"
+  version: "2.0.0"
   category: "execution"
 ---
 # Diagnose — Root Cause Analysis and Fix
@@ -75,7 +83,25 @@ Do NOT attempt a 4th fix. Present findings and ask for human guidance.
 /diagnose src/api/auth.ts              # diagnose specific file
 /diagnose --no-fix                     # analysis only, no auto-fix
 /diagnose --hypothesis-mode            # use hypothesis-investigation loop instead of parallel agents
+/diagnose --file-issue                 # diagnose, then create a GitHub issue with TDD fix plan instead of fixing inline
+/diagnose --file-issue "Login fails"   # investigate a reported problem and file an issue
 ```
+
+### File Issue Mode (`--file-issue`)
+
+When `--file-issue` is specified, replace inline fixing (Step 4) with GitHub issue creation (Step 6). The full diagnosis still runs (Steps 1-3), but instead of applying a code fix, the skill:
+
+1. Designs a **TDD fix plan** with ordered RED-GREEN cycles
+2. Creates a GitHub issue via `gh issue create` with structured template
+3. Prints the issue URL and a one-line root cause summary
+
+This mode is preferred when:
+- The bug should be tracked and assigned rather than fixed immediately
+- The fix requires multiple code changes that benefit from a planned approach
+- The user says "triage", "file an issue", "이슈로 등록", or "트리아지"
+- The bug is in a module owned by another team member
+
+**Hands-off rule:** After the user provides the initial problem description, investigate autonomously. Do NOT ask follow-up questions — explore the codebase using `Task` with `subagent_type="explore"` to find the root cause.
 
 ### Hypothesis Mode (`--hypothesis-mode`)
 
@@ -119,7 +145,7 @@ Agent 3: Impact Agent          → Side effects, regression risk, performance im
 
 Sub-agent configuration:
 - `subagent_type`: `generalPurpose`
-- `model`: `fast`
+- `model`: `composer-2-fast`
 - `readonly`: `true`
 
 Each agent returns:
@@ -186,6 +212,72 @@ Recommended Follow-up:
   1. [additional action if needed]
   2. [test to write]
 ```
+
+### Step 6: File GitHub Issue (only when `--file-issue`)
+
+Skip Step 4 (inline fix). Instead, use the diagnosis from Steps 1-3 to create a tracked issue:
+
+#### 6a. Design TDD Fix Plan
+
+Create ordered RED-GREEN cycles. Each cycle is one vertical slice:
+
+- **RED**: A specific test capturing the broken/missing behavior
+- **GREEN**: The minimal code change to make that test pass
+
+Rules:
+- Tests verify behavior through public interfaces, not implementation details
+- One test at a time, vertical slices (NOT all tests first, then all code)
+- Each test should survive internal refactors
+- Describe behaviors and contracts, not internal structure
+- If you reach 5+ RED-GREEN cycles, decompose into multiple issues
+
+#### 6b. Create the GitHub Issue
+
+Run `gh issue create` with this template. Do NOT ask the user to review first — file first, iterate later.
+
+```
+## Problem
+
+- What happens (actual behavior)
+- What should happen (expected behavior)
+- How to reproduce
+
+## Root Cause Analysis
+
+- The code path involved
+- Why the current code fails
+- Contributing factors
+
+Do NOT include file paths or line numbers — describe modules and contracts.
+
+## TDD Fix Plan
+
+1. **RED**: Write a test that [expected behavior]
+   **GREEN**: [Minimal change to pass]
+
+2. **RED**: Write a test that [next behavior]
+   **GREEN**: [Minimal change to pass]
+
+**REFACTOR**: [Cleanup after all tests pass]
+
+## Acceptance Criteria
+
+- [ ] All new tests pass
+- [ ] Existing tests still pass
+```
+
+#### 6c. Output
+
+- Print the issue URL
+- Print a one-line root cause summary
+- Do NOT ask for user review — the issue is filed and ready for iteration
+
+#### Gotchas
+
+- The "bug" may be expected behavior the user misunderstands. If investigation reveals the code is correct, file as a documentation/UX gap instead of a code bug.
+- Recent `git log` changes may correlate with the bug, but verify the change actually affects the failing code path before blaming it.
+
+---
 
 ## Examples
 

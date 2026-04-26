@@ -23,7 +23,7 @@ single morning sequence. Google Daily handles personal productivity
 
 ## Prerequisites
 
-- `gws` CLI installed and authenticated (`gws auth login -s drive,gmail,calendar`)
+- `gws` CLI installed and authenticated (`GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` 환경변수 설정 필수; `gws drive files list`로 검증)
 - PostgreSQL running with migrated schema
 - Stock CSV files in `data/latest/` (seed via `stock-csv-downloader` if empty)
 - Slack MCP server (`plugin-slack-slack`) connected
@@ -276,7 +276,7 @@ Use this as the canonical “full run” narrative when the user says e.g. “�
 
 | Symptom | Fix |
 |---------|-----|
-| gws auth expired | Run `gws auth login -s drive,gmail,calendar` |
+| gws auth expired | Run `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null` |
 | PostgreSQL not running | `docker compose up -d db` |
 | No CSV data | Run `stock-csv-downloader` first |
 | Slack channel not found | Verify `C0AA8NT4T8T` with `slack_search_channels` |

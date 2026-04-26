@@ -10,6 +10,7 @@ description: >-
   "parallel scraping CLI", "drop-in Chrome replacement", "low-memory browser",
   "Obscura fetch", "Obscura serve", "Obscura scrape", "경량 브라우저", "스텔스
   스크래핑", "안티디텍션", "Obscura", "경량 CDP", "경량 헤드리스", "병렬 스크래핑",
+  "DOM to markdown", "LP.getMarkdown", "request interception",
   or needs a single-binary headless browser with built-in stealth for scraping or
   as a lightweight CDP backend. Do NOT use for interactive browser automation with
   snapshot-ref patterns (use agent-browser). Do NOT use for sandboxed JS script
@@ -21,8 +22,9 @@ description: >-
   cursor-ide-browser MCP).
 metadata:
   author: ThakiCloud
-  version: "1.0"
+  version: "2.0"
   upstream: https://github.com/h4ckf0r0day/obscura
+  upstream_version: "0.1.1"
   category: standalone/browser
 ---
 
@@ -36,15 +38,11 @@ Rust-built headless browser optimized for AI agent automation and web scraping.
 ### Installation (macOS Apple Silicon)
 
 ```bash
-# Download the latest release
-curl -LO https://github.com/h4ckf0r0day/obscura/releases/latest/download/obscura-aarch64-apple-darwin.tar.gz
-
-# Extract and install
-tar xzf obscura-aarch64-apple-darwin.tar.gz
+curl -LO https://github.com/h4ckf0r0day/obscura/releases/latest/download/obscura-aarch64-macos.tar.gz
+tar xzf obscura-aarch64-macos.tar.gz
 chmod +x obscura
 sudo mv obscura /usr/local/bin/
 
-# Verify
 obscura --version
 ```
 
@@ -77,16 +75,22 @@ CDP backend needed? ──yes──▶ obscura serve --port 9222
                      │
                      no
                      │
-Bulk scraping? ─────yes──▶ obscura scrape -i urls.txt --parallel 10
+Bulk scraping? ─────yes──▶ obscura scrape url1 url2 ... --concurrency 10
 ```
 
 ### Mode 1: fetch — Single Page Extraction
 
-Fetch a single URL, optionally execute JavaScript, and return HTML or extracted text.
+Fetch a single URL, optionally execute JavaScript, and return HTML, text, or links.
 
 ```bash
-# Basic HTML fetch
+# Basic HTML fetch (default --dump html)
 obscura fetch https://example.com
+
+# Extract text only (strips HTML tags)
+obscura fetch https://example.com --dump text
+
+# Extract links only
+obscura fetch https://example.com --dump links
 
 # With stealth mode
 obscura fetch https://example.com --stealth
@@ -94,11 +98,17 @@ obscura fetch https://example.com --stealth
 # Execute JS and capture result
 obscura fetch https://example.com --stealth --eval "document.title"
 
-# Wait for JS rendering before capture
-obscura fetch https://spa-app.com --stealth --wait 3000
+# Wait for a CSS selector to appear (timeout in seconds)
+obscura fetch https://spa-app.com --stealth --selector ".content-loaded" --wait 10
 
-# Save output to file
-obscura fetch https://example.com --stealth -o output.html
+# Control navigation wait strategy
+obscura fetch https://spa-app.com --wait-until networkidle0
+
+# Quiet mode — suppress status output, print only result
+obscura fetch https://example.com --quiet --eval "document.title"
+
+# Save output to file (shell redirect — no -o flag)
+obscura fetch https://example.com --dump text > output.txt
 ```
 
 ### Mode 2: serve — CDP Server
@@ -109,6 +119,12 @@ Uses ~30MB memory vs Chrome's ~200MB+.
 ```bash
 # Start CDP server (default port 9222)
 obscura serve --port 9222 --stealth
+
+# With proxy and custom user-agent
+obscura serve --port 9222 --stealth --proxy socks5://127.0.0.1:1080 --user-agent "MyBot/1.0"
+
+# Multi-worker mode with load balancer
+obscura serve --port 9222 --stealth --workers 4
 
 # Background mode for pipeline use
 obscura serve --port 9222 --stealth &
@@ -121,17 +137,24 @@ kill $OBSCURA_PID
 
 ### Mode 3: scrape — Parallel Bulk Scraping
 
-Scrape multiple URLs concurrently from a file or stdin.
+Scrape multiple URLs concurrently. URLs are positional arguments.
 
 ```bash
-# From a URL file (one URL per line)
-obscura scrape -i urls.txt --parallel 10 --stealth -o results/
+# Scrape multiple URLs with 10 concurrent workers
+obscura scrape https://example.com/1 https://example.com/2 --concurrency 10
 
-# With JS wait for SPA content
-obscura scrape -i urls.txt --parallel 5 --stealth --wait 2000 -o results/
+# With JS evaluation and JSON output
+obscura scrape https://example.com/a https://example.com/b \
+  --eval "document.title" --concurrency 5 --format json
 
-# Pipe URLs from another command
-cat urls.txt | obscura scrape --parallel 8 --stealth -o results/
+# TSV output format
+obscura scrape https://example.com/1 https://example.com/2 --format tsv
+
+# Custom timeout (seconds, default 60)
+obscura scrape https://example.com/1 --timeout 120
+
+# Pipe URLs from another command via xargs
+cat urls.txt | xargs obscura scrape --concurrency 8
 ```
 
 ## Stealth Mode
@@ -148,6 +171,268 @@ The `--stealth` flag activates built-in anti-detection:
 
 **Always use `--stealth` for scraping tasks** unless targeting a trusted internal site
 where stealth overhead is unnecessary.
+
+## CLI Reference
+
+### Global Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-v, --verbose` | off | Enable verbose logging |
+| `--port` | `9222` | CDP server listen port (top-level) |
+| `--proxy` | — | SOCKS5 or HTTP proxy URL |
+| `--obey-robots` | off | Respect robots.txt rules |
+| `--user-agent` | — | Custom User-Agent string |
+
+### `obscura fetch <URL>`
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--dump` | `html` | Output format: `html`, `text`, or `links` |
+| `--selector` | — | CSS selector to wait for before capture |
+| `--wait` | `5` | Wait seconds (used with `--selector`) |
+| `--wait-until` | `load` | Navigation event: `load`, `domcontentloaded`, `networkidle0` |
+| `--user-agent` | — | Custom User-Agent string |
+| `--stealth` | off | Enable anti-detection |
+| `-e, --eval` | — | JavaScript expression to evaluate and return |
+| `-q, --quiet` | off | Suppress status output |
+
+### `obscura serve`
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p, --port` | `9222` | CDP server listen port |
+| `--proxy` | — | SOCKS5 or HTTP proxy URL |
+| `--user-agent` | — | Custom User-Agent string |
+| `--stealth` | off | Enable anti-detection |
+| `--workers` | `1` | Number of concurrent worker browsers |
+
+### `obscura scrape <URLs...>`
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-e, --eval` | — | JavaScript expression to evaluate per page |
+| `--concurrency` | `10` | Number of concurrent scraping workers |
+| `--format` | `json` | Output format: `json` or `tsv` |
+| `--timeout` | `60` | Per-page timeout in seconds (min: 1) |
+
+## CDP API Reference
+
+When running `obscura serve`, a full CDP WebSocket server is available. Obscura implements
+10 CDP domains with 68+ methods. Connect via `ws://127.0.0.1:9222`.
+
+### Supported Domains and Methods
+
+#### `Target` — Browser target management
+
+| Method | Description |
+|--------|-------------|
+| `Target.setDiscoverTargets` | Enable/disable target discovery events |
+| `Target.getTargets` | List all available targets |
+| `Target.createTarget` | Create a new page/tab |
+| `Target.attachToTarget` | Attach a session to a target |
+| `Target.closeTarget` | Close a target |
+| `Target.setAutoAttach` | Auto-attach to new targets |
+| `Target.getBrowserContexts` | List browser contexts |
+| `Target.createBrowserContext` | Create an incognito context |
+| `Target.disposeBrowserContext` | Destroy a browser context |
+| `Target.getTargetInfo` | Get metadata about a target |
+
+#### `Browser` — Browser-level controls
+
+| Method | Description |
+|--------|-------------|
+| `Browser.getVersion` | Get browser version info |
+| `Browser.close` | Close the browser |
+| `Browser.getWindowForTarget` | Get window ID for a target |
+| `Browser.setDownloadBehavior` | Configure download handling |
+| `Browser.getWindowBounds` | Get window size/position |
+| `Browser.setWindowBounds` | Set window size/position |
+
+#### `Page` — Page navigation and lifecycle
+
+| Method | Description |
+|--------|-------------|
+| `Page.enable` | Enable page domain events |
+| `Page.navigate` | Navigate to URL |
+| `Page.getFrameTree` | Get frame hierarchy |
+| `Page.createIsolatedWorld` | Create isolated JS context |
+| `Page.setLifecycleEventsEnabled` | Enable lifecycle event reporting |
+| `Page.addScriptToEvaluateOnNewDocument` | Inject JS on every new document |
+| `Page.removeScriptToEvaluateOnNewDocument` | Remove injected script |
+| `Page.setInterceptFileChooserDialog` | Intercept file upload dialogs |
+| `Page.getNavigationHistory` | Get navigation history entries |
+
+#### `DOM` — Document Object Model
+
+| Method | Description |
+|--------|-------------|
+| `DOM.enable` | Enable DOM domain events |
+| `DOM.getDocument` | Get the root DOM node |
+| `DOM.querySelector` | Find first matching element |
+| `DOM.querySelectorAll` | Find all matching elements |
+| `DOM.getOuterHTML` | Get element outer HTML |
+| `DOM.describeNode` | Get detailed node description |
+| `DOM.resolveNode` | Resolve DOM node to JS object |
+| `DOM.setAttributeValue` | Set element attribute |
+| `DOM.removeNode` | Remove a DOM node |
+| `DOM.getBoxModel` | Get element box model (position/size) |
+
+#### `Runtime` — JavaScript execution
+
+| Method | Description |
+|--------|-------------|
+| `Runtime.enable` | Enable runtime domain events |
+| `Runtime.evaluate` | Execute JS expression |
+| `Runtime.callFunctionOn` | Call function on a remote object |
+| `Runtime.getProperties` | Get object properties |
+| `Runtime.releaseObject` | Release a remote object reference |
+| `Runtime.releaseObjectGroup` | Release a group of remote objects |
+| `Runtime.addBinding` | Expose a JS binding to pages |
+| `Runtime.runIfWaitingForDebugger` | Resume execution if paused |
+| `Runtime.getExceptionDetails` | Get exception details |
+| `Runtime.discardConsoleEntries` | Clear console entries |
+
+#### `Network` — Network monitoring and control
+
+| Method | Description |
+|--------|-------------|
+| `Network.enable` | Enable network events |
+| `Network.setExtraHTTPHeaders` | Add custom headers to all requests |
+| `Network.setUserAgentOverride` | Override User-Agent |
+| `Network.getCookies` | Get cookies for current page |
+| `Network.setCookies` | Set cookies |
+| `Network.clearBrowserCookies` | Clear all cookies |
+| `Network.setCacheDisabled` | Disable/enable cache |
+| `Network.setRequestInterception` | Legacy request interception (prefer `Fetch` domain) |
+
+#### `Fetch` — Request interception (recommended)
+
+| Method | Description |
+|--------|-------------|
+| `Fetch.enable` | Enable request interception with URL pattern filters |
+| `Fetch.continueRequest` | Continue an intercepted request (optionally modify URL/headers) |
+| `Fetch.fulfillRequest` | Fulfill request with custom response body |
+| `Fetch.failRequest` | Fail request with a network error reason |
+| `Fetch.getResponseBody` | Get the body of an intercepted response |
+
+#### `Input` — Keyboard, mouse, and touch events
+
+| Method | Description |
+|--------|-------------|
+| `Input.dispatchMouseEvent` | Simulate mouse click/move/scroll |
+| `Input.dispatchKeyEvent` | Simulate key press/release |
+| `Input.dispatchTouchEvent` | Simulate touch events |
+| `Input.setIgnoreInputEvents` | Ignore input events on the page |
+
+#### `Storage` — Browser storage
+
+| Method | Description |
+|--------|-------------|
+| `Storage.getCookies` | Get cookies (via Storage domain) |
+| `Storage.setCookies` | Set cookies (via Storage domain) |
+| `Storage.deleteCookies` | Delete specific cookies |
+
+#### `LP` — Obscura custom domain
+
+| Method | Description |
+|--------|-------------|
+| `LP.getMarkdown` | Convert current page DOM to clean Markdown |
+
+## Request Interception
+
+Use the `Fetch` domain to intercept, modify, or block HTTP requests in flight.
+
+### Block image loading (speed up scraping)
+
+```javascript
+// 1. Enable interception for image requests
+await cdp.send("Fetch.enable", {
+  patterns: [{ urlPattern: "*", requestStage: "Request" }]
+});
+
+// 2. Handle intercepted requests
+cdp.on("Fetch.requestPaused", async (event) => {
+  const url = event.request.url;
+  if (/\.(png|jpg|gif|svg|webp)$/i.test(url)) {
+    await cdp.send("Fetch.failRequest", {
+      requestId: event.requestId,
+      errorReason: "BlockedByClient"
+    });
+  } else {
+    await cdp.send("Fetch.continueRequest", {
+      requestId: event.requestId
+    });
+  }
+});
+```
+
+### Inject custom headers
+
+```javascript
+await cdp.send("Fetch.enable", {
+  patterns: [{ urlPattern: "*", requestStage: "Request" }]
+});
+
+cdp.on("Fetch.requestPaused", async (event) => {
+  const headers = event.request.headers;
+  headers["X-Custom-Auth"] = "Bearer token123";
+  await cdp.send("Fetch.continueRequest", {
+    requestId: event.requestId,
+    headers: Object.entries(headers).map(([n, v]) => ({ name: n, value: v }))
+  });
+});
+```
+
+### Return mock response
+
+```javascript
+await cdp.send("Fetch.enable", {
+  patterns: [{ urlPattern: "*/api/data*", requestStage: "Request" }]
+});
+
+cdp.on("Fetch.requestPaused", async (event) => {
+  await cdp.send("Fetch.fulfillRequest", {
+    requestId: event.requestId,
+    responseCode: 200,
+    responseHeaders: [{ name: "Content-Type", value: "application/json" }],
+    body: btoa(JSON.stringify({ mock: true, items: [] }))
+  });
+});
+```
+
+## DOM-to-Markdown Extraction (LP.getMarkdown)
+
+Obscura provides a custom CDP method `LP.getMarkdown` that converts the current page's
+DOM into clean Markdown — ideal for feeding web content directly to LLMs.
+
+```javascript
+// Navigate to a page first
+await cdp.send("Page.navigate", { url: "https://example.com/article" });
+
+// Wait for content to load
+await new Promise(r => setTimeout(r, 3000));
+
+// Extract Markdown
+const result = await cdp.send("LP.getMarkdown");
+console.log(result.markdown);
+```
+
+### LP.getMarkdown vs defuddle
+
+| Feature | LP.getMarkdown | defuddle |
+|---------|---------------|----------|
+| JS rendering | Yes (V8 engine) | No (server-side extraction) |
+| SPA support | Full | Limited |
+| Binary dependency | Requires Obscura running | API call only |
+| Memory usage | ~30MB (Obscura process) | Zero (remote service) |
+| Anti-detection | Built-in stealth | None |
+| Output format | Markdown | Markdown with YAML frontmatter |
+
+**Use LP.getMarkdown** when the page requires JavaScript rendering (SPAs, dynamic content)
+or when you already have an Obscura CDP session open.
+
+**Use defuddle** when JS rendering is unnecessary and you want zero local overhead.
 
 ## Puppeteer / Playwright Integration
 
@@ -185,37 +470,6 @@ with sync_playwright() as p:
     browser.close()
 ```
 
-## CLI Reference
-
-### `obscura serve`
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--port` | `9222` | CDP server listen port |
-| `--host` | `127.0.0.1` | Bind address |
-| `--stealth` | off | Enable anti-detection |
-
-### `obscura fetch`
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--stealth` | off | Enable anti-detection |
-| `--wait` | `0` | Wait ms after page load for JS rendering |
-| `--eval` | — | JavaScript expression to evaluate and return |
-| `-o` | stdout | Output file path |
-| `--timeout` | `30000` | Navigation timeout in ms |
-
-### `obscura scrape`
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `-i` | stdin | Input file with URLs (one per line) |
-| `--parallel` | `1` | Concurrent scraping workers |
-| `--stealth` | off | Enable anti-detection |
-| `--wait` | `0` | Wait ms per page for JS rendering |
-| `-o` | stdout | Output directory for results |
-| `--timeout` | `30000` | Per-page navigation timeout in ms |
-
 ## When to Use: Decision Matrix
 
 | Scenario | Best Skill | Why |
@@ -223,6 +477,8 @@ with sync_playwright() as p:
 | Stealth scraping (single or bulk) | **obscura** | Built-in anti-detection + low memory + parallel CLI |
 | Lightweight CDP backend for Puppeteer/Playwright | **obscura** | 1/7 Chrome memory, instant startup |
 | Single page with JS execution needed | **obscura** | Fast load (85ms) + `--eval` flag |
+| DOM-to-Markdown with JS rendering | **obscura** | `LP.getMarkdown` CDP method for LLM-ready content |
+| Request interception / mocking | **obscura** | `Fetch` domain for live HTTP interception |
 | Interactive automation (click, type, snapshot-ref) | agent-browser | Rich interaction API with element refs |
 | Sandboxed JS script automation | dev-browser | QuickJS WASM isolation + persistent pages |
 | Cloudflare Turnstile / advanced anti-bot (Python) | scrapling | Dedicated Turnstile solver + TLS fingerprinting |
@@ -235,6 +491,8 @@ with sync_playwright() as p:
 
 ```
 Need stealth + low memory?          → obscura
+Need DOM-to-Markdown (JS pages)?   → obscura (LP.getMarkdown)
+Need request interception?         → obscura (Fetch domain)
 Need interactive element clicking?  → agent-browser
 Need Python anti-bot framework?     → scrapling
 Need just the text, no JS?          → defuddle
@@ -248,22 +506,31 @@ Need bulk parallel scraping?        → obscura scrape
 |---------|-------|-----|
 | `command not found: obscura` | Not installed or not in PATH | Re-run installation; verify `which obscura` |
 | `Connection refused` on port 9222 | CDP server not running | Start with `obscura serve --port 9222` first |
-| Page loads but content empty | SPA needs JS render time | Add `--wait 3000` (or higher) |
-| `Navigation timeout` | Slow target or network issue | Increase `--timeout 60000` |
-| Bot detection despite `--stealth` | Advanced anti-bot (Cloudflare, DataDome) | Switch to `scrapling` for Turnstile; add `--wait` for timing-based detection |
+| Page loads but content empty | SPA needs JS render time | Add `--wait-until networkidle0` or `--selector ".content"` |
+| Per-page timeout in scrape | Slow target or network issue | Increase `--timeout 120` (seconds) |
+| Bot detection despite `--stealth` | Advanced anti-bot (Cloudflare, DataDome) | Switch to `scrapling` for Turnstile; use `--wait-until networkidle0` for timing-based detection |
 | Garbled output encoding | Non-UTF8 page | Pipe through `iconv` or handle in post-processing |
-| High memory with many `--parallel` workers | Too many concurrent pages | Reduce `--parallel` count (start with 5) |
+| High memory with many concurrent workers | Too many concurrent pages | Reduce `--concurrency` count (start with 5) |
 
 ## Examples
 
 ### Example 1: Single Page Stealth Fetch
 
-Extract the title and first paragraph from a news article:
+Extract text content from a news article with stealth and wait for full render:
 
 ```bash
 obscura fetch "https://techcrunch.com/latest/" \
   --stealth \
-  --wait 2000 \
+  --wait-until networkidle0 \
+  --dump text
+```
+
+Extract structured data with JS evaluation:
+
+```bash
+obscura fetch "https://techcrunch.com/latest/" \
+  --stealth \
+  --wait-until networkidle0 \
   --eval "JSON.stringify({
     title: document.querySelector('h1')?.textContent,
     lead: document.querySelector('p')?.textContent
@@ -275,8 +542,8 @@ obscura fetch "https://techcrunch.com/latest/" \
 Run Obscura as a background CDP server and connect Puppeteer for a multi-page workflow:
 
 ```bash
-# Terminal 1: Start CDP server
-obscura serve --port 9222 --stealth
+# Terminal 1: Start CDP server with proxy
+obscura serve --port 9222 --stealth --proxy socks5://127.0.0.1:1080
 
 # Terminal 2: Run Puppeteer script
 node <<'SCRIPT'
@@ -302,19 +569,75 @@ SCRIPT
 
 ### Example 3: Parallel Bulk Scraping
 
-Scrape 100 product pages with 10 concurrent workers:
+Scrape product pages with 10 concurrent workers:
 
 ```bash
-# Prepare URL list
-cat > urls.txt <<EOF
-https://shop.example.com/product/1
-https://shop.example.com/product/2
-https://shop.example.com/product/3
-EOF
+obscura scrape \
+  https://shop.example.com/product/1 \
+  https://shop.example.com/product/2 \
+  https://shop.example.com/product/3 \
+  --concurrency 10 \
+  --eval "document.title" \
+  --format json \
+  --timeout 30
+```
 
-# Run parallel scrape with stealth
-obscura scrape -i urls.txt --parallel 10 --stealth --wait 1000 -o ./scraped/
+Or pipe URLs from a file:
 
-# Results saved as individual HTML files in ./scraped/
-ls ./scraped/
+```bash
+cat urls.txt | xargs obscura scrape --concurrency 8 --format json
+```
+
+### Example 4: DOM-to-Markdown for LLM Ingestion
+
+Use `LP.getMarkdown` via CDP to extract clean Markdown from a JS-rendered page:
+
+```javascript
+const puppeteer = require("puppeteer-core");
+
+// Start: obscura serve --port 9222 --stealth
+const browser = await puppeteer.connect({
+  browserWSEndpoint: "ws://127.0.0.1:9222"
+});
+const page = await browser.newPage();
+await page.goto("https://docs.example.com/guide", { waitUntil: "networkidle0" });
+
+const cdp = await page.target().createCDPSession();
+const { markdown } = await cdp.send("LP.getMarkdown");
+console.log(markdown);
+
+await browser.close();
+```
+
+### Example 5: Request Interception — Block Ads and Trackers
+
+```javascript
+const puppeteer = require("puppeteer-core");
+
+const browser = await puppeteer.connect({
+  browserWSEndpoint: "ws://127.0.0.1:9222"
+});
+const page = await browser.newPage();
+const cdp = await page.target().createCDPSession();
+
+await cdp.send("Fetch.enable", {
+  patterns: [{ urlPattern: "*", requestStage: "Request" }]
+});
+
+cdp.on("Fetch.requestPaused", async (event) => {
+  const url = event.request.url;
+  const blocked = /(ads|tracker|analytics|doubleclick|googlesyndication)/i.test(url);
+  if (blocked) {
+    await cdp.send("Fetch.failRequest", {
+      requestId: event.requestId,
+      errorReason: "BlockedByClient"
+    });
+  } else {
+    await cdp.send("Fetch.continueRequest", { requestId: event.requestId });
+  }
+});
+
+await page.goto("https://example.com", { waitUntil: "networkidle0" });
+console.log(await page.title());
+await browser.close();
 ```

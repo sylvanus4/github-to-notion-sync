@@ -1,25 +1,29 @@
 ---
 name: deep-review
 description: >-
-  Run 4 parallel domain-expert agents (Frontend, Backend/DB, Security, Test
-  Coverage) to review code from multiple engineering perspectives and auto-fix
-  findings. Uses code-review-graph MCP blast radius to expand review scope
+  Run 4+1 parallel domain-expert agents (Frontend, Backend/DB, Security, Test
+  Coverage, and optional Architecture Deepening) to review code from multiple
+  engineering perspectives and auto-fix findings. The Architecture agent
+  (`--arch`, auto-enabled for `full` scope) surfaces shallow modules,
+  architectural friction, and deepening opportunities using deletion tests and
+  seam analysis. Uses code-review-graph MCP blast radius to expand review scope
   beyond git diff and prioritize high-risk files. Supports diff/today/full
   scoping with Fix-First pattern, adversarial tier scaling by diff size and
   graph risk scores, and 8/10 confidence gate. Use when the user runs
   /deep-review, asks for "full-stack review", "multi-domain review", "review
-  frontend and backend", or "comprehensive code review". Do NOT use for
-  single-domain review (use /refactor, /security, etc.), code quality metrics
-  only (use /simplify), or general Q&A. Korean triggers: "리뷰", "테스트", "수정",
-  "보안".
+  frontend and backend", "comprehensive code review", "improve architecture",
+  "find shallow modules", "deepening opportunities", or "아키텍처 마찰". Do NOT
+  use for single-domain review (use /refactor, /security, etc.), code quality
+  metrics only (use /simplify), or general Q&A. Korean triggers: "리뷰", "테스트",
+  "수정", "보안", "아키텍처 개선", "얕은 모듈".
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "3.0.0"
   category: "execution"
 ---
 # Deep Review — Multi-Domain Full-Stack Review
 
-Review code from 4 engineering perspectives simultaneously: frontend, backend/DB, security, and test coverage. Complements `/simplify` (code craftsmanship) with domain expertise.
+Review code from 4+1 engineering perspectives simultaneously: frontend, backend/DB, security, test coverage, and optional architecture deepening. Complements `/simplify` (code craftsmanship) with domain expertise.
 
 ## Scoping Modes
 
@@ -99,23 +103,34 @@ Pass the following to each domain agent prompt:
 - Risk scores per file
 - Affected flows (Backend/DB agent only)
 
-### Step 2: Launch 4 Parallel Review Agents
+### Step 2: Launch 4+1 Parallel Review Agents
 
-Use the Task tool to spawn 4 sub-agents. Each agent receives all files but focuses on its domain. For detailed prompts, see [references/agent-prompts.md](references/agent-prompts.md).
+Use the Task tool to spawn 4 (or 5) sub-agents. Each agent receives all files but focuses on its domain. For detailed prompts, see [references/agent-prompts.md](references/agent-prompts.md).
 
 ```
-Agent 1: Frontend Agent     → UI patterns, accessibility, design system, component structure
-Agent 2: Backend/DB Agent   → API design, data modeling, query safety, error handling
-Agent 3: Security Agent     → OWASP Top 10, auth/authz, input validation, secrets
-Agent 4: Test Coverage Agent → Missing tests, edge cases, test quality, assertion gaps
+Agent 1: Frontend Agent              → UI patterns, accessibility, design system, component structure
+Agent 2: Backend/DB Agent            → API design, data modeling, query safety, error handling
+Agent 3: Security Agent              → OWASP Top 10, auth/authz, input validation, secrets
+Agent 4: Test Coverage Agent         → Missing tests, edge cases, test quality, assertion gaps
+Agent 5: Architecture Deepening Agent → Shallow modules, architectural friction, deepening opportunities (optional)
 ```
 
-Sub-agent configuration:
+**Agent 5 activation rules:**
+- `--arch` flag: always enabled
+- `full` scope: auto-enabled (architecture analysis requires full-project visibility)
+- `diff` / `today` scope: disabled by default (enable with `--arch`)
+
+Sub-agent configuration (Agents 1-4):
 - `subagent_type`: `generalPurpose`
 - `model`: `fast`
 - `readonly`: `true`
 
-Each agent returns findings in this structure:
+Agent 5 configuration (when enabled):
+- `subagent_type`: `generalPurpose`
+- `model`: default (architecture analysis requires deeper reasoning)
+- `readonly`: `true`
+
+Each agent (1-4) returns findings in this structure:
 
 ```
 DOMAIN: [agent domain]
@@ -130,14 +145,52 @@ FINDINGS:
   fix: [suggested change]
 ```
 
+**Agent 5 (Architecture Deepening) returns a different structure:**
+
+```
+DOMAIN: Architecture
+DEEPENING_CANDIDATES:
+- id: [A1, A2, ...]
+  severity: [High|Medium|Low]
+  confidence: [1-10]
+  category: requires-judgment
+  files: [list of involved module paths]
+  problem: [why the architecture causes friction]
+  depth_assessment: [shallow|moderate|deep]
+  deletion_test: [what happens if this module is removed — pass-through or load-bearing?]
+  solution: [plain English deepening proposal]
+  benefits:
+    locality: [description]
+    leverage: [description]
+    testability: [description]
+```
+
+**Agent 5 prompt must include these architectural concepts:**
+- **Module** — anything with an interface and an implementation
+- **Depth** — a lot of behavior behind a small interface; deep = high leverage, shallow = interface nearly as complex as implementation
+- **Seam** — where an interface lives; a place behavior can be altered without editing in place
+- **Deletion test** — imagine deleting the module; if complexity vanishes, it was a pass-through; if it reappears across N callers, it was earning its keep
+- **Locality** — change, bugs, knowledge concentrated in one place
+- **Leverage** — what callers get from depth
+
+**Agent 5 exploration instructions:**
+1. Read `CONTEXT.md` / `CONTEXT-MAP.md` and `docs/adr/` if they exist (proceed silently if absent)
+2. Walk the codebase noting friction: understanding one concept requires bouncing between many small modules, modules are shallow, pure functions extracted for testability but bugs hide in call-site interactions, tightly-coupled modules leak across seams
+3. Apply the deletion test to suspected shallow modules
+4. Only propose changes with clear friction evidence — do NOT flag working code for theoretical purity
+5. If a candidate contradicts an existing ADR, only surface it when friction clearly warrants reopening
+6. Prefer deepening existing modules over extracting new ones
+7. Not all shallow modules are bad — some are intentionally thin adapters at integration boundaries
+
 ### Step 3: Aggregate, Filter, and Deduplicate
 
-1. Merge all agent outputs into a single findings list
+1. Merge all agent outputs (Agents 1-4, and Agent 5 if enabled) into a single findings list
 2. **Apply confidence gate**: discard findings with confidence < 8 (unless `--show-low-confidence`)
 3. Remove duplicates (same file + same line + similar issue)
 4. Sort: Critical > High > Medium > Low
 5. Group by file within same severity
 6. Separate into auto-fixable vs requires-judgment buckets
+7. **Architecture Deepening candidates** (from Agent 5): always placed in `requires-judgment` bucket — architecture changes are never auto-fixed
 
 ### Step 4: Apply Fixes (Fix-First Pattern)
 
@@ -148,6 +201,12 @@ FINDINGS:
 **Phase B — User-decision fixes** (requires-judgment findings):
 1. Present each finding with options
 2. Apply only if user approves (or skip in automated mode)
+
+**Phase C — Architecture Deepening proposals** (Agent 5 candidates, when enabled):
+1. Present each deepening candidate as an advisory section in the report
+2. Include the deletion test result, friction evidence, and proposed solution
+3. Do NOT auto-fix — architecture changes require deliberate planning
+4. Suggest next steps: create an ADR, file a GitHub issue, or run `refactor-simulator --plan`
 
 Skip if: conflict with prior fix, ambiguous change, or file already modified at that location.
 

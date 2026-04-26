@@ -139,7 +139,7 @@ Result: "오늘은 일정이 없습니다. 집중 업무에 활용하세요!"
 
 | Situation | Action |
 |-----------|--------|
-| gws auth expired | Prompt: `gws auth login -s calendar` |
+| gws auth expired | Run `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`; verify with `gws calendar +agenda --today` |
 | No events today | Report "오늘은 일정이 없습니다. 집중 업무에 활용하세요!" |
 | Multiple calendars | Aggregate all calendars, note which calendar each event belongs to |
 | All-day events only | Report them but note "시간별 일정 없음" |

@@ -79,16 +79,20 @@ Use `processed_transcripts` in the state file to avoid duplicate processing.
 
 ## Step 2: Extract (autoskill-extractor)
 
+**Each transcript MUST be processed in an isolated subagent via the Task tool** to prevent earlier transcript patterns from contaminating detection in later transcripts. Aggregate extracted candidates after all transcripts complete independently.
+
 For each transcript in scope:
 
-1. Read `.cursor/skills/automation/autoskill-extractor/SKILL.md`
-2. Run extraction per that skill’s instructions
-3. Collect all candidates with confidence >= 0.6
-4. At most 2 candidates per transcript
+1. **Dispatch a subagent** with the transcript content and the autoskill-extractor instructions
+2. The subagent reads `.cursor/skills/automation/autoskill-extractor/SKILL.md` and runs extraction per that skill’s instructions
+3. The subagent returns candidates with confidence >= 0.6 (at most 2 per transcript)
+4. Collect all subagent results and merge candidate lists
 
 ---
 
 ## Step 3: Judge
+
+**Each candidate MUST be judged in an isolated subagent via the Task tool** to prevent earlier add/merge/discard decisions from biasing later ones. Pass the candidate JSON and the list of existing skill descriptions as context.
 
 For each extracted candidate, judge its relationship to existing skills.
 

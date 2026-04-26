@@ -235,7 +235,7 @@ After successful send:
 | Error | Action |
 |-------|--------|
 | No target email specified | Show last 5 unread emails via `gws gmail +triage` and ask user to select |
-| gws auth failure | Prompt: "Run `gws auth login` to re-authenticate" and retry |
+| gws auth failure | Run `python3 ~/.config/gws/oauth2_manual.py` and clean caches (`rm -f ~/.config/gws/token_cache.json ~/.config/gws/credentials.enc`), then retry |
 | Cognee unavailable | Proceed with recall-only context; add note to draft header |
 | Recall returns no results | Proceed without prior context; draft from email content only |
 | User rejects all drafts | Ask for specific feedback on tone/content, regenerate with adjustments |

@@ -494,7 +494,7 @@ If a phase fails mid-run, the last valid JSON under `outputs/morning-ship/{date}
 | Uncommitted changes in project | Warn about dirty state; skip pull for that project; continue with others |
 | Merge conflict on pull | Report conflict details; skip that project; continue with others |
 | Pull rejected (diverged history) | Report error with remediation suggestion; continue with others |
-| `gws` CLI not authenticated | Report error; suggest `gws auth login -s drive,gmail,calendar`; continue to stock pipeline |
+| `gws` CLI not authenticated | Report error; suggest `python ~/.config/gws/oauth2_manual.py && rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null`; continue to stock pipeline |
 | Calendar API error | Report error; continue to Gmail triage |
 | Gmail API error | Report partial results; continue to stock pipeline |
 | Stock pipeline failure | Report error; continue to Slack/Report |

@@ -37,7 +37,7 @@ Variables can also live in a `.env` file.
 |----------|--------|
 | 1 | Access token (`GOOGLE_WORKSPACE_CLI_TOKEN`) |
 | 2 | Credentials file (`GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`) |
-| 3 | Per-account encrypted credentials (`gws auth login`) |
+| 3 | Per-account encrypted credentials (`gws auth login`) | **Unreliable — DO NOT USE** (Keychain failures) |
 | 4 | Plaintext credentials (`~/.config/gws/credentials.json`) |
 
 Account resolution: `--account` flag > env var > default in `accounts.json`.
