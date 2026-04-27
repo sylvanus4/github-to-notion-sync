@@ -14,7 +14,7 @@ description: >-
   Do NOT use for production environment troubleshooting.
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "infra"
   platforms: [darwin]
 ---
@@ -23,11 +23,43 @@ metadata:
 
 Workload 에러 발생 시 체계적으로 근본 원인을 분석하는 스킬입니다.
 
-## Prerequisites
+## Pre-flight (한 번에 실행)
 
-- Demo 클러스터 컨텍스트 활성화 (`kubectx tkai-demo`)
-- DB 포트포워딩 활성 (`demo-db-connect` 스킬 참조)
-- VPN 연결 필수
+VPN 연결 상태에서 아래 블록을 순서대로 실행합니다. 이미 활성 상태이면 건너뜁니다.
+
+```bash
+# 1. 클러스터 컨텍스트 전환
+kubectx tkai-demo
+
+# 2. DB 포트포워딩 (백그라운드, 이미 열려 있으면 건너뛰기)
+lsof -i :15432 >/dev/null 2>&1 && echo "Port 15432 already forwarded" \
+  || kubectl -n postgresql port-forward svc/postgresql 15432:5432 &
+```
+
+### DB 접속 Quick Reference
+
+| DB | 커맨드 |
+|----|--------|
+| ai_platform_db | `PGPASSWORD=password psql -h localhost -p 15432 -U postgres -d ai_platform_db` |
+| tkai_agents | `PGPASSWORD=tkai_password psql -h localhost -p 15432 -U tkai_user -d tkai_agents` |
+
+### 사용자 프로젝트 네임스페이스 찾기
+
+```sql
+SELECT p.id, p.name, ns.name AS namespace
+FROM projects p
+  JOIN namespaces ns ON p.namespace_id = ns.id
+  JOIN project_members pm ON pm.project_id = p.id
+  JOIN users u ON u.id = pm.user_id
+WHERE u.email = '{USER_EMAIL}'
+  AND p.deleted_at IS NULL;
+```
+
+또는 kubectl로 직접 확인:
+
+```bash
+kubectl get ns | grep project-
+```
 
 ## Step 1 — DB에서 워크로드 상태 확인
 
@@ -41,6 +73,8 @@ WHERE name = '{WORKLOAD_NAME}'
 ORDER BY created_at DESC
 LIMIT 5;
 ```
+
+> **주의**: `created_at`, `updated_at`, `started_at`, `finished_at` 컬럼은 **bigint (epoch milliseconds)** 타입입니다. `to_timestamp()` 사용 시 `/1000` 변환 필수.
 
 `status_message` 값이 근본 원인의 핵심 단서입니다. Watcher가 K8s 상태를 감지하여 이 필드에 기록합니다.
 
@@ -144,6 +178,8 @@ kubectl describe nodes | grep -A5 "Allocated resources"
 kubectl get nodes -o custom-columns='NAME:.metadata.name,GPU:.status.allocatable.nvidia\.com/gpu'
 ```
 
+> **Kyverno 정책 주의**: Demo 환경에서 standalone GPU Pod 생성이 `pod-gpu-validation` 정책에 의해 차단됩니다. GPU 워크로드 디버깅 시 반드시 Deployment/Job으로 생성해야 합니다.
+
 ### 4.4 PVC 바인딩 장애
 
 **Watcher 동작**: PVC 관련 Unschedulable 에러는 `PVCBindingGracePeriod` (5분) 동안 유예. 초과 시 `failed` 처리.
@@ -171,6 +207,10 @@ kubectl describe pvc {PVC_NAME} -n {NAMESPACE}
 ### 4.6 OOMKilled
 
 ```bash
+# OOMKilled 확인 (jsonpath로 정확한 종료 사유 확인)
+kubectl get pod {POD_NAME} -n {NAMESPACE} \
+  -o jsonpath='{.status.containerStatuses[0].lastState.terminated}' | python3 -m json.tool
+
 # OOM 이벤트 확인
 kubectl get events -n {NAMESPACE} --field-selector reason=OOMKilling
 
@@ -178,7 +218,20 @@ kubectl get events -n {NAMESPACE} --field-selector reason=OOMKilling
 kubectl top pod -n {NAMESPACE}
 ```
 
+> `exitCode: 137` + `reason: OOMKilled`가 확인되면 메모리 부족이 원인입니다.
+
 **조치**: Helm values에서 `resources.limits.memory` 증가
+
+### GPU 워크로드 메모리 참조 (S3 Model Streaming)
+
+S3 Model Streaming (Runai Streamer)을 사용하는 VLLM 워크로드는 모델 가중치를 CPU 메모리에 버퍼링합니다.
+
+| 모델 크기 | 최소 CPU 메모리 | 권장 CPU 메모리 |
+|----------|----------------|----------------|
+| 1-4B | 8Gi | 12Gi |
+| 7-8B | 16Gi | 24Gi |
+| 13B | 28Gi | 32Gi |
+| 70B | 140Gi | 160Gi |
 
 ## Step 5 — Exit Code 분석
 

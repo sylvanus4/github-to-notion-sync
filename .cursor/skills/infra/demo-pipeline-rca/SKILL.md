@@ -15,7 +15,7 @@ description: >-
   Do NOT use for production environment troubleshooting.
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "infra"
   platforms: [darwin]
 ---
@@ -27,11 +27,25 @@ Pipeline Builder 에러 발생 시 체계적으로 근본 원인을 분석하는
 Pipeline Watcher는 10초 간격으로 KFP(Kubeflow Pipelines) 서버에서 실행 상태를 가져와
 DB의 `pipeline_runs` 테이블에 동기화합니다. 최대 5개 파이프라인을 동시에 체크합니다.
 
-## Prerequisites
+## Pre-flight (한 번에 실행)
 
-- Demo 클러스터 컨텍스트 활성화 (`kubectx tkai-demo`)
-- DB 포트포워딩 활성 (`demo-db-connect` 스킬 참조)
-- VPN 연결 필수
+VPN 연결 상태에서 아래 블록을 순서대로 실행합니다. 이미 활성 상태이면 건너뜁니다.
+
+```bash
+# 1. 클러스터 컨텍스트 전환
+kubectx tkai-demo
+
+# 2. DB 포트포워딩 (백그라운드, 이미 열려 있으면 건너뛰기)
+lsof -i :15432 >/dev/null 2>&1 && echo "Port 15432 already forwarded" \
+  || kubectl -n postgresql port-forward svc/postgresql 15432:5432 &
+```
+
+### DB 접속 Quick Reference
+
+| DB | 커맨드 |
+|----|--------|
+| ai_platform_db | `PGPASSWORD=password psql -h localhost -p 15432 -U postgres -d ai_platform_db` |
+| tkai_agents | `PGPASSWORD=tkai_password psql -h localhost -p 15432 -U tkai_user -d tkai_agents` |
 
 ## Step 1 — DB에서 파이프라인 실행 상태 확인
 
@@ -46,10 +60,12 @@ WHERE id = '{PIPELINE_RUN_ID}'
 
 또는 최근 실패한 파이프라인 조회:
 
+> **주의**: `created_at`, `completed_at`, `updated_at` 컬럼은 **bigint (epoch milliseconds)** 타입입니다. `to_timestamp()` 사용 시 `/1000` 변환 필수.
+
 ```sql
 SELECT id, status, error_message, kfp_run_id,
-       to_timestamp(created_at) as created_time,
-       to_timestamp(completed_at) as completed_time
+       to_timestamp(created_at/1000) as created_time,
+       to_timestamp(completed_at/1000) as completed_time
 FROM pipeline_runs
 WHERE status = 'failed'
 ORDER BY created_at DESC

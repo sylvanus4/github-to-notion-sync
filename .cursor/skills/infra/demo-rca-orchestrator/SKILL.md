@@ -17,7 +17,7 @@ description: >-
   Do NOT use for production environment troubleshooting.
 metadata:
   author: "thaki"
-  version: "1.0.0"
+  version: "2.0.0"
   category: "infra"
   platforms: [darwin]
 ---
@@ -33,19 +33,49 @@ SRE 컨설팅 내용에 따라, 하나의 범용 트러블슈팅 대신 **컴포
 - 불필요한 정보 없이 해당 장애에 집중할 수 있습니다
 - 새로운 장애 유형 추가 시 해당 스킬만 업데이트하면 됩니다
 
+## Phase 0 — Pre-flight (한 번에 실행)
+
+VPN 연결 상태에서 아래 블록을 순서대로 실행합니다. 이미 활성 상태이면 건너뜁니다.
+
+```bash
+# 1. 클러스터 컨텍스트 전환
+kubectx tkai-demo
+
+# 2. DB 포트포워딩 (백그라운드, 이미 열려 있으면 건너뛰기)
+lsof -i :15432 >/dev/null 2>&1 && echo "Port 15432 already forwarded" \
+  || kubectl -n postgresql port-forward svc/postgresql 15432:5432 &
+```
+
+### DB 접속 Quick Reference
+
+| DB | 커맨드 |
+|----|--------|
+| ai_platform_db | `PGPASSWORD=password psql -h localhost -p 15432 -U postgres -d ai_platform_db` |
+| tkai_agents | `PGPASSWORD=tkai_password psql -h localhost -p 15432 -U tkai_user -d tkai_agents` |
+
+### 사용자 프로젝트 네임스페이스 찾기
+
+사용자 이메일로 프로젝트 네임스페이스를 조회합니다. Demo 환경의 네임스페이스 패턴: `project-{uuid}`
+
+```sql
+SELECT p.id, p.name, ns.name AS namespace
+FROM projects p
+  JOIN namespaces ns ON p.namespace_id = ns.id
+  JOIN project_members pm ON pm.project_id = p.id
+  JOIN users u ON u.id = pm.user_id
+WHERE u.email = '{USER_EMAIL}'
+  AND p.deleted_at IS NULL;
+```
+
+또는 kubectl로 직접 확인:
+
+```bash
+kubectl get ns | grep project-
+```
+
 ## Phase 1 — 컴포넌트 식별
 
 에러가 발생한 컴포넌트를 식별합니다. 확실하지 않으면 DB에서 최근 실패 건을 조회합니다.
-
-### Prerequisites
-
-```bash
-# Demo 클러스터 전환
-kubectx tkai-demo
-
-# DB 포트포워딩 (demo-db-connect 스킬 참조)
-kubectl -n postgresql port-forward svc/postgresql 15432:5432
-```
 
 ### 빠른 진단: 최근 실패 건 조회
 
