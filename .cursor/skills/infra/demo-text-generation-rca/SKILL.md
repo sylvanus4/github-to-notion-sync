@@ -1,3 +1,8 @@
+---
+name: demo-text-generation-rca
+version: "1.1.0"
+---
+
 # Demo Text Generation RCA
 
 Text Generation 실험 에러 발생 시 체계적으로 근본 원인을 분석하는 스킬입니다.
@@ -270,6 +275,75 @@ kubectl logs -n ai-platform -l app=ai-platform-backend-go --tail=500 | grep -i "
 # 에러만 필터링
 kubectl logs -n ai-platform -l app=ai-platform-backend-go --tail=500 | grep -i "error\|failed\|panic" | grep -i "text.gen\|textgen"
 ```
+
+## Step 9 — Source Code Change Analysis
+
+RCA 분석 시 최근 소스코드 변경사항을 함께 확인하여 코드 변경이 장애의 원인인지 판단합니다.
+
+### 9.1 최근 변경 이력 (Last 14 Days)
+
+```bash
+git -C ai-platform log --since="14 days ago" \
+  --format="%h | %an | %ad | %s" --date=short -- \
+  backend/go/internal/runner/mlstudio/textgeneration/ \
+  backend/go/internal/runner/mlstudio/common/
+```
+
+### 9.2 핵심 파일 소유자 및 최근 수정자 확인
+
+```bash
+# watcher.go 최근 수정자
+git -C ai-platform log --since="30 days ago" \
+  --format="%an" -- backend/go/internal/runner/mlstudio/textgeneration/watcher.go \
+  | sort | uniq -c | sort -rn
+
+# 핵심 함수 변경 이력 (스텝 상태 판단 로직)
+git -C ai-platform log --since="30 days ago" -p \
+  -S "ResolveCurrentStepStatus" -- backend/go/internal/runner/mlstudio/textgeneration/watcher.go
+
+# 장애 분류 로직 변경 이력
+git -C ai-platform log --since="30 days ago" -p \
+  -S "ClassifyFailure" -- backend/go/internal/runner/mlstudio/common/failure_classifier.go
+
+# TrainJob 빌더 변경 이력
+git -C ai-platform log --since="30 days ago" -p \
+  -S "BuildTrainJob" -- backend/go/internal/runner/mlstudio/textgeneration/trainjob_builder.go
+```
+
+### 9.3 장애 시점과 코드 변경 시점 상관관계
+
+1. Step 1의 DB 쿼리에서 확인한 장애 발생 시각(`completed_at` 또는 `updated_at`, epoch seconds → `to_timestamp()`)을 기준으로 합니다
+2. 해당 시각 전후 커밋 확인:
+   ```bash
+   git -C ai-platform log --since="{ERROR_DATE} -3 days" \
+     --until="{ERROR_DATE}" \
+     --format="%h | %an | %ad | %s" --date=iso -- \
+     backend/go/internal/runner/mlstudio/textgeneration/ \
+     backend/go/internal/runner/mlstudio/common/
+   ```
+3. 커밋 상세 확인:
+   ```bash
+   git -C ai-platform show {COMMIT_HASH} --stat
+   ```
+
+### 9.4 Helm Chart 변경 확인
+
+```bash
+git -C ai-platform log --since="14 days ago" \
+  --format="%h | %an | %ad | %s" --date=short -- \
+  backend/go/charts/
+```
+
+### 코드 변경 → 장애 상관관계 판단 기준
+
+| 조건 | 판단 |
+|------|------|
+| 장애 발생 3일 이내에 관련 파일 커밋 있음 | **높은 상관관계** — 변경 내용 상세 리뷰 필요 |
+| 장애 발생 7일 이내에 관련 파일 커밋 있음 | **중간 상관관계** — 변경 내용 확인 |
+| 14일 이내 커밋 없음 | **낮은 상관관계** — 인프라/설정 원인 가능성 높음 |
+| Helm chart 변경 있음 | **배포 설정 변경** — values 비교 필요 |
+
+> 깊은 소유권 분석이 필요한 경우 `codebase-archaeologist` 스킬을 참고하세요.
 
 ## Watcher Thresholds Reference
 

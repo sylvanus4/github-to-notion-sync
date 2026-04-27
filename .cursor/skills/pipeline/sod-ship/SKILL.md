@@ -243,6 +243,40 @@ If push is rejected (diverged history):
 
 Record per-project result: `{commits_created: N, pushed: bool, push_deferred: bool}`.
 
+### Phase 2½: GitHub Issue Creation
+
+**Mandatory step — never skip.** After Phase 2 ships commits, explicitly invoke the `commit-to-issue` skill to create GitHub issues and link them to ThakiCloud Project #5.
+
+For each project that had `commits_created > 0` AND `pushed: true` in Phase 2:
+
+1. Collect commits created in Phase 2:
+
+```bash
+cd PROJECT_PATH
+git log --oneline @{u}..HEAD~0 --since="1 hour ago"
+```
+
+If no new commits exist for a project, skip it.
+
+2. Invoke the `commit-to-issue` skill (`.cursor/skills/review/commit-to-issue/SKILL.md`) in **pipeline mode** (auto-confirm, no user prompt):
+   - Group commits by type prefix (`feat`/`fix`/`chore`/`docs`/`refactor`)
+   - Create one GitHub issue per logical group
+   - Assign to `sylvanus4`
+
+3. For each created issue, add to Project #5 and set ALL 5 fields:
+
+```bash
+gh project item-add 5 --owner ThakiCloud --url $ISSUE_URL
+```
+
+Then run `set_all_fields()` from [commit-to-issue/references/project-config.md](../../review/commit-to-issue/references/project-config.md) with auto-sizing based on file count.
+
+4. Record per-project result: `{commit_to_issue: {issues_created: N, project_fields_set: N}}`
+
+If `commit-to-issue` fails for a project, log a warning and continue to the next project — do NOT silently skip issue creation.
+
+**Projects with `push_deferred: true`**: Skip issue creation for these projects now. They will be retried after Phase 3 pull resolves the divergence. If the deferred push succeeds in Phase 3, re-run this phase for those projects before proceeding to Phase 4.
+
 ### Phase 3: Pull Remote Changes
 
 **Skip if** `--skip-pull` flag is set.

@@ -37,6 +37,10 @@ Keywords: trend, analysis, prediction, future, strategy, lesson, takeaway, menta
 ### Tasks/Action (weight: 0.8x) → #효정-할일
 Keywords: todo, must, need to, reminder, deadline, follow up, action item, check out, look into, try this, bookmark, save for later, read later
 
+### Image/Visual AI (weight: 1.4x) → #효정-이미지
+Scope: AI image generation, AI video generation, AI music generation, generative art, visual AI tools.
+Keywords: midjourney, stable diffusion, sdxl, dall-e, dall·e, flux, comfyui, automatic1111, fooocus, imagen, ideogram, recraft, leonardo ai, playground ai, firefly, gpt image, chatgpt image, gpt-image, image generation, img2img, inpainting, outpainting, controlnet, lora, text to image, txt2img, t2i, ai art, ai image, ai 이미지, ai 그림, ai drawing, generative art, character design, 캐릭터 디자인, concept art, 컨셉 아트, illustration, 일러스트, 3d render, ai portrait, ai photo, seedance, sora, runway, kling, pika video, gen-3, luma, minimax video, hailuo, wan video, cogvideox, hunyuan video, veo, ai video, ai 비디오, ai 영상, text to video, image to video, video generation, 영상 생성, ai animation, ai music, ai 음악, ace-step, suno, udio, stable audio, pptx design, slide design, ppt design, canva ai
+
 ### Press/News (weight: 1.1x) → #press (DEFAULT)
 Scope: General news, announcements, and the catch-all for anything that doesn't match above categories.
 Keywords: launch, announce, release, funding, acquisition, billion, million, ipo, series, startup, valuation, partnership, collaboration, breaking, exclusive, report, news, update, officially, introducing, unveiled, open source, open-source, github, star, trending, viral, just dropped, 공개, 출시, 발표, 속보, 등장

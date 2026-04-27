@@ -4,20 +4,27 @@ description: >-
   Unified entry point for AI Platform Demo RCA.
   Routes to the correct component-specific RCA skill based on error context:
   workload errors → demo-workload-rca, endpoint/serverless errors →
-  demo-serverless-rca, pipeline errors → demo-pipeline-rca.
+  demo-serverless-rca, pipeline errors → demo-pipeline-rca,
+  text generation errors → demo-text-generation-rca,
+  devspace errors → demo-devspace-rca, tabular/ML Studio errors →
+  demo-tabular-rca, benchmark errors → demo-benchmark-rca,
+  volume/storage errors → demo-volume-rca.
   Follows the SRE Knowledge Layer pattern — injects component-specific
   troubleshooting context at query time.
   Use when the user asks to "debug demo", "demo error", "demo RCA",
   "데모 에러", "데모 장애", "데모 트러블슈팅", "demo-rca-orchestrator",
   "AI 플랫폼 데모 에러", "어디서 에러나는지 모르겠어",
   "데모 환경 장애 분석", "demo troubleshoot",
+  "devspace error", "devspace 에러", "tabular error", "ML Studio 에러",
+  "benchmark error", "벤치마크 에러", "volume error", "볼륨 에러",
+  "storage error", "스토리지 에러",
   or encounters an error in the Demo environment but is unsure which
   component is affected. Also use as a starting point when the
   specific component is not yet identified.
   Do NOT use for production environment troubleshooting.
 metadata:
   author: "thaki"
-  version: "2.0.0"
+  version: "3.0.0"
   category: "infra"
   platforms: [darwin]
 ---
@@ -102,6 +109,48 @@ SELECT 'PIPELINE' as component, id, pipeline_name, status, LEFT(error_message, 2
 FROM pipeline_runs
 WHERE status = 'failed'
 ORDER BY updated_at DESC LIMIT 5;
+
+-- DevSpace 실패
+SELECT 'DEVSPACE' as component, id, name, status, LEFT(error_message, 200) AS err,
+       to_timestamp(updated_at) as failed_at
+FROM devspaces
+WHERE status = 'failed' AND deleted_at IS NULL
+ORDER BY updated_at DESC LIMIT 5;
+
+-- Tabular (ML Studio) 실패
+SELECT 'TABULAR' as component, id, name, status, LEFT(error_message, 200) AS err,
+       to_timestamp(updated_at) as failed_at
+FROM tabular_experiments
+WHERE status = 'failed'
+ORDER BY updated_at DESC LIMIT 5;
+
+-- Benchmark 실패
+SELECT 'BENCHMARK' as component, id, name, status, LEFT(error_message, 200) AS err,
+       to_timestamp(updated_at) as failed_at
+FROM benchmark_runs
+WHERE status = 'failed'
+ORDER BY updated_at DESC LIMIT 5;
+
+-- Volume (Storage) 실패
+SELECT 'VOLUME' as component, id, name, status, LEFT(error_message, 200) AS err,
+       to_timestamp(updated_at) as failed_at
+FROM storage_volumes
+WHERE status = 'ERROR'
+ORDER BY updated_at DESC LIMIT 5;
+
+-- Snapshot 실패
+SELECT 'SNAPSHOT' as component, id, name, status, LEFT(error_message, 200) AS err,
+       to_timestamp(updated_at) as failed_at
+FROM volume_snapshots
+WHERE status = 'ERROR'
+ORDER BY updated_at DESC LIMIT 5;
+
+-- Restore 실패
+SELECT 'RESTORE' as component, id, status, LEFT(error_message, 200) AS err,
+       to_timestamp(updated_at) as failed_at
+FROM restore_jobs
+WHERE status = 'FAILED'
+ORDER BY updated_at DESC LIMIT 5;
 ```
 
 ### 현재 비정상 상태 리소스 조회
@@ -135,15 +184,122 @@ ORDER BY minutes_stuck DESC;
 | **Workloads** (컨테이너, 배치, 학습) | `demo-workload-rca` | `workloads` 테이블, `k8s_deployment_name` |
 | **Serverless / Endpoints** (모델 서빙) | `demo-serverless-rca` | `endpoints` 테이블, HSO, KEDA |
 | **Pipeline Builder** (KFP 파이프라인) | `demo-pipeline-rca` | `pipeline_runs` 테이블, `kfp_run_id` |
+| **Text Generation** (LLM 파인튜닝) | `demo-text-generation-rca` | `text_generation_experiments` 테이블, TrainJob |
+| **DevSpace** (개발 환경) | `demo-devspace-rca` | `devspaces` 테이블, Deployment, PVC |
+| **Tabular / ML Studio** (테이블 학습) | `demo-tabular-rca` | `tabular_experiments` 테이블, TrainJob, `training_mode` |
+| **Benchmark** (모델 벤치마크) | `demo-benchmark-rca` | `benchmark_runs` 테이블, K8s Job, `lm-eval` |
+| **Volume / Storage** (스토리지) | `demo-volume-rca` | `storage_volumes`, `volume_snapshots`, `restore_jobs` 테이블, PVC |
 
 ### 판별 기준 상세
 
 - **UI에서 "Workloads" 메뉴**: → `demo-workload-rca`
 - **UI에서 "Serverless" 또는 "Endpoints" 메뉴**: → `demo-serverless-rca`
 - **UI에서 "Pipeline Builder" 메뉴**: → `demo-pipeline-rca`
+- **UI에서 "Text Generation" 메뉴**: → `demo-text-generation-rca`
+- **UI에서 "DevSpace" 메뉴**: → `demo-devspace-rca`
+- **UI에서 "ML Studio" 또는 "Tabular" 메뉴**: → `demo-tabular-rca`
+- **UI에서 "Benchmark" 메뉴**: → `demo-benchmark-rca`
+- **UI에서 "Volume" 또는 "Storage" 메뉴**: → `demo-volume-rca`
 - **에러 메시지에 `kfp_run_id` 포함**: → `demo-pipeline-rca`
 - **에러 메시지에 `HSO` 또는 `httpscaledobject` 포함**: → `demo-serverless-rca`
 - **에러 메시지에 `helm` 또는 `deployment` 포함**: → 추가 확인 필요 (workload/endpoint 모두 Helm 사용)
+- **에러 메시지에 `TrainJob` 포함**: → `tabular_experiments` 또는 `text_generation_experiments` 확인
+- **에러 메시지에 `lm-eval` 또는 `benchmark` 포함**: → `demo-benchmark-rca`
+- **에러 메시지에 `PVC`, `VolumeSnapshot`, `StorageClass` 포함**: → `demo-volume-rca`
+- **에러 메시지에 `devspace` 또는 `IDE` 포함**: → `demo-devspace-rca`
+
+## Phase 2.5 — Source Code Change Analysis
+
+컴포넌트별 RCA 라우팅과 병행하여, 최근 소스코드 변경사항을 분석하여 코드 변경이 장애의 원인인지 판단합니다.
+
+### 2.5.1 최근 변경 이력 (Last 14 Days)
+
+```bash
+git -C ai-platform log --since="14 days ago" \
+  --format="%h | %an | %ad | %s" --date=short -- \
+  backend/go/internal/runner/workload/ \
+  backend/go/internal/runner/endpoint/ \
+  backend/go/internal/runner/pipeline/ \
+  backend/go/internal/runner/devspace/ \
+  backend/go/internal/runner/mlstudio/tabular/ \
+  backend/go/internal/runner/benchmark/ \
+  backend/go/internal/runner/storage/ \
+  backend/go/internal/k8sclient/
+```
+
+### 2.5.2 핵심 파일 소유자 및 최근 수정자 확인
+
+```bash
+# Workload watcher 최근 수정자
+git -C ai-platform log --since="30 days ago" \
+  --format="%an" -- backend/go/internal/runner/workload/status_watcher.go \
+  | sort | uniq -c | sort -rn
+
+# Endpoint watcher 최근 수정자
+git -C ai-platform log --since="30 days ago" \
+  --format="%an" -- backend/go/internal/runner/endpoint/watcher_sync.go \
+  | sort | uniq -c | sort -rn
+
+# Pipeline watcher 최근 수정자
+git -C ai-platform log --since="30 days ago" \
+  --format="%an" -- backend/go/internal/runner/pipeline/watcher.go \
+  | sort | uniq -c | sort -rn
+
+# DevSpace watcher 최근 수정자
+git -C ai-platform log --since="30 days ago" \
+  --format="%an" -- backend/go/internal/runner/devspace/devspace_watcher.go \
+  | sort | uniq -c | sort -rn
+
+# Tabular watcher 최근 수정자
+git -C ai-platform log --since="30 days ago" \
+  --format="%an" -- backend/go/internal/runner/mlstudio/tabular/tabular_watcher.go \
+  | sort | uniq -c | sort -rn
+
+# Benchmark watcher 최근 수정자
+git -C ai-platform log --since="30 days ago" \
+  --format="%an" -- backend/go/internal/runner/benchmark/watcher.go \
+  | sort | uniq -c | sort -rn
+
+# Storage volume watcher 최근 수정자
+git -C ai-platform log --since="30 days ago" \
+  --format="%an" -- backend/go/internal/runner/storage/volume_watcher.go \
+  | sort | uniq -c | sort -rn
+```
+
+### 2.5.3 장애 시점과 코드 변경 시점 상관관계
+
+1. Phase 1의 DB 쿼리에서 확인한 장애 발생 시각(`failed_at`)을 기준으로 합니다
+2. 해당 시각 전후 커밋 확인:
+   ```bash
+   git -C ai-platform log --since="{ERROR_DATE} -3 days" \
+     --until="{ERROR_DATE}" \
+     --format="%h | %an | %ad | %s" --date=iso -- \
+     backend/go/internal/runner/ \
+     backend/go/internal/k8sclient/
+   ```
+3. 커밋 상세 확인:
+   ```bash
+   git -C ai-platform show {COMMIT_HASH} --stat
+   ```
+
+### 2.5.4 Helm Chart 변경 확인
+
+```bash
+git -C ai-platform log --since="14 days ago" \
+  --format="%h | %an | %ad | %s" --date=short -- \
+  backend/go/charts/
+```
+
+### 코드 변경 → 장애 상관관계 판단 기준
+
+| 조건 | 판단 |
+|------|------|
+| 장애 발생 3일 이내에 관련 파일 커밋 있음 | **높은 상관관계** — 변경 내용 상세 리뷰 필요 |
+| 장애 발생 7일 이내에 관련 파일 커밋 있음 | **중간 상관관계** — 변경 내용 확인 |
+| 14일 이내 커밋 없음 | **낮은 상관관계** — 인프라/설정 원인 가능성 높음 |
+| Helm chart 변경 있음 | **배포 설정 변경** — values 비교 필요 |
+
+> 깊은 소유권 분석이 필요한 경우 `codebase-archaeologist` 스킬을 참고하세요.
 
 ## Phase 3 — 공통 인프라 점검
 

@@ -77,6 +77,7 @@ If found, use the `channel_id` directly — skip the MCP search entirely.
 | `효정-할일` | `C0AA8NT4T8T` | private | 개인 태스크/할일 |
 | `효정-주식` | `C0A7V1A09NK` | private | 주식/투자/트레이딩 |
 | `효정-insight` | `C0A8SSPC9RU` | private | 전략 인사이트/분석 |
+| `효정-이미지` | `C0A88DDE946` | private | AI 이미지/비디오/음악 생성 |
 
 #### Step 3b: MCP Search (fallback)
 

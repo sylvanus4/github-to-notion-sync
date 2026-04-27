@@ -132,6 +132,35 @@ git checkout "$CURRENT_BRANCH"
 3. On success, record `{main_merge: "ok", branch: "$CURRENT_BRANCH", target: "main"}`
 4. **Always return** to the original working branch after this phase
 
+### Phase 2¾: GitHub Issue Creation (Current Project)
+
+**Mandatory step — never skip.** After Phase 2 ships commits for the current project, explicitly invoke the `commit-to-issue` skill to create GitHub issues and link them to ThakiCloud Project #5.
+
+1. Collect all commits created in Phase 2:
+
+```bash
+git log --oneline @{u}..HEAD~0 --since="1 hour ago"
+```
+
+If no new commits exist, skip to Phase 3.
+
+2. Invoke the `commit-to-issue` skill (`.cursor/skills/review/commit-to-issue/SKILL.md`) in **pipeline mode** (auto-confirm, no user prompt):
+   - Group commits by type prefix (`feat`/`fix`/`chore`/`docs`/`refactor`)
+   - Create one GitHub issue per logical group
+   - Assign to `sylvanus4`
+
+3. For each created issue, add to Project #5 and set ALL 5 fields:
+
+```bash
+gh project item-add 5 --owner ThakiCloud --url $ISSUE_URL
+```
+
+Then run `set_all_fields()` from [commit-to-issue/references/project-config.md](../review/commit-to-issue/references/project-config.md) with auto-sizing based on file count.
+
+4. Record result: `{commit_to_issue: {issues_created: N, project_fields_set: N}}`
+
+If `commit-to-issue` fails, log a warning and continue — do NOT silently skip issue creation.
+
 ### Phase 3: Release Ship (Managed Projects)
 
 **If `--targets` is set**, only process the specified projects. Otherwise process all 5.

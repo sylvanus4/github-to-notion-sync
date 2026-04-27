@@ -1,0 +1,6 @@
+iteration	mutation	score	accepted	criteria_passed
+0	baseline	0.375	-	E1,E2,E4
+1	skill-optimizer fixes (examples, error handling, consistent paths)	0.625	yes	E1,E2,E4,E5,E8
+2	add pre-flight check step to workflow	0.75	yes	E1,E2,E3,E4,E5,E8
+3	add --prompt required handling + renumber workflow	0.875	yes	E1,E2,E3,E4,E5,E8
+4	add Exit Codes section + Node.js >= 18 in prerequisites	1.0	yes	E1,E2,E3,E4,E5,E6,E7,E8

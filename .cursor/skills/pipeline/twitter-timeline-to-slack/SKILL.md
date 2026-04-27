@@ -92,6 +92,7 @@ For each tweet, the classifier analyzes text content against keyword rules and r
 | Ideas | `#idea` | Moderate — business insights, frameworks, patterns (absorbs business keywords from insight) |
 | Insights | `#효정-insight` | Very strict — pure analysis, learning methods only (축소 운영) |
 | Tasks | `#효정-할일` | Low |
+| Image/Visual AI | `#효정-이미지` | Moderate — AI image/video/music generation, generative art |
 | Press/News (DEFAULT) | `#press` | Broad — catch-all for everything else |
 
 ### Phase 2.5: Thread Deduplication and Context Loading
