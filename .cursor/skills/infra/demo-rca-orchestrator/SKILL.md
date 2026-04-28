@@ -334,7 +334,37 @@ kubectl get nodes -o custom-columns='NAME:.metadata.name,GPU:.status.allocatable
 kubectl top nodes
 ```
 
-## Phase 4 — 최종 리포트에 대한 참조
+## Phase 4 — Git 커밋 귀인 분석 (필수)
+
+> **반드시 수행**: 모든 demo-*-rca 리포트에 git log/blame 기반 커밋 귀인을 포함합니다.
+> "언제 누가 어떤 작업을 했는데 문제가 발생한 것인지?" 질문에 답해야 합니다.
+
+컴포넌트별 RCA 완료 후, 근본 원인과 관련된 커밋 이력을 추적하여 인과 관계 타임라인을 작성합니다.
+각 demo-*-rca 스킬의 커밋 귀인 단계를 참조하거나, 아래 공통 절차를 따릅니다:
+
+```bash
+# 관련 파일 변경 이력 (ai-platform 레포)
+git -C ai-platform log --since="30 days ago" \
+  --format="%h | %an | %ad | %s" --date=short -- {RELATED_PATH}
+
+# 외부 레포 커밋 조회 (GitHub API)
+gh api repos/{OWNER}/{REPO}/commits?path={FILE_PATH}&per_page=10
+```
+
+타임라인에는 순서, 날짜, 작업자, 파일, 변경 내용, 영향을 포함합니다.
+
+## Phase 5 — 노션 업로드 (필수)
+
+RCA 리포트 완료 후 반드시 아래 절차를 수행합니다:
+
+1. RCA 전체 내용을 `outputs/demo-rca/{date}/{component}-rca.md`에 저장
+2. `md-to-notion` 스킬 또는 Notion MCP `notion-create-pages`로
+   "AI Platform Demo 환경 RCA 리포트" (ID: `34e9eddc34e680f78eacfea0a60270b3`) 하위에 업로드
+3. 생성된 노션 페이지 URL을 사용자에게 제공
+
+> pipe 테이블은 Notion에서 렌더링되지 않으므로 HTML `<table>` 태그로 변환하여 업로드합니다.
+
+## Phase 6 — 최종 리포트에 대한 참조
 
 종합 RCA 리포트: `outputs/demo-rca/2026-04-25/ai-platform-demo-rca-report.md`
 

@@ -42,6 +42,7 @@ alwaysApply: true
 - Notion API: no pipe tables; clean up ephemeral MCP/upload files after automation tasks
 - HWP 변환: 이미지 기반 PDF 변환 금지 ("이미지면 안돼"); 텍스트 보존 방식 필수 — HWP→DOCX 선호, rhwp-converter 또는 pandoc 사용; rhwp-pipeline for end-to-end
 - LLM session traces: fold high-signal items into memory/topics + MEMORY.md; support multi-machine via same repo path layout (home/office)
+- demo-*-rca 리포트에 항상 **git log/blame 기반 커밋 귀인** 포함 — "언제 누가 어떤 작업을 했는데 문제가 발생한거야?" 반복 교정 4회; 완료 후 md-to-notion으로 노션 업로드 + 링크 제공
 
 ## Learned Workspace Facts
 <!-- Full detail → memory/topics/workspace-facts.md, pipeline-ops.md, trading-stack.md, slack-routing.md, skill-ecosystem.md, runbooks.md -->
@@ -65,3 +66,4 @@ alwaysApply: true
 - Weekly release ops: Tue collect → Wed QA → Thu deploy; GitHub labels + Notion Weekly Release/Hotfix Queue; Slack #release-control / #hotfix-alert; skills under `.cursor/skills/release/` → memory/topics/workspace-facts.md
 - Pre-push hook can hang >4min on E2E tests — use git push --no-verify as workaround
 - Vibe-Trading at ~/thaki/Vibe-Trading/; MCP `user-vibe-trading`; 7 skills under `.cursor/skills/vibe-trading/`; MCP-only (no venv merge) → memory/topics/skill-ecosystem.md, workspace-facts.md
+- Metis 제품 브랜딩: "Metis Assistant"는 AI Agent Studio가 **아님** — GitHub `ThakiCloud/thaki-cloud-assistant` 기반, git submodule로 추가됨; `docs/product/metis-product-menu-architecture.md` = 7개 제품 카테고리(Core, Hub, Serve, Pod, ML Studio, Pipeline Builder, Assistant) 정식 메뉴 구조 문서

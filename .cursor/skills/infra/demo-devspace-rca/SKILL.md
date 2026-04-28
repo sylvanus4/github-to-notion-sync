@@ -386,3 +386,61 @@ git -C ai-platform log --since="30 days ago" -p \
 - Start Watcher: `ai-platform/backend/go/internal/runner/devspace/start_watcher.go`
 - Delete Watcher: `ai-platform/backend/go/internal/runner/devspace/delete_watcher.go`
 - K8s Client: `ai-platform/backend/go/internal/k8sclient/`
+
+---
+
+## Git 커밋 귀인 분석 (필수)
+
+> **반드시 수행**: "언제 누가 어떤 작업을 했는데 문제가 발생한 것인지?" 질문에 답해야 합니다.
+
+RCA 완료 후 근본 원인과 관련된 코드/설정 변경의 커밋 이력을 추적하여 인과 관계 타임라인을 작성합니다.
+
+### 관련 파일 커밋 이력 조회
+
+```bash
+git -C ai-platform log --since="30 days ago" \
+  --format="%h | %an | %ad | %s" --date=short -- \
+  backend/go/internal/runner/devspace/
+
+gh api repos/{OWNER}/{REPO}/commits?path={FILE_PATH}&per_page=10
+```
+
+### 커밋 귀인 타임라인 작성
+
+| 순서 | 날짜 | 누가 | 어디서 | 무슨 작업 | 영향 |
+|------|------|------|--------|-----------|------|
+| 1 | YYYY-MM-DD | 작업자 | 파일/레포 | 변경 내용 | 영향 분석 |
+
+**핵심 커밋**에는 SHA, Author, Date, Message, 파일, 변경 내용을 상세히 기록합니다.
+
+### 인과 관계 요약
+
+```
+[시점1] 작업 A (작업자)
+     ↓
+[시점2] 작업 B (작업자)
+     ↓
+[시점3] ⚠️ 핵심 원인 커밋 (작업자)
+     ↓
+[실행 시] 에러 발생
+```
+
+### 핵심 판단
+
+- **직접 원인**: 어떤 커밋이 근본 원인인지
+- **전파 경로**: 어떻게 현재 환경에 전파되었는지
+- **ThakiCloud 팀 책임**: 리뷰/검증 부재 여부
+
+---
+
+## 노션 업로드 (필수)
+
+RCA 리포트 완료 후 반드시 아래 절차를 수행합니다:
+
+1. RCA 전체 내용(에러 요약 + 근본 원인 + 커밋 귀인 타임라인 + 해결 방안 + 재발 방지)을
+   `outputs/demo-rca/{date}/devspace-rca.md`에 저장
+2. `md-to-notion` 스킬 또는 Notion MCP `notion-create-pages`로
+   "AI Platform Demo 환경 RCA 리포트" (ID: `34e9eddc34e680f78eacfea0a60270b3`) 하위에 업로드
+3. 생성된 노션 페이지 URL을 사용자에게 제공
+
+> **참고**: pipe 테이블은 Notion에서 렌더링되지 않으므로 HTML `<table>` 태그로 변환하여 업로드합니다.
