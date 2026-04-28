@@ -1,69 +1,59 @@
 ---
 name: to-prd
-description: Turn the current conversation context into a PRD and submit it as a GitHub issue. Use when user wants to create a PRD from the current context.
+description: Turn the current conversation context into a PRD and submit it as a GitHub issue. No interview - just synthesizes what you've already discussed. Use when user says "to PRD", "make a PRD from this", or wants to capture a conversation as a product requirement.
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a PRD. Do NOT interview the user — just synthesize what you already know.
+# To PRD
+
+Synthesize the current conversation context and codebase understanding into a Product Requirements Document. No interview -- just capture what's already been discussed.
 
 ## Process
 
-1. Explore the repo to understand the current state of the codebase, if you haven't already.
+1. **Review the conversation** - extract all decisions, requirements, and constraints discussed
+2. **Explore the codebase** - understand which modules are affected and identify deep modules
+3. **Draft the PRD** using the template below
+4. **Present to user** for review
+5. **Create a GitHub issue** with the PRD content
 
-2. Sketch out the major modules you will need to build or modify to complete the implementation. Actively look for opportunities to extract deep modules that can be tested in isolation.
+## Template
 
-A deep module (as opposed to a shallow module) is one which encapsulates a lot of functionality in a simple, testable interface which rarely changes.
-
-Check with the user that these modules match their expectations. Check with the user which modules they want tests written for.
-
-3. Write the PRD using the template below and submit it as a GitHub issue.
-
+```markdown
+# [Feature Name]
 
 ## Problem Statement
-
-The problem that the user is facing, from the user's perspective.
+What problem are we solving? Why now?
 
 ## Solution
-
-The solution to the problem, from the user's perspective.
+High-level approach. What changes, what stays the same.
 
 ## User Stories
-
-A LONG, numbered list of user stories. Each user story should be in the format of:
-
-1. As an, I want a, so that
-
-
-1. As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
-
-
-This list of user stories should be extremely extensive and cover all aspects of the feature.
+- As a [role], I want [capability] so that [benefit]
 
 ## Implementation Decisions
+Decisions already made during discussion:
+- [Decision]: [Rationale]
 
-A list of implementation decisions that were made. This can include:
+### Modules Affected
+Which modules change and how:
+- `module-name`: [What changes]
 
-- The modules that will be built/modified
-- The interfaces of those modules that will be modified
-- Technical clarifications from the developer
-- Architectural decisions
-- Schema changes
-- API contracts
-- Specific interactions
-
-Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
+### Deep Module Opportunities
+Where can we deepen interfaces:
+- [Module]: [Opportunity]
 
 ## Testing Decisions
-
-A list of testing decisions that were made. Include:
-
-- A description of what makes a good test (only test external behavior, not implementation details)
-- Which modules will be tested
-- Prior art for the tests (i.e. similar types of tests in the codebase)
+- What level of testing (unit/integration/e2e)
+- Which behaviors to test
+- Which seams to test through
 
 ## Out of Scope
+Explicitly excluded from this work:
+- [Item]: [Why excluded]
+```
 
-A description of the things that are out of scope for this PRD.
+## Guidelines
 
-## Further Notes
-
-Any further notes about the feature.
+- Use the project's domain vocabulary from CONTEXT.md
+- Reference relevant ADRs from docs/adr/
+- Focus on WHAT and WHY, not HOW (implementation details belong in the code)
+- Keep it concise -- a PRD that nobody reads is worse than no PRD

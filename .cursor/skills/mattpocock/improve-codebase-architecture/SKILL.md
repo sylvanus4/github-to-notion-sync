@@ -1,93 +1,82 @@
 ---
 name: improve-codebase-architecture
-description: Propose architectural improvements to the codebase with deep-module analysis. Use when user wants architecture review, reduce complexity, improve code depth, simplify interfaces, or mentions "A Philosophy of Software Design".
+description: >
+  Find deepening opportunities in a codebase. Propose architectural improvements
+  informed by the domain language and documented decisions. Use when user says
+  "improve architecture", "find shallow modules", "deepening opportunities", or
+  wants to reduce complexity and improve code depth.
 ---
 
 # Improve Codebase Architecture
 
-Analyze the codebase and propose architectural improvements based on the principles in [LANGUAGE.md](./LANGUAGE.md). Focus on reducing complexity by creating deep modules with simple interfaces.
+Find and propose "deepening opportunities" - places where shallow modules can be turned into deep ones, improving testability, maintainability and AI-navigability.
+
+## Glossary
+
+See [LANGUAGE.md](LANGUAGE.md) for shared vocabulary:
+
+- **Module**: Unit of code with an interface and implementation
+- **Interface**: What callers see (API, types, function signatures)
+- **Implementation**: Hidden internals
+- **Depth**: Ratio of implementation complexity to interface simplicity
+- **Seam**: Boundary where dependencies can be substituted
+- **Adapter**: Thin wrapper making an external dependency conform to an internal interface
+- **Leverage**: Capability delivered per unit of interface complexity
+- **Locality**: How much of a change is contained within one module
 
 ## Process
 
-### 1. Understand Current Architecture
+### 1. Explore
 
-Before proposing changes:
+Scan the codebase for:
 
-- Map the module structure: what are the key modules/packages/components?
-- Identify the interfaces between them: function signatures, types, config shapes
-- Understand the dependency graph: who depends on whom?
-- Look for existing documentation: CONTEXT.md, ADRs, architecture docs
+- **Shallow modules** - lots of interface, little implementation
+- **Pass-through methods** - functions that just delegate
+- **Leaky abstractions** - internal details exposed in interfaces
+- **Missing seams** - places where testing requires the real dependency
+- **Scattered changes** - features that touch many modules (low locality)
 
-### 2. Identify Complexity
+Use the domain glossary to understand module naming and boundaries.
 
-Look for symptoms of unnecessary complexity:
+### 2. Present candidates
 
-**Shallow modules** — modules whose interface is nearly as complex as their implementation. These force callers to understand implementation details.
+For each opportunity, explain:
 
-**Information leakage** — when the same knowledge is encoded in multiple places. Changes require touching many files.
+1. **What's shallow** - the current state
+2. **What deepening looks like** - the proposed improvement
+3. **Risk** - what could go wrong
+4. **Dependencies** - what depends on this (see [DEEPENING.md](DEEPENING.md) for dependency classification)
 
-**Temporal decomposition** — modules organized by "when" things happen rather than by information hiding. Results in many tiny modules that each know about the same data.
+### 3. Grilling loop
 
-**Pass-through methods** — methods that do nothing but call another method with the same (or nearly the same) signature.
+For each candidate the user is interested in:
 
-**Overexposed configuration** — forcing callers to specify details they shouldn't need to care about.
+1. Present the "Design It Twice" options (see [INTERFACE-DESIGN.md](INTERFACE-DESIGN.md))
+2. Quiz the user on trade-offs
+3. Agree on approach
+4. Document the decision
 
-### 3. Apply the Principles
+### 4. Implementation
 
-For each problem identified, apply the relevant principle from [LANGUAGE.md](./LANGUAGE.md):
+When the user approves a deepening:
 
-- **Modules should be deep** — small interface, significant implementation
-- **Information hiding** — each module encapsulates a design decision
-- **Define errors out of existence** — design interfaces so errors can't happen
-- **Pull complexity downward** — it's better for a module to be complex internally than to push complexity to its callers
+1. Write the regression test at the correct seam **first**
+2. Deepen the module
+3. Verify tests pass
+4. Clean up any adapters or seams that are no longer needed
 
-For interface improvements, use the principles in [INTERFACE-DESIGN.md](./INTERFACE-DESIGN.md).
+## What to Look For
 
-For deepening existing modules, use the techniques in [DEEPENING.md](./DEEPENING.md).
+Good deepening candidates:
 
-### 4. Propose Changes
+- Modules with many parameters that could be simplified
+- Classes with too many public methods
+- Functions that require callers to manage state
+- Code where adding a feature requires touching 5+ files
+- Test files that are harder to read than the implementation
 
-For each proposed change:
+Bad deepening candidates:
 
-1. **What's the problem?** — describe the current complexity clearly
-2. **What's the interface change?** — show the before/after of how callers interact with the module (code examples)
-3. **What moves inside?** — what complexity gets absorbed by the module
-4. **What's the trade-off?** — be honest about downsides
-
-### 5. Document Decisions
-
-If a proposal involves architectural decisions that meet the ADR criteria (hard to reverse, surprising, real trade-off), use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
-
-If new domain terms emerge, update CONTEXT.md using [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md).
-
-## Anti-Patterns
-
-- Don't propose changes that just move code around without reducing interface complexity
-- Don't split modules for "cleanliness" — splitting increases complexity unless the resulting modules are independently deep
-- Don't add abstraction layers that don't hide meaningful decisions
-- Don't optimize for testability at the expense of interface simplicity
-- Don't propose changes you can't explain the benefit of in one sentence
-
-## Example
-
-**Problem:** The `EmailService` requires callers to specify SMTP configuration, template selection, variable substitution, and retry policy for every email sent.
-
-**Before:**
-```typescript
-emailService.send({
-  to: user.email,
-  template: "welcome",
-  variables: { name: user.name, activationUrl: url },
-  smtp: { host: "smtp.example.com", port: 587, auth: credentials },
-  retry: { maxAttempts: 3, backoffMs: 1000 },
-});
-```
-
-**After:**
-```typescript
-emailService.sendWelcome(user);
-```
-
-**What moves inside:** SMTP config (from environment), template selection and variable mapping (the service knows what a "welcome" email needs), retry policy (sensible default, not caller's concern).
-
-**Trade-off:** Less flexible per-call customization. But the 99% case is "send a welcome email to this user" — the interface should optimize for that, not for the rare case where you need custom SMTP settings.
+- Modules that are already thin wrappers by design (adapters)
+- Code that rarely changes
+- Interfaces mandated by external APIs
