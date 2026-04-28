@@ -1,32 +1,24 @@
 ---
 name: group-meeting-digest
 description: >-
-  Analyze company-wide meeting transcripts and compress them into group-specific
-  actionable summaries with decision routing to Slack. 3-phase pipeline:
-  meeting-digest (extract decisions/actions/announcements) → long-form-compressor
-  (compress from a specific group's perspective, default AI Platform Group) →
+  Analyze company-wide meeting transcripts and compress them into concise,
+  comprehensive summaries covering ALL teams/topics with decision routing to Slack.
+  3-phase pipeline: meeting-digest (extract decisions/actions/announcements) →
+  full-content-compressor (compress all content, focusing on core essentials) →
   decision-router (route decision items to #효정-의사결정 or #ai-리더방).
   Input: Notion URL, local file path, or pasted transcript.
-  Output: compressed Korean summary + Slack decision posts.
-  Use when the user asks to "group meeting digest", "전사 회의 요약", "그룹 관점 회의 정리",
-  "AI 플랫폼 회의 요약", "회의록 그룹 요약", "compress meeting for my team",
-  "meeting summary for AI Platform", "그룹 미팅 다이제스트", or wants a team-perspective
-  meeting summary with decision routing. Do NOT use for full meeting analysis without
-  group filtering (use meeting-digest). Do NOT use for document compression without
-  meeting context (use long-form-compressor). Do NOT use for decision routing without
-  meeting source (use decision-router inline).
+  Output: compressed Korean summary covering all topics + Slack decision posts.
+  Use when the user asks to "group meeting digest", "전사 회의 요약", "회의 전체 요약",
+  "전사 회의 핵심 정리", "회의록 요약", "meeting digest", "전사 미팅 다이제스트", or wants a
+  comprehensive meeting summary with decision routing. Do NOT use for document
+  compression without meeting context (use long-form-compressor). Do NOT use for
+  decision routing without meeting source (use decision-router inline).
 ---
 
 # Group Meeting Digest
 
-전사 회의록을 특정 그룹(기본: AI 플랫폼 그룹) 관점으로 압축 요약하고,
+전사 회의록 전체 내용을 핵심 위주로 압축 요약하고,
 의사결정 항목을 Slack 채널로 자동 라우팅하는 3-Phase 파이프라인.
-
-## Output Rules
-
-- **언어**: 모든 출력물(추출, 압축, Slack 메시지, 최종 보고서)은 **반드시 한글**로 작성한다. 원문이 영어여도 한글로 번역하여 출력한다.
-- **저장 형식**: 모든 Phase 산출물과 최종 보고서는 `.md` (마크다운) 파일로 저장한다.
-- **저장 경로**: `outputs/group-meeting-digest/{date}/` 하위에 Phase별 파일과 최종 보고서를 저장한다.
 
 ## Output Rules
 
@@ -47,7 +39,6 @@ description: >-
 
 | Param | Default | Description |
 |-------|---------|-------------|
-| `group` | `AI 플랫폼 그룹` | 관점을 적용할 그룹명 |
 | `format` | `executive-summary` | 압축 포맷: `bullet-brief`, `executive-summary`, `one-page`, `custom` |
 | `word_limit` | `500` | custom 포맷 시 목표 단어 수 |
 | `priority` | `decision-first` | 보존 우선순위: `decision-first`, `data-first`, `balanced` |
@@ -56,9 +47,9 @@ description: >-
 
 ```
 Phase 1: Meeting Digest (추출)
-    ↓ structured markdown (decisions, actions, announcements)
-Phase 2: Group Compression (압축)
-    ↓ group-filtered compressed summary
+    ↓ structured markdown (decisions, actions, announcements, all teams)
+Phase 2: Full Content Compression (전체 내용 압축)
+    ↓ comprehensive summary covering all topics — no group filter
 Phase 3: Decision Routing (라우팅)
     → #효정-의사결정 (개인/트레이딩/도구)
     → #ai-리더방 (인프라/전략/파트너십/예산)
@@ -104,27 +95,13 @@ meeting-digest 방법론을 적용하여 회의 원문에서 구조화된 정보
 
 ---
 
-## Phase 2: Group Compression (압축)
+## Phase 2: Full Content Compression (전체 내용 압축)
 
-long-form-compressor 방법론을 적용하여 Phase 1 결과를 그룹 관점으로 압축한다.
+long-form-compressor 방법론을 적용하여 Phase 1 결과를 **그룹 필터 없이** 전체 내용 기준으로 핵심만 압축한다.
 
-### 2-1. Group Filter
+### 2-1. Compress
 
-Phase 1 결과에서 `{group}` 파라미터에 해당하는 항목을 우선 선별:
-
-**선별 기준** (AI 플랫폼 그룹 기본):
-- 직접 언급된 항목 (그룹명, 담당자명, 관련 제품/서비스)
-- 인프라/GPU/클라우드/K8s/MLOps 관련 사항
-- 전사 공통 정책 중 기술팀 영향 항목
-- 예산/인력/조직 변동 중 해당 그룹 영향 항목
-
-**제외 기준**:
-- 다른 그룹 전용 사항 (마케팅 캠페인, 영업 목표 등)
-- 이미 완료된 과거 사항
-
-### 2-2. Compress
-
-선별된 내용을 `{format}` 포맷으로 압축:
+Phase 1 전체 결과를 `{format}` 포맷으로 압축:
 
 **보존 우선순위** (`{priority}`):
 - `decision-first`: 의사결정 → 액션 아이템 → 공지 → 논의
@@ -132,38 +109,38 @@ Phase 1 결과에서 `{group}` 파라미터에 해당하는 항목을 우선 선
 - `balanced`: 모든 카테고리 균등 압축
 
 **압축 규칙**:
-1. 핵심 논점(thesis) 추출
-2. 포인트를 임팩트 순으로 정렬
-3. 하위 항목부터 제거
-4. 중복 제거 및 문장 압축
+1. 모든 팀/부서의 내용을 동등하게 포함 (그룹 필터 없음)
+2. 핵심 논점(thesis) 추출 — 임팩트 순 정렬
+3. 중복 제거 및 문장 압축
+4. 수치, 일정, 담당자 등 구체 정보 우선 보존
 5. 출처 귀속 보존 (누가 말했는지)
 6. 원문 대비 정확성 검증
 
-### 2-3. Output Format
+### 2-2. Output Format
 
 ```markdown
-# {group} 회의 브리핑 — {date}
+# 전사 회의 브리핑 — {date}
 
 ## 📋 핵심 요약
 [1-3문장 종합 요약]
 
-## 🔴 우리 그룹 의사결정
-- [결정]: 내용 (담당: OOO)
+## 🔴 의사결정 사항
+- [결정]: 내용 (담당: OOO, 기한: MM/DD)
 
 ## 🟡 액션 아이템
 - [ ] 담당: OOO | 기한: MM/DD | 내용
 
-## 📢 전사 공유 (그룹 영향)
-- [공지]: 영향 요약
+## 📢 공지 / 공유 사항
+- [공지]: 요약
 
-## 💡 참고 논의
-- 논의 요약 (필요시만)
+## 💡 주요 논의
+- 논의 주제: 핵심 포인트 (팀: OOO)
 
 ---
-*원문 대비 압축률: X% | 제외 항목: N건*
+*원문 대비 압축률: X% | 포함 항목: N건*
 ```
 
-### 2-4. Persist
+### 2-3. Persist
 
 압축 결과를 `outputs/group-meeting-digest/{date}/phase-2-compress.md`에 저장.
 
@@ -230,7 +207,7 @@ Slack MCP `slack_send_message`로 각 채널에 포스팅:
 ### 보고서 구조
 
 ```markdown
-# {group} 회의 다이제스트 — {date}
+# 전사 회의 다이제스트 — {date}
 
 > 생성 일시: {timestamp} | 원문 소스: {source_type}
 
@@ -239,26 +216,26 @@ Slack MCP `slack_send_message`로 각 채널에 포스팅:
 ## 1. 핵심 요약
 [1-3문장 종합 요약]
 
-## 2. 우리 그룹 의사결정
-- [결정]: 내용 (담당: OOO)
+## 2. 의사결정 사항
+- [결정]: 내용 (담당: OOO, 기한: MM/DD)
 
 ## 3. 액션 아이템
 | 담당 | 기한 | 내용 | 라우팅 채널 |
 |------|------|------|-------------|
 | OOO | MM/DD | 내용 | #채널명 |
 
-## 4. 전사 공유 (그룹 영향)
-- [공지]: 영향 요약
+## 4. 공지 / 공유 사항
+- [공지]: 요약
 
-## 5. 참고 논의
-- 논의 요약
+## 5. 주요 논의
+- 논의 주제: 핵심 포인트 (팀: OOO)
 
 ## 6. 의사결정 라우팅 결과
 - #효정-의사결정: {n1}건
 - #ai-리더방: {n2}건
 
 ---
-*원문 대비 압축률: X% | 제외 항목: N건*
+*원문 대비 압축률: X% | 포함 항목: N건*
 *Phase 1 원본: phase-1-extract.md | Phase 2 압축: phase-2-compress.md*
 ```
 
