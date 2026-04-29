@@ -1,75 +1,48 @@
-## Paper Review Pipeline
+## Paper Review (Deep Analysis + Peer Review)
 
-End-to-end academic paper review: ingest paper → Korean review → multi-perspective PM analysis → DOCX report → PPTX presentation → NotebookLM slide deck → Slack distribution. Orchestrates 14+ skills across 7 phases.
+Deep academic paper analysis: ingest paper → structured Korean review → evidence-based peer review with severity grading (FATAL/MAJOR/MINOR) → revision plan. Pure analysis only — no PM perspectives, no DOCX/PPTX, no Notion/Slack distribution.
 
 ### Usage
 
 ```
-/paper-review <arXiv-URL>                                    # full pipeline with all phases
+/paper-review <arXiv-URL>                                    # full deep analysis
 /paper-review /path/to/paper.pdf                             # local PDF input
-/paper-review paper.md --skip-pm                             # review + docs only, no PM analysis
-/paper-review <URL> --skip-slack --skip-nlm                  # no Slack posting or NLM slides
-/paper-review <URL> --perspectives "strategy,statistics"     # run only selected perspectives
-/paper-review <URL> --channel "research-pr"                  # post to a different Slack channel
+/paper-review paper.md                                       # local markdown input
+/paper-review <URL> --skip-peer-review                       # Korean review only, no peer review
 ```
 
 ### Pipeline
 
 1. **Ingest** — Parse arXiv URL / local PDF / markdown → structured text
 2. **Review** — Generate structured Korean paper review (core deliverable)
-3. **Analyze** — Run 6 PM/research perspectives in parallel (optional)
-4. **DOCX** — Consolidate into a professional Word report
-5. **PPTX** — Generate PowerPoint presentation via PptxGenJS
-6. **NLM Slides** — Create NotebookLM slide deck from DOCX
-7. **Slack** — Upload NLM slides + threaded summary + DOCX + PPTX to Slack
+3. **Peer Review** — Evidence-based peer review with severity grading + revision plan
+4. **Verify** — Cross-check claims, citations, and consistency
+5. **Deliver** — Consolidated Korean analysis output
 
 ### Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--skip-pm` | Skip PM analysis (Phase 3) | PM enabled |
-| `--skip-pptx` | Skip PPTX generation (Phase 5) | PPTX enabled |
-| `--skip-docx` | Skip DOCX generation (Phase 4; also skips Phase 6) | DOCX enabled |
-| `--skip-nlm` | Skip NotebookLM slide generation (Phase 6) | NLM enabled |
-| `--skip-slack` | Skip Slack distribution (Phase 7) | Slack enabled |
-| `--channel <name>` | Target Slack channel | `research` |
-| `--perspectives "..."` | Comma-separated perspectives to run | All 6 |
-| `--lang ko` | Korean review only (default) | Korean |
-| `--lang both` | Review in both Korean and English | Korean |
+| `--skip-peer-review` | Skip Phase 3 peer review | Peer review enabled |
+| `--severity-threshold` | Minimum severity to include (MINOR/MAJOR/FATAL) | MINOR |
 
 ### Execution
 
-1. Read and follow `.cursor/skills/paper-review/SKILL.md`
-2. Read reference files as needed per each phase:
-   - `references/review-template.md` (Phase 2)
-   - `references/analysis-perspectives.md` (Phase 3)
-   - `references/docx-structure.md` (Phase 4)
-   - `references/pptx-structure.md` (Phase 5)
-   - `references/nlm-slack-integration.md` (Phase 6-7)
-3. Execute phases sequentially, respecting option flags
-
-MCP tools used: `notebook_create`, `source_add`, `studio_create`, `studio_status`, `download_artifact`, `slack_send_message`, `slack_search_channels`.
-
-Shell tools: `curl` for arXiv PDF download, Defuddle extraction, and Slack file uploads via `files.uploadV2` API.
+1. Read and follow `.cursor/skills/research/paper-review/SKILL.md`
+2. Read `references/review-template.md` as needed for Phase 2
 
 ### Examples
 
-Full pipeline for an arXiv paper:
+Full deep analysis for an arXiv paper:
 ```
 /paper-review https://arxiv.org/abs/2509.04664
 ```
 
-Local PDF with only strategy + statistics perspectives:
+Local PDF with review only (no peer review):
 ```
-/paper-review /path/to/paper.pdf --perspectives "strategy,statistics"
-```
-
-Quick review without PM analysis or Slack:
-```
-/paper-review paper.md --skip-pm --skip-slack
+/paper-review /path/to/paper.pdf --skip-peer-review
 ```
 
-Post to a custom Slack channel:
-```
-/paper-review https://arxiv.org/abs/2509.04664 --channel "press"
-```
+### Related Commands
+
+- `/paper-review-pipeline` — Full end-to-end pipeline with PM analysis + DOCX/PPTX + NLM slides + Notion/Slack distribution
