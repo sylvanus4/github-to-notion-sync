@@ -1,0 +1,57 @@
+---
+description: "SRA 기반 스킬 사전 검토: 모든 비-trivial 작업 시작 전 BM25 스킬 검색으로 최적 스킬 조합을 결정"
+alwaysApply: true
+---
+
+# SRA Skill Review First
+
+## Rule
+
+**모든 비-trivial 작업을 시작하기 전에, SRA 리트리버로 관련 스킬을 검색하고 최적 스킬 조합을 결정한 후 작업에 착수한다.**
+
+## When to Trigger
+
+다음 중 하나라도 해당하면 스킬 검토를 실행:
+
+- 코드 작성/수정 요청
+- 문서/글 작성 요청 (PRD, 리포트, 분석, 기획서, 제안서, 블로그 등)
+- 리뷰/감사/검증 요청
+- 파이프라인/워크플로우 실행 요청
+- 리서치/분석 요청
+- 디버깅/장애 대응
+
+## When to Skip
+
+- 단순 질문 응답 (사실 확인, 용어 설명)
+- 파일 읽기/검색만 수행하는 경우
+- 이전 턴에서 이미 스킬 검토를 완료한 경우
+- 사용자가 특정 스킬을 명시적으로 지정한 경우
+
+## How
+
+1. 사용자 요청에서 핵심 키워드 2-3개 추출
+2. `python3 scripts/sra/retrieve.py --top-k 5 "<keywords>"` 실행
+3. 반환된 스킬 목록에서 적합한 스킬 선별 (score 기준 + 작업 맥락)
+4. 선별 결과를 한 줄로 보고: `스킬 검토: X, Y, Z 중 [선택한 스킬]로 작업합니다.`
+5. 해당 스킬의 SKILL.md를 읽고 절차를 따름
+
+## Writing Tasks
+
+글 작성 요청 시 검토 키워드 예시:
+
+| 요청 유형 | 검색 키워드 |
+|---|---|
+| PRD/기획서 | `PRD spec planning document` |
+| 기술 문서 | `technical documentation ADR` |
+| 제안서 | `proposal SOW customer` |
+| 리포트/분석 | `report analysis evaluation` |
+| 블로그/콘텐츠 | `content writing blog article` |
+| 이메일 답장 | `email reply draft compose` |
+| 프레젠테이션 | `presentation slides deck` |
+| 회의록 요약 | `meeting digest summary` |
+
+## Constraint
+
+- 스킬 검토 결과 적합한 스킬이 없으면 직접 수행하되, 그 사실을 명시
+- 검토에 소요되는 시간은 5초 이내 (retrieve.py 실행 1회)
+- 검토 결과를 장황하게 설명하지 않음 — 한 줄 요약 후 바로 작업 착수
