@@ -18,6 +18,7 @@ Use when the user asks to:
 
 ## Do NOT Use
 
+- For 4-pillar strategic SEO audit (AEO, Core Web Vitals, technical audit, content gap) → use `ai-seo-growth-engine`
 - For general marketing performance analytics → use `kwp-marketing-performance-analytics`
 - For content creation without SEO analysis → use `kwp-marketing-content-creation`
 - For website cloning → use `clone-website`
