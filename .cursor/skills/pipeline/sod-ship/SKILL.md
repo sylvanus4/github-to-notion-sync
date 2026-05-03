@@ -805,6 +805,35 @@ under a new **커서 동기화** section:
 - 검증: commands=X  skills=Y  rules=Z (5개 레포 동일)
 ```
 
+### Phase 8½: Claude Sync
+
+**Skip if** `--dry-run` is set, or if `--skip-pull` is set (no new remote content to propagate).
+
+After cursor-sync completes, run `claude-sync` to propagate any new or updated
+`.claude/` assets (rules, commands, skills, hooks) across all 5 repos via the
+research merge hub.
+
+Follow the `claude-sync` skill (`.claude/skills/claude-sync/SKILL.md`):
+
+1. **Pull Phase**: `rsync -au` from each of the 4 target repos → research (newest wins)
+2. **Push Phase**: `rsync -ac` from research → all 4 target repos (checksum-based)
+3. **Verify**: all 5 repos have identical file counts for `rules/`, `commands/`, `skills/`, `hooks/`
+
+Record `{claude_sync: {pulled: N, pushed: M}}` where N = total new files pulled
+into research, M = total new files pushed per target.
+
+If claude-sync encounters errors (missing directories, rsync failures), warn and
+continue — it does not block the SOD pipeline.
+
+Include claude-sync results in the Phase 5 Slack message and Phase 6 Chat Report
+under a new **클로드 동기화** section:
+
+```
+**클로드 동기화**
+- N개 파일 Pull (research 허브로), M개 파일 Push (4개 타겟으로)
+- 검증: rules=X  commands=Y  skills=Z  hooks=W (5개 레포 동일)
+```
+
 ## Examples
 
 ### Example 1: Full SOD sync (typical start-of-day)

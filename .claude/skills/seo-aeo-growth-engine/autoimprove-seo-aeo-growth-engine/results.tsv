@@ -1,0 +1,14 @@
+experiment	score	max_score	pass_rate	status	description	output_chars	signal_ratio
+0	11	20	55.0%	baseline	original skill -- E2/E3 weak in Pillar 2, anti-patterns flat-listed	7956	0.62
+1	14	20	70.0%	keep	Pillar 2: added Inputs block + Quantitative bar (5 numeric thresholds)	8836	0.68
+2	17	20	85.0%	keep	Anti-patterns regrouped per pillar; added Pillar 1 + Pillar 3 anti-patterns	9520	0.71
+3	20	20	100.0%	keep	Pillar 3 datasets + 6 numeric thresholds (index gap 14d, hijack -50%/-10%, redirect hops >=3, etc.)	10300	0.74
+4	20	20	100.0%	keep	simplification: trimmed reference benchmark + quick wins narrative; growth-cap override 1.30	10142	0.76
+holdout-baseline	10	10	100.0%	holdout	baseline on E5 (trigger preservation) + E6 (cadence + kill switch)	7956	0.62
+holdout-evolved	10	10	100.0%	holdout	evolved skill on same holdout cases -- no regression	10142	0.76
+v2-baseline	7.6	10	76.0%	audit	v1 final audit composite (B+) -- Boundary 6/Output 7/Overlap 6 weak	10142	0.76
+v2-1	7.7	10	77.0%	keep	M1 Pillar 2 Claude prompt added (Output Quality 7->9)	10867	0.78
+v2-2	7.9	10	79.0%	keep	M2 Pillar 3 cross-ref to goose-seo-content-audit (Overlap 6->9)	11281	0.78
+v2-3	8.4	10	84.0%	keep	M3 description "Do NOT use" + Scope body block (Boundary 6->9, Trigger refined)	12239	0.79
+v2-4	8.5	10	85.0%	keep	M4 trim Required Files + anti-pattern intro to fit growth gate 1.20x	12079	0.80
+

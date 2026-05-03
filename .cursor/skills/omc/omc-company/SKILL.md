@@ -170,7 +170,7 @@ Phase 1 - Org Design:
   Executor (backend):  Go Fiber API impl        [sonnet, worktree]
   Executor (frontend): React UI impl            [sonnet, worktree]
   Specialist (test):   E2E test suite           [sonnet, worktree]
-  
+
 Dependencies: Director -> [backend, frontend] -> test
 
 Phase 2 - Execute:
@@ -180,6 +180,6 @@ Phase 2 - Execute:
 
 Phase 3 - Review:
   test results -> accept/reject backend & frontend
-  
+
 Phase 4 - Deliver to CEO
 ```

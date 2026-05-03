@@ -48,20 +48,16 @@ See [references/cookie-validation.md](references/cookie-validation.md) for the f
 
 Before fetching and posting, load the central intelligence registry to filter out already-processed tweets across all repos and machines.
 
-```bash
-RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
-```
-
 For each tweet URL that would be posted, check against the registry:
 
 ```bash
-python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" check "<tweet_url>"
+python3 "scripts/intelligence/intel_registry.py" check "<tweet_url>"
 ```
 
 - **Exit 0 (new)**: Include in the batch for processing.
 - **Exit 1 (duplicate)**: Mark as `skip_reason: "cross_repo_duplicate"` in tweets.json and skip.
 
-If the research repo or `intel_registry.py` is not found, log a warning and proceed without cross-repo dedup (graceful degradation). Local dedup via tweets.json still applies.
+If `intel_registry.py` is not found, log a warning and proceed without cross-repo dedup (graceful degradation). Local dedup via tweets.json still applies.
 
 ### Phase 1: Fetch Tweets
 
@@ -194,8 +190,7 @@ After updating tweets.json, save an intelligence artifact to the research repo a
 2. Save and register via:
 
 ```bash
-RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
-python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
+python3 "scripts/intelligence/intel_registry.py" save \
   "{tweet_url}" "/tmp/timeline-{tweet_id}.md" \
   --type tweet \
   --channel "{channel_name}" \
@@ -203,7 +198,7 @@ python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
   --topic intelligence
 ```
 
-If the research repo is not found, log a warning and skip (graceful degradation). The Slack post is already complete.
+If `intel_registry.py` is not found, log a warning and skip (graceful degradation). The Slack post is already complete.
 
 ### Subagent Internal Processing (reference only)
 

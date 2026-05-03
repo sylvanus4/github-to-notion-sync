@@ -1,0 +1,38 @@
+{
+  "skill_name": "seo-aeo-growth-engine",
+  "status": "complete",
+  "current_experiment": 4,
+  "baseline_score": 55.0,
+  "best_score": 100.0,
+  "delta": 45.0,
+  "experiments": [
+    {"id": 0, "score": 11, "max_score": 20, "pass_rate": 55.0, "status": "baseline", "description": "original skill -- E2/E3 weak in Pillar 2, anti-patterns flat-listed", "output_chars": 7956, "signal_ratio": 0.62},
+    {"id": 1, "score": 14, "max_score": 20, "pass_rate": 70.0, "status": "keep", "description": "Pillar 2: added Inputs block + Quantitative bar (5 numeric thresholds)", "output_chars": 8836, "signal_ratio": 0.68},
+    {"id": 2, "score": 17, "max_score": 20, "pass_rate": 85.0, "status": "keep", "description": "Anti-patterns regrouped per pillar; added Pillar 1 + Pillar 3 entries", "output_chars": 9520, "signal_ratio": 0.71},
+    {"id": 3, "score": 20, "max_score": 20, "pass_rate": 100.0, "status": "keep", "description": "Pillar 3 datasets + 6 numeric thresholds (index 14d, hijack -50%/-10%, hops>=3, etc.)", "output_chars": 10300, "signal_ratio": 0.74},
+    {"id": 4, "score": 20, "max_score": 20, "pass_rate": 100.0, "status": "keep", "description": "simplification trim; growth-cap override 1.30", "output_chars": 10142, "signal_ratio": 0.76}
+  ],
+  "eval_breakdown": [
+    {"name": "E1 Pillar coverage", "pass_count": 5, "total": 5, "trend": "stable -- already passing"},
+    {"name": "E2 Concrete thresholds", "pass_count": 5, "total": 5, "trend": "2 -> 5 (Pillar 2 + 3 numeric upgrades)"},
+    {"name": "E3 Reproducible inputs", "pass_count": 5, "total": 5, "trend": "3 -> 5 (Pillar 2 inputs added; Pillar 3 dataset columns)"},
+    {"name": "E4 Anti-pattern mapping", "pass_count": 5, "total": 5, "trend": "1 -> 5 (flat -> per-pillar grouping)"}
+  ],
+  "holdout": {
+    "baseline_score": 10,
+    "evolved_score": 10,
+    "max_score": 10,
+    "baseline_rate": 100.0,
+    "evolved_rate": 100.0,
+    "delta": 0.0,
+    "verdict": "validated"
+  },
+  "constraint_gates": {
+    "max_chars": {"limit": 15000, "actual": 10142, "result": "PASS"},
+    "growth_rate": {"default_cap": 1.20, "override": 1.30, "actual": 1.275, "result": "PASS_WITH_OVERRIDE", "reason": "small baseline (7956 chars); 3 high-value mutations together exceed 1.20 default; max 15K not approached"},
+    "non_empty_body": {"result": "PASS"},
+    "trigger_preservation": {"result": "PASS", "checked_triggers": ["GSC analysis", "AEO setup", "llms.txt", "FAQ schema", "LCP optimization", "weekly audit"]},
+    "boundary_preservation": {"result": "PASS", "checked": "all baseline anti-patterns preserved (and expanded)"},
+    "section_structure": {"baseline_h2_count": 11, "evolved_h2_count": 11, "result": "PASS"}
+  }
+}

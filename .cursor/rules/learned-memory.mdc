@@ -16,6 +16,7 @@ alwaysApply: true
 - After skill create/modify: test e2e, create command, setup-doctor, skill-guide-sync, /autoskill-evolve
 - Broker/data integration skills: hook into today pipeline or documented daily steps; scaffold-only unused skills are unacceptable
 - cursor-sync = .cursor/ asset copying ONLY; confirm direction before bulk sync jobs
+- claude-sync = .claude/ asset copying (rules, commands, skills, hooks); same 5-repo merge-hub pattern as cursor-sync; eod-ship Phase 1½, sod-ship Phase 8½
 - Do not modify .plan.md files during implementation; do not recreate existing todos; with pre-created todos mark first in_progress and finish the list
 - Before claiming Slack/MCP broken: verify .env keys and session tool availability; do not dismiss user credentials without mismatch evidence
 - Do not bulk-delete .cursor/ skills without explicit approval; user reverts aggressive reductions

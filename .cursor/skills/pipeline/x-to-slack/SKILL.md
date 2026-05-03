@@ -31,14 +31,13 @@ The user provides:
 Before any processing, check the central intelligence registry to avoid duplicate Slack posts across repos/machines.
 
 ```bash
-RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
-python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" check "<tweet_url>"
+python3 "scripts/intelligence/intel_registry.py" check "<tweet_url>"
 ```
 
 - **Exit 0 (new)**: Proceed with the pipeline.
 - **Exit 1 (duplicate)**: Report `"이미 처리된 URL입니다 (처음 처리: {first_seen}, 소스: {source_repo})"` and STOP. Do NOT post to Slack.
 
-If the research repo or `intel_registry.py` is not found, log a warning and proceed (graceful degradation).
+If `intel_registry.py` is not found, log a warning and proceed (graceful degradation).
 
 ### Step 1: Fetch Tweet via FxTwitter API
 
@@ -351,8 +350,7 @@ Save to a temporary file, e.g. `/tmp/x-to-slack-{tweet_id}.md`.
 #### Step 6b: Save to Research Repo
 
 ```bash
-RESEARCH_REPO="${RESEARCH_REPO:-$HOME/thaki/research}"
-python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
+python3 "scripts/intelligence/intel_registry.py" save \
   "{tweet_url}" "/tmp/x-to-slack-{tweet_id}.md" \
   --type tweet \
   --channel "{channel_name}" \
@@ -360,9 +358,9 @@ python3 "$RESEARCH_REPO/scripts/intelligence/intel_registry.py" save \
   --topic intelligence
 ```
 
-This copies the artifact to `~/thaki/research/outputs/intelligence/{date}/{slug}.md` and registers the URL in the central dedup registry.
+This copies the artifact to `knowledge-bases/intelligence/raw/` and registers the URL in the central dedup registry.
 
-If the research repo is not found, log a warning and skip (graceful degradation). The Slack post is still complete.
+If `intel_registry.py` is not found, log a warning and skip (graceful degradation). The Slack post is still complete.
 
 ## Examples
 

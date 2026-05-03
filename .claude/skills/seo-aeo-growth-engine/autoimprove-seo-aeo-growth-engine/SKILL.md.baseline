@@ -1,0 +1,205 @@
+---
+name: seo-aeo-growth-engine
+description: Use Claude as SEO strategist + content engine + CTO to grow organic traffic with $0 ad spend. Pipeline covers GSC-driven content gap analysis, AEO (Answer Engine Optimization) for ChatGPT/Gemini/Perplexity citation, weekly technical SEO audit (GSC + Ahrefs + GA), and Core Web Vitals tuning (LCP/CLS/INP). Trigger when user asks for organic growth, SEO audit, AEO setup, GSC analysis, content calendar from search data, llms.txt setup, FAQ schema, or LCP optimization.
+---
+
+# SEO + AEO Growth Engine
+
+A 4-pillar playbook to ship organic growth without paid acquisition. Reproduces the case where a founder hit 10K MAU in 6 weeks using Claude as strategist, writer, and engineer.
+
+Reference benchmark (single founder, 6 weeks):
+- 96 articles published
+- Weekly clicks: 5 → 1,000+
+- Monthly impressions: 300K
+- Page-1 rankings: 878
+- AEO referrals: 348/month
+- Desktop LCP: 2.5–4s → 0.9s
+- Lighthouse perf: 70 → 97
+
+---
+
+## Pillar 1 — Data-Driven Content Strategy
+
+Goal: stop writing blind. Feed Claude raw search data, mine the gap, write into the gap.
+
+### Inputs to gather
+- GSC `Performance` export (last 90d): `query`, `page`, `clicks`, `impressions`, `ctr`, `position`
+- GSC `Pages` export: indexed URL list
+- (Optional) Ahrefs `Top pages` + `Content gap` for 2–3 competitors
+- Sitemap URL or list of existing posts
+
+### Claude prompt template
+```
+You are an SEO content strategist. Analyze this GSC export and find:
+
+1. HIGH-IMPRESSION ZERO-CLICK queries (impressions ≥ 200, CTR < 1%) — title/snippet rewrite candidates
+2. POSITION 11–20 queries — one-edit-away-from-page-1 wins
+3. KEYWORD CANNIBALIZATION — same query, multiple URLs, none winning. Pick the canonical, redirect/merge the rest
+4. CONTENT GAPS — competitor topics absent from my sitemap
+5. INTERNAL-LINK ORPHANS — pages with impressions but ≤ 1 inbound internal link
+
+Output a prioritized table: [opportunity, query, current_pos, est_lift, action, owner]
+
+GSC data:
+<paste CSV>
+
+Sitemap:
+<paste URLs or sitemap.xml>
+```
+
+### Output cadence
+- Weekly: top-20 opportunity table → 5 commits to content backlog
+- Monthly: cannibalization sweep + redirect plan
+- Per article: brief = target query + cluster + intent + 5 H2 questions + FAQ pairs
+
+---
+
+## Pillar 2 — AEO (Answer Engine Optimization)
+
+Goal: not "rank #1 on Google" — get *cited* by ChatGPT, Gemini, Perplexity, Claude.
+
+### On-page checklist
+- [ ] All `H2` tags rewritten as **direct questions** ("How does X work?" not "About X")
+- [ ] First paragraph after each H2 = ≤ 50-word direct answer (TL;DR style)
+- [ ] FAQ schema (`FAQPage` JSON-LD) on every article
+- [ ] `Article` schema with `author`, `datePublished`, `dateModified`
+- [ ] Tables and bullet lists for comparisons (LLMs lift these into citations)
+
+### Crawler & discovery files
+- `robots.txt` — explicitly **allow** AI crawlers (do not block by default):
+  ```
+  User-agent: GPTBot
+  Allow: /
+  User-agent: ClaudeBot
+  Allow: /
+  User-agent: PerplexityBot
+  Allow: /
+  User-agent: Google-Extended
+  Allow: /
+  ```
+- `/llms.txt` at root — site description + curated URL index for LLM ingestion. Format:
+  ```
+  # <Site Name>
+  > One-line value prop.
+  ## Core pages
+  - [Title](url): one-line summary
+  ## Docs
+  - [Title](url): one-line summary
+  ```
+- `/llms-full.txt` (optional) — full markdown of key articles concatenated
+
+### Validation
+- Search target query in ChatGPT / Perplexity / Gemini weekly. Log citations in a `aeo-citations.md` ledger
+- Track `Referer` from `chat.openai.com`, `perplexity.ai`, `gemini.google.com` in GA4
+
+---
+
+## Pillar 3 — Weekly Technical SEO Audit
+
+Feed three datasets to Claude every Monday. Get a punch list by Tuesday.
+
+### Datasets
+1. GSC `Performance` (last 7d, full export)
+2. Ahrefs `Site audit` JSON or CSV
+3. GA4 `Pages and screens` (last 7d)
+
+### Claude prompt
+```
+Run a technical SEO audit. Identify:
+
+A. INDEXATION GAPS — URLs in sitemap but not in GSC `Indexed` set
+B. AI OVERVIEW HIJACKS — queries where impressions > 100 but CTR collapsed (≥ 50% drop WoW). These are AI Overview cannibalizing clicks
+C. TITLE/META REWRITES — pages with position 5–15 and CTR below median for that position band
+D. SCHEMA ERRORS — duplicate / malformed JSON-LD (esp. React+SSR double-mount FAQ schema)
+E. CRAWL WASTE — Ahrefs flagged 4xx/5xx/redirect chains affecting crawl budget
+F. ORPHANED HIGH-VALUE PAGES — top-quartile traffic, ≤ 2 internal links
+
+For each, output: [issue, affected_urls (sample 5), severity, fix_diff_or_action]
+```
+
+### Common findings (this case study)
+- 18 URLs missing from index → fix `<meta robots>` or submit via URL Inspection API
+- 121 queries hijacked by AI Overview → pivot to long-tail / how-to angles
+- React + SSR double-mounting `FAQPage` JSON-LD (client + server both injected) → render server-side only, gate client with `typeof window`
+
+---
+
+## Pillar 4 — Core Web Vitals (LCP / CLS / INP)
+
+Content alone won't save a 4-second LCP. Hand Claude the bundle + Lighthouse trace, ship the diff.
+
+### Inputs
+- `npx lighthouse <url> --output=json --form-factor=desktop` (and mobile)
+- `next build` / `vite build` output (bundle stats)
+- DevTools `Performance` trace (export as `.json`)
+
+### Claude prompt
+```
+Optimize Core Web Vitals. Target: desktop LCP < 1.0s, mobile LCP < 2.5s, CLS < 0.05, INP < 200ms.
+
+From the Lighthouse JSON + bundle stats, produce:
+
+1. LCP path — what is the LCP element, what blocks it (render-blocking JS/CSS, late-loaded image, font swap)
+2. JS bundle hit list — top 10 chunks > 30KB gzipped, with code-split / lazy-load recommendation
+3. Image plan — every above-the-fold image: format (WebP/AVIF), dimensions, `loading`, `fetchpriority`
+4. Font plan — `preload` + `font-display: swap` + subset
+5. Third-party audit — every `<script>` tag: defer-able, async-able, or removable
+
+For each item, output a concrete diff (file path + before/after).
+```
+
+### Quick wins (this case study)
+- 179KB PNG logo → 7KB WebP (96% reduction)
+- Hero image: add `fetchpriority="high"` + `<link rel="preload">`
+- Defer analytics + chat widget until `requestIdleCallback`
+- Remove unused Tailwind via `content` config or PurgeCSS
+- Self-host fonts; drop Google Fonts CSS
+
+---
+
+## Execution Cadence (6-Week Sprint)
+
+| Week | Focus | Deliverable |
+|---|---|---|
+| 1 | Pillar 1 setup | GSC export pipeline + first opportunity table |
+| 1–2 | Pillar 2 setup | `robots.txt`, `llms.txt`, FAQ schema across all posts |
+| 2 | Pillar 4 baseline | Lighthouse audit + LCP/JS/image fix PRs |
+| 1–6 | Pillar 1 publish | 12–16 articles/week from gap analysis |
+| 3,5 | Pillar 3 audit | Mid-sprint + late-sprint technical sweeps |
+| 6 | Measure | GSC/GA4/AEO ledger review, decide next sprint |
+
+---
+
+## Required Files
+
+Create or update in repo root:
+- `robots.txt`
+- `/llms.txt`
+- `sitemap.xml` (auto from framework)
+- `aeo-citations.md` (manual ledger of LLM citations)
+- `seo-backlog.md` (opportunity queue, owner-tagged)
+
+---
+
+## Anti-Patterns (do not do)
+
+- Asking Claude "write a blog post about X" with no GSC data → generic, won't rank
+- Blocking AI crawlers in `robots.txt` → kills AEO referrals permanently
+- Adding FAQ schema without matching visible Q&A on page → Google penalty risk
+- Optimizing CLS by removing animations users actually expect → UX regression
+- Publishing 96 articles before fixing LCP → wasted crawl budget on slow pages
+
+---
+
+## Success Metrics
+
+Track weekly in a single dashboard:
+- GSC: clicks, impressions, avg position, page-1 rankings count
+- GA4: organic sessions, AEO referrals (`chat.openai.com`, `perplexity.ai`, `gemini.google.com`)
+- Lighthouse: LCP, CLS, INP, perf score (per top-10 page)
+- Content velocity: articles shipped/week, opportunity-to-published lead time
+
+Stop the sprint and re-plan if after week 3:
+- Indexed page count not growing
+- Avg position worsening across the cohort
+- Mobile LCP still > 2.5s

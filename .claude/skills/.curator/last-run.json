@@ -1,0 +1,46 @@
+{
+  "last_run": "2026-05-01",
+  "summary": "주간 큐레이터 패스 (2회차). 전체 1,176 스킬 스캔. 라이프사이클 전환 없음 (모든 스킬 30일 이내 사용). 통합 실행 4건 누계: auto-distill -> auto-distill-v2, tdd -> test-driven-development (이번 실행), kwp-cowork-cowork-plugin-customizer -> kwp-cowork-plugin-customizer, agency-data-analytics-reporter -> agency-analytics-reporter (이전 실행).",
+  "skills_scanned": 1176,
+  "transitions": [],
+  "consolidations_proposed": 5,
+  "consolidations_applied": 4,
+  "new_skills_added": [],
+  "consolidations": [
+    {
+      "kept": "auto-distill-v2",
+      "archived": "auto-distill",
+      "reason": "v2는 v1의 완전한 상위집합 — 멘탈모델 식별 개선, 표현 DNA 강화, 증거 테이블 + 신뢰도 점수 추가. v1에만 있는 고유 콘텐츠 없음."
+    },
+    {
+      "kept": "test-driven-development",
+      "archived": "tdd",
+      "reason": "test-driven-development (384줄)이 tdd (112줄)의 완전한 상위집합. tdd는 외부 파일(tests.md, mocking.md) 참조에 의존하지만 test-driven-development는 독립형. 고유 콘텐츠 없음."
+    },
+    {
+      "kept": "kwp-cowork-plugin-customizer",
+      "archived": "kwp-cowork-cowork-plugin-customizer",
+      "reason": "Near-duplicate; kwp-cowork-plugin-customizer is superset (178 lines vs 161, includes Examples and Error Handling sections, Korean triggers)"
+    },
+    {
+      "kept": "agency-analytics-reporter",
+      "archived": "agency-data-analytics-reporter",
+      "reason": "Near-duplicate; agency-analytics-reporter is superset (385 lines vs 75, full agent persona with capabilities)"
+    }
+  ],
+  "skipped_consolidations": [
+    {
+      "skills": ["kwp-cowork-create-cowork-plugin", "kwp-cowork-create-plugin"],
+      "reason": "RISKY: kwp-cowork-create-plugin uses ${CLAUDE_PLUGIN_ROOT} path variable vs relative paths in cowork variant. Load-bearing difference for different deployment environments. Requires human review."
+    },
+    {
+      "skills": ["docs-tutor", "docs-tutor-setup"],
+      "reason": "AMBIGUOUS: setup is a prerequisite phase for the tutor, but merging requires restructuring docs-tutor SKILL.md. Recommend human-guided consolidation."
+    },
+    {
+      "skills": ["qa-tester", "qa-test-expert"],
+      "reason": "KEEP_SEPARATE: qa-tester is domain-specific (game studio QA agent); qa-test-expert is generic test generation. Different audiences and use cases."
+    }
+  ],
+  "issues": []
+}

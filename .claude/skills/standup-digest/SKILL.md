@@ -1,0 +1,165 @@
+---
+name: standup-digest
+description: >-
+  Generate multi-source daily standup digests per team member by aggregating
+  GitHub commits/PRs/issues, Slack messages, and calendar events into
+  did/doing/blocked summaries. Use when the user asks to "generate standup",
+  "daily standup summary", "스탠드업 요약", "데일리 스탠드업", "standup-digest", or wants
+  automated standup reports. Do NOT use for GitHub-only activity digests (use
+  github-sprint-digest), weekly status reports (use weekly-status-report), or
+  general calendar briefing (use calendar-daily-briefing).
+---
+
+# Standup Digest
+
+Multi-source daily standup summary: aggregate yesterday's activity per team member into structured "did / doing / blocked" reports.
+
+## When to Use
+
+- Each morning before standup meetings
+- As part of the Sprint track in the daily pipeline
+- When team leads need a quick overview of team progress
+
+## Data Sources
+
+| Source | What to Collect | Tool |
+|--------|----------------|------|
+| GitHub | Commits (across all org repos), PR updates, issue comments, reviews | GitHub MCP / `gh` CLI |
+| Slack | Messages in team channels, thread replies | Slack MCP |
+| Calendar | Yesterday's meetings, today's schedule | `gws-calendar` |
+| Sprint Board | Issue status changes, sprint progress | GitHub Projects GraphQL |
+
+## Workflow
+
+### Step 1: Define Team Roster
+
+Read team roster from configuration (`.standup-config.json`):
+
+```json
+{
+  "team": "platform",
+  "members": [
+    {"github": "dev1", "slack": "U12345", "email": "dev1@company.com", "name": "Alice"},
+    {"github": "dev2", "slack": "U67890", "email": "dev2@company.com", "name": "Bob"}
+  ],
+  "channel": "#platform-standup",
+  "standup_time": "09:30"
+}
+```
+
+### Step 2: Gather Per-Person Activity
+
+For each team member, collect yesterday's activity (use the team's configured timezone; default to `Asia/Seoul` if not specified):
+
+**GitHub**:
+```bash
+gh api search/commits --jq '.items[] | {sha, message, date}' \
+  -f q="author:<username> committer-date:>=$(date -v-1d +%Y-%m-%d)"
+```
+Verify completeness: compare the total_count from the API response against the number of items listed. If paginated (>30 results), fetch all pages. Log the total commit count per person for cross-reference in the output.
+
+**Slack**: Search messages by user in team channels from yesterday.
+
+**Calendar**: List yesterday's meetings and today's upcoming meetings.
+
+**Sprint Board**: Issue transitions (e.g., "In Progress" → "Review").
+
+### Step 3: Generate Per-Person Summary
+
+For each team member, use LLM to synthesize into standup format:
+
+```
+👤 Alice (@dev1)
+
+✅ Did (Yesterday):
+- Merged PR #42: Add user authentication (#38)
+- Reviewed PR #45: Dashboard refactor — requested changes
+- Attended: API design review meeting (1h)
+
+🔄 Doing (Today):
+- Issue #48: Implement rate limiting (in progress)
+- Scheduled: Sprint planning at 14:00
+
+🚫 Blocked:
+- PR #44: Waiting for security review from @security-team (3 days)
+```
+
+### Step 4: Generate Team Summary
+
+Aggregate individual summaries into a team overview:
+
+```
+Daily Standup — Platform Team
+=============================
+Date: 2026-03-19 (Wednesday)
+Team Size: 5 active
+
+📊 Sprint Progress: Day 8/10
+  Completed: 18/25 story points (72%)
+  In Review: 3 PRs awaiting review
+  Blocked: 1 item (PR #44 — security review)
+
+👥 Individual Updates:
+[... per-person summaries ...]
+
+⚠️ Team Alerts:
+- Sprint at risk: 7 points remaining, 2 days left
+- Stale review: PR #44 pending > 48h
+```
+
+### Step 5: Post to Slack
+
+Post the standup digest to the team channel at the configured time:
+- Main message: Team summary with sprint progress
+- Thread replies: Individual updates (one per person)
+
+## Output
+
+```
+Standup Digest Generated
+========================
+Team: platform (5 members)
+Period: Yesterday (2026-03-18)
+
+Activity Summary:
+- Commits: 12
+- PRs merged: 3
+- PRs opened: 2
+- Issues closed: 4
+- Reviews completed: 5
+- Meetings attended: 8
+
+Blockers: 1
+Alerts: 2 (sprint risk, stale review)
+
+Posted to: #platform-standup
+```
+
+## Error Handling
+
+| Error | Action |
+|-------|--------|
+| GitHub API rate limit exceeded | Pause 60s and retry; if still limited, generate digest from cached/Slack/calendar data only |
+| No activity found for team member | Include "No activity recorded — check if on PTO/holiday" in that member's summary; check calendar for OOO events; do not skip the person from the digest |
+| Slack posting fails | Save digest to `output/standup/YYYY-MM-DD.md`; retry Slack once; report failure to user |
+| Config file missing or malformed | Use default roster from env or prompt user for `.standup-config.json` path |
+| Notion MCP not connected | Skip Notion publish; post to Slack only; log "Notion unavailable" |
+
+## Examples
+
+### Example 1: Morning standup
+Automated trigger: 09:15 daily
+Actions:
+1. Gather activity for all team members
+2. Generate per-person did/doing/blocked
+3. Create team summary with sprint metrics
+4. Post to team Slack channel
+Result: Team-wide standup digest before standup meeting
+
+### Example 2: Manager overview
+User says: "Show me all team standups"
+Actions:
+1. Generate standup for each configured team
+2. Create manager-level summary across teams
+3. Highlight cross-team blockers and dependencies
+Result: Multi-team standup overview

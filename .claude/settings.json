@@ -1,0 +1,57 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "gh",
+      "args": ["mcp-server"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@2.1.8"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@0.0.70"]
+    },
+    "deepwiki": {
+      "command": "npx",
+      "args": ["-y", "deepwiki-mcp@0.0.6"]
+    },
+    "notebooklm": {
+      "command": "notebooklm-mcp"
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp list *)",
+      "Bash(rtk *)",
+      "Bash(kubectl get *)",
+      "Bash(kubectl describe *)",
+      "Bash(helm list *)",
+      "Bash(helm status *)",
+      "Bash(go vet *)",
+      "Bash(golangci-lint run *)",
+      "mcp__slack__slack_search_channels",
+      "mcp__slack__slack_read_channel",
+      "mcp__slack__slack_read_thread",
+      "mcp__slack__slack_read_user_profile",
+      "mcp__slack__slack_search_public",
+      "mcp__slack__slack_search_users"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {"type": "command", "command": ".claude/hooks/stop-sound.sh"},
+          {"type": "command", "command": "python3 .claude/skills/jarvis/hooks/goal-continuation.py"},
+          {"type": "command", "command": "python3 .claude/hooks/kb-intel-compile.py"}
+        ]
+      }
+    ]
+  },
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80",
+    "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1"
+  }
+}

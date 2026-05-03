@@ -53,6 +53,21 @@ Follow the `cursor-sync` skill (`.cursor/skills/automation/cursor-sync/SKILL.md`
 3. Execute sync
 4. Capture per-target summary: `{target: {new: N, updated: N}}`
 
+### Phase 1½: Claude Sync
+
+**Skip if** `--skip-sync` flag is set.
+
+Follow the `claude-sync` skill (`.claude/skills/claude-sync/SKILL.md`).
+
+```bash
+# Sync .claude/{rules,commands,skills,hooks} to all target projects
+```
+
+1. Read target paths (same 5 repos as cursor-sync, research as merge hub)
+2. Pull Phase: `rsync -au` from 4 targets → research (newest wins)
+3. Push Phase: `rsync -ac` from research → 4 targets (checksum-based)
+4. Verify: all 5 repos have identical file counts for `rules/`, `commands/`, `skills/`, `hooks/`
+
 ### Phase 1¾: Session Memory Sync
 
 Synchronize agent session memory before shipping. Extracts today's session transcripts into structured markdown and rebuilds the search index. Skip with `--skip-memory`.

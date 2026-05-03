@@ -1,0 +1,150 @@
+---
+name: prd-state-matrix
+description: >-
+  기존 PRD/기획서에서 State Matrix와 Edge Case를 자동 추출·보완하여 기획 문서의 완성도를 강화한다. Use when
+  the user asks to "extract state matrix", "상태값 매트릭스", "PRD 상태값 추출", "엣지 케이스
+  보완", "기획서 완성도 점검", "state matrix", "edge case analysis", "PRD 보완", "상태 전이
+  분석", "기획서 상태값", "PRD edge case", or needs to systematically identify all
+  states and edge cases in a product specification. Do NOT use for writing
+  PRDs from scratch (use pm-execution). Do NOT use for code-level state
+  analysis (use code-to-spec). Do NOT use for general document quality
+  inspection (use doc-quality-gate).
+---
+
+# PRD State Matrix
+
+Extract and augment **state matrices** and **edge cases** from existing PRDs/specs to improve completeness.
+
+## Output language
+
+All outputs MUST be in Korean (한국어). Technical terms may remain in English.
+
+## Content pattern
+
+**Pipeline + inversion**: Confirm analysis scope and feature context (inversion gate), then run extraction → edge analysis → optional policy mapping → recommendations.
+
+## Input
+
+1. **PRD/spec** (required) — Notion URL, local file, or pasted description
+2. **Feature scope** (required) — Feature name to analyze; if missing, stop and ask (inversion gate)
+3. **Policy doc** (optional) — For policy coverage checks
+4. **Technical constraints** (optional) — API/platform limits
+
+**CRITICAL**: Do not proceed without a defined feature scope.
+
+## Boundaries
+
+**vs `edge-case-generator`:** `prd-state-matrix` extracts and organizes **existing** states into a structured matrix with transitions. `edge-case-generator` hunts for **gaps** and missing scenarios from PRD/spec inputs.
+
+## Workflow
+
+### Step 1: Parse PRD
+
+Extract:
+- Capability description
+- User flows
+- Business rules
+- UI notes
+- Any existing states/exceptions
+
+For Notion pages: **Token-first** — use `scripts/notion_api.py`
+(`NotionClient.get_page()` + `get_block_children()`). **Fallback**: Notion MCP
+(`notion-fetch` or equivalent) when `NOTION_TOKEN` is not available.
+
+### Step 2: Build state matrix
+
+Use [references/state-matrix-template.md](references/state-matrix-template.md).
+
+**Required table shape (E1):** The 상태값 매트릭스 MUST use the same column headers and order as the reference. **Mini-template (copy structure; replace cells):**
+
+| # | 상태 | 진입 조건 | UI 표시 | 사용자 액션 | 전환 대상 | 비고 |
+|---|------|----------|---------|------------|----------|------|
+| 1 | 예: 초기 (Initial) | … | … | … | … | 엣지·예외 메모 |
+
+Put the **feature scope** in the `## 기능: [기능명]` line above the matrix (per reference). Do not omit **사용자 액션** or **비고**.
+
+**State provenance (E4):** Tag every state in the **상태** column as **[FROM_SPEC]** if it is directly stated or unambiguously named in the PRD/spec, or **[INFERRED]** with a one-line rationale (what context implied it). Never list a state as plain fact without one of these tags.
+
+**INFERRED ratio guideline:** When `[INFERRED]` states exceed 60% of the matrix, add a note at the end of the matrix:
+> ⚠ INFERRED 비율 높음 (N/M). 기획서 원본의 상태 정의가 부족하여 추론된 항목이 많습니다. 기획자 확인이 필요합니다.
+
+This prevents the matrix from appearing more authoritative than the source spec warrants. When the PRD is thin (< 500 words or < 3 features), proactively warn that most states will be inferred and ask if the user wants to proceed or provide more context first.
+
+**기능 범위 기본값 (Functional Scope Defaults):** When invoked by an automated pipeline (e.g., `fe-pipeline`, `prd-auto-generator`) without an explicit `--features` parameter:
+1. Scan the input PRD/spec for section headings matching `## FR-`, `## 기능`, `## Feature`, or numbered feature lists.
+2. If ≥ 1 feature is detected, generate a matrix per detected feature.
+3. If 0 features are detected, treat the entire document as a single feature named after the document title.
+4. Log the auto-detected scope: "자동 감지된 기능 범위: [feature list]. `--features` 파라미터로 범위를 직접 지정할 수 있습니다."
+
+State families to consider:
+- **UI**: initial, loading, success, failure, empty, disabled
+- **Data**: none, partial, full, error, cached
+- **User**: anonymous, authenticated, role variants, first visit vs return
+- **Business**: domain-specific (e.g. payment pending, shipped, refunded)
+
+Per state capture:
+- Entry conditions
+- Visible UI
+- Allowed user actions
+- Next states
+
+### Step 3: Edge cases
+
+Apply [references/edge-case-patterns.md](references/edge-case-patterns.md).
+Label items already in the doc as **existing**; newly found as **new**.
+
+**Spec traceability (E2):** Every edge case MUST cite the PRD **section heading/번호**, requirement ID, or a short quoted anchor. If the gap is not documented in the PRD, mark **신규** and still cite the **closest related section** plus one line on why coverage is missing.
+
+### Step 4: Policy mapping (optional)
+
+If policy provided:
+- Extract relevant policy clauses
+- Check PRD coverage
+- List gaps
+
+### Step 5: Recommendations
+
+Deliver as a bullet list. **Every recommendation MUST include (E3):** an explicit **우선순위: High / Medium / Low** and a **한 줄 근거** (why that severity). Cover:
+- Missing states to add
+- Edge cases to handle
+- Policy gaps to close
+
+### Step 6: Publish (optional)
+
+- **Notion**: child page under PRD for the matrix
+- **Slack**: short summary of gaps
+
+## Examples
+
+### Example 1: Sign-up flow
+
+User: "Extract a state matrix from the sign-up spec"
+
+Actions: parse flows → matrix (e.g. empty/typing/validating/success/failure/duplicate) → edge cases (network loss, social link failure, etc.) → gap list.
+
+### Example 2: Payments + policy
+
+User: "Analyze payment PRD states and map e-payment regulations"
+
+Actions: matrix for payment lifecycle → edge cases (duplicate charge, partial pay, timeout, insufficient funds) → policy mapping table + gaps.
+
+## Error handling
+
+| Error | Action |
+|-------|--------|
+| PRD not found | Reconfirm URL or ask for paste |
+| Scope missing | List features; require selection |
+| PRD too thin | Ask for more context |
+| Notion failure | Fall back to local/paste |
+| Too many features (5+) | Offer sequential analysis or prioritization |
+
+## Evolution
+
+Binary eval hooks (skill-autoimprove / audits). Each: **PASS** if true, **FAIL** otherwise.
+
+| Hook | Criterion |
+|------|-----------|
+| **E1** | State matrix includes all required columns per [references/state-matrix-template.md](references/state-matrix-template.md). |
+| **E2** | Edge cases reference linked spec sections (or explicit “new” with source rationale). |
+| **E3** | Priority ratings (e.g. High/Medium/Low) provided for recommendations. |
+| **E4** | No hallucinated states: every state/trace ties to PRD/spec text or is labeled as inferred with evidence. |

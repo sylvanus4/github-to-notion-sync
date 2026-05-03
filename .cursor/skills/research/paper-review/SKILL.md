@@ -395,7 +395,7 @@ Post the review summary and slide decks to Slack.
    - Format:
      ```
      📄 논문 리뷰: {Paper Title}
-     
+
      🔬 핵심 기여: {1-2 line summary of contributions}
      ⚠️ 주요 약점: {top FATAL/MAJOR weakness, 1 line}
      📊 판정: {verdict} (신뢰도: {confidence}/5)

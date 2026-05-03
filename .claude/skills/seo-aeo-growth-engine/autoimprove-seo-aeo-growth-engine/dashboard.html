@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>autoimprove · seo-aeo-growth-engine</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; padding: 24px 32px; background: #0b0f17; color: #e6edf3; }
+  h1 { font-size: 18px; margin: 0 0 4px; font-weight: 600; }
+  .sub { color: #8b949e; font-size: 13px; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px 20px; }
+  .card h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; margin: 0 0 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #30363d; }
+  th { font-weight: 600; color: #8b949e; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge.baseline { background: #1f6feb; color: white; }
+  .badge.keep { background: #238636; color: white; }
+  .badge.discard { background: #da3633; color: white; }
+  .badge.holdout { background: #6e7681; color: white; }
+  .badge.pass { background: #238636; color: white; }
+  .row-bar { height: 8px; border-radius: 4px; background: #30363d; overflow: hidden; }
+  .row-bar > span { display: block; height: 100%; background: linear-gradient(90deg, #2ea043, #56d364); }
+  .summary { font-size: 32px; font-weight: 700; color: #56d364; }
+  .summary small { font-size: 13px; color: #8b949e; font-weight: 400; display: block; margin-top: 4px; }
+  .gate-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #30363d; font-size: 13px; }
+  .gate-row:last-child { border: none; }
+</style>
+</head>
+<body>
+<h1>autoimprove · seo-aeo-growth-engine</h1>
+<div class="sub">status: <strong style="color:#56d364">complete</strong> · 5 experiments · 4 mutations kept · 0 discarded · holdout: validated</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Score progression</h2>
+    <canvas id="scoreChart" height="180"></canvas>
+  </div>
+  <div class="card">
+    <h2>Final result</h2>
+    <div class="summary">55.0% → 100.0%
+      <small>+45.0pp · 4 keeps · holdout 100/100 (validated)</small>
+    </div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top: 24px;">
+  <div class="card">
+    <h2>Experiments</h2>
+    <table id="expTable">
+      <thead><tr><th>#</th><th>Status</th><th>Score</th><th>Pass</th><th>Δ chars</th><th>Description</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Eval breakdown</h2>
+    <table id="evalTable">
+      <thead><tr><th>Eval</th><th>Pass</th><th>Trend</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <h2 style="margin-top:20px">Constraint gates</h2>
+    <div id="gates"></div>
+  </div>
+</div>
+
+<script>
+async function load() {
+  const res = await fetch('results.json?_=' + Date.now());
+  const data = await res.json();
+
+  const chart = new Chart(document.getElementById('scoreChart'), {
+    type: 'line',
+    data: {
+      labels: data.experiments.map(e => 'Exp ' + e.id),
+      datasets: [{
+        label: 'Pass rate %',
+        data: data.experiments.map(e => e.pass_rate),
+        borderColor: '#56d364',
+        backgroundColor: 'rgba(86,211,100,0.1)',
+        tension: 0.2,
+        pointBackgroundColor: data.experiments.map(e =>
+          e.status === 'baseline' ? '#1f6feb' :
+          e.status === 'keep' ? '#56d364' : '#da3633'),
+        pointRadius: 6,
+        fill: true
+      }]
+    },
+    options: {
+      scales: { y: { min: 0, max: 100, ticks: { color: '#8b949e' }, grid: { color: '#30363d' } },
+                x: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } } },
+      plugins: { legend: { labels: { color: '#e6edf3' } } }
+    }
+  });
+
+  const tbody = document.querySelector('#expTable tbody');
+  data.experiments.forEach((e, i) => {
+    const prev = i > 0 ? data.experiments[i - 1].output_chars : e.output_chars;
+    const delta = e.output_chars - prev;
+    const sign = delta > 0 ? '+' : '';
+    tbody.insertAdjacentHTML('beforeend',
+      `<tr>
+        <td>${e.id}</td>
+        <td><span class="badge ${e.status}">${e.status}</span></td>
+        <td>${e.score}/${e.max_score}</td>
+        <td><div class="row-bar"><span style="width:${e.pass_rate}%"></span></div></td>
+        <td>${i === 0 ? e.output_chars : (sign + delta)}</td>
+        <td style="color:#8b949e">${e.description}</td>
+      </tr>`);
+  });
+
+  const eb = document.querySelector('#evalTable tbody');
+  data.eval_breakdown.forEach(e => {
+    eb.insertAdjacentHTML('beforeend',
+      `<tr><td>${e.name}</td><td>${e.pass_count}/${e.total}</td><td style="color:#8b949e">${e.trend}</td></tr>`);
+  });
+
+  const g = document.getElementById('gates');
+  Object.entries(data.constraint_gates).forEach(([k, v]) => {
+    const result = v.result || 'PASS';
+    const cls = result.startsWith('PASS') ? 'pass' : 'discard';
+    g.insertAdjacentHTML('beforeend',
+      `<div class="gate-row"><span>${k}</span><span class="badge ${cls}">${result}</span></div>`);
+  });
+}
+load();
+setInterval(load, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "stale_after_days": 30,
+  "archive_after_days": 90,
+  "auto_run_interval_days": 7,
+  "max_consolidation_batch": 5,
+  "min_similarity_for_consolidation": 0.7,
+  "protect_patterns": ["hermes-*", "omc-*", "skill-curator"],
+  "dry_run": false
+}
