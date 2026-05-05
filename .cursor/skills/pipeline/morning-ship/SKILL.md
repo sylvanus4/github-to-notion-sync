@@ -266,7 +266,7 @@ If any critical item fails, post a **degraded briefing** that lists completed ph
 
 **Input source:** Build every Slack section (main + threads) **only** from `phase-0-atg.json` through `phase-3-5-quality-gate.json` and `manifest.json` under `outputs/morning-ship/{date}/`. If a prior phase file is missing, treat that section as `[INCOMPLETE]` and log a warning.
 
-Post a consolidated morning briefing to `#효정-할일` using the `slack_send_message` MCP tool. The main message **must** end with a short disclaimer (see template footer) and use Slack mrkdwn for all sections above it.
+Post a consolidated morning briefing to `#효정-할일` using `scripts/slack_post_message.py` (user identity). The main message **must** end with a short disclaimer (see template footer) and use Slack mrkdwn for all sections above it.
 
 #### Step 1: Main Summary
 
@@ -499,7 +499,7 @@ If a phase fails mid-run, the last valid JSON under `outputs/morning-ship/{date}
 | Gmail API error | Report partial results; continue to stock pipeline |
 | Stock pipeline failure | Report error; continue to Slack/Report |
 | `today` sub-step fails mid-pipeline | Capture last good artifact path if any; mark stock section `[PARTIAL]`; continue to Phase 3.5 / Slack / Report |
-| `slack_send_message` MCP error (any call) | Log tool error; retry once after 5s; if still failing, skip remaining Slack thread posts, display full report in chat with `[SLACK_FAIL]` |
+| `slack_post_message.py` error (any call) | Log script error; retry once after 5s; if still failing, skip remaining Slack thread posts, display full report in chat with `[SLACK_FAIL]` |
 | Slack message fails | Report error; still display report in chat |
 | No changes in any project | Report "all projects up to date" |
 | ATG health check fails | Record `atg: "UNREACHABLE"`; continue — skills fall back to MCP automatically |

@@ -401,7 +401,7 @@ Post the review summary and slide decks to Slack.
      📊 판정: {verdict} (신뢰도: {confidence}/5)
      📎 상세 리뷰: {Google Drive link from Phase 6}
      ```
-   - Use Slack MCP `slack_send_message` with channel `#deep-research-trending`
+   - Use `scripts/slack_post_message.py` with channel `#deep-research-trending`
 
 2. **Thread reply 1 — 초등학생용 슬라이드**:
    - Upload `outputs/papers/{paper-id}-slides-elementary-{DATE}.pdf` as file

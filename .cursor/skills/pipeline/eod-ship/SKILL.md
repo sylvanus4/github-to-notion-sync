@@ -291,8 +291,8 @@ On failure: Warn and continue — digest is optional; Slack posting proceeds wit
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.
 
-Post a consolidated summary to `#효정-할일` using the `slack_send_message` MCP tool.
-Capture the `thread_ts` from the response for thread replies.
+Post a consolidated summary to `#효정-할일` using `scripts/slack_post_message.py` (user identity).
+Capture the `ts` from the JSON response for thread replies.
 
 ```json
 {

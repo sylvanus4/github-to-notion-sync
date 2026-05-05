@@ -213,7 +213,7 @@ arguments={
 **Step 6a — Main message:**
 
 ```
-slack_send_message(channel_id, message="""
+python3 scripts/slack_post_message.py --channel "<channel_id>" --message """
 🏗️ *<Title> 문서 보강 완료*
 
 `<path>` N개 문서를 보강하고 Notion에 업로드했습니다.

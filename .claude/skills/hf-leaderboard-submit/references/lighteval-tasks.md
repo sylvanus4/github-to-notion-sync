@@ -52,7 +52,7 @@ leaderboard|{task_name}|{n_shots}
 ```
 results/{model_name_sanitized}/
   results_{timestamp}.json     # 요약 (태스크별 점수)
-  
+
 details/{model_name_sanitized}/
   details_{task}_{timestamp}.parquet  # 샘플별 (--save-details 시)
 ```

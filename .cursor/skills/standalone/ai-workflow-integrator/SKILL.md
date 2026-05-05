@@ -115,7 +115,7 @@ Stages:
 5. Fetch market news (`alphaear-news` skill)
 6. Score sentiment for BUY/SELL stocks (`alphaear-sentiment` skill)
 7. Generate report (`alphaear-reporter` + `generate-report.js`)
-8. Post to Slack (`slack_send_message`)
+8. Post to Slack (`python3 scripts/slack_post_message.py`)
 
 #### Template B: Quick Signal Scan
 

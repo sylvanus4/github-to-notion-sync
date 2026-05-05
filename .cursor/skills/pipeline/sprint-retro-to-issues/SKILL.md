@@ -546,7 +546,7 @@ If `--dry-run` flag is set:
 - GitHub Project field IDs are org-specific; the IDs in Phase 5 are for ThakiCloud Project #5 only.
 - Sprint iteration ID changes each sprint; always fetch dynamically.
 - The `gh project item-add` command returns the item ID needed for field edits.
-- Slack `slack_send_message` may reject raw `---` horizontal rules; avoid them.
+- Slack posting may reject raw `---` horizontal rules; avoid them.
 - Large transcripts (>100KB) may need chunking for PM analysis subagents.
 
 ## Verification

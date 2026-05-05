@@ -126,7 +126,7 @@ Read and follow the `setup-doctor` skill (`.cursor/skills/automation/setup-docto
 | PostgreSQL | `pg_isready` or connect test | ABORT pipeline |
 | `gws` CLI auth | `gws drive files list 2>&1 | head -3` | WARN, skip Google phases |
 | `TWITTER_COOKIE` | Check `.env` | WARN, skip Twitter |
-| Slack MCP | Test `slack_send_message` | WARN, skip Slack posts |
+| Slack | Test `scripts/slack_post_message.py` | WARN, skip Slack posts |
 | Notion MCP | Test search | WARN, skip Notion uploads |
 
 **On critical failure** (PostgreSQL down): Post alert to `#효정-할일` and abort.
@@ -512,7 +512,7 @@ results["phases"]["phase7"] = {
 
 **Input source (mandatory)**: Do **not** build the briefing from orchestrator memory or prior chat turns. **Read** `outputs/daily-am/{date}/manifest.json`, then **read** each `phase-0-preflight.json` … `phase-7-dev-intelligence.json` under the same directory. Derive all counts, status lines, and `[INCOMPLETE]` markers **only** from these files (and from explicit paths referenced inside them, e.g. report paths).
 
-Post a master summary to `#효정-할일` using `slack_send_message` MCP tool.
+Post a master summary to `#효정-할일` using `scripts/slack_post_message.py`.
 
 **Main message** (Slack mrkdwn) — field values must be filled from phase files, not from recall:
 

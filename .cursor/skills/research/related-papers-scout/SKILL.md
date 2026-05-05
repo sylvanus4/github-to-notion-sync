@@ -236,28 +236,21 @@ All messages use Slack mrkdwn format. Rules:
 
 ### Step 6.1: Main Message
 
-Post to the channel using `slack_send_message` MCP tool:
+Post to the channel using `scripts/slack_post_message.py`:
 
-```
-slack_send_message(
-  channel_id="<CHANNEL_ID>",
-  message="*🔍 관련 핫 논문 Top 5: {Input Paper Title}*\n\n원본 논문: {arxiv_url}\n\n{2-3 sentence overview of what was searched and why these 5 were selected}\n\n*선정 기준*: 기관 (Google/MIT/Stanford/NVIDIA), 인용수, GitHub Stars, 커뮤니티 반응\n*검색 소스*: Semantic Scholar, arXiv, Papers With Code, Twitter/X\n\n각 논문의 상세 분석은 아래 스레드를 확인하세요 👇"
-)
+```bash
+python3 scripts/slack_post_message.py --channel <CHANNEL_ID> --message "*🔍 관련 핫 논문 Top 5: {Input Paper Title}*\n\n원본 논문: {arxiv_url}\n\n{2-3 sentence overview of what was searched and why these 5 were selected}\n\n*선정 기준*: 기관 (Google/MIT/Stanford/NVIDIA), 인용수, GitHub Stars, 커뮤니티 반응\n*검색 소스*: Semantic Scholar, arXiv, Papers With Code, Twitter/X\n\n각 논문의 상세 분석은 아래 스레드를 확인하세요 👇"
 ```
 
-**CRITICAL**: Capture the `message_ts` from the response. This is needed
+**CRITICAL**: Capture the `thread_ts` from the stdout JSON response. This is needed
 for all thread replies.
 
 ### Step 6.2: Thread Replies (5 Papers)
 
 For each of the 5 papers, send a thread reply:
 
-```
-slack_send_message(
-  channel_id="<CHANNEL_ID>",
-  thread_ts="<THREAD_TS>",
-  message="*{rank}. {Paper Title}*\n저자: {authors} ({institution})\narXiv: {arxiv_url}\n인용수: {citations} | GitHub Stars: {stars}\n\n*왜 이 논문을 봐야 하는가*\n• {reason_1}\n• {reason_2}\n• {reason_3}\n\n*핵심 내용*\n{3-5 sentence summary}\n\n참고: {blog_url or github_url}"
-)
+```bash
+python3 scripts/slack_post_message.py --channel <CHANNEL_ID> --thread-ts <THREAD_TS> --message "*{rank}. {Paper Title}*\n저자: {authors} ({institution})\narXiv: {arxiv_url}\n인용수: {citations} | GitHub Stars: {stars}\n\n*왜 이 논문을 봐야 하는가*\n• {reason_1}\n• {reason_2}\n• {reason_3}\n\n*핵심 내용*\n{3-5 sentence summary}\n\n참고: {blog_url or github_url}"
 ```
 
 Post papers in order (1 through 5). Each message should be self-contained

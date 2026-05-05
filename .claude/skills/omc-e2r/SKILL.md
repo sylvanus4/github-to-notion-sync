@@ -47,7 +47,7 @@ Agent prompt template for explorers:
 Your approach angle: [specific constraint or perspective].
 Return in under 200 words:
 1. Approach summary
-2. Key files/components involved  
+2. Key files/components involved
 3. Estimated complexity (S/M/L)
 4. Top risk
 5. Dependencies on other work"
@@ -107,7 +107,7 @@ Verify DAG invariant: no cycles. If a cycle is detected, restructure.
 - **Dependent subtasks**: Wait for all dependencies to complete
 - **Model selection**: Match to subtask complexity
   - File reading / grep / simple transform -> haiku
-  - Implementation / writing -> sonnet  
+  - Implementation / writing -> sonnet
   - Architecture decisions / complex reasoning -> opus
 - **Isolation**: Use `isolation: "worktree"` for any subtask that writes code
 
@@ -138,7 +138,7 @@ For each Completed task:
    Task: [description]
    Criteria: [what done looks like]
    Deliverable: [output summary]
-   
+
    Return:
    - ACCEPT or REJECT
    - If REJECT: specific issues (max 3) with suggested fixes

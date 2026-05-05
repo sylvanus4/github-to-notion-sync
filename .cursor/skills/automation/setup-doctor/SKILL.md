@@ -239,7 +239,7 @@ Run phases 1-4 but filter results to only the specified capability group.
 
 **If `--slack` mode (or combined with other modes):**
 
-After generating the report, post it to Slack `#효정-할일` (channel ID: `C0AA8NT4T8T`) using the `plugin-slack-slack` MCP's `slack_send_message` tool.
+After generating the report, post it to Slack `#효정-할일` (channel ID: `C0AA8NT4T8T`) using `python3 scripts/slack_post_message.py --channel C0AA8NT4T8T`.
 
 Post as a 2-message thread:
 1. **Main message**: Summary line with pass/fail counts and overall status

@@ -603,7 +603,7 @@ If there are 3+ decision items, also post a summary header message first:
 
 | Tool | Server | Purpose |
 |---|---|---|
-| `slack_send_message` | `plugin-slack-slack` | Post channel message and thread replies |
+| `scripts/slack_post_message.py` | Shell script | Post channel message and thread replies (user identity) |
 | `slack_read_channel` | `plugin-slack-slack` | Fallback to find `message_ts` |
 
 ## Examples

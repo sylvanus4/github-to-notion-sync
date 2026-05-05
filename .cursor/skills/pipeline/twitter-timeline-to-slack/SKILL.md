@@ -457,13 +457,18 @@ This skill orchestrates:
 
 Step 3g uses these channels. See [references/decision-template.md](references/decision-template.md) for the full decision routing rules.
 
+## Slack Posting Identity
+
+Text messages are posted via `scripts/slack_post_message.py` (uses `SLACK_USER_TOKEN`) so they appear from the user, not the RandomGame Slack app. Media uploads continue to use `scripts/slack_upload_file.py`. The subagent quality contract already enforces this rule. See `.cursor/rules/slack-posting-identity.mdc` for the global policy.
+
 ## MCP Tool Reference
 
 | Tool | Server | Purpose |
 |---|---|---|
 | `slack_search_channels` | `plugin-slack-slack` | Find channel_id by name |
-| `slack_send_message` | `plugin-slack-slack` | Post messages and thread replies |
 | `slack_read_channel` | `plugin-slack-slack` | Fallback to find message_ts |
+| `scripts/slack_post_message.py` | Shell (`SLACK_USER_TOKEN`) | Post text messages and thread replies as user identity |
+| `scripts/slack_upload_file.py` | Shell (direct Slack API) | Upload media files to Slack via `files.uploadV2` |
 
 ## File Structure
 

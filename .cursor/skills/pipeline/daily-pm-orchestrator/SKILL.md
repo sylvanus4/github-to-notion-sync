@@ -539,13 +539,13 @@ Run the MemKraft Dream Cycle via `memkraft-dream-cycle` skill (`.cursor/skills/s
 
 **Duration**: ~1 min | **Dependencies**: ALL phases complete | **Sequential (final)**
 
-**Slack posting**: If `--no-slack` is set, skip MCP `slack_send_message` calls only; still load phase JSON files, compose text, write `phase-6-eod-briefing.json`, and finalize `manifest.json`.
+**Slack posting**: If `--no-slack` is set, skip `scripts/slack_post_message.py` calls only; still load phase JSON files, compose text, write `phase-6-eod-briefing.json`, and finalize `manifest.json`.
 
 1. **Load inputs (files only)**: Read `outputs/daily-pm/{date}/phase-1-knowledge-consolidation.json`, `phase-2-strategic-analysis.json`, `phase-3-code-shipping.json`, `phase-4-skill-evolution.json`, and `phase-5-weekly-reports.json`. Do not use chat history or unstaged context for numeric totals. If a file is missing (e.g. skipped phase), infer `status` from `manifest.json` → `phases[]` for that `id`.
 
 2. **Compose briefing payload**: Build the main message and per-phase thread texts **only** from fields in those JSON files (and manifest summaries as fallback).
 
-3. **Post** a master summary to `#효정-할일` using `slack_send_message` MCP tool when not `--no-slack`.
+3. **Post** a master summary to `#효정-할일` using `scripts/slack_post_message.py` when not `--no-slack`.
 
 **Main message** (Slack mrkdwn) — values must be filled from the phase JSON files:
 

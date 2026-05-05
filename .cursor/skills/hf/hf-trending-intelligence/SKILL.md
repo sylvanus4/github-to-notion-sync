@@ -250,6 +250,16 @@ hf collections add-item "$COLLECTION_SLUG" PAPER_ID paper --note "Score: 0.85 �
 
 Post the report to Slack and Notion. **Slack 메시지는 반드시 한글로 작성한다.**
 
+**Slack Posting Identity:** ALL text messages MUST be posted via `scripts/slack_post_message.py` (uses `SLACK_USER_TOKEN`) so they appear from the user, not the RandomGame Slack app. Do NOT use `slack_send_message` MCP tool for text. Media uploads (images, videos) use `scripts/slack_upload_file.py`. See `.cursor/rules/slack-posting-identity.mdc`.
+
+```bash
+# Main message (capture message_ts from stdout)
+python3 scripts/slack_post_message.py --channel C0AN34G4QHK --message "{text}"
+
+# Thread replies
+python3 scripts/slack_post_message.py --channel C0AN34G4QHK --message "{text}" --thread-ts "{message_ts}"
+```
+
 **Slack (#deep-research-trending):**
 
 1. **Main message** — 논문 중심 Executive Summary:

@@ -90,7 +90,18 @@ Otherwise → use **Message 3B** template.
 
 ## Step 4: Post 3-Message Slack Thread
 
-Use MCP tool `slack_send_message` on server `plugin-slack-slack`.
+Post ALL text messages using `scripts/slack_post_message.py` (sends as user identity via `SLACK_USER_TOKEN`).
+Do NOT use `slack_send_message` MCP tool for text — it posts as the RandomGame Slack app.
+Media uploads still use `scripts/twitter/upload_media_to_slack.js` (bot token is acceptable for file uploads).
+
+```bash
+# Post to channel (Message 1)
+python3 scripts/slack_post_message.py --channel "{channel_id}" --message "{text}"
+# Returns JSON: {"ok": true, "ts": "...", "channel": "..."}
+
+# Thread reply (Messages 2, 3)
+python3 scripts/slack_post_message.py --channel "{channel_id}" --message "{text}" --thread-ts "{message_ts}"
+```
 
 ### FORMATTING RULES — VIOLATING ANY IS A QUALITY FAILURE
 
@@ -372,12 +383,14 @@ Liquid 코드베이스에 /autoresearch를 실행한 결과:
 | Invented header | `*📊 Data Analysis*` | Use only template-defined headers |
 | Double asterisks | `**bold**` | `*bold*` |
 
-## MCP Tool Reference
+## Tool Reference
 
-| Tool | Server | Purpose |
+| Tool | Type | Purpose |
 |---|---|---|
-| `slack_send_message` | `plugin-slack-slack` | Post messages and thread replies |
-| `slack_search_channels` | `plugin-slack-slack` | Find channel_id by name (fallback) |
+| `scripts/slack_post_message.py` | Shell (SLACK_USER_TOKEN) | Post text messages and thread replies as user identity |
+| `scripts/twitter/upload_media_to_slack.js` | Shell (SLACK_BOT_TOKEN) | Upload media files to Slack thread |
+| `scripts/slack_upload_file.py` | Shell (SLACK_BOT_TOKEN) | Upload media files to Slack thread (Python alternative) |
+| `slack_search_channels` | MCP `plugin-slack-slack` | Find channel_id by name (fallback) |
 
 ## Decision Channels (for Step 3g — orchestrator may handle separately)
 

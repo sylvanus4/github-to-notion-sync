@@ -6,7 +6,7 @@ Manage the code-review-graph MCP server lifecycle: install, build, update, query
 
 Use when the user asks to "build code graph", "code review graph", "graph status", "visualize code graph", "blast radius", "update code graph", "graph health", "code-review-graph", "코드 그래프", "그래프 빌드", "블라스트 래디어스", "코드 그래프 상태", or any lifecycle operation for the code-review-graph MCP server.
 
-Do NOT use for code review itself (use deep-review, simplify, code-review-all, or ship — these skills query the graph automatically when available). Do NOT use for Knowledge Base wiki graphs (use graphify-runner). Do NOT use for architecture annotation graphs (use lat-md). Do NOT use for document knowledge graphs (use cognee).
+Do NOT use for code review itself (use deep-review, simplify, code-review-all, or ship — these skills query the graph automatically when available). Do NOT use for architecture annotation graphs (use lat-md). Do NOT use for document knowledge graphs (use cognee).
 
 ## Prerequisites
 

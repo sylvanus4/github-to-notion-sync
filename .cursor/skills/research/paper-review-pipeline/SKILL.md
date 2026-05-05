@@ -485,10 +485,10 @@ Use `slack_search_channels` MCP tool to resolve the channel ID.
 
 ### Distribution Steps
 
-1. **Main message** — Upload Expert NLM slides PDF via 3-step Slack API (`getUploadURLExternal` → upload → `completeUploadExternal`) with paper title + Korean summary as `initial_comment`; capture `ts` from response. If NLM slides PDFs are unavailable (Phase 6 skipped), fall back to `slack_send_message` text-only post.
+1. **Main message** — Upload Expert NLM slides PDF via 3-step Slack API (`getUploadURLExternal` → upload → `completeUploadExternal`) with paper title + Korean summary as `initial_comment`; capture `ts` from response. If NLM slides PDFs are unavailable (Phase 6 skipped), fall back to `scripts/slack_post_message.py` text-only post.
 1a. **Thread: Elementary Slides** — Upload Elementary NLM slides PDF via 3-step Slack upload with `thread_ts` from step 1. Include Google Drive links if available from Step 6.6.
-2. **Thread: Paper Summary** — `slack_send_message` MCP tool with detailed Korean summary (500-1000 chars)
-3. **Thread: Notion Link** — `slack_send_message` MCP tool with the Notion main page URL from Phase 7 (skip if `--skip-notion`)
+2. **Thread: Paper Summary** — `scripts/slack_post_message.py --thread-ts` with detailed Korean summary (500-1000 chars)
+3. **Thread: Notion Link** — `scripts/slack_post_message.py --thread-ts` with the Notion main page URL from Phase 7 (skip if `--skip-notion`)
 4. **Thread: Upload DOCX** — 3-step Slack upload with `thread_ts` from step 1 (only if `--with-docx` was set)
 5. **Thread: Upload PPTX** — 3-step Slack upload with `thread_ts` from step 1 (only if `--with-pptx` was set)
 

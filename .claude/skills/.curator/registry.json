@@ -5099,30 +5099,6 @@
     "consolidation_group": null,
     "notes": ""
   },
-  "graphify-query": {
-    "state": "active",
-    "origin": "user",
-    "created_at": "2026-04-29",
-    "last_modified": "2026-05-01",
-    "last_used": "2026-04-29",
-    "use_count": 0,
-    "tags": [],
-    "size_bytes": 6638,
-    "consolidation_group": null,
-    "notes": ""
-  },
-  "graphify-runner": {
-    "state": "active",
-    "origin": "user",
-    "created_at": "2026-04-29",
-    "last_modified": "2026-05-01",
-    "last_used": "2026-04-29",
-    "use_count": 0,
-    "tags": [],
-    "size_bytes": 11385,
-    "consolidation_group": null,
-    "notes": ""
-  },
   "grill-me": {
     "state": "active",
     "origin": "user",

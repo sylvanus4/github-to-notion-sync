@@ -128,7 +128,7 @@ executive feedback reporting.
 
 | Dependency | Purpose | Check Command |
 |---|---|---|
-| Slack MCP | Post triage results, escalations, feedback summaries | Verify `slack_send_message` tool available |
+| Slack posting | Post triage results, escalations, feedback summaries | Verify `python3 scripts/slack_post_message.py` + `SLACK_USER_TOKEN` |
 | Notion MCP | Publish KB articles and feedback reports | Verify `notion_create_page` tool available |
 | `anthropic-docx` deps | Generate executive feedback reports | `python -c "import docx"` |
 | `python-docx` | DOCX generation for feedback reports | `pip show python-docx` |

@@ -484,21 +484,13 @@ Non-blocking: if `gh project` commands fail (auth issues, API limits), log the e
 
 **Skip if** `--no-slack` or `--dry-run` flag is set.
 
-Post a consolidated summary to `#효정-할일` using the `plugin-slack-slack` MCP server's `slack_send_message` tool. Use **threaded replies** — main summary first, then per-project details in thread.
+Post a consolidated summary to `#효정-할일` using `scripts/slack_post_message.py` (user identity). Use **threaded replies** — main summary first, then per-project details in thread.
 
 #### Step 5a: Main Message
 
-Call `CallMcpTool` with:
-
-```json
-{
-  "server": "plugin-slack-slack",
-  "toolName": "slack_send_message",
-  "arguments": {
-    "channel_id": "C0AA8NT4T8T",
-    "message": "<main summary message>"
-  }
-}
+```bash
+python3 scripts/slack_post_message.py --channel "C0AA8NT4T8T" --message "<main summary message>"
+# Parse stdout JSON → extract "ts" field for thread replies
 ```
 
 **Main message template** (standard markdown):
@@ -546,16 +538,8 @@ Call `CallMcpTool` with:
 
 Post a threaded reply with the full pre-flight diagnostics:
 
-```json
-{
-  "server": "plugin-slack-slack",
-  "toolName": "slack_send_message",
-  "arguments": {
-    "channel_id": "C0AA8NT4T8T",
-    "thread_ts": "<ts from Step 5a>",
-    "message": "<pre-flight details>"
-  }
-}
+```bash
+python3 scripts/slack_post_message.py --channel "C0AA8NT4T8T" --thread-ts "<ts from Step 5a>" --message "<pre-flight details>"
 ```
 
 **Pre-flight thread template**:
@@ -580,16 +564,8 @@ Post a threaded reply with the full pre-flight diagnostics:
 
 For each project that had activity (not "변경사항 없음" / "이미 최신"), post a threaded reply with details:
 
-```json
-{
-  "server": "plugin-slack-slack",
-  "toolName": "slack_send_message",
-  "arguments": {
-    "channel_id": "C0AA8NT4T8T",
-    "thread_ts": "<ts from Step 5a>",
-    "message": "<per-project detail>"
-  }
-}
+```bash
+python3 scripts/slack_post_message.py --channel "C0AA8NT4T8T" --thread-ts "<ts from Step 5a>" --message "<per-project detail>"
 ```
 
 **Thread message template** per project:

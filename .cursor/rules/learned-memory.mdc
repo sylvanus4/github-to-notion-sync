@@ -13,6 +13,7 @@ alwaysApply: true
 - Professional doc style: cite sources with URLs, sensitivity analysis for sizing/financial models
 - Documents must be self-contained, substantive prose — never skeleton/template-only output
 - Slack → #효정-할일 (C0AA8NT4T8T), never DM; threaded replies; decision routing via decision-router
+- Slack posting identity: ALL text posts via `scripts/slack_post_message.py` (SLACK_USER_TOKEN, user identity); NEVER `slack_send_message` MCP for text (posts as RandomGame app); MCP Slack tools for read-only ops only; see `.cursor/rules/slack-posting-identity.mdc`
 - After skill create/modify: test e2e, create command, setup-doctor, skill-guide-sync, /autoskill-evolve
 - Broker/data integration skills: hook into today pipeline or documented daily steps; scaffold-only unused skills are unacceptable
 - cursor-sync = .cursor/ asset copying ONLY; confirm direction before bulk sync jobs

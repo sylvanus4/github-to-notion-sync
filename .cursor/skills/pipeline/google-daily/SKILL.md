@@ -192,7 +192,15 @@ If calendar or Gmail failed, post a partial briefing clearly marking missing sec
 
 Re-read these files immediately before posting. Do **not** substitute recalled chat context, subagent narrative, or unstored variables for counts, links, or text.
 
-Three-step posting pattern using `slack_send_message` MCP tool.
+Three-step posting pattern using `scripts/slack_post_message.py` (sends as user identity via `SLACK_USER_TOKEN`, NOT the RandomGame Slack app). Do NOT use `slack_send_message` MCP tool for text posting.
+
+```bash
+# Channel post (capture message_ts from stdout)
+python3 scripts/slack_post_message.py --channel {channel_id} --message "{text}"
+
+# Thread reply
+python3 scripts/slack_post_message.py --channel {channel_id} --message "{text}" --thread-ts "{message_ts}"
+```
 
 ### Step 1: Main Summary
 

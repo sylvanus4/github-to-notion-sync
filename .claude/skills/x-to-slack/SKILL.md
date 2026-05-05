@@ -62,9 +62,47 @@ The script writes to `knowledge-bases/intelligence/raw/YYYY-MM-DD-{slug}.md`, up
 
 If `intel_registry.py save` fails (e.g., script missing), log a warning and continue — Slack post is already complete; KB save is non-blocking.
 
+## Slack Posting Identity Rules
+
+Text messages and media uploads use **different authentication** to control how posts appear in Slack.
+
+### Text Messages (appear as user)
+
+ALL text content (Message 1, 2, 3, and any additional thread replies) MUST be posted via `scripts/slack_post_message.py` using `SLACK_USER_TOKEN`. This makes messages appear from the user's identity, not the RandomGame Slack app.
+
+```bash
+# Message 1 (channel post) — capture ts for thread replies
+python3 scripts/slack_post_message.py --channel {channel_id} --message "{text}"
+# Parse stdout JSON for "ts" field → use as thread_ts
+
+# Message 2, 3 (thread replies)
+python3 scripts/slack_post_message.py --channel {channel_id} --message "{text}" --thread-ts "{message_ts}"
+```
+
+Do NOT use `slack_send_message` MCP tool for text — it posts as the RandomGame Slack app.
+
+### Media Uploads (app identity acceptable)
+
+Images and videos are uploaded via `scripts/slack_upload_file.py` (or `scripts/twitter/upload_media_to_slack.js`). Bot token identity is acceptable for file uploads since Slack requires app-level auth for `files.uploadV2`.
+
+```bash
+python3 scripts/slack_upload_file.py \
+    --url "{media_url}" --channel {channel_id} --thread-ts "{message_ts}"
+```
+
+### Tool Reference
+
+| Tool | Auth | Purpose |
+|---|---|---|
+| `scripts/slack_post_message.py` | `SLACK_USER_TOKEN` | Post text messages and thread replies as user identity |
+| `scripts/slack_upload_file.py` | `SLACK_BOT_TOKEN` | Upload media files to Slack thread |
+| `scripts/twitter/upload_media_to_slack.js` | `SLACK_BOT_TOKEN` | Upload media files to Slack thread (Node.js) |
+| `slack_search_channels` | MCP `plugin-slack-slack` | Find channel_id by name (fallback) |
+
 ## Rules
 
 - Never post to #random
-- Include images and videos when available
+- Include images and videos when available — use `scripts/slack_upload_file.py` for media uploads
 - Each item gets its own thread (not combined)
+- ALL text messages via `scripts/slack_post_message.py` (user identity) — NEVER `slack_send_message` MCP for text
 - KB save (Step 6) is mandatory unless the URL is already a duplicate (`intel_registry.py check` exit 1 — skip the entire pipeline upfront)

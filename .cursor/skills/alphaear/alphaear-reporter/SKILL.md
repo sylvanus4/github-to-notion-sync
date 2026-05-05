@@ -42,7 +42,7 @@ Professional financial report generation via a Plan → Write → Edit → Chart
 | "Write a report from today's stock signals" | Cluster → Write → Assemble | Structured markdown report with Executive Summary |
 | "Generate chart config for 002371.SZ" | `scripts/visualizer.py` | Chart configuration for forecast/visualization |
 | "Summarize these 10 signals into a report" | Cluster Signals prompt | 3–5 themes; then Write Section per theme |
-| "Post report to Slack" | After Assembly → slack_send_message MCP | Report distributed to Slack channel |
+| "Post report to Slack" | After Assembly → `scripts/slack_post_message.py` | Report distributed to Slack channel |
 
 ## Error Handling
 
@@ -56,7 +56,7 @@ Professional financial report generation via a Plan → Write → Edit → Chart
 
 - **Stale input**: Use project stock data and daily-stock-check outputs for fresh signals.
 - **Chart configs**: If Writer prompt omits charts, call `scripts/visualizer.py` directly.
-- **Slack posting**: Integrate via `slack_send_message` MCP after report assembly.
+- **Slack posting**: Integrate via `scripts/slack_post_message.py` after report assembly.
 
 ## AlphaEar Quality Standards (auto-improved)
 

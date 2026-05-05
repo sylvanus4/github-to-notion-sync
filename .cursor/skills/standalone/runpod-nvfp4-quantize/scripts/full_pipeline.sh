@@ -2,7 +2,7 @@
 set -euo pipefail
 
 export HF_TOKEN=$(cat /workspace/.hf_token)
-export HF_REPO="ThakiCloud/Qwen3-30B-A3B-NVFP4"
+export HF_REPO="ThakiCloud/Qwen3-30B-A3B-NVFP4"  # pragma: allowlist secret
 export MODEL_ID="Qwen/Qwen3-30B-A3B"
 
 LOG=/workspace/output/logs

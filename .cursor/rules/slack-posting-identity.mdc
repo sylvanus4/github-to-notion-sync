@@ -1,0 +1,39 @@
+# Slack Posting Identity
+
+**Universal rule — applies to ALL skills that post text to Slack, not just listed pipelines.**
+
+If a SKILL.md references `slack_send_message` MCP tool for text posting, this rule overrides it. Always use `scripts/slack_post_message.py` instead.
+
+## Text Messages: User Identity (MANDATORY)
+
+ALL text content (channel posts, thread replies) MUST be posted via `scripts/slack_post_message.py` using `SLACK_USER_TOKEN` (xoxp-*). This makes messages appear from the user, not the RandomGame Slack app.
+
+```bash
+# Channel post (capture ts for thread replies)
+python3 scripts/slack_post_message.py --channel {channel_id} --message "{text}"
+# Parse stdout JSON for "ts" field
+
+# Thread reply
+python3 scripts/slack_post_message.py --channel {channel_id} --message "{text}" --thread-ts "{ts}"
+```
+
+**NEVER use `slack_send_message` MCP tool for text.** It posts as the RandomGame Slack app. If you see `slack_send_message` in a SKILL.md, mentally replace it with the script above.
+
+## MCP Tools: Read-Only Use Only
+
+MCP Slack tools are permitted ONLY for read operations:
+- `slack_search_channels` — channel ID lookup
+- `slack_read_channel` — message history, ts fallback lookup
+
+## Media Uploads: App Identity Acceptable
+
+Images and videos use `scripts/slack_upload_file.py` or `scripts/twitter/upload_media_to_slack.js`. Bot token identity is acceptable for `files.uploadV2`.
+
+## Tool Quick Reference
+
+| Tool | Auth | Use For |
+|---|---|---|
+| `scripts/slack_post_message.py` | `SLACK_USER_TOKEN` | ALL text messages (channel + thread) |
+| `scripts/slack_upload_file.py` | `SLACK_BOT_TOKEN` | Media file uploads |
+| `slack_search_channels` | MCP (read-only) | Channel ID lookup |
+| `slack_read_channel` | MCP (read-only) | Fallback ts lookup |

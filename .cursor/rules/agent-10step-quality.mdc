@@ -1,0 +1,54 @@
+# Agent 10-Step Quality Checklist
+
+When creating or reviewing any agent skill (SKILL.md), verify all 10 dimensions are addressed. This rule applies to `.cursor/skills/`, `.claude/skills/`, and `.agents/skills/` directories.
+
+## Checklist
+
+| # | Dimension | Required in SKILL.md | How to Check |
+|---|-----------|---------------------|--------------|
+| 1 | **Clear Goal** | Problem statement, success criteria, non-goals | Look for "Use when" + "Do NOT use" boundaries |
+| 2 | **System Prompt** | Role definition, constraints, examples, output format | Body text defines behavior rules and examples |
+| 3 | **Model Selection** | Recommended model tier per sub-task | Check for `Model: fast/default/opus` annotations |
+| 4 | **Tools** | Which MCP servers, CLI tools, or APIs are used | Look for tool references, Shell commands, MCP calls |
+| 5 | **Memory** | What persists across invocations | Check for file paths, state directories, recall references |
+| 6 | **Exit Conditions** | When the skill stops executing | Look for success criteria, max iterations, stopping rules |
+| 7 | **Orchestration** | How sub-agents coordinate (if multi-agent) | Check for subagent dispatch patterns, dependency ordering |
+| 8 | **Guardrails** | Safety gates, forbidden actions, approval requirements | Look for "NEVER", "MUST", human-in-the-loop gates |
+| 9 | **Observability** | What gets logged, measured, or reported | Check for metrics, audit trails, status reporting |
+| 10 | **Testing** | How to verify the skill works correctly | Look for eval criteria, test commands, quality gates |
+
+## Minimum Viable Agent
+
+Every agent skill MUST have at minimum:
+- Dimensions 1, 2, 6, 8 (Goal, Prompt, Exit, Guardrails)
+
+Should have:
+- Dimensions 4, 5, 7 (Tools, Memory, Orchestration)
+
+Nice to have (for complex agents):
+- Dimensions 3, 9, 10 (Model Selection, Observability, Testing)
+
+## When to Apply
+
+- Creating a new skill via `create-skill`, `write-a-skill`, or `anthropic-skill-creator`
+- Reviewing skills via `skill-optimizer` or `skill-upgrade-validator`
+- Auditing agent teams in `.cursor/skills/agent-teams/`
+- During `autoskill-judge` add/merge decisions
+
+## Common Gaps by Agent Type
+
+| Agent Type | Typical Missing | Fix |
+|-----------|----------------|-----|
+| Pipeline orchestrators | Observability, Testing | Add iteration logging + check_cmd |
+| Review agents (diagnose, deep-review) | Exit conditions | Add confidence threshold + max attempts |
+| Role perspective agents | Memory | Add MemKraft recall for past analyses |
+| Trading agents | Guardrails | Add position limits, approval gates |
+| Content agents | Testing | Add quality score threshold |
+
+## Anti-Patterns
+
+- Agent with no "Do NOT use" boundary (unclear scope)
+- Multi-step agent without any exit condition (infinite loop risk)
+- Agent that writes to external systems without approval gate
+- Agent with no model tier guidance (defaults to expensive model for trivial tasks)
+- Agent that accumulates state but never prunes it (memory bloat)

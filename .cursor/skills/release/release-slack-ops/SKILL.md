@@ -76,7 +76,7 @@ Ready: {n} | Missing Info: {n} | Blocked: {n}
 
 **Channel**: `#release-control`
 
-**Tools**: Slack MCP `slack_send_message` (main) + thread replies using `thread_ts`
+**Tools**: `scripts/slack_post_message.py` (main) + thread replies using `--thread-ts`
 
 ### Message Type 2: Wednesday QA Status
 

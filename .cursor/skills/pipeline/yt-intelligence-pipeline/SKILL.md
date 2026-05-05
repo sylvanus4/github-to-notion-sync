@@ -176,7 +176,7 @@ Post a 3-message Korean intelligence thread using templates from `references/mes
 - LinkedIn post draft
 - Repurposing notes
 
-Use `slack_send_message` MCP tool with `message` parameter. Post Message 1 first, then use `thread_ts` from the response for Messages 2 and 3.
+Use `scripts/slack_post_message.py` with `--message` parameter. Post Message 1 first, then use `thread_ts` from the response for Messages 2 and 3.
 
 ---
 
@@ -202,5 +202,5 @@ Use `slack_send_message` MCP tool with `message` parameter. Post Message 1 first
 | `nlm-dual-slides` | 3A | Dual-audience NotebookLM slide generation |
 | `md-to-notion` | 3B | Notion page publishing |
 | `content-repurposing-engine` | 3C | Multi-platform content generation |
-| Slack MCP (`slack_send_message`) | 4 | Slack distribution |
+| `scripts/slack_post_message.py` | 4 | Slack distribution (user identity) |
 | `gws-drive` | 3A | Google Drive slide upload |

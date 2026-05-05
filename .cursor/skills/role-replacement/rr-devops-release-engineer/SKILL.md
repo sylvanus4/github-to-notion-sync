@@ -361,7 +361,7 @@ outputs/rr-devops-release-engineer/{date}/
 | `gh` CLI authenticated | `gh auth status` | `gh auth login` |
 | `python3` | `which python3` | Install via Homebrew |
 | `GITHUB_TOKEN` env var | `test -n "$GITHUB_TOKEN"` | Set in `.env` or shell profile |
-| Slack MCP available | Test `slack_send_message` | Check `.env` SLACK tokens |
+| Slack posting available | Test `python3 scripts/slack_post_message.py --channel C0AA8NT4T8T --message "test"` | Check `.env` SLACK_USER_TOKEN |
 | Project registry accessible | `ls .cursor/skills/pipeline/eod-ship/references/project-registry.md` | Verify eod-ship skill installed |
 | Memory scripts exist | `ls scripts/memory/extract-sessions.py` | Check repo integrity |
 

@@ -324,7 +324,7 @@ outputs/content-curator/{date}/
 |------------|-------|----------|
 | `TWITTER_COOKIE` in `.env` | `grep TWITTER_COOKIE .env` | Guide cookie registration per twitter-timeline-to-slack Phase 0 |
 | `gws` CLI authenticated | `gws gmail +triage --max 1` | `python ~/.config/gws/oauth2_manual.py` then `rm ~/.config/gws/token_cache.json credentials.enc 2>/dev/null` |
-| Slack MCP available | Test `slack_send_message` | Check `.env` SLACK tokens |
+| Slack posting available | Test `python3 scripts/slack_post_message.py --channel C0AA8NT4T8T --message "test"` | Check `.env` SLACK_USER_TOKEN |
 | `intel_registry.py` accessible | `ls $HOME/thaki/research/scripts/intelligence/intel_registry.py` | Graceful degradation (local dedup only) |
 | `python-docx` installed | `python3 -c "import docx"` | `pip install python-docx -q` |
 | Channel DB exists | `ls outputs/twitter/slack-channels.json` | Create from Channel Routing Matrix above |

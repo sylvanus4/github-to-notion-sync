@@ -188,14 +188,7 @@ Write a report to `outputs/autoskill-reports/<date>-evolution.md`:
 If `--slack` is set, post an evolution summary to Slack.
 
 ```
-CallMcpTool(
-  server="plugin-slack-slack",
-  toolName="slack_send_message",
-  arguments={
-    "channel_id": "<channel>",
-    "text": "*[AutoSkill Evolution] {date}*\n\nProcessed: {N} transcripts\nAdded: {A} skills | Merged: {U} | Discarded: {D}"
-  }
-)
+Shell: python3 scripts/slack_post_message.py --channel "<channel>" --message "*[AutoSkill Evolution] {date}*\n\nProcessed: {N} transcripts\nAdded: {A} skills | Merged: {U} | Discarded: {D}"
 ```
 
 ---

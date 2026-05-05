@@ -112,17 +112,15 @@ Skip if `--skip-briefing` is set or `--dry-run` is set.
 `#효정-할일`. The Today pipeline optionally posts to `#h-report`.
 This Phase 3 briefing is a short consolidated summary linking both.
 
-Use `slack_send_message` from MCP server `plugin-slack-slack` in **two steps** (parent + thread).
+Use `scripts/slack_post_message.py` (user identity) in **two steps** (parent + thread).
 
 #### Step A — Parent message (channel summary)
 
 Post the high-level header and **signal summary** first. Capture the returned message `ts` for Step B.
 
-```
-slack_send_message(
-  channel_id="C0AA8NT4T8T",
-  message="*☀️ 모닝 루틴 완료* (YYYY-MM-DD)\n\n*Google Daily*\n- 캘린더: N건 일정 (면접 N, 미팅 N)\n- 메일: N건 정리 (스팸 N, 알림 N, 팀원 N, 뉴스 N)\n- 답장 필요: N건\n- 문서: N건 생성 → Drive 업로드\n\n*주식 분석 (요약)*\n- N개 종목 분석 완료\n- 매수 N | 중립 N | 매도 N\n- 핫 종목: {discovered tickers}\n- 보고서: `{report_path}`\n\n_스레드에 세부 종목·단계 상태를 정리합니다._"
-)
+```bash
+python3 scripts/slack_post_message.py --channel "C0AA8NT4T8T" --message "*☀️ 모닝 루틴 완료* (YYYY-MM-DD)\n\n*Google Daily*\n- 캘린더: N건 일정 (면접 N, 미팅 N)\n- 메일: N건 정리 (스팸 N, 알림 N, 팀원 N, 뉴스 N)\n- 답장 필요: N건\n- 문서: N건 생성 → Drive 업로드\n\n*주식 분석 (요약)*\n- N개 종목 분석 완료\n- 매수 N | 중립 N | 매도 N\n- 핫 종목: {discovered tickers}\n- 보고서: `{report_path}`\n\n_스레드에 세부 종목·단계 상태를 정리합니다._"
+# Parse stdout JSON → extract "ts" field for thread reply
 ```
 
 #### Step B — Thread reply (detail + disclaimer)
@@ -135,17 +133,13 @@ Post **details** in a thread on Step A using `thread_ts` from Step A’s respons
 
 `_본 브리핑은 정보 제공 목적이며 특정 금융상품 매수·매도를 권유하지 않습니다._`
 
-```
-slack_send_message(
-  channel_id="C0AA8NT4T8T",
-  thread_ts="<ts_from_step_A>",
-  message="*세부 내역*\n\n*Google Daily 상태*\n- …\n\n*주식 시그널 상세*\n- 매수 후보: …\n- 매도 후보: …\n\n_본 브리핑은 정보 제공 목적이며 특정 금융상품 매수·매도를 권유하지 않습니다._"
-)
+```bash
+python3 scripts/slack_post_message.py --channel "C0AA8NT4T8T" --thread-ts "<ts_from_step_A>" --message "*세부 내역*\n\n*Google Daily 상태*\n- …\n\n*주식 시그널 상세*\n- 매수 후보: …\n- 매도 후보: …\n\n_본 브리핑은 정보 제공 목적이며 특정 금융상품 매수·매도를 권유하지 않습니다._"
 ```
 
 #### Phase 3 — Error recovery (Slack MCP)
 
-If `slack_send_message` fails: **retry once** after a short backoff (2–3s). If it still fails, log the error, record `morning_briefing=failed` in session notes (and append a one-line entry to `MEMORY.md` if that file is updated this run), and **stop Phase 3** without failing the entire morning run—Phases 1–2 outputs remain valid.
+If `slack_post_message.py` fails: **retry once** after a short backoff (2–3s). If it still fails, log the error, record `morning_briefing=failed` in session notes (and append a one-line entry to `MEMORY.md` if that file is updated this run), and **stop Phase 3** without failing the entire morning run—Phases 1–2 outputs remain valid.
 
 ### Slack mrkdwn Rules
 

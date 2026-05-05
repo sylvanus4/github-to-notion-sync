@@ -139,7 +139,7 @@ Before formatting for Slack, verify the analysis output:
 - [ ] No script errors in stderr output
 - [ ] Summary buckets (`strong_buy` + `buy` + `neutral` + `sell` + `strong_sell`) sum to `total_stocks`
 
-**Halt (no Slack post):** If the script exits non-zero, prints an `error` key in JSON, stdout is not valid JSON, or `total_stocks == 0` — stop, report the failure to the user, and recommend prerequisites (refresh CSV/DB data). Do not call `slack_send_message`.
+**Halt (no Slack post):** If the script exits non-zero, prints an `error` key in JSON, stdout is not valid JSON, or `total_stocks == 0` — stop, report the failure to the user, and recommend prerequisites (refresh CSV/DB data). Do not post to Slack.
 
 **Partial results:** If some requested tickers are missing but `total_stocks >= 1`, continue: include a `[부분 분석]` warning banner in the root Slack message listing missing tickers. See [assets/templates/slack-message.md](assets/templates/slack-message.md).
 
@@ -208,7 +208,7 @@ Set `{data_source_line}` to `Data source: CSV (--dir)` or `Data source: PostgreS
 
 Formatting rules:
 - Post the **root message** first; capture `thread_ts` from the response.
-- Post each signal group as a **thread reply** (`thread_ts` = root message) using `slack_send_message` (or equivalent MCP parameter for threading).
+- Post each signal group as a **thread reply** (`thread_ts` = root message) using `scripts/slack_post_message.py --thread-ts`.
 - Group stocks by overall signal within each thread block: BUY/STRONG_BUY, then NEUTRAL, then SELL/STRONG_SELL
 - For NEUTRAL stocks, use a compact one-line format
 - For BUY/SELL stocks, show full rationale details
@@ -217,9 +217,9 @@ Formatting rules:
 
 ### Step 4: Post to Slack
 
-1. `slack_send_message` with `channel_id` from Step 2 and the **root** mrkdwn from Step 3.
-2. On success, send thread replies with the same `channel_id` and `thread_ts` from the root message.
-3. If `slack_send_message` fails: retry once after 2–3s; if it still fails, **halt**, surface the error to the user, and do not drop analysis silently.
+1. `python3 scripts/slack_post_message.py --channel <channel_id> --message "<root mrkdwn>"` — obtain `thread_ts` from stdout JSON.
+2. On success, send thread replies with `python3 scripts/slack_post_message.py --channel <channel_id> --thread-ts <ts> --message "<reply mrkdwn>"`.
+3. If `slack_post_message.py` fails: retry once after 2–3s; if it still fails, **halt**, surface the error to the user, and do not drop analysis silently.
 
 ## Error handling and fallbacks
 
@@ -229,7 +229,7 @@ Formatting rules:
 | Script stdout | Invalid JSON or `"error"` key | Halt; propagate message; no Slack |
 | Step 1.5 | `total_stocks == 0` | Halt; recommend `stock-csv-downloader` or `weekly-stock-update` |
 | `slack_search_channels` | Empty / no match | Halt; verify MCP and channel name |
-| `slack_send_message` | API/MCP error | Retry once; then halt and report |
+| `slack_post_message.py` | API error | Retry once; then halt and report |
 | DB mode | Connection/query errors (from script) | Halt; verify `DATABASE_URL` and migrations |
 
 ## Data Requirements
@@ -259,7 +259,7 @@ Actions (all phases, no skips):
 2. Parse JSON; run **Step 1.5** checklist; halt if `total_stocks == 0` or invalid output
 3. `slack_search_channels` → resolve `#h-daily-stock-check`
 4. Build **root** mrkdwn (header + counts + disclaimer + data source line)
-5. `slack_send_message` root → obtain `thread_ts`
+5. `python3 scripts/slack_post_message.py` root → obtain `thread_ts`
 6. Post **thread reply** mrkdwn for BUY/STRONG_BUY block, then NEUTRAL, then SELL/STRONG_SELL (split if oversized)
 
 Result: Channel shows summary in the main message; full per-stock detail in threads.

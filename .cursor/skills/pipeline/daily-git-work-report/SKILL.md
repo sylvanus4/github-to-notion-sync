@@ -164,7 +164,7 @@ Create the directory if it does not exist.
 
 #### 3c. Post to Slack
 
-Post the report to `#효정-할일` via Slack MCP `slack_send_message`.
+Post the report to `#효정-할일` via `scripts/slack_post_message.py`.
 
 If the report exceeds 3000 characters, split into:
 - **Message 1**: Sections 1 + 2 (overview + commits)

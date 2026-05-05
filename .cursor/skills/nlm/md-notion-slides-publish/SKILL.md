@@ -212,8 +212,7 @@ Format the summary as a bullet list in Korean.
 Post a single consolidated message to `#효정-할일` (`C0AA8NT4T8T`) via **plugin-slack-slack** MCP.
 
 ```
-CallMcpTool(server="plugin-slack-slack", toolName="slack_send_message",
-  arguments={"channel_id": "C0AA8NT4T8T", "text": "<main message>"})
+python3 scripts/slack_post_message.py --channel C0AA8NT4T8T --message "<main message>"
 ```
 
 Capture the `ts` from the response for the thread reply.
@@ -242,8 +241,7 @@ Capture the `ts` from the response for the thread reply.
 **Thread reply** with detailed metadata:
 
 ```
-CallMcpTool(server="plugin-slack-slack", toolName="slack_send_message",
-  arguments={"channel_id": "C0AA8NT4T8T", "thread_ts": "<main message ts>",
+python3 scripts/slack_post_message.py --channel C0AA8NT4T8T --thread-ts <main_message_ts> --message "
              "text": "<detail message>"})
 ```
 
@@ -257,7 +255,7 @@ CallMcpTool(server="plugin-slack-slack", toolName="slack_send_message",
 • 슬라이드 형식: pdf
 ```
 
-**Anti-pattern:** Do NOT use `useToast()` or `showToast()` for Slack posting — use MCP `slack_send_message` directly.
+**Anti-pattern:** Do NOT use `useToast()` or `showToast()` for Slack posting — use `python3 scripts/slack_post_message.py` directly.
 
 ---
 
@@ -318,7 +316,7 @@ Agent:
 7. download_artifact × 2 → rename to .pdf
 8. gws drive +upload × 2 → $EXPERT_DRIVE_URL, $ELEMENTARY_DRIVE_URL
 9. Extract key summary (3-5 bullets, Korean)
-10. slack_send_message → main report + threaded detail
+10. python3 scripts/slack_post_message.py → main report + threaded detail
 11. Cleanup: delete _expert_rewrite.md, _elementary_rewrite.md
 ```
 

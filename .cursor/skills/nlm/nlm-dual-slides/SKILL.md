@@ -156,7 +156,7 @@ Extract file IDs from the upload output. Construct shareable links:
 
 ### Phase 6 — Slack Distribution
 
-Post to the configured channel (default: `#deep-research-trending`, ID `C0AN34G4QHK`) using the Slack MCP `slack_send_message` tool.
+Post to the configured channel (default: `#deep-research-trending`, ID `C0AN34G4QHK`) using `scripts/slack_post_message.py`.
 
 **Message 1 — Main summary** (Korean):
 
@@ -170,7 +170,7 @@ Post to the configured channel (default: `#deep-research-trending`, ID `C0AN34G4
 • 전문가용 슬라이드: {expert_drive_link}
 ```
 
-Call `slack_send_message` with `channel_id` and `message`. Capture the returned `thread_ts`.
+Call `scripts/slack_post_message.py --channel <channel_id> --message "<text>"`. Capture the returned `thread_ts` from stdout JSON.
 
 **Message 2 — Elementary slides thread reply**:
 
@@ -181,7 +181,7 @@ Call `slack_send_message` with `channel_id` and `message`. Capture the returned 
 • {key points from the elementary version}
 ```
 
-Call `slack_send_message` with `thread_ts` from Message 1.
+Call `scripts/slack_post_message.py --channel <channel_id> --thread-ts <ts> --message "<text>"`.
 
 **Message 3 — Expert slides thread reply**:
 
@@ -192,7 +192,7 @@ Call `slack_send_message` with `thread_ts` from Message 1.
 • {key technical points from the expert version}
 ```
 
-Call `slack_send_message` with `thread_ts` from Message 1.
+Call `scripts/slack_post_message.py --channel <channel_id> --thread-ts <ts> --message "<text>"`.
 
 ## Options
 

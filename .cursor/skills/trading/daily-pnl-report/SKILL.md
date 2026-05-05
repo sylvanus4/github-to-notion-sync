@@ -45,7 +45,7 @@ for strat, stats in report.get('strategy_stats', {}).items():
 
 ### 2. Post to Slack
 
-Format the report as a Slack message and post to `#h-report` using the Slack MCP `slack_send_message` tool:
+Format the report as a Slack message and post to `#h-report` using `python3 scripts/slack_post_message.py`:
 
 ```
 📊 Daily P&L Report — {date}

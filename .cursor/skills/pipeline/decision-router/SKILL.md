@@ -151,7 +151,7 @@ Pipeline skills invoke the decision router as follows:
 2. Apply the source-specific decision detection rules (see tables above)
 3. For each detected decision item, classify scope (personal vs team)
 4. Format using the DECISION message template
-5. Post to the appropriate channel via `slack_send_message`:
+5. Post to the appropriate channel via `scripts/slack_post_message.py` (user identity):
    - Personal → `효정-의사결정` (`C0ANBST3KDE`)
    - Team → `7층-리더방` (`C0A6Q7007N2`)
 6. If multiple decisions are detected, post each as a separate message (not threaded)
@@ -170,7 +170,7 @@ All pipeline skills support `skip-decisions` to bypass decision extraction.
 
 | Tool | Server | Purpose |
 |---|---|---|
-| `slack_send_message` | `plugin-slack-slack` | Post decision messages |
+| `scripts/slack_post_message.py` | Shell | Post decision messages (user identity) |
 
 ## Examples
 

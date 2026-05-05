@@ -70,12 +70,8 @@ pnpm paperclipai approval reject <approval-id> --decision-note "Not now"
 
 **Slack notification pattern**: After processing approvals, post a summary to Slack `#효정-할일`:
 
-```
-Tool: slack_send_message (plugin-slack-slack MCP)
-Input: {
-  "channel_id": "C0AA8NT4T8T",
-  "text": "Paperclip Approvals: N pending, M approved today"
-}
+```bash
+python3 scripts/slack_post_message.py --channel "C0AA8NT4T8T" --message "Paperclip Approvals: N pending, M approved today"
 ```
 
 ### 4. Budget Overview

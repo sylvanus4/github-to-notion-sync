@@ -249,4 +249,3 @@ User: "x-to-notion https://x.com/user/status/123456 skip-translate"
 
 Pipeline complete: output/x-to-notion/2026-04-02/manifest.json
 ```
-

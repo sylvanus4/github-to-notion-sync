@@ -75,8 +75,9 @@ If found, use the `channel_id` directly — skip the MCP search entirely.
 | `random` | `C0A6CLTNARM` | public | 일반/기타 |
 | `효정-할일` | `C0AA8NT4T8T` | private | 개인 태스크/할일 |
 | `효정-주식` | `C0A7V1A09NK` | private | 주식/투자/트레이딩 |
-| `효정-insight` | `C0A8SSPC9RU` | private | 전략 인사이트/분석 |
+| `효정-insight` / `h-insight` | `C0A8SSPC9RU` | private | 전략 인사이트/분석 |
 | `효정-이미지` | `C0A88DDE946` | private | AI 이미지/비디오/음악 생성 |
+| `ai-design` | `C0B1S9NT57B` | public | AI 디자인/이미지 생성/크리에이티브 |
 
 #### Step 3b: MCP Search (fallback)
 
@@ -177,10 +178,15 @@ FORMATTING RULES — VIOLATING ANY OF THESE IS A QUALITY FAILURE:
 
 #### Message 1: Title (Channel Post)
 
-Send to the channel using `slack_send_message`:
-- Server: `plugin-slack-slack`
-- Tool: `slack_send_message`
-- Arguments: `channel_id`, `message`
+Post to the channel via Shell using `scripts/slack_post_message.py` (sends as user identity via `SLACK_USER_TOKEN`, NOT the RandomGame Slack app):
+
+```bash
+python3 scripts/slack_post_message.py \
+    --channel "{channel_id}" \
+    --message "{message_text}"
+```
+
+The script outputs JSON: `{"ok": true, "ts": "...", "channel": "..."}`. Parse `ts` as `message_ts`.
 
 Format — Message 1 is EXACTLY 2-3 lines, nothing more:
 
@@ -220,8 +226,14 @@ https://x.com/defileo/status/2042241063612502162
 
 #### Message 2: Detailed Summary (Thread Reply)
 
-Send as a thread reply using `slack_send_message` with `thread_ts`:
-- Arguments: `channel_id`, `message`, `thread_ts` (from Message 1)
+Post as a thread reply via Shell using `scripts/slack_post_message.py` with `--thread-ts`:
+
+```bash
+python3 scripts/slack_post_message.py \
+    --channel "{channel_id}" \
+    --message "{message_text}" \
+    --thread-ts "{message_ts}"
+```
 
 Format:
 
@@ -250,7 +262,7 @@ Format:
 
 #### Message 3: AI GPU Cloud Insights (Thread Reply)
 
-Send as another thread reply with the same `thread_ts`.
+Post as another thread reply via `scripts/slack_post_message.py` with the same `--thread-ts`.
 
 Format:
 
@@ -401,6 +413,6 @@ Result: Thread with quote tweet context included
 |---|---|---|
 | `slack_search_channels` | `plugin-slack-slack` | Find public channel_id by name |
 | `slack_search_public_and_private` | `plugin-slack-slack` | Fallback: find private channel_id via `in:{name}` query |
-| `slack_send_message` | `plugin-slack-slack` | Post messages and thread replies |
+| `scripts/slack_post_message.py` | Shell (direct Slack API) | Post text messages and thread replies as user identity via `SLACK_USER_TOKEN` |
 | `slack_read_channel` | `plugin-slack-slack` | Fallback to find message_ts |
 | `scripts/slack_upload_file.py` | Shell (direct Slack API) | Upload media files to Slack via `files.uploadV2` 3-step flow |

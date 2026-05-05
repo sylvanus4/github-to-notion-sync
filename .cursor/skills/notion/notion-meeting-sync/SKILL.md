@@ -347,11 +347,12 @@ PPTX files are NOT uploaded — only text-based summaries are posted.
 Send the first message to the target `channel_id` with a high-level digest:
 
 ```
-CallMcpTool(
-  server="plugin-slack-slack",
-  toolName="slack_send_message",
-  arguments={
-    "channel_id": "<slack-channel-id>",
+python3 scripts/slack_post_message.py --channel "<slack-channel-id>" --message """
+# (For thread replies, add --thread-ts "$THREAD_TS")
+# Example:
+# python3 scripts/slack_post_message.py --channel "<slack-channel-id>" --message "<message>"
+# arguments={
+#    "channel_id": "<slack-channel-id>",
     "message": "<constructed message>"
   }
 )

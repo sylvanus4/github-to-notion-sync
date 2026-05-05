@@ -60,7 +60,7 @@ memory-driven context continuity.
 |-------------|-------|
 | `today` pipeline prerequisites | `python scripts/weekly_stock_update.py --status` returns OK |
 | PostgreSQL with price data | `DATABASE_URL` env var set; prices synced |
-| Slack MCP connected | `slack_send_message` available |
+| Slack posting available | `python3 scripts/slack_post_message.py` + `SLACK_USER_TOKEN` |
 | MemKraft directories exist | `memory/memkraft/` directory present |
 | `ai-context-router` operational | Can query both MemKraft and LLM Wiki |
 | Python 3.11+ | `python --version` >= 3.11 |

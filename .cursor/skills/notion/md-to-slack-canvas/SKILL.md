@@ -11,7 +11,7 @@ description: >-
   "캔버스에 올려", "캔버스로 변환", "슬랙 캔버스에 올려줘".
   Do NOT use for Slack message posting (use kwp-slack-slack-messaging).
   Do NOT use for Notion page publishing (use md-to-notion).
-  Do NOT use for channel messaging or thread replies (use Slack MCP slack_send_message).
+  Do NOT use for channel messaging or thread replies (use python3 scripts/slack_post_message.py).
   Korean triggers: "슬랙 캔버스", "캔버스 업로드", "마크다운 캔버스", "캔버스에 올려".
 metadata:
   author: "thaki"
@@ -146,14 +146,7 @@ such as appending dated log entries to a running canvas.
 After successful canvas creation, post the canvas URL to the specified channel:
 
 ```
-CallMcpTool(
-  server="plugin-slack-slack",
-  toolName="slack_send_message",
-  arguments={
-    "channel_id": "<channel-id>",
-    "text": "New canvas published: <canvas-title>\n<canvas-url>"
-  }
-)
+Shell: python3 scripts/slack_post_message.py --channel "<channel-id>" --message "New canvas published: <canvas-title>\n<canvas-url>"
 ```
 
 Process files sequentially. If one canvas creation fails, log the error and

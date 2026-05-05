@@ -11,4 +11,3 @@ v2-1	7.7	10	77.0%	keep	M1 Pillar 2 Claude prompt added (Output Quality 7->9)	108
 v2-2	7.9	10	79.0%	keep	M2 Pillar 3 cross-ref to goose-seo-content-audit (Overlap 6->9)	11281	0.78
 v2-3	8.4	10	84.0%	keep	M3 description "Do NOT use" + Scope body block (Boundary 6->9, Trigger refined)	12239	0.79
 v2-4	8.5	10	85.0%	keep	M4 trim Required Files + anti-pattern intro to fit growth gate 1.20x	12079	0.80
-
