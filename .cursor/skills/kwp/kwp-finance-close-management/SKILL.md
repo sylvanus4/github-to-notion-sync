@@ -2,12 +2,15 @@
 name: kwp-finance-close-management
 description: >-
   Manage the month-end close process with task sequencing, dependencies, and
-  status tracking. Use when planning the close calendar, tracking close
-  progress, identifying blockers, or sequencing close activities by day. Do NOT
-  use for tasks outside the finance domain. Korean triggers: "계획", "캘린더".
+  status tracking. Includes electronic tax invoice (전자세금계산서) EDI
+  procedures, penalty prevention, and VAT reporting linkage for Korean
+  operations. Use when planning the close calendar, tracking close progress,
+  identifying blockers, sequencing close activities by day, or handling Korean
+  tax invoice workflows. Do NOT use for tasks outside the finance domain.
+  Korean triggers: "계획", "캘린더", "세금계산서", "부가세", "전자세금계산서".
 metadata:
   author: "anthropic-kwp"
-  version: "1.0.0"
+  version: "1.1.0"
   category: "workflow"
 ---
 # Close Management
@@ -31,6 +34,8 @@ Month-end close checklist, task sequencing and dependencies, status tracking, an
 ### Close Day 1 (T+1: First Business Day After Month-End)
 
 - [ ] Confirm all sub-ledger modules have completed period-end processing
+- [ ] **전자세금계산서: 당월 매출분 전건 발행 완료 확인** (see `references/edi-tax-invoice.md`)
+- [ ] **전자세금계산서: 미전송 건 홈택스 전송 현황 조회**
 - [ ] Run AP accruals for goods/services received but not invoiced
 - [ ] Post payroll entries and payroll accrual (if pay period straddles month-end)
 - [ ] Record cash receipts and disbursements through month-end
@@ -51,6 +56,7 @@ Month-end close checklist, task sequencing and dependencies, status tracking, an
 
 ### Close Day 3 (T+3)
 
+- [ ] **전자세금계산서: 매출/매입 건수 및 금액 ERP 대사, 수정 세금계산서 처리**
 - [ ] Complete all balance sheet reconciliations
 - [ ] Post any adjusting journal entries identified during reconciliation
 - [ ] Complete intercompany reconciliation and elimination entries

@@ -16,6 +16,7 @@ Do NOT use for web-only search (use parallel-web-search). Do NOT use for codebas
 | kb-query | Deep Q&A with citation-backed answers from KB wiki | Complex question answering |
 | unified-knowledge-search | Federated search across MemKraft, gbrain, KB, Cognee, recall | Multi-source merging with RRF |
 | cognee | Knowledge graph builder and graph-enhanced RAG search | Entity-relationship queries |
+| graphify-query | BFS/DFS traversal, node explanation, shortest path on Graphify graphs | Graph topology exploration |
 | gbrain-bridge | Bidirectional sync and query of gbrain entity pages | Entity-specific knowledge |
 | ai-context-router | MemKraft-first query dispatch with provenance separation | Personal-first retrieval |
 
@@ -33,10 +34,12 @@ flowchart TD
     B -->|Simple keyword| C[kb-search: FTS5]
     B -->|Complex Q&A| D[kb-query: deep read + cite]
     B -->|Entity-specific| E[gbrain-bridge]
+    B -->|Graph traversal| F[graphify-query]
     B -->|Federated| G[unified-knowledge-search: RRF merge]
     C --> H[Ranked Results + Provenance]
     D --> H
     E --> H
+    F --> H
     G --> H
 ```
 
@@ -44,7 +47,7 @@ flowchart TD
 
 - **search**: Fast FTS5 keyword search with snippets
 - **query**: Deep Q&A with citations from KB wiki
-- **graph**: Cognee graph traversal
+- **graph**: Cognee or Graphify graph traversal
 - **federated**: All sources via unified-knowledge-search with RRF
 
 ## Safety Gates
