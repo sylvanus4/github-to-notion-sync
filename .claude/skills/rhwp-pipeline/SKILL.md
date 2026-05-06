@@ -7,10 +7,12 @@ description: >-
   visual-explainer) to add HWP format support to the project's data pipelines.
   Use when the user asks to "HWP pipeline", "HWP 파이프라인", "generate HWP
   report", "HWP 보고서 생성", "batch HWP processing", "HWP 일괄 처리", "rhwp-pipeline",
-  "HWP report workflow", or wants end-to-end HWP document processing
-  integrated with existing pipelines. Do NOT use for individual conversion
-  (use rhwp-converter). Do NOT use for viewing (use rhwp-viewer). Do NOT use
-  for debugging (use rhwp-debug). Do NOT use for setup (use rhwp-setup).
+  "HWP report workflow", "HWPX 생성", "공문서 작성", "한글 공문서", "HWPX 네이티브",
+  "기안서", "hwpx-writer", "python-hwpx", or wants end-to-end HWP/HWPX
+  document processing integrated with existing pipelines. Do NOT use for
+  individual conversion (use rhwp-converter). Do NOT use for viewing (use
+  rhwp-viewer). Do NOT use for debugging (use rhwp-debug). Do NOT use for
+  setup (use rhwp-setup).
 ---
 
 # rhwp Pipeline — End-to-End HWP Document Workflows
@@ -23,10 +25,11 @@ multi-channel distribution.
 
 | Mode | Description | Skills Composed |
 |------|-------------|----------------|
-| Convert & Distribute | Convert HWP → SVG/PDF → Slack/Drive | rhwp-converter, Slack MCP, gws-drive |
-| Report Enhancement | Add HWP export to existing report pipelines | anthropic-docx, rhwp-converter |
-| Batch Processing | Process multiple HWP files in parallel | rhwp-converter (batch mode) |
-| Archive | Convert and archive HWP documents with metadata | rhwp-converter, daily-db-sync |
+| A: Convert & Distribute | Convert HWP → SVG/PDF → Slack/Drive | rhwp-converter, Slack MCP, gws-drive |
+| B: Report Enhancement | Add HWP export to existing report pipelines | anthropic-docx, rhwp-converter |
+| C: Batch Processing | Process multiple HWP files in parallel | rhwp-converter (batch mode) |
+| D: Archive | Convert and archive HWP documents with metadata | rhwp-converter, daily-db-sync |
+| E: HWPX Native Generation | Build .hwpx from data/templates via python-hwpx | python-hwpx, rhwp-converter, gws-drive |
 
 ## Workflow
 
@@ -105,9 +108,49 @@ cat > "$OUTPUT_DIR/manifest.json" << EOF
 EOF
 ```
 
+#### Mode E: HWPX Native Generation (python-hwpx)
+
+Build `.hwpx` documents programmatically using the `python-hwpx` library
+(OWPML standard). No existing HWP file needed -- create from scratch.
+
+**Prerequisites**: `pip install python-hwpx`
+
+**Sub-modes**:
+
+1. **Custom HWPX from data** -- build paragraphs, tables, and styles in code:
+
+```python
+from hwpx import HWPXWriter
+
+writer = HWPXWriter()
+writer.add_paragraph("제목", style="Title")
+writer.add_paragraph("본문 내용을 여기에 작성합니다.")
+writer.add_table(headers=["항목", "값"], rows=[["GPU", "B200 x 1000"]])
+writer.save("outputs/rhwp/report.hwpx")
+```
+
+2. **공문서 (Korean official document)** -- follows 행정 효율과 협업 촉진에
+   관한 규정 (Presidential Decree on Administrative Efficiency). See
+   `references/hwpx-gonmun-template.md` for the full template spec:
+
+   - 기안서 (Draft), 시행문 (Execution), 내부결재 (Internal Approval)
+   - Mandatory structure: 수신 → 경유 → 제목 → 본문 → 붙임 → 발신명의
+   - Paper: A4, margins 20/15/15/15mm, 바탕체 10pt body
+
+3. **Pipeline integration**: Mode E outputs `.hwpx` files, which can then
+   feed into Mode A (convert to SVG/PDF) or be directly distributed via
+   `gws-drive` upload.
+
+**Workflow**:
+```
+Data/Template → python-hwpx build → .hwpx file
+  → (optional) rhwp-converter export-svg → SVG/PDF
+  → gws-drive upload + Slack posting
+```
+
 ### Step 3: Post-Processing
 
-After conversion, optionally run downstream steps:
+After conversion or generation, optionally run downstream steps:
 
 - **Quality check**: Verify SVG output is valid and contains content
 - **Slack posting**: Upload preview images to project channels

@@ -1,28 +1,36 @@
 ---
 name: alphaear-stock
 description: >-
-  Search A-Share/HK/US stock tickers and retrieve OHLCV price history. Use
-  when the user asks about stock codes, recent price changes, specific company
-  stock info, or ad-hoc historical price queries. Do NOT use for routine
-  weekly price updates (use weekly-stock-update). Do NOT use for CSV downloads
-  from investing.com (use stock-csv-downloader). Do NOT use for technical
-  indicator analysis (use daily-stock-check). Do NOT use for news aggregation
-  (use alphaear-news). Do NOT use for finance-specific web search (use
-  alphaear-search). Korean triggers: "종목 검색", "주가 조회", "OHLCV", "티커".
+  Search A-Share/HK/US/KRX stock tickers and retrieve OHLCV price history. Use when
+  the user asks about stock codes, recent price changes, specific company stock
+  info, or ad-hoc historical price queries. Supports KRX (KOSPI/KOSDAQ/KONEX)
+  Korean stocks via k-skill-proxy search and yfinance historical data.
+  Do NOT use for routine weekly price updates (use weekly-stock-update).
+  Do NOT use for CSV downloads from investing.com (use stock-csv-downloader).
+  Do NOT use for technical indicator analysis (use daily-stock-check).
+  Do NOT use for news aggregation (use alphaear-news).
+  Do NOT use for finance-specific web search (use alphaear-search).
+  Korean triggers: "종목 검색", "주가 조회", "OHLCV", "티커", "코스피", "코스닥",
+  "KRX 종목", "한국 주식", "삼성전자", "005930".
+metadata:
+  version: "1.2.0"
+  last_updated: "2026-05-06"
+  category: "data-collection"
+  author: "alphaear"
 ---
-
 # AlphaEar Stock
 
 ## Overview
 
-Search A-Share, HK, and US stock tickers by code or name, and retrieve historical OHLCV price data. Optimized for ad-hoc lookups and historical queries. The skill caches data in SQLite (`data/signal_flux.db`). The project also tracks 21 tickers in `data/latest/` and the project PostgreSQL backend — for routine updates, use `weekly-stock-update`; for CSV imports from investing.com, use `stock-csv-downloader`.
+Search A-Share, HK, US, and **KRX (KOSPI/KOSDAQ/KONEX)** stock tickers by code or name, and retrieve historical OHLCV price data. Optimized for ad-hoc lookups and historical queries. The skill caches data in SQLite (`data/signal_flux.db`). KRX ticker search uses `k-skill-proxy` (no API key needed); historical data fetched via `yfinance` with `.KS`/`.KQ` suffixes. The project also tracks 21 tickers in `data/latest/` and the project PostgreSQL backend -- for routine updates, use `weekly-stock-update`; for CSV imports from investing.com, use `stock-csv-downloader`.
 
 ## Prerequisites
 
 - Python 3.10+
-- `pandas`, `requests`, `akshare`, `yfinance`
-- `scripts/database_manager.py` (SQLite — `data/signal_flux.db`)
-- Network access for akshare/yfinance
+- `pandas`, `requests`, `akshare`, `yfinance`, `loguru`
+- `scripts/database_manager.py` (SQLite -- `data/signal_flux.db`)
+- Network access for akshare/yfinance/k-skill-proxy
+- `KSKILL_PROXY_BASE_URL` env (default: `https://k-skill-proxy.nomadamas.org`)
 
 ## Workflow
 

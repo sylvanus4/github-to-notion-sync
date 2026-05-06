@@ -1,12 +1,19 @@
 ---
 name: marketing-seo-ops
-version: 1.0.0
-description: SEO operations stack — content attack briefs, Google Search Console optimization, keyword gap analysis, and trend scouting for organic growth.
+version: 1.1.0
+description: >-
+  SEO operations stack -- content attack briefs, Google Search Console optimization,
+  keyword gap analysis, trend scouting, and Naver Blog SEO (C-Rank, D.I.A.+, GEO)
+  for organic growth across Google and Naver.
 ---
 
 # Marketing SEO Ops
 
-SEO operations stack combining content attack briefs, GSC data analysis, keyword gap identification, and trend scouting for systematic organic growth.
+SEO operations stack combining content attack briefs, GSC data analysis, keyword gap identification, trend scouting, and **Naver Blog SEO optimization** (C-Rank, D.I.A.+, GEO) for systematic organic growth across Google and Korean Naver search.
+
+## References
+
+- `references/naver-blog-seo.md` -- Naver Blog SEO guide: C-Rank, D.I.A.+, keyword strategy, content structure, GEO (AI search optimization), SEO+GEO simultaneous optimization checklist
 
 ## Triggers
 
@@ -15,13 +22,16 @@ Use when the user asks to:
 - "SEO analysis", "content attack brief", "GSC optimization", "keyword gap"
 - "trend scout", "SEO audit", "striking distance keywords"
 - "SEO 분석", "콘텐츠 어택 브리프", "키워드 갭 분석"
+- "Naver SEO", "네이버 SEO", "블로그 SEO", "C-Rank", "D.I.A.+", "GEO 최적화"
+- "네이버 블로그 최적화", "AI 검색 최적화", "네이버 상위 노출"
 
 ## Do NOT Use
 
-- For 4-pillar strategic SEO audit (AEO, Core Web Vitals, technical audit, content gap) → use `ai-seo-growth-engine`
-- For general marketing performance analytics → use `kwp-marketing-performance-analytics`
-- For content creation without SEO analysis → use `kwp-marketing-content-creation`
-- For website cloning → use `clone-website`
+- For 4-pillar strategic SEO audit (AEO, Core Web Vitals, technical audit, content gap) -> use `ai-seo-growth-engine`
+- For general marketing performance analytics -> use `kwp-marketing-performance-analytics`
+- For content creation without SEO analysis -> use `kwp-marketing-content-creation`
+- For website cloning -> use `clone-website`
+- For Korean e-commerce platform SEO (Smartstore, Coupang) -> use `kr-ecommerce-guide`
 
 ## Prerequisites
 

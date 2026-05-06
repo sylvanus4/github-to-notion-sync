@@ -60,7 +60,7 @@ Remote Agent (Anthropic Cloud)
 ```bash
 curl -s -X POST -H 'Content-type: application/json' \
   --data '{"text":"MESSAGE"}' \
-  '$SLACK_WEBHOOK_URL'
+  "$SLACK_WEBHOOK_AGENT_WORK"
 ```
 - #agent-work 채널로 자동 라우팅
 - Thread reply 미지원 -- 모든 내용을 단일 메시지에 포함

@@ -363,6 +363,31 @@ gh api repos/{OWNER}/{REPO}/commits?path={FILE_PATH}&per_page=10
 
 ---
 
+## Step 6 -- K8s Failure Mode 점검 (Optional Deep Dive)
+
+Decision Tree에서 근본 원인이 K8s 설정 오류로 식별된 경우, `kubeshark` 스킬의 failure mode 분류 체계로 deep dive한다.
+
+| 증상 | KubeShark FM | 점검 항목 |
+|------|-------------|----------|
+| OOMKilled / CPU throttling | FM2 Resource Starvation | requests/limits 설정, QoS class (Guaranteed/Burstable/BestEffort), PDB 존재 여부 |
+| CrashLoopBackOff (설정 오류) | FM1 Insecure Defaults | securityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL), PSS 레벨 |
+| ImagePullBackOff | FM1 Insecure Defaults | imagePullSecrets 설정, 이미지 태그 mutable 여부 |
+| 스케줄링 실패 (GPU) | FM2 Resource Starvation | GPU resource request, kai-scheduler 지정, Kyverno pod-gpu-validation 정책 |
+| Pod restart loop | FM5 Fragile Rollouts | livenessProbe에 외부 의존성 체크 여부, preStop hook, terminationGracePeriodSeconds |
+
+```bash
+# securityContext 점검
+kubectl get pod {POD_NAME} -n {NAMESPACE} -o jsonpath='{.spec.securityContext}' | python3 -m json.tool
+kubectl get pod {POD_NAME} -n {NAMESPACE} -o jsonpath='{.spec.containers[0].securityContext}' | python3 -m json.tool
+
+# Resource 설정 점검
+kubectl get pod {POD_NAME} -n {NAMESPACE} -o jsonpath='{.spec.containers[0].resources}' | python3 -m json.tool
+
+# Probe 설정 점검
+kubectl get deploy {DEPLOYMENT_NAME} -n {NAMESPACE} -o jsonpath='{.spec.template.spec.containers[0].livenessProbe}' | python3 -m json.tool
+kubectl get deploy {DEPLOYMENT_NAME} -n {NAMESPACE} -o jsonpath='{.spec.template.spec.containers[0].readinessProbe}' | python3 -m json.tool
+```
+
 ## 노션 업로드 (필수)
 
 RCA 리포트 완료 후 반드시 아래 절차를 수행합니다:

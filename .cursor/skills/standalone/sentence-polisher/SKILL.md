@@ -76,6 +76,24 @@ Check 4 categories. For the full error taxonomy and examples, see [references/er
 - Formal ending consistency (do not mix speech levels within one document)
 - Double-subject constructions
 
+### Step 3.5: Korean Spell-Check via 바른한글 (Optional)
+
+When Korean text is detected (Korean mode or Bilingual mode), optionally verify spelling and grammar against 국립국어원 rules using the 바른한글 API (successor of 부산대 맞춤법 검사기). For full API details, see [references/korean-spell-check-api.md](references/korean-spell-check-api.md).
+
+**When to run**: After Step 3 Error Scan, before Step 4 Auto-fix. Runs only in Korean/Bilingual mode.
+
+**Procedure**:
+
+1. **Chunk** the Korean text into segments of max 1500 characters, splitting at sentence boundaries (`.`, `!`, `?`, `\n`)
+2. **POST** each chunk to `https://lab-api.bsm.klnet.kr/v1/check` with form-encoded `text` parameter
+3. **Wait 1 second** between each API call (mandatory rate limit)
+4. **Parse** corrections: each item has `original`, `suggestion`, `reason` fields
+5. **Merge** API corrections into the Error Scan results under Korean-specific > 맞춤법 검사기 sub-category
+
+**Graceful degradation**: If the API is unavailable, returns errors, or times out (>5s), skip this step silently and rely on LLM-based Korean-specific checks from Step 3. Log the skip reason but do not block the pipeline.
+
+**Usage policy**: Non-commercial use only. Do not cache or redistribute API results. Keep call frequency low.
+
 ### Step 4: Auto-fix
 
 Apply all fixes directly to the text:
