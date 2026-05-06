@@ -211,8 +211,8 @@ Plan → Execute → User Feedback → MemKraft 기록 → Consolidation 분석 
 | Layer | What to Log | Where |
 |-------|-------------|-------|
 | **Plan** | goal text, decomposition count, skill candidates, selected skills, classification result | Plan archive frontmatter |
-| **Dispatch** | subagent type, model tier, input size (chars), start timestamp | Goal state `iterations[]` |
-| **Execution** | tool calls count, tokens consumed, elapsed_ms, exit status | Goal state `iterations[]` |
+| **Dispatch** | agent name, subagent type, model tier, input size (chars), start timestamp | Goal state `iterations[]` |
+| **Execution** | skills_used[], data_sources[], pipeline pattern, tool calls count, tokens consumed, elapsed_ms, exit status | Goal state `iterations[]` |
 | **Result** | output artifact paths, verification pass/fail, user approval/rejection | Goal state + MemKraft |
 
 ### 핵심 지표 (Metrics)
@@ -235,7 +235,11 @@ Plan → Execute → User Feedback → MemKraft 기록 → Consolidation 분석 
 {
   "iter": 3,
   "ts": "2026-05-04T10:23:00+09:00",
+  "agent": "rr-solopreneur-researcher",
   "action": "dispatch role-researcher",
+  "skills_used": ["parallel-web-search", "kb-ingest", "defuddle"],
+  "data_sources": ["web:google", "KB:competitive-intel"],
+  "pipeline": "Sequential(collect -> analyze -> persist)",
   "model": "default",
   "tokens_in": 1200,
   "tokens_out": 3400,
@@ -265,6 +269,10 @@ Goal: goal-2026-05-04-lead-magnet | Status: pursuing
 Progress: 2/3 criteria met | Iter: 4/10 | Budget: $2.10/$5.00
 Token: 180K/500K | Elapsed: 2h 15m | Error rate: 0%
 Last action: role-copywriter (success, 45s, 12K tokens)
+  Agent: rr-solopreneur-content
+  Skills: content-graph-produce, hook-generator, edit-article
+  Data: KB:content-library, web:competitor-blogs
+  Pipeline: Sequential(plan -> draft -> edit-loop -> distribute)
 Next suggested: role-builder
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
